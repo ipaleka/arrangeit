@@ -1,0 +1,6 @@
+.vscode/
+__pycache__
+.pytest_cache
+arrangeit.code-workspace
+htmlcov/
+.coverage
