@@ -6,7 +6,7 @@ from arrangeit.utils import get_collector, get_player
 
 
 class TestStructure(object):
-    """Classes structure testing class"""
+    """Testing class for platform specific subpackages structure."""
 
     ## BaseCollector
     @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
@@ -20,7 +20,7 @@ class TestStructure(object):
 
 
 class TestSetup(object):
-    """App initialization and configuration testing class"""
+    """Testing class for main app initialization and configuration."""
 
     ## main
     def test_main_initializes_App(self, mocker):

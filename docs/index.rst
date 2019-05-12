@@ -10,7 +10,12 @@ Welcome to arrangeit's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   installation
+   userguide
 
+   requirements
+
+   api
 
 Indices and tables
 ==================

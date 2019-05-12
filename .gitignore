@@ -4,3 +4,4 @@ __pycache__
 arrangeit.code-workspace
 htmlcov/
 .coverage
+docs/_build
