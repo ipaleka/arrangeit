@@ -1,4 +1,6 @@
-class Collector:
+from arrangeit.base import BaseCollector
+
+class Collector(BaseCollector):
 
     def __init__(self):
         pass

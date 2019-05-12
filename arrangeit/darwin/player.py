@@ -1,6 +1,6 @@
-from arrangeit.base import BaseCollector
+from arrangeit.base import BasePlayer
 
-class Collector(BaseCollector):
+class Player(BasePlayer):
 
     def __init__(self):
         pass

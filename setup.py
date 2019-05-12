@@ -14,7 +14,7 @@ with open('LICENSE') as f:
 setup(
     name='arrangeit',
     version='0.0.1',
-    description='arrangeit',
+    description='Cross-platform utility for easy placement of the visible windows on desktop',
     long_description=readme,
     author='Ivica Paleka',
     author_email='ipaleka@hopemeet.me',

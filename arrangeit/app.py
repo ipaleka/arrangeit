@@ -1,23 +1,27 @@
-from platform import system
-from importlib import import_module
+from arrangeit import utils
 
-
-class App:
+class App(object):
     collector = None
+    player = None
 
     def __init__(self):
-        self.collector = self.setup_collector()
-
-    def platform_path(self):
-        return system().lower()
+        """Instantiates platform specific Collector and Player classes."""
+        self.collector = self.setup_collector()()
+        self.player = self.setup_player()()
 
     def setup_collector(self):
-        collector = import_module('arrangeit.{}.collector'.format(self.platform_path()))
-        return collector.Collector()
+        """Returns platform specific Collector class."""
+        return utils.get_collector()
+
+    def setup_player(self):
+        """Returns platform specific Player class."""
+        return utils.get_player()
 
     def setup(self):
         self.collector()
 
+    # def play(self):
+    #     self.player()
 
 
 def main():
