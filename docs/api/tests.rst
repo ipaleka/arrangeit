@@ -13,6 +13,24 @@
   :show-inheritance:
 
 
+:mod:`tests.test_base` -- Unit tests for all the base classes
+-------------------------------------------------------------
+
+.. automodule:: tests.test_base
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.test_data` -- Unit tests for window model
+-----------------------------------------------------
+
+.. automodule:: tests.test_data
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.test_utils` -- Unit tests for helper functions
 ----------------------------------------------------------
 

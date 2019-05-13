@@ -12,36 +12,32 @@ class TestUtils(object):
         mocker.patch("arrangeit.utils.system", return_value=name)
         assert utils.platform_path() == name.lower()
 
-    ## get_collector
-    def test_get_collector_involves_default_val_for_no_arg(self, mocker):
-        klass = utils.get_collector()
+    ## get_class
+    @pytest.mark.parametrize("name", ["app", "collector", "player"])
+    def test_get_class_involves_default_val_for_no_arg(self, mocker, name):
+        # calls function from utils module made of parameterized 'name'
+        klass = getattr(utils, "get_{}".format(name))()
         platform = utils.platform_path()
-        assert klass.__module__ == "arrangeit.{}.collector".format(platform)
+        assert klass.__module__ == "arrangeit.{}.{}".format(platform, name)
 
-    @pytest.mark.parametrize("name", ["darwin", "linux", "windows"])
-    def test_get_collector_involves_provided_argument(self, name):
-        klass = utils.get_collector(name)
-        assert klass.__module__ == "arrangeit.{}.collector".format(name)
+    @pytest.mark.parametrize("name", ["app", "collector", "player"])
+    @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
+    def test_get_function_involves_provided_argument(self, platform, name):
+        # calls function from utils module made of parameterized 'name'
+        klass = getattr(utils, "get_{}".format(name))(platform)
+        assert klass.__module__ == "arrangeit.{}.{}".format(platform, name)
 
-    @pytest.mark.parametrize("name", ["java", "foo", "android"])
-    def test_get_collector_raises_SystemExit_for_invalid_platform(self, name):
+    @pytest.mark.parametrize("name", ["app", "collector", "player"])
+    @pytest.mark.parametrize("platform", ["java", "foo", "android"])
+    def test_get_function_raises_SystemExit_for_invalid_platform(self, platform, name):
         with pytest.raises(SystemExit) as exception:
-            utils.get_collector(name)
+            # calls function from utils module made of parameterized 'name'
+            getattr(utils, "get_{}".format(name))(platform)
         assert "on your platform" in exception.value.code
 
-    ## get_player
-    def test_get_player_involves_default_val_for_no_arg(self, mocker):
-        klass = utils.get_player()
-        platform = utils.platform_path()
-        assert klass.__module__ == "arrangeit.{}.player".format(platform)
-
-    @pytest.mark.parametrize("name", ["darwin", "linux", "windows"])
-    def test_get_player_involves_provided_argument(self, name):
-        klass = utils.get_player(name)
-        assert klass.__module__ == "arrangeit.{}.player".format(name)
-
-    @pytest.mark.parametrize("name", ["java", "foo", "android"])
-    def test_get_player_raises_SystemExit_for_invalid_platform(self, name):
-        with pytest.raises(SystemExit) as exception:
-            utils.get_player(name)
-        assert "on your platform" in exception.value.code
+    @pytest.mark.parametrize("function", ["get_app", "get_collector", "get_player"])
+    def test_get_function_calls_get_class(self, mocker, function):
+        mocker.patch("arrangeit.utils.get_class")
+        # calls function from utils module named from parameterized name
+        getattr(utils, function)()
+        utils.get_class.assert_called_once()

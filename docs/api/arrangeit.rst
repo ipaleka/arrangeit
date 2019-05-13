@@ -4,10 +4,10 @@
 .. automodule:: arrangeit
 
 
-:mod:`arrangeit.app` -- Main app module
----------------------------------------
+:mod:`arrangeit.main` -- Main module of the arrangeit application
+-----------------------------------------------------------------
 
-.. automodule:: arrangeit.app
+.. automodule:: arrangeit.main
   :members:
   :undoc-members:
   :show-inheritance:
@@ -17,6 +17,15 @@
 -------------------------------------------------------------------------------
 
 .. automodule:: arrangeit.base
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`arrangeit.data` -- Module holding window model
+----------------------------------------------------
+
+.. automodule:: arrangeit.data
   :members:
   :undoc-members:
   :show-inheritance:
@@ -35,6 +44,15 @@
 ------------------------------------------------------------------------------
 
 .. automodule:: arrangeit.darwin
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`arrangeit.darwin.app` -- Module providing and running main app loop (Mac OS platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: arrangeit.darwin.app
   :members:
   :undoc-members:
   :show-inheritance:
@@ -67,6 +85,15 @@
   :show-inheritance:
 
 
+:mod:`arrangeit.linux.app` -- Module providing and running main app loop (GNU/Linux platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: arrangeit.linux.app
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`arrangeit.linux.collector` -- Module responsible for collecting windows (GNU/Linux platform specific code)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -89,6 +116,15 @@
 -----------------------------------------------------------------------------------
 
 .. automodule:: arrangeit.windows
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`arrangeit.windows.app` -- Module providing and running main app loop (MS Windows platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: arrangeit.windows.app
   :members:
   :undoc-members:
   :show-inheritance:

@@ -9,39 +9,53 @@ def platform_path():
     return system().lower()
 
 
-def get_collector(platform=platform_path()):
-    """Helper method for retrieving platform specific Collector class.
+def get_class(name, platform):
+    """Helper method for retrieving platform specific class instance
 
-    The platform argument gets its default value on module import
-    from the :func:`platform_path`.
+    for given ``name`` and ``platform``.
 
-    If Collector class can't be imported that means host system
+    If provided ``platform`` is None then we use :func:`platform_path`.
+
+    If class can't be imported that means host system
     isn't implemented (yet...) and so we sys.exit with a message.
+
+    :param name: string
+    :param platform: string or None
+    :returns: class instance from the platform specific package
+    """
+    try:
+        module = import_module(
+            "arrangeit.{}.{}".format(
+                platform if platform is not None else platform_path(), name.lower()
+            )
+        )
+    except ImportError:
+        sys.exit(_("arrangeit can't run on your platform. :("))
+    return getattr(module, name)
+
+
+def get_app(platform=None):
+    """Helper method for retrieving platform specific App class.
+
+    :param platform: string or None
+    :returns: **App** class from the platform specific package
+    """
+    return get_class("App", platform=platform)
+
+
+def get_collector(platform=None):
+    """Helper method for retrieving platform specific Collector class.
 
     :param platform: string
     :returns: **Collector** class from the platform specific package
     """
-    try:
-        collector = import_module("arrangeit.{}.collector".format(platform))
-    except ImportError:
-        sys.exit(_("arrangeit can't run on your platform. :("))
-    return collector.Collector
+    return get_class("Collector", platform)
 
 
-def get_player(platform=platform_path()):
+def get_player(platform=None):
     """Helper method for retrieving platform specific Player class.
-
-    The platform argument gets its default value on module import
-    from the :func:`platform_path`.
-
-    If Player class can't be imported that means host system
-    isn't implemented (yet...) and so we sys.exit with a message.
 
     :param platform: string
     :returns: **Player** class from the platform specific package
     """
-    try:
-        player = import_module("arrangeit.{}.player".format(platform))
-    except ImportError:
-        sys.exit(_("arrangeit can't run on your platform. :("))
-    return player.Player
+    return get_class("Player", platform)
