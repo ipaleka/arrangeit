@@ -21,4 +21,3 @@ class Collector(BaseCollector):
 
     def __call__(self):
         pass
-

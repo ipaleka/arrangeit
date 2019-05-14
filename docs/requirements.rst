@@ -1,26 +1,13 @@
 Requirements
 ============
 
-Development
------------
+Platforms
+---------
 
-This section is about the requirements necessary to use this project in development.
-
-GNU/Linux
-^^^^^^^^^
-
-Ubuntu
-""""""
-
-.. code-block:: bash
-
-  sudo apt-get install libgirepository1.0-dev gcc \
-    libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+arrangeit is expected to run under X Windows in GNU/Linux (Wayland is not supported. Yet...), under MS Windows (pretty much all versions) and under Mac OS X.
 
 
-To build latexpdf documentation:
+Requirements
+------------
 
-.. code-block:: bash
-
-  sudo apt-get install texlive texlive-latex-extra latexmk
-
+Python 3.5 is the minimum Python version required.

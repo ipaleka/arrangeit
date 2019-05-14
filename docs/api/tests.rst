@@ -31,6 +31,15 @@
   :show-inheritance:
 
 
+:mod:`tests.test_utils` -- Unit tests for helper functions
+----------------------------------------------------------
+
+.. automodule:: tests.test_utils
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.test_darwin` -- Unit tests for Mac OS specific code
 ---------------------------------------------------------------
 
@@ -53,15 +62,6 @@
 --------------------------------------------------------------------
 
 .. automodule:: tests.test_windows
-  :members:
-  :undoc-members:
-  :show-inheritance:
-
-
-:mod:`tests.test_utils` -- Unit tests for helper functions
-----------------------------------------------------------
-
-.. automodule:: tests.test_utils
   :members:
   :undoc-members:
   :show-inheritance:

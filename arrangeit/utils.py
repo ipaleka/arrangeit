@@ -83,4 +83,3 @@ def quarter_by_smaller(width, height):
     if width > height:
         return (int((height / 4) * 16 / 9), height // 4)
     return (width // 4, int((width / 4) * 9 / 16))
-

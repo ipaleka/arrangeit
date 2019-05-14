@@ -69,4 +69,3 @@ class BasePlayer(object):
 
     def __call__(self):
         pass
-

@@ -14,6 +14,7 @@ Welcome to arrangeit's documentation!
    userguide
 
    requirements
+   development
 
    api
 

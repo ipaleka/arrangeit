@@ -5,3 +5,4 @@ arrangeit.code-workspace
 htmlcov/
 .coverage
 docs/_build
+.scannerwork/
