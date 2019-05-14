@@ -10,19 +10,16 @@ class TestStructure(object):
     """Testing class for platform specific subpackages structure."""
 
     ## BaseApp
-    @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
-    def test_platform_App_issubclass_of_BaseApp(self, platform):
-        assert issubclass(get_app(platform), base.BaseApp)
+    def test_host_platform_App_issubclass_of_BaseApp(self):
+        assert issubclass(get_app(), base.BaseApp)
 
     ## BaseCollector
-    @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
-    def test_platform_Collector_issubclass_of_BaseCollector(self, platform):
-        assert issubclass(get_collector(platform), base.BaseCollector)
+    def test_host_platform_Collector_issubclass_of_BaseCollector(self):
+        assert issubclass(get_collector(), base.BaseCollector)
 
     ## BasePlayer
-    @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
-    def test_platform_Player_issubclass_of_BasePlayer(self, platform):
-        assert issubclass(get_player(platform), base.BasePlayer)
+    def test_host_platform_Player_issubclass_of_BasePlayer(self):
+        assert issubclass(get_player(), base.BasePlayer)
 
 
 class TestSetup(object):

@@ -22,11 +22,10 @@ class TestUtils(object):
 
     ## get_"function"
     @pytest.mark.parametrize("name", ["app", "collector", "player"])
-    @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
-    def test_get_function_involves_provided_argument(self, platform, name):
-        # calls function from utils module made of parameterized 'name'
-        klass = getattr(utils, "get_{}".format(name))(platform)
-        assert klass.__module__ == "arrangeit.{}.{}".format(platform, name)
+    def test_get_function_involves_provided_argument(self, mocker, name):
+        with pytest.raises(SystemExit):
+            # calls function from utils module made of parameterized 'name'
+            getattr(utils, "get_{}".format(name))("fooplatform")
 
     @pytest.mark.parametrize("name", ["app", "collector", "player"])
     @pytest.mark.parametrize("platform", ["java", "foo", "android"])

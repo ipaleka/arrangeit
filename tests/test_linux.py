@@ -9,7 +9,6 @@ from gi.repository import Wnck
 from arrangeit.linux.collector import Collector
 
 
-@pytest.mark.skipif(platform.system() != "Linux", reason="GNU/Linux only tests")
 class TestLinuxCollector(object):
     """Testing class for :py:class:`arrangeit.linux.collector.Collector` class."""
 
