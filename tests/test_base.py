@@ -66,25 +66,36 @@ class TestBaseCollector(object):
         assert getattr(collector, "collection", None) is not None
         assert isinstance(getattr(collector, "collection"), data.WindowsCollection)
 
-    ## BaseCollector.applicable
-    def test_BaseCollector_applicable_raises_NotImplementedError(self):
+    ## BaseCollector.is_applicable
+    def test_BaseCollector_is_applicable_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
-            base.BaseCollector().applicable(0)
+            base.BaseCollector().is_applicable(0)
 
-    ## BaseCollector.valid_state
-    def test_BaseCollector_valid_state_raises_NotImplementedError(self):
+    ## BaseCollector.is_valid_state
+    def test_BaseCollector_is_valid_state_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
-            base.BaseCollector().valid_state(0, 0)
+            base.BaseCollector().is_valid_state(0, 0)
 
-    ## BaseCollector.resizable
-    def test_BaseCollector_resizable_raises_NotImplementedError(self):
+    ## BaseCollector.is_resizable
+    def test_BaseCollector_is_resizable_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
-            base.BaseCollector().resizable(0)
+            base.BaseCollector().is_resizable(0)
+
+    ## BaseCollector.get_windows
+    def test_BaseCollector_get_windows_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().get_windows()
+
+    ## BaseCollector.check_window
+    def test_BaseCollector_check_window_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().check_window(None)
 
     ## BaseCollector.__call__
     def test_BaseCollector___call___raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
             base.BaseCollector()()
+
 
 class TestBasePlayer(object):
     """Testing class for base Player class."""

@@ -12,6 +12,7 @@ class WindowModel(object):
     :var name: window's application name
     :type name: string
     """
+
     wid = None
     rect = None
     resizable = None
@@ -23,16 +24,20 @@ class WindowModel(object):
         self.setup(**kwargs)
 
     def setup(self, **kwargs):
-        """Sets model data if provided in kwargs."""
-        self.wid = kwargs.get('wid', None)
-        self.rect = kwargs.get('rect', None)
-        self.resizable = kwargs.get('resizable', None)
-        self.title = kwargs.get('title', None)
-        self.name = kwargs.get('name', None)
+        """Sets model data from provided kwargs
+
+        or sets the value to None if attribute isn't provided.
+        """
+        self.wid = kwargs.get("wid", None)
+        self.rect = kwargs.get("rect", None)
+        self.resizable = kwargs.get("resizable", None)
+        self.title = kwargs.get("title", None)
+        self.name = kwargs.get("name", None)
 
 
 class WindowsCollection(object):
     """Class holding visible windows collection."""
+
     _members = None
 
     def __init__(self):
@@ -52,11 +57,19 @@ class WindowsCollection(object):
         """Adds given instance to _members list.
 
         Raises ValueError if given ``instance`` isn't a WindowModel instance.
+
+        :param instance: window data
+        :type instance: WindowModel instance
         """
         if not isinstance(instance, WindowModel):
             raise ValueError("accepting only WindowModel instance")
         self._members.append(instance)
 
     def generator(self):
+        """Yields the next member from ``_members``.
+
+        Raises ValueError if given ``instance`` isn't a WindowModel instance.
+        :returns: WindowModel instance
+        """
         for member in self._members:
             yield member

@@ -13,7 +13,7 @@ from arrangeit.linux.collector import Collector
 class TestLinuxCollector(object):
     """Testing class for :py:class:`arrangeit.linux.collector.Collector` class."""
 
-    ## Collector.applicable
+    ## Collector.is_applicable
     @pytest.mark.parametrize(
         "window_type,value",
         [
@@ -27,10 +27,10 @@ class TestLinuxCollector(object):
             (Wnck.WindowType.SPLASHSCREEN, False),
         ],
     )
-    def test_LinuxCollector_applicable(self, window_type, value):
-        assert Collector().applicable(window_type) == value
+    def test_LinuxCollector_is_applicable(self, window_type, value):
+        assert Collector().is_applicable(window_type) == value
 
-    ## Collector.valid_state
+    ## Collector.is_valid_state
     @pytest.mark.parametrize(
         "window_type,window_state,value",
         [
@@ -51,10 +51,10 @@ class TestLinuxCollector(object):
             (Wnck.WindowType.NORMAL, Wnck.WindowState.BELOW, True),
         ],
     )
-    def test_LinuxCollector_valid_state(self, window_type, window_state, value):
-        assert Collector().valid_state(window_type, window_state) == value
+    def test_LinuxCollector_is_valid_state(self, window_type, window_state, value):
+        assert Collector().is_valid_state(window_type, window_state) == value
 
-    ## Collector.resizable
+    ## Collector.is_resizable
     @pytest.mark.parametrize(
         "window_type,value",
         [
@@ -63,20 +63,97 @@ class TestLinuxCollector(object):
             (Wnck.WindowType.UTILITY, False),
         ],
     )
-    def test_LinuxCollector_resizable(self, window_type, value):
-        assert Collector().resizable(window_type) == value
+    def test_LinuxCollector_is_resizable(self, window_type, value):
+        assert Collector().is_resizable(window_type) == value
 
     ## LinuxCollector.get_windows
-    @pytest.mark.parametrize(
-        "method", ["get_default", "force_update", "get_windows"],
-    )
+    @pytest.mark.parametrize("method", ["get_default", "force_update", "get_windows"])
     def test_LinuxCollector_get_windows_calls_Screen_methods(self, mocker, method):
         mocker.patch("arrangeit.linux.collector.Wnck.Screen.{}".format(method))
         Collector().get_windows()
         getattr(Wnck.Screen, method).assert_called_once()
 
+    ## LinuxCollector.check_window
+    def test_LinuxCollector_check_window_calls_W_get_window_type(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
+        Collector().check_window(Wnck.Window)
+        Wnck.Window.get_window_type.assert_called_once()
+
+    def test_LinuxCollector_check_window_calls_is_applicable(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_state")
+        mocker.patch("arrangeit.linux.collector.Collector.is_applicable")
+        Collector().check_window(Wnck.Window)
+        Collector.is_applicable.assert_called_once()
+
+    def test_LinuxCollector_check_window_calls_W_get_state(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_applicable", return_Value=True
+        )
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_state")
+        Collector().check_window(Wnck.Window)
+        Wnck.Window.get_state.assert_called_once()
+
+    def test_LinuxCollector_check_window_calls_is_valid_state(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_applicable", return_Value=True
+        )
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_state")
+        mocker.patch("arrangeit.linux.collector.Collector.is_valid_state")
+        Collector().check_window(Wnck.Window)
+        Collector.is_valid_state.assert_called_once()
+
+    def test_LinuxCollector_check_window_returns_False_for_not_is_applic(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_applicable", return_value=False
+        )
+        assert not Collector().check_window(Wnck.Window)
+
+    def test_LinuxCollector_check_window_returns_False_for_invalid_state(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_applicable", return_value=True
+        )
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_state")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_valid_state", return_value=False
+        )
+        assert not Collector().check_window(Wnck.Window)
+
+    def test_LinuxCollector_check_window_returns_True_for_both_True(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_applicable", return_value=True
+        )
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_state")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_valid_state", return_value=True
+        )
+        assert Collector().check_window(Wnck.Window)
+
+    ## LinuxCollector.__call__
+    def test_LinuxCollector__call___calls_is_resizable(self, mocker):
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_windows",
+            return_value=(mocker.MagicMock(),),
+        )
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_applicable", side_effect=(True,)
+        )
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.is_valid_state", side_effect=(True,)
+        )
+        mocker.patch("arrangeit.linux.collector.Collector.is_resizable")
+        Collector()()
+        Collector.is_resizable.assert_called_once()
+
+    # TODo: check calls for Wnck.Window methods, collection.add and WindowModel.__init__
+
     @pytest.mark.parametrize(
-        "applicable,valid_state,value",
+        "is_applicable,is_valid_state,value",
         [
             ((True, True), (True, True), 2),
             ((True, True), (True, False), 1),
@@ -85,16 +162,20 @@ class TestLinuxCollector(object):
             ((False, False), (False, False), 0),
         ],
     )
-    def test_LinuxCollector___call__(self, mocker, applicable, valid_state, value):
+    def test_LinuxCollector___call__(
+        self, mocker, is_applicable, is_valid_state, value
+    ):
         mocker.patch(
             "arrangeit.linux.collector.Collector.get_windows",
             return_value=(mocker.MagicMock(), mocker.MagicMock()),
         )
         mocker.patch(
-            "arrangeit.linux.collector.Collector.applicable", side_effect=applicable
+            "arrangeit.linux.collector.Collector.is_applicable",
+            side_effect=is_applicable,
         )
         mocker.patch(
-            "arrangeit.linux.collector.Collector.valid_state", side_effect=valid_state
+            "arrangeit.linux.collector.Collector.is_valid_state",
+            side_effect=is_valid_state,
         )
         collector = Collector()
         collector()

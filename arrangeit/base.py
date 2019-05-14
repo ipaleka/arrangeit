@@ -4,6 +4,7 @@ from arrangeit.data import WindowModel, WindowsCollection
 
 class BaseApp(object):
     """Base App class holding common code for all the platforms."""
+
     collector = None
     player = None
 
@@ -27,20 +28,29 @@ class BaseApp(object):
 
 class BaseCollector(object):
     """Base Collector class holding common code for all the platforms."""
+
     collection = None
 
     def __init__(self):
         self.collection = WindowsCollection()
 
-    def applicable(self, window_type):
+    def is_applicable(self, window_type):
         """Method must be overridden."""
         raise NotImplementedError
 
-    def valid_state(self, window_type, window_state):
+    def is_valid_state(self, window_type, window_state):
         """Method must be overridden."""
         raise NotImplementedError
 
-    def resizable(self, window_type):
+    def is_resizable(self, window_type):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def get_windows(self):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def check_window(self, win):
         """Method must be overridden."""
         raise NotImplementedError
 
@@ -51,6 +61,7 @@ class BaseCollector(object):
 
 class BasePlayer(object):
     """Base Player class holding common code for all the platforms."""
+
     model = None
 
     def __init__(self):
