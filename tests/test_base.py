@@ -57,25 +57,53 @@ class TestBaseCollector(object):
     """Testing class for base Collector class."""
 
     ## BaseCollector
-    def test_BaseCollector_inits_model_as_None(self):
-        assert base.BaseCollector.model is None
+    def test_BaseCollector_inits_collection_as_None(self):
+        assert base.BaseCollector.collection is None
 
-    def test_BaseCollector_initialization_instantiate_WindowModel(self, mocker):
+    ## BaseCollector.__init__
+    def test_BaseCollector_initialization_instantiate_WindowsCollection(self, mocker):
         collector = base.BaseCollector()
-        assert getattr(collector, "model", None) is not None
-        assert isinstance(getattr(collector, "model"), data.WindowModel)
+        assert getattr(collector, "collection", None) is not None
+        assert isinstance(getattr(collector, "collection"), data.WindowsCollection)
 
-    @pytest.mark.skip(reason="not implemented yet")
-    def test_BaseCollector_next_calls_model_setup(self, mocker):
-        pass
+    ## BaseCollector.applicable
+    def test_BaseCollector_applicable_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().applicable(0)
 
-    @pytest.mark.skip(reason="not implemented yet")
-    def test_BaseCollector_next_yields_model_instance(self, mocker):
-        pass
+    ## BaseCollector.valid_state
+    def test_BaseCollector_valid_state_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().valid_state(0, 0)
 
+    ## BaseCollector.resizable
+    def test_BaseCollector_resizable_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().resizable(0)
+
+    ## BaseCollector.__call__
+    def test_BaseCollector___call___raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector()()
 
 class TestBasePlayer(object):
     """Testing class for base Player class."""
+
+    def test_BasePlayer_inits_model_as_None(self):
+        assert base.BasePlayer.model is None
+
+    def test_BasePlayer_initialization_instantiate_WindowModel(self, mocker):
+        player = base.BasePlayer()
+        assert getattr(player, "model", None) is not None
+        assert isinstance(getattr(player, "model"), data.WindowModel)
+
+    @pytest.mark.skip(reason="not implemented yet")
+    def test_BasePlayer_next_calls_model_setup(self, mocker):
+        pass
+
+    @pytest.mark.skip(reason="not implemented yet")
+    def test_BasePlayer_next_yields_model_instance(self, mocker):
+        pass
 
     @pytest.mark.skip(reason="not implemented yet")
     def test_BasePlayer_next_calls_BaseCollector_next(self, mocker):

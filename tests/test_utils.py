@@ -20,6 +20,7 @@ class TestUtils(object):
         platform = utils.platform_path()
         assert klass.__module__ == "arrangeit.{}.{}".format(platform, name)
 
+    ## get_"function"
     @pytest.mark.parametrize("name", ["app", "collector", "player"])
     @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
     def test_get_function_involves_provided_argument(self, platform, name):
@@ -41,3 +42,18 @@ class TestUtils(object):
         # calls function from utils module named from parameterized name
         getattr(utils, function)()
         utils.get_class.assert_called_once()
+
+    ## quarter_by_smaller
+    @pytest.mark.parametrize(
+        "w,h,expected",
+        [
+            (3200, 1080, (480, 270)),
+            (1920, 1080, (480, 270)),
+            (1280, 960, (426, 240)),
+            (800, 600, (266, 150)),
+            (600, 800, (150, 84)),
+            (1920, 2160, (480, 270)),
+        ],
+    )
+    def test_quarter_by_smaller(self, w, h, expected):
+        assert utils.quarter_by_smaller(w, h) == expected

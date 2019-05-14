@@ -1,5 +1,5 @@
 from arrangeit import utils
-from arrangeit.data import WindowModel
+from arrangeit.data import WindowModel, WindowsCollection
 
 
 class BaseApp(object):
@@ -21,33 +21,40 @@ class BaseApp(object):
         return utils.get_player()
 
     def run(self):
+        """Method must be overridden."""
         raise NotImplementedError
-
-    # def play(self):
-    #     self.player()
 
 
 class BaseCollector(object):
     """Base Collector class holding common code for all the platforms."""
-    model = None
+    collection = None
 
     def __init__(self):
-        self.model = WindowModel()
+        self.collection = WindowsCollection()
+
+    def applicable(self, window_type):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def valid_state(self, window_type, window_state):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def resizable(self, window_type):
+        """Method must be overridden."""
+        raise NotImplementedError
 
     def __call__(self):
-        pass
-
-    # def __iter__(self):
-    #     for elem in self._datastructure:
-    #         if elem.visible:
-    #             yield elem.value
+        """Method must be overridden."""
+        raise NotImplementedError
 
 
 class BasePlayer(object):
     """Base Player class holding common code for all the platforms."""
+    model = None
 
     def __init__(self):
-        pass
+        self.model = WindowModel()
 
     def __call__(self):
         pass

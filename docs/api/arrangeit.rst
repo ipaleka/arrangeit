@@ -22,8 +22,8 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.data` -- Module holding window model
-----------------------------------------------------
+:mod:`arrangeit.data` -- Module with classes holding visible windows data
+-------------------------------------------------------------------------
 
 .. automodule:: arrangeit.data
   :members:
