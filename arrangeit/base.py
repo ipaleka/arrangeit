@@ -32,6 +32,7 @@ class BaseCollector(object):
     collection = None
 
     def __init__(self):
+        """Initiates ``collection`` as empty :class:`WindowsCollection` instance."""
         self.collection = WindowsCollection()
 
     def is_applicable(self, window_type):
@@ -51,6 +52,10 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def check_window(self, win):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def add_window(self, win):
         """Method must be overridden."""
         raise NotImplementedError
 

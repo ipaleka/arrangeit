@@ -30,9 +30,9 @@ class TestWindowModel(object):
 
     ## WindowModel.__init__
     def test_WindowModel_initialization_calls_setup(self, mocker):
-        mocker.patch("arrangeit.data.WindowModel.setup")
+        mocked = mocker.patch("arrangeit.data.WindowModel.setup")
         WindowModel()
-        WindowModel.setup.assert_called_once()
+        mocked.assert_called_once()
 
     ## WindowModel.setup
     @pytest.mark.parametrize("values", SAMPLE_MODEL_VALUES)

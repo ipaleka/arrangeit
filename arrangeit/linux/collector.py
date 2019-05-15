@@ -96,26 +96,35 @@ class Collector(BaseCollector):
 
         return True
 
+    def add_window(self, win):
+        """Creates WindowModel instance from provided win and adds it to collection.
+
+        :param win: window to create WindowModel from it
+        :type win: Wnck.Window object
+        """
+        self.collection.add(
+            WindowModel(
+                wid=win.get_xid(),
+                rect=win.get_geometry(),
+                resizable=self.is_resizable(win.get_window_type()),
+                title=win.get_name(),
+                name=win.get_class_group_name(),
+            )
+        )
+
     def __call__(self):
         """Populates ``collection`` with WindowModel instances
 
         created from the windows list provided by :func:`get_windows`
-        after they are checked for compliance with :func:`check_window`.
+        after they are checked for compliance with :func:`check_window`
+        by calling :func:`add_window`.
 
         :var win: current window instance in the loop
         :type win: Wnck.Window object
         """
         for win in self.get_windows():
             if self.check_window(win):
-                self.collection.add(
-                    WindowModel(
-                        wid=win.get_xid(),
-                        rect=win.get_geometry(),
-                        resizable=self.is_resizable(win.get_window_type()),
-                        title=win.get_name(),
-                        name=win.get_class_group_name(),
-                    )
-                )
-        # Clean after Wnck
+                self.add_window(win)
+
         win = None
         Wnck.shutdown()

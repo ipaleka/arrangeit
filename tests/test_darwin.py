@@ -1,8 +1,6 @@
-import platform
+# import pytest
 
-import pytest
-
-from arrangeit.darwin.collector import Collector
+# from arrangeit.darwin.collector import Collector
 
 
 class TestDarwinCollector(object):

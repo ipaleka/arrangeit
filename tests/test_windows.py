@@ -1,8 +1,6 @@
-import platform
+# import pytest
 
-import pytest
-
-from arrangeit.windows.collector import Collector
+# from arrangeit.windows.collector import Collector
 
 
 class TestWindowsCollector(object):

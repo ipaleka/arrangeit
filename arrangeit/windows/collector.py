@@ -19,5 +19,8 @@ class Collector(BaseCollector):
     def check_window(self, win):
         pass
 
+    def add_window(self, win):
+        pass
+
     def __call__(self):
         pass

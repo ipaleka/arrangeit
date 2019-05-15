@@ -37,10 +37,9 @@ class TestUtils(object):
 
     @pytest.mark.parametrize("function", ["get_app", "get_collector", "get_player"])
     def test_get_function_calls_get_class(self, mocker, function):
-        mocker.patch("arrangeit.utils.get_class")
-        # calls function from utils module named from parameterized name
+        mocked = mocker.patch("arrangeit.utils.get_class")
         getattr(utils, function)()
-        utils.get_class.assert_called_once()
+        mocked.assert_called_once()
 
     ## quarter_by_smaller
     @pytest.mark.parametrize(
