@@ -165,34 +165,12 @@ class TestLinuxCollector(object):
         mocked.assert_called_once()
 
     ## LinuxCollector.__call__
-    def test_LinuxCollector__call___calls_get_windows(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_windows")
+    def test_LinuxCollector___call___super(self, mocker):
+        mocked = mocker.patch("arrangeit.base.BaseCollector.__call__")
         Collector()()
-        mocked.assert_called_once()
+        mocked.assert_called()
 
-    def test_LinuxCollector__call___calls_check_window(self, mocker):
-        mocker.patch(
-            "arrangeit.linux.collector.Collector.get_windows",
-            return_value=(mocker.MagicMock(),),
-        )
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.check_window")
-        mocker.patch("arrangeit.linux.collector.Collector.add_window")
-        Collector()()
-        mocked.assert_called_once()
-
-    def test_LinuxCollector__call___calls_add_window(self, mocker):
-        mocker.patch(
-            "arrangeit.linux.collector.Collector.get_windows",
-            return_value=(mocker.MagicMock(),),
-        )
-        mocker.patch("arrangeit.linux.collector.Collector.is_applicable", side_effect=(True,))
-        mocker.patch("arrangeit.linux.collector.Collector.is_valid_state", side_effect=(True,))
-        mocker.patch("arrangeit.linux.collector.Collector.check_window")
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.add_window")
-        Collector()()
-        mocked.assert_called_once()
-
-    def test_LinuxCollector__call___shutdowns_Wnck(self, mocker):
+    def test_LinuxCollector___call___shutdowns_Wnck(self, mocker):
         mocker.patch(
             "arrangeit.linux.collector.Collector.get_windows",
             return_value=(mocker.MagicMock(),),

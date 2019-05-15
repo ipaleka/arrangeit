@@ -66,6 +66,22 @@ def get_player(platform=None):
     return get_class("Player", platform)
 
 
+def append_to_collection(element, collection):
+    """Simple helper function to append provided elem to provided collection.
+
+    This function is used as callback argument for win32gui.EnumWindows
+    and it requires True to be returned.
+
+    :param element: element to add
+    :type element: int
+    :param collection: collection to add element to
+    :type collection: list
+    :returns: True
+    """
+    collection.append(element)
+    return True
+
+
 def quarter_by_smaller(width, height):
     """Helper method for retrieving one-forth for given ``width`` and ``height``
 

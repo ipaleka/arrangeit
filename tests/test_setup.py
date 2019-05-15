@@ -6,7 +6,7 @@ from arrangeit.utils import get_app, get_collector, get_player
 
 
 class TestStructure(object):
-    """Testing class for platform specific subpackages structure."""
+    """Testing class for platform specific subpackages ctypes.Structure."""
 
     ## BaseApp
     def test_host_platform_App_issubclass_of_BaseApp(self):

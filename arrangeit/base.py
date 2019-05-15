@@ -60,8 +60,19 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def __call__(self):
-        """Method must be overridden."""
-        raise NotImplementedError
+        """Populates ``collection`` with WindowModel instances
+
+        created from the windows list provided by :func:`get_windows`
+        after they are checked for compliance with :func:`check_window`
+        by calling :func:`add_window`.
+
+        :var win: current window instance/handle in the loop
+        :type win: platform specific window object or handle (Wnck.Window, hwnd, ...)
+        """
+        for win in self.get_windows():
+            if self.check_window(win):
+                self.add_window(win)
+        win = None
 
 
 class BasePlayer(object):

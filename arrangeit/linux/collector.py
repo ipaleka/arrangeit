@@ -17,13 +17,11 @@ class Collector(BaseCollector):
         :type window_type: Wnck.WindowType int flag
         :returns: Boolean
         """
-        if window_type in (
+        return window_type in (
             Wnck.WindowType.NORMAL,
             Wnck.WindowType.DIALOG,
             Wnck.WindowType.UTILITY,
-        ):
-            return True
-        return False
+        )
 
     def is_valid_state(self, window_type, window_state):
         """Checks if ``window state`` for ``window_type`` qualifies window to collect.
@@ -34,19 +32,17 @@ class Collector(BaseCollector):
         :type window_state: Wnck.WindowState int flag
         :returns: Boolean
         """
-        if (
-            (window_state & Wnck.WindowState.FULLSCREEN != 0)
+        return not (
+            window_state & Wnck.WindowState.FULLSCREEN  # TODO Research do we need this
             or (
-                (window_type == Wnck.WindowType.DIALOG)
-                and (window_state & Wnck.WindowState.SKIP_TASKLIST != 0)
+                window_type == Wnck.WindowType.DIALOG
+                and window_state & Wnck.WindowState.SKIP_TASKLIST
             )
             or (
-                (window_state & Wnck.WindowState.HIDDEN != 0)
-                and (window_state & Wnck.WindowState.MINIMIZED == 0)
+                window_state & Wnck.WindowState.HIDDEN
+                and not window_state & Wnck.WindowState.MINIMIZED
             )
-        ):
-            return False
-        return True
+        )
 
     def is_resizable(self, window_type):
         """Checks if provided ``window_type`` implies that window is resizable.
@@ -55,9 +51,7 @@ class Collector(BaseCollector):
         :type window_type: Wnck.WindowType int flag
         :returns: Boolean
         """
-        if window_type in (Wnck.WindowType.NORMAL,):
-            return True
-        return False
+        return window_type in (Wnck.WindowType.NORMAL,)
 
     def get_windows(self):
         """Returns windows list from the Wnck.Screen object.
@@ -113,18 +107,7 @@ class Collector(BaseCollector):
         )
 
     def __call__(self):
-        """Populates ``collection`` with WindowModel instances
+        """Calls super method and then cleans Wnck."""
+        super().__call__()
 
-        created from the windows list provided by :func:`get_windows`
-        after they are checked for compliance with :func:`check_window`
-        by calling :func:`add_window`.
-
-        :var win: current window instance in the loop
-        :type win: Wnck.Window object
-        """
-        for win in self.get_windows():
-            if self.check_window(win):
-                self.add_window(win)
-
-        win = None
         Wnck.shutdown()

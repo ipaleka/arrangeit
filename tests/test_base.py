@@ -97,9 +97,27 @@ class TestBaseCollector(object):
             base.BaseCollector().add_window(None)
 
     ## BaseCollector.__call__
-    def test_BaseCollector___call___raises_NotImplementedError(self):
-        with pytest.raises(NotImplementedError):
-            base.BaseCollector()()
+    def test_BaseCollector__call___calls_get_windows(self, mocker):
+        mocked = mocker.patch("arrangeit.base.BaseCollector.get_windows")
+        base.BaseCollector()()
+        mocked.assert_called_once()
+
+    def test_BaseCollector__call___calls_check_window(self, mocker):
+        mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=(0,))
+        mocked = mocker.patch("arrangeit.base.BaseCollector.check_window")
+        mocker.patch("arrangeit.base.BaseCollector.add_window")
+        base.BaseCollector()()
+        mocked.assert_called_once()
+
+    @pytest.mark.parametrize("elems", [(), (5, 10, 15), (4,)])
+    def test_BaseCollector__call___calls_add_window(self, mocker, elems):
+        mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=elems)
+        mocker.patch("arrangeit.base.BaseCollector.check_window")
+        mocked = mocker.patch("arrangeit.base.BaseCollector.add_window")
+        base.BaseCollector()()
+        if len(elems) > 0:
+            mocked.assert_called()
+        mocked.call_count == len(elems)
 
 
 class TestBasePlayer(object):
@@ -112,16 +130,3 @@ class TestBasePlayer(object):
         player = base.BasePlayer()
         assert getattr(player, "model", None) is not None
         assert isinstance(getattr(player, "model"), data.WindowModel)
-
-    @pytest.mark.skip(reason="not implemented yet")
-    def test_BasePlayer_next_calls_model_setup(self, mocker):
-        pass
-
-    @pytest.mark.skip(reason="not implemented yet")
-    def test_BasePlayer_next_yields_model_instance(self, mocker):
-        pass
-
-    @pytest.mark.skip(reason="not implemented yet")
-    def test_BasePlayer_next_calls_BaseCollector_next(self, mocker):
-        pass
-

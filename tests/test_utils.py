@@ -41,6 +41,24 @@ class TestUtils(object):
         getattr(utils, function)()
         mocked.assert_called_once()
 
+
+
+    ## append_to_collection
+    @pytest.mark.parametrize(
+        "elem,collection,expected",
+        [
+            (1, [], [1,]),
+            (5, [2,], [2,5]),
+            (9, [9,], [9,9]),
+        ],
+    )
+    def test_append_to_collection_functionality(self, elem, collection, expected):
+        utils.append_to_collection(elem, collection)
+        assert collection == expected
+
+    def test_append_to_collection_returns_True(self):
+        assert utils.append_to_collection(1, [])
+
     ## quarter_by_smaller
     @pytest.mark.parametrize(
         "w,h,expected",
