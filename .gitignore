@@ -4,5 +4,6 @@ __pycache__
 arrangeit.code-workspace
 htmlcov/
 .coverage
+tests/coverage*.xml
 docs/_build
 .scannerwork/

@@ -101,7 +101,7 @@ Prepare coverage.xml by running in the project's root directory:
 
 .. code-block:: bash
 
-  python -m pytest -v --cov-report xml --cov=arrangeit
+  python -m pytest -v --cov-report xml:tests/coverage-linux.xml --cov=arrangeit
 
 
 http://localhost:9000

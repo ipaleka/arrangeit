@@ -1,4 +1,5 @@
 import ctypes
+import ctypes.wintypes
 
 from win32con import (
     GA_ROOTOWNER,
@@ -28,7 +29,11 @@ from arrangeit.utils import append_to_collection
 class TITLEBARINFO(ctypes.Structure):
     """Class holding ctypes ctypes.Structure data for title bar information."""
 
-    _fields_ = [("cbSize", ctypes.wintypes.DWORD), ("rcTitleBar", ctypes.wintypes.RECT), ("rgstate", ctypes.wintypes.DWORD * 6)]
+    _fields_ = [
+        ("cbSize", ctypes.wintypes.DWORD),
+        ("rcTitleBar", ctypes.wintypes.RECT),
+        ("rgstate", ctypes.wintypes.DWORD * 6),
+    ]
 
 
 class WINDOWINFO(ctypes.Structure):
@@ -65,9 +70,7 @@ class Collector(BaseCollector):
         title_info = TITLEBARINFO()
         title_info.cbSize = ctypes.sizeof(title_info)
         ctypes.windll.user32.GetTitleBarInfo(hwnd, ctypes.byref(title_info))
-        if title_info.rgstate[0] & STATE_SYSTEM_INVISIBLE:
-            return True
-        return False
+        return title_info.rgstate[0] & STATE_SYSTEM_INVISIBLE
 
     def _is_alt_tab_applicable(self, hwnd):
         """Checks if provided hwnd represents window visible in "Alt+Tab screen".
@@ -139,7 +142,7 @@ class Collector(BaseCollector):
         :type hwnd: int
         :returns: Boolean
         """
-        if self._is_activable(hwnd):
+        if not self._is_activable(hwnd):
             return False
 
         return True
