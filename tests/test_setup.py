@@ -40,7 +40,6 @@ class TestSetup(object):
     @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
     def test_main_calls_App_run(self, mocker, platform):
         mocker.patch("arrangeit.utils.platform_path", return_value=platform)
-        mocker.patch("arrangeit.utils.get_app", return_value=utils.get_app(platform))
-        mocked = mocker.patch("arrangeit.{}.app.App.run".format(platform))
+        mocked = mocker.patch("arrangeit.{}.app.App".format(platform))
         main.main()
-        mocked.assert_called()
+        assert mocked.return_value.run.call_count == 1

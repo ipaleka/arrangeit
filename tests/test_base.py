@@ -1,6 +1,6 @@
 import pytest
 
-from arrangeit import base, data
+from arrangeit import base, data, utils
 
 
 class TestBaseApp(object):
@@ -48,10 +48,24 @@ class TestBaseApp(object):
         mocked.assert_called()
 
     ## BaseApp.run
-    def test_BaseApp_run_raises_NotImplementedError(self):
-        with pytest.raises(NotImplementedError):
-            base.BaseApp().run()
+    def test_BaseApp_run_calls_collector_run(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.{}.collector.Collector".format(utils.platform_path())
+        )
+        base.BaseApp().run()
+        assert mocked.return_value.run.call_count == 1
 
+    def test_BaseApp_run_calls_WindowsCollection_generator(self, mocker):
+        mocked = mocker.patch("arrangeit.base.WindowsCollection")
+        base.BaseApp().run()
+        assert mocked.return_value.generator.call_count == 1
+
+    def test_BaseApp_run_calls_player_run(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.{}.player.Player".format(utils.platform_path())
+        )
+        base.BaseApp().run()
+        assert mocked.return_value.run.call_count == 1
 
 class TestBaseCollector(object):
     """Testing class for base Collector class."""
@@ -96,17 +110,17 @@ class TestBaseCollector(object):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().add_window(None)
 
-    ## BaseCollector.__call__
-    def test_BaseCollector__call___calls_get_windows(self, mocker):
+    ## BaseCollector.run
+    def test_BaseCollector_run_calls_get_windows(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseCollector.get_windows")
-        base.BaseCollector()()
+        base.BaseCollector().run()
         mocked.assert_called_once()
 
-    def test_BaseCollector__call___calls_check_window(self, mocker):
+    def test_BaseCollector_run_calls_check_window(self, mocker):
         mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=(0,))
         mocked = mocker.patch("arrangeit.base.BaseCollector.check_window")
         mocker.patch("arrangeit.base.BaseCollector.add_window")
-        base.BaseCollector()()
+        base.BaseCollector().run()
         mocked.assert_called_once()
 
     @pytest.mark.parametrize("elems", [(), (5, 10, 15), (4,)])
@@ -114,7 +128,7 @@ class TestBaseCollector(object):
         mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=elems)
         mocker.patch("arrangeit.base.BaseCollector.check_window")
         mocked = mocker.patch("arrangeit.base.BaseCollector.add_window")
-        base.BaseCollector()()
+        base.BaseCollector().run()
         if len(elems) > 0:
             mocked.assert_called()
         mocked.call_count == len(elems)

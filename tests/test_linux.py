@@ -164,19 +164,19 @@ class TestLinuxCollector(object):
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
-    ## LinuxCollector.__call__
-    def test_LinuxCollector___call___super(self, mocker):
-        mocked = mocker.patch("arrangeit.base.BaseCollector.__call__")
-        Collector()()
+    ## LinuxCollector.run
+    def test_LinuxCollector_run_super(self, mocker):
+        mocked = mocker.patch("arrangeit.base.BaseCollector.run")
+        Collector().run()
         mocked.assert_called()
 
-    def test_LinuxCollector___call___shutdowns_Wnck(self, mocker):
+    def test_LinuxCollector_run_shutdowns_Wnck(self, mocker):
         mocker.patch(
             "arrangeit.linux.collector.Collector.get_windows",
             return_value=(mocker.MagicMock(),),
         )
         mocked = mocker.patch("arrangeit.linux.collector.Wnck.shutdown")
-        Collector()()
+        Collector().run()
         mocked.assert_called_once()
 
     @pytest.mark.parametrize(
@@ -189,7 +189,7 @@ class TestLinuxCollector(object):
             ((False, False), (False, False), 0),
         ],
     )
-    def test_LinuxCollector___call___functionality(
+    def test_LinuxCollector_run_functionality(
         self, mocker, is_applicable, is_valid_state, value
     ):
         mocker.patch(
@@ -205,6 +205,6 @@ class TestLinuxCollector(object):
             side_effect=is_valid_state,
         )
         collector = Collector()
-        collector()
+        collector.run()
         assert collector.collection.size == value
 

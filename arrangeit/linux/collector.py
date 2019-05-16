@@ -106,8 +106,8 @@ class Collector(BaseCollector):
             )
         )
 
-    def __call__(self):
+    def run(self):
         """Calls super method and then cleans Wnck."""
-        super().__call__()
+        super().run()
 
         Wnck.shutdown()

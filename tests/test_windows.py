@@ -341,7 +341,7 @@ class TestWindowsCollector(object):
         Collector().add_window(SAMPLE_HWND)
         mocked.assert_called_once()
 
-    ## WindowsCollector.__call__
+    ## WindowsCollector.run
     @pytest.mark.parametrize(
         "is_applicable,is_valid_state,value",
         [
@@ -352,7 +352,7 @@ class TestWindowsCollector(object):
             ((False, False), (False, False), 0),
         ],
     )
-    def test_WindowsCollector___call___functionality(
+    def test_WindowsCollector_run_functionality(
         self, mocker, is_applicable, is_valid_state, value
     ):
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
@@ -371,6 +371,6 @@ class TestWindowsCollector(object):
             side_effect=is_valid_state,
         )
         collector = Collector()
-        collector()
+        collector.run()
         assert collector.collection.size == value
 

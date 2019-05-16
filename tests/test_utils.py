@@ -42,7 +42,6 @@ class TestUtils(object):
         mocked.assert_called_once()
 
 
-
     ## append_to_collection
     @pytest.mark.parametrize(
         "elem,collection,expected",

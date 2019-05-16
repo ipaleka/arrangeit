@@ -18,6 +18,7 @@ class WindowModel(object):
     resizable = None
     title = None
     name = None
+    # ws = None  # workspace
 
     def __init__(self, **kwargs):
         """Calls setup with given kwargs."""

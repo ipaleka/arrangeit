@@ -22,5 +22,5 @@ class Collector(BaseCollector):
     def add_window(self, win):
         pass
 
-    def __call__(self):
+    def run(self):
         pass

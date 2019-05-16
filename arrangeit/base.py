@@ -8,7 +8,7 @@ class BaseApp(object):
     collector = None
     player = None
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """Instantiates platform specific Collector and Player classes."""
         self.collector = self.setup_collector()()
         self.player = self.setup_player()()
@@ -22,8 +22,12 @@ class BaseApp(object):
         return utils.get_player()
 
     def run(self):
-        """Method must be overridden."""
-        raise NotImplementedError
+        """Runs ``collector`` to collect data and then runs ``player``
+
+        with instantiated collector's collection generator as argument.
+        """
+        self.collector.run()
+        self.player.run(self.collector.collection.generator())
 
 
 class BaseCollector(object):
@@ -59,7 +63,7 @@ class BaseCollector(object):
         """Method must be overridden."""
         raise NotImplementedError
 
-    def __call__(self):
+    def run(self):
         """Populates ``collection`` with WindowModel instances
 
         created from the windows list provided by :func:`get_windows`
@@ -83,5 +87,5 @@ class BasePlayer(object):
     def __init__(self):
         self.model = WindowModel()
 
-    def __call__(self):
+    def run(self, generator_instance):
         pass
