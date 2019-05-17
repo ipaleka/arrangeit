@@ -42,6 +42,18 @@ class TestWindowModel(object):
         for key, val in values.items():
             assert getattr(wm, key) == val
 
+    @pytest.mark.skip(reason="not implemented yet")
+    @pytest.mark.parametrize("values", [{}])
+    def test_WindowModel_setup_sets_attrs_for_valid_type(self, mocker, values):
+        pass
+        # if not None and is instance values[1]
+
+    @pytest.mark.skip(reason="not implemented yet")
+    @pytest.mark.parametrize("values", [{}])
+    def test_WindowModel_setup_doesnt_set_attrs_for_invalid_type(self, mocker, values):
+        pass
+        # if not None and is instance values[1]
+
     @pytest.mark.parametrize("values", SAMPLE_MODEL_VALUES)
     def test_WindowModel_setup_sets_None_for_values_not_provided(self, mocker, values):
         wm = WindowModel()

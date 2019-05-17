@@ -1,9 +1,16 @@
 from arrangeit import utils
 from arrangeit.data import WindowModel, WindowsCollection
+from arrangeit.gui import get_initialized_tk_root, GuiApplication
 
 
 class BaseApp(object):
-    """Base App class holding common code for all the platforms."""
+    """Base App class holding common code for all the platforms.
+
+    :var collector: object responsible for collecting windows data
+    :type collector: type(:class:`BaseCollector`) instance (platform specific)
+    :var player: object responsible for presenting collected windows data
+    :type player: type(:class:`BasePlayer`) instance (platform specific)
+    """
 
     collector = None
     player = None
@@ -31,7 +38,11 @@ class BaseApp(object):
 
 
 class BaseCollector(object):
-    """Base Collector class holding common code for all the platforms."""
+    """Base Collector class holding common code for all the platforms.
+
+    :var collection: collection of :class:`WindowModel` instances
+    :type collection: :class:`WindowsCollection` instance
+    """
 
     collection = None
 
@@ -80,12 +91,58 @@ class BaseCollector(object):
 
 
 class BasePlayer(object):
-    """Base Player class holding common code for all the platforms."""
+    """Base Player class holding common code for all the platforms.
+
+    :var model: model holding window data
+    :type model: :class:`WindowModel` instance
+    :var generator: generator for retrieving model instances from collection
+    :type generator: Generator[WindowModel, None, None]
+    :var gui: Tkinter application showing main window
+    :type gui: :class:`GuiApplication` instance
+    """
 
     model = None
+    generator = None
+    gui = None
 
     def __init__(self):
+        """Initializes empty model and calls :func:`BasePlayer.setup`."""
         self.model = WindowModel()
+        self.setup()
 
-    def run(self, generator_instance):
-        pass
+    def setup(self):
+        """Initializes Tkinter GuiApplication with root window and self as arguments.
+
+        Sets gui attribute to newly created Tkinter application.
+        Prevents root window to show by calling its `withdraw` method.
+        """
+        root = get_initialized_tk_root()
+        self.gui = GuiApplication(master=root, player=self)
+        root.withdraw()
+
+    def mainloop(self):
+        self.gui.mainloop()
+
+    def run(self, generator):
+        """Starts the player by calling :func:`BasePlayer.next` for the first time
+
+        after player's ``generator`` attribute is set to provided generator (``next``
+        uses it for getting the current window data).
+        Then calls the :func:`capture_mouse` method responsible for the mouse
+        listener creation and binding.
+        Finally shows the root/master Tkinter window and 
+        calls player's `mainloop`.
+        """
+        self.generator = generator
+        self.next()
+
+        self.gui.master.update()
+        self.gui.master.deiconify()
+        self.mainloop()
+
+    def next(self):
+        """Sets player ``model`` attribute from the value yielded from ``generator``
+
+        and populate gui widgets with new model data.1
+        """
+        self.model = next(self.generator)
