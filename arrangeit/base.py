@@ -1,6 +1,6 @@
 from arrangeit import utils
 from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.gui import get_initialized_tk_root, GuiApplication
+from arrangeit.gui import get_initialized_tk_root, get_mouse_listener, GuiApplication
 
 
 class BaseApp(object):
@@ -99,11 +99,14 @@ class BasePlayer(object):
     :type generator: Generator[WindowModel, None, None]
     :var gui: Tkinter application showing main window
     :type gui: :class:`GuiApplication` instance
+    :var listener: Tkinter application showing main window
+    :type listener: :class:`GuiApplication` instance
     """
 
     model = None
     generator = None
     gui = None
+    listener = None
 
     def __init__(self):
         """Initializes empty model and calls :func:`BasePlayer.setup`."""
@@ -117,25 +120,36 @@ class BasePlayer(object):
         Prevents root window to show by calling its `withdraw` method.
         """
         root = get_initialized_tk_root()
+        self.setup_root_window(root)
         self.gui = GuiApplication(master=root, player=self)
         root.withdraw()
 
-    def mainloop(self):
-        self.gui.mainloop()
+    def setup_root_window(self, root):
+        """Sets provided root window appearance common for all platforms."""
+        pass
+        # root.geometry("140x100")
+        # root.overrideredirect(True)
+
+        # root.wm_attributes("-type", "splash")
+        # root.wm_attributes("-alpha", 0.7)  # doesn't work without -type splash; -type is X Windows only
+        # root.wm_attributes("-topmost", True)
+        # # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
+        # root.config(cursor='ul_angle')  # for resizing 'lr_angle', for released cursor 'left_ptr'
+
 
     def run(self, generator):
         """Starts the player by calling :func:`BasePlayer.next` for the first time
 
         after player's ``generator`` attribute is set to provided generator (``next``
         uses it for getting the current window data).
-        Then calls the :func:`capture_mouse` method responsible for the mouse
-        listener creation and binding.
-        Finally shows the root/master Tkinter window and 
-        calls player's `mainloop`.
+        Then calls the :func:`get_mouse_listener` method responsible for the mouse
+        listener creation and binding, sets `listener` attribute and starts listener.
+        Finally shows the root/master Tkinter window and calls player's `mainloop`.
         """
         self.generator = generator
         self.next()
-
+        self.listener = get_mouse_listener(self.on_mouse_move)
+        self.listener.start()  #self.listener.stop() to stop
         self.gui.master.update()
         self.gui.master.deiconify()
         self.mainloop()
@@ -146,3 +160,17 @@ class BasePlayer(object):
         and populate gui widgets with new model data.1
         """
         self.model = next(self.generator)
+        self.gui.title.set(self.model.title)
+
+    def on_mouse_move(self, x, y):
+        """Moves root Tkinter window to provided mouse coordinates.
+
+        :var x: current horizontal axis mouse position in pixels
+        :type x: int
+        :var y: current vertical axis mouse position in pixels
+        :type y: int
+        """
+        self.gui.master.geometry("+{}+{}".format(x, y))
+
+    def mainloop(self):
+        self.gui.mainloop()

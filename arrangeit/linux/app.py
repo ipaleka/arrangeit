@@ -9,4 +9,3 @@ class App(BaseApp):
 
     def run(self, *args, **kwargs):
         super().run(*args, **kwargs)
-

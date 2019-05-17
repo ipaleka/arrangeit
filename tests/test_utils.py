@@ -58,6 +58,81 @@ class TestUtils(object):
     def test_append_to_collection_returns_True(self):
         assert utils.append_to_collection(1, [])
 
+
+    ## get_value_if_valid_type
+    @pytest.mark.parametrize(
+        "value,typ",
+        [
+            (None, int),
+            (None, float),
+            (None, str),
+            (None, (int, int)),
+        ],
+    )
+    def test_get_value_if_valid_type_returns_None_for_None_value(self, value, typ):
+        assert utils.get_value_if_valid_type(value, typ) is None
+
+    @pytest.mark.parametrize(
+        "value,typ",
+        [
+            (1, int),
+            (0, int),
+            (-500, int),
+            (2.0, float),
+            (-45.0, float),
+            ("foo", str),
+            ("", str),
+            (True, bool),
+            (False, bool),
+        ],
+    )
+    def test_get_value_if_valid_type_for_single_type_returns_value(self, value, typ):
+        assert utils.get_value_if_valid_type(value, typ) == value
+
+    @pytest.mark.parametrize(
+        "value,typ",
+        [
+            (1.0, int),
+            ("", int),
+            (2, float),
+            ("-45.0", float),
+            (2.5, str),
+            (2, str),
+            (1, bool),
+            (0, bool),
+            ("foo", bool),
+            (-1, bool)
+        ],
+    )
+    def test_get_value_if_valid_type_for_single_type_returns_None(self, value, typ):
+        assert utils.get_value_if_valid_type(value, typ) is None
+
+    @pytest.mark.parametrize(
+        "value,typ",
+        [
+            ((2, 5.0), (int, float)),
+            (("2", 5, 5.0), (str, int, float)),
+            ((4.3, (2, 3)), (float, tuple)),
+            ((2, True), (int, bool)),
+            ((2, 5, 0, 3), (int, int, int, int)),
+        ],
+    )
+    def test_get_value_if_valid_type_for_collection_type_returns_value(self, value, typ):
+        assert utils.get_value_if_valid_type(value, typ) == value
+
+    @pytest.mark.parametrize(
+        "value,typ",
+        [
+            ((2, 5.0), (float, float)),
+            (("2", 5, 5.0), (str, int, int)),
+            ((4.3, (2, 3)), (float, list)),
+            ((2, True), (bool, bool)),
+            ((2, 5, 0, 3), (int, int, str, int)),
+        ],
+    )
+    def test_get_value_if_valid_type_for_collection_type_returns_None(self, value, typ):
+        assert utils.get_value_if_valid_type(value, typ) is None
+
     ## quarter_by_smaller
     @pytest.mark.parametrize(
         "w,h,expected",

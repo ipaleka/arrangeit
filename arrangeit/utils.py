@@ -66,6 +66,29 @@ def get_player(platform=None):
     return get_class("Player", platform)
 
 
+def get_value_if_valid_type(value, typ):
+    """Returns provided value if it's of provided type
+
+    or returns None if it's not. If value is None then None is returned.
+    If provided value and typ are collections then each element is checked.
+
+    :param value: value to check for type
+    :type value: Python type
+    :param typ: type to check on ``value``
+    :type typ: Python type
+    :returns: value or None
+    """
+    if isinstance(value, (tuple, list)):
+        if not isinstance(typ, (tuple, list)) or len(value) != len(typ):
+            return None
+        return (
+            value
+            if all(isinstance(val, typ[i]) for i, val in enumerate(value))
+            else None
+        )
+    return value if isinstance(value, typ) else None
+
+
 def append_to_collection(element, collection):
     """Simple helper function to append provided elem to provided collection.
 

@@ -1,3 +1,6 @@
+from arrangeit.utils import get_value_if_valid_type
+
+
 class WindowModel(object):
     """Class holding window data.
 
@@ -29,11 +32,14 @@ class WindowModel(object):
 
         or sets the value to None if attribute isn't provided.
         """
-        self.wid = kwargs.get("wid", None)
-        self.rect = kwargs.get("rect", None)
-        self.resizable = kwargs.get("resizable", None)
-        self.title = kwargs.get("title", None)
-        self.name = kwargs.get("name", None)
+        for attr, typ in (
+            ("wid", int),
+            ("rect", (int, int, int, int)),
+            ("resizable", bool),
+            ("title", str),
+            ("name", str),
+        ):
+            setattr(self, attr, get_value_if_valid_type(kwargs.get(attr), typ))
 
 
 class WindowsCollection(object):

@@ -1,4 +1,6 @@
-import tkinter as tk
+from tkinter import Tk, Frame, StringVar
+
+from pynput import mouse
 
 
 def get_initialized_tk_root():
@@ -6,14 +8,22 @@ def get_initialized_tk_root():
 
     :returns: :class:`tkinter.Tk` window instance
     """
-    return tk.Tk()
+    return Tk()
 
 
-class GuiApplication(tk.Frame):
+def get_mouse_listener(callback):
+    """Initializes mouse listener by binding it to provided ``callback`` and returns it.
+
+    :returns: :class:`mouse.Listener` instance
+    """
+    return mouse.Listener(on_move=callback)
+
+
+class GuiApplication(Frame):
     """Tkinter frame showing current window from the data provided through player.
 
     :var master: parent Tkinter window
-    :type master: :class:`tk.Tk` root window instance
+    :type master: :class:`Tk` root window instance
     :var player: controller object providing windows data
     :type player: type(:class:`BasePlayer`) instance (platform specific)
     """
@@ -36,7 +46,7 @@ class GuiApplication(tk.Frame):
     def create_widgets(self):
         """Creates and packs all the frame's widgets."""
 
-        self.title = tk.StringVar()
+        self.title = StringVar()
 
         # self.title_label = tk.Label(self, textvariable=self.title)
         # self.title_label.pack(side="top")
@@ -61,4 +71,4 @@ class GuiApplication(tk.Frame):
         # cv.create_image(0, 0, image=bg_image, anchor='nw')
         # # add canvas text at coordinates x=15, y=20
         # # anchor='nw' implies upper left corner coordinates
-        # cv.create_text(15, 20, text="Python Greetings", fill="red", anchor='nw')        
+        # cv.create_text(15, 20, text="Python Greetings", fill="red", anchor='nw')

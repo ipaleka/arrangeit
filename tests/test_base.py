@@ -1,3 +1,5 @@
+from tkinter import StringVar
+
 import pytest
 
 from arrangeit import base, data, utils
@@ -146,7 +148,7 @@ class TestBasePlayer(object):
     """Testing class for base Player class."""
 
     ## BasePlayer
-    @pytest.mark.parametrize("attr", ["model", "generator", "gui"])
+    @pytest.mark.parametrize("attr", ["model", "generator", "gui", "listener"])
     def test_BasePlayer_inits_attr_as_None(self, attr):
         assert getattr(base.BasePlayer, attr) is None
 
@@ -167,21 +169,29 @@ class TestBasePlayer(object):
         base.BasePlayer().setup()
         assert mocked.call_count == 2
 
+    def test_BasePlayer_setup_calls_setup_root_window(self, mocker):
+        root = mocker.MagicMock()
+        mocker.patch("arrangeit.base.get_initialized_tk_root", return_value=root)
+        mocker.patch("arrangeit.base.GuiApplication")
+        mocked = mocker.patch("arrangeit.base.BasePlayer.setup_root_window")
+        base.BasePlayer().setup()
+        assert mocked.call_count == 2
+        mocked.assert_called_with(root)
+
     def test_BasePlayer_setup_initializes_GuiApplication(self, mocker):
         mocked = mocker.patch("arrangeit.base.GuiApplication")
         base.BasePlayer().setup()
         assert mocked.call_count == 2
 
-    @pytest.mark.skip(reason="can't get it work... for now...")
     def test_BasePlayer_setup_initializes_GuiApplication_with_right_args(self, mocker):
-        mocked_root = mocker.patch("arrangeit.base.get_initialized_tk_root")
+        root = mocker.MagicMock()
+        mocker.patch("arrangeit.base.get_initialized_tk_root", return_value=root)
         mocked = mocker.patch("arrangeit.base.GuiApplication")
         player = base.BasePlayer()
-        player.setup()
-        mocked.return_value.assert_called_with(mocked_root.return_value, player)
+        mocked.assert_called_with(master=root, player=player)
 
     def test_BasePlayer_setup_withdraws_root_tk_window(self, mocker):
-        mocked = mocker.patch("arrangeit.gui.tk.Tk")
+        mocked = mocker.patch("arrangeit.gui.Tk")
         base.BasePlayer().setup()
         assert mocked.return_value.withdraw.call_count == 2
 
@@ -201,6 +211,32 @@ class TestBasePlayer(object):
         base.BasePlayer().run(mocker.MagicMock())
         mocked.assert_called_once()
 
+    def test_BasePlayer_run_calls_get_mouse_listener(self, mocker):
+        mocker.patch("arrangeit.base.get_initialized_tk_root")
+        mocker.patch("arrangeit.base.GuiApplication")
+        mocked = mocker.patch("arrangeit.base.get_mouse_listener")
+        player = base.BasePlayer()
+        player.run(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(player.on_mouse_move)
+
+    def test_BasePlayer_run_sets_listener_attribute(self, mocker):
+        mocker.patch("arrangeit.base.get_initialized_tk_root")
+        mocker.patch("arrangeit.base.GuiApplication")
+        listener = mocker.MagicMock()
+        mocker.patch("arrangeit.base.get_mouse_listener", return_value=listener)
+        player = base.BasePlayer()
+        player.run(mocker.MagicMock())
+        assert player.listener == listener
+
+    def test_BasePlayer_run_starts_listener(self, mocker):
+        mocker.patch("arrangeit.base.get_initialized_tk_root")
+        mocker.patch("arrangeit.base.GuiApplication")
+        mocked = mocker.patch("pynput.mouse.Listener")
+        player = base.BasePlayer()
+        player.run(mocker.MagicMock())
+        assert mocked.return_value.start.call_count == 1
+
     @pytest.mark.parametrize("method", ["update", "deiconify"])
     def test_BasePlayer_run_calls_master_showing_up_method(self, mocker, method):
         mocker.patch("arrangeit.base.get_initialized_tk_root")
@@ -218,27 +254,48 @@ class TestBasePlayer(object):
         mocked.assert_called_once()
 
     ## BasePlayer.next
-    @pytest.mark.skip(reason="can't get it work... for now...")
     def test_BasePlayer_next_runs_generator(self, mocker):
         mocker.patch("arrangeit.base.get_initialized_tk_root")
         mocker.patch("arrangeit.base.GuiApplication")
-        model = data.WindowModel()
-        generator = mocker.MagicMock()
+        collection = data.WindowsCollection()
+        model_instance1 = data.WindowModel()
+        model_instance2 = data.WindowModel()
+        collection.add(data.WindowModel())
+        collection.add(model_instance1)
+        collection.add(data.WindowModel())
+        collection.add(model_instance2)
+        generator = collection.generator()
         player = base.BasePlayer()
         player.run(generator)
+        next_value = next(generator)
+        assert next_value == model_instance1
         player.next()
-        assert generator.call_count == 1
+        next_value = next(generator)
+        assert next_value == model_instance2
 
-    @pytest.mark.skip(reason="can't get it work... for now...")
-    def test_BasePlayer_next_sets_model_attribute_from_generator(self, mocker):
-        mocker.patch("arrangeit.base.get_initialized_tk_root")
-        mocker.patch("arrangeit.base.GuiApplication")
-        model = data.WindowModel()
-        generator = mocker.MagicMock(return_value=model)
+    @pytest.mark.parametrize("attr,val,typ", [("title","foo",StringVar), ])
+    def test_BasePlayer_next_sets_gui_attrs_from_gen(self, mocker, attr, val, typ):
+        mocker.patch("arrangeit.base.BasePlayer.mainloop")
+        model = data.WindowModel(**{attr: val})
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(model)
+        generator = collection.generator()
         player = base.BasePlayer()
         player.run(generator)
         player.next()
-        assert player.model == model
+        instance = getattr(player.gui, attr)
+        assert instance.get() == getattr(model, attr)
+        assert isinstance(instance, typ)
+
+    ## BasePlayer.on_mouse_move
+    def test_BasePlayer_on_mouse_move_moves_root_window(self, mocker):
+        mocker.patch("arrangeit.base.get_initialized_tk_root")
+        mocked = mocker.patch("arrangeit.base.GuiApplication")
+        x, y = 100, 200
+        base.BasePlayer().on_mouse_move(x, y)
+        mocked.return_value.master.geometry.call_count == 1
+        mocked.return_value.master.geometry.assert_called_with("+{}+{}".format(x, y))
 
     ## BasePlayer.mainloop
     def test_BasePlayer_main_loop_calls_Tkinter_mainloop(self, mocker):

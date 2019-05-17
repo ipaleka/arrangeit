@@ -36,23 +36,18 @@ class TestWindowModel(object):
 
     ## WindowModel.setup
     @pytest.mark.parametrize("values", SAMPLE_MODEL_VALUES)
+    def test_WindowModel_setup_calls_get_value_if_valid_type_for_all(self, mocker, values):
+        mocked = mocker.patch("arrangeit.data.get_value_if_valid_type")
+        wm = WindowModel()
+        wm.setup(**values)
+        assert mocked.call_count == 2 * 5
+
+    @pytest.mark.parametrize("values", SAMPLE_MODEL_VALUES)
     def test_WindowModel_setup_sets_attrs_if_provided(self, mocker, values):
         wm = WindowModel()
         wm.setup(**values)
         for key, val in values.items():
             assert getattr(wm, key) == val
-
-    @pytest.mark.skip(reason="not implemented yet")
-    @pytest.mark.parametrize("values", [{}])
-    def test_WindowModel_setup_sets_attrs_for_valid_type(self, mocker, values):
-        pass
-        # if not None and is instance values[1]
-
-    @pytest.mark.skip(reason="not implemented yet")
-    @pytest.mark.parametrize("values", [{}])
-    def test_WindowModel_setup_doesnt_set_attrs_for_invalid_type(self, mocker, values):
-        pass
-        # if not None and is instance values[1]
 
     @pytest.mark.parametrize("values", SAMPLE_MODEL_VALUES)
     def test_WindowModel_setup_sets_None_for_values_not_provided(self, mocker, values):
@@ -61,6 +56,55 @@ class TestWindowModel(object):
         for key in WINDOW_MODEL_ATTRS:
             if key not in values.keys():
                 assert getattr(wm, key) is None
+
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"wid": 101},
+            {"rect": (55, 55, 100, 200)},
+            {"resizable": True},
+            {"title": "some title"},
+            {"name": "name foo"},
+        ],
+    )
+    def test_WindowModel_setup_sets_attrs_for_valid_type(self, mocker, values):
+        wm = WindowModel()
+        wm.setup(**values)
+        for key, val in values.items():
+            assert getattr(wm, key) == val
+
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"wid": 101.25},
+            {"wid": "foo"},
+            {"rect": "a, 55, 100, 200"},
+            {"rect": ("a", 55, 100, 200)},
+            {"rect": (55, 100, 200)},
+            {"rect": (55, 100, 200, 500, 100)},
+            {"resizable": "yes"},
+            {"resizable": 0},
+            {"resizable": -1},
+            {"resizable": 1.0},
+            {"title": 22},
+            {"title": 22.5},
+            {"title": 5},
+            {"name": 78.34},
+            {"name": WindowModel()},
+        ],
+    )
+    def test_WindowModel_setup_set_None_for_invalid_type_attr(self, mocker, values):
+        good = {
+            "wid": 101,
+            "rect": (55, 55, 100, 200),
+            "resizable": True,
+            "title": "some title",
+            "name": "name foo",
+        }
+        wm = WindowModel(**good)
+        wm.setup(**values)
+        for key, _ in values.items():
+            assert getattr(wm, key) is None
 
 
 class TestWindowsCollection(object):
