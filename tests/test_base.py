@@ -3,6 +3,7 @@ from tkinter import StringVar
 import pytest
 
 from arrangeit import base, data, utils
+from arrangeit.constants import WINDOW_SHIFT_PIXELS
 
 
 def mock_main_loop(mocker):
@@ -145,28 +146,39 @@ class TestBaseController(object):
         base.BaseController().setup()
         assert mocked.return_value.withdraw.call_count == 2
 
-    ## BaseController.setup_root_window
-    def test_BaseController_setup_root_window_calls_quarter_by_smaller(self, mocker):
+    ## BaseController.set_geometry
+    def test_BaseController_set_root_geometry_calls_quarter_by_smaller(self, mocker):
         root = mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
-        mocked = mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocked = mocker.patch(
+            "arrangeit.base.quarter_by_smaller", return_value=(100, 100)
+        )
         width, height = 1200, 1000
         root.winfo_screenwidth.return_value = width
         root.winfo_screenheight.return_value = height
         controller = base.BaseController()
         assert mocked.call_count == 1
-        controller.setup_root_window(root)
+        controller.set_root_geometry(root)
         assert mocked.call_count == 2
         mocked.assert_called_with(width, height)
 
-    def test_BaseController_setup_root_window_calls_geometry(self, mocker):
+    def test_BaseController_set_root_geometry_calls_geometry(self, mocker):
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         root = mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.utils.quarter_by_smaller")
-        base.BaseController().setup_root_window(root)
-        assert root.config.call_count == 1
+        base.BaseController().set_root_geometry(root)
+        assert root.geometry.call_count == 1
         root.geometry.assert_called_with("100x100")
+
+    ## BaseController.setup_root_window
+    def test_BaseController_setup_root_window_calls_set_root_geometry(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.BaseController.set_root_geometry")
+        base.BaseController().setup_root_window(root)
+        assert mocked.call_count == 2
+        mocked.assert_called_with(root)
 
     def test_BaseController_setup_root_window_calls_overrideredirect(self, mocker):
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
@@ -301,7 +313,9 @@ class TestBaseController(object):
         x, y = 100, 200
         base.BaseController().on_mouse_move(x, y)
         assert mocked.return_value.master.geometry.call_count == 1
-        mocked.return_value.master.geometry.assert_called_with("+{}+{}".format(x, y))
+        mocked.return_value.master.geometry.assert_called_with(
+            "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
+        )
 
     ## BaseController.mainloop
     def test_BaseController_main_loop_calls_Tkinter_mainloop(self, mocker):

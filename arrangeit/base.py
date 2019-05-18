@@ -1,7 +1,9 @@
 from arrangeit import utils
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.view import get_tkinter_root, get_mouse_listener, ViewApplication
+
 from arrangeit.utils import quarter_by_smaller
+from arrangeit.constants import WINDOW_SHIFT_PIXELS
 
 
 class BaseApp(object):
@@ -70,17 +72,37 @@ class BaseController(object):
         self.view = ViewApplication(master=root, controller=self)
         root.withdraw()
 
-    def setup_root_window(self, root):
-        """Sets provided root window appearance common for all platforms."""
+    def set_root_geometry(self, root):
+        """Sets provided root window width and height
+
+        calculated from available width and height for screen
+        as quarter of the smaller element.
+        Returned width and height have 16:9 aspect ratio.
+
+        :param root: root tkinter window
+        :type root: :class:`tkinter.Tk` instance
+        :var width: root width in pixels
+        :type width: int
+        :var height: root height in pixels
+        :type height: int
+        """
         width, height = quarter_by_smaller(
             root.winfo_screenwidth(), root.winfo_screenheight()
         )
         root.geometry("{}x{}".format(width, height))
+
+    def setup_root_window(self, root):
+        """Sets provided root window appearance common for all platforms.
+
+        :param root: root tkinter window
+        :type root: :class:`tkinter.Tk` instance
+        """
+        self.set_root_geometry(root)
         root.overrideredirect(True)
         root.wm_attributes("-alpha", 0.7)
         root.wm_attributes("-topmost", True)
-        # # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
-        # for resizing 'lr_angle', for released cursor 'left_ptr'
+        # TODO for resizing 'lr_angle', for released cursor 'left_ptr'
+        #      http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
         root.config(cursor="ul_angle")
 
     def run(self, generator):
@@ -108,12 +130,16 @@ class BaseController(object):
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
 
+        Adds negative WINDOW_SHIFT_PIXELS to mouse position for better presentation.
+
         :var x: current horizontal axis mouse position in pixels
         :type x: int
         :var y: current vertical axis mouse position in pixels
         :type y: int
         """
-        self.view.master.geometry("+{}+{}".format(x, y))
+        self.view.master.geometry(
+            "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
+        )
 
     def mainloop(self):
         self.view.mainloop()
