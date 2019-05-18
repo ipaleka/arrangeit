@@ -19,13 +19,13 @@ def get_mouse_listener(callback):
     return mouse.Listener(on_move=callback)
 
 
-class GuiApplication(Frame):
+class ViewApplication(Frame):
     """Tkinter frame showing current window from the data provided through controller.
 
     :var master: parent Tkinter window
     :type master: :class:`Tk` root window instance
     :var controller: controller object providing windows data
-    :type controller: type(:class:`BaseGui`) instance (platform specific)
+    :type controller: type(:class:`BaseController`) instance (platform specific)
     """
 
     master = None
@@ -60,7 +60,7 @@ class GuiApplication(Frame):
         #                       command=self.controller.quit)
         # self.quit.pack(side="bottom")
 
-        # bg_image = tk.PhotoImage(file=fname)
+        # bg_image = tk.PhotoImage(file=name)
         # # get the width and height of the image
         # w = bg_image.width()
         # h = bg_image.height()

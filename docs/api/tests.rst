@@ -31,6 +31,15 @@
   :show-inheritance:
 
 
+:mod:`tests.test_view` -- Unit tests for view classes and functions
+-------------------------------------------------------------------
+
+.. automodule:: tests.test_view
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.test_utils` -- Unit tests for helper functions
 ----------------------------------------------------------
 

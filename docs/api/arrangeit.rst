@@ -31,6 +31,15 @@
   :show-inheritance:
 
 
+:mod:`arrangeit.view` -- Module with classes and functions holding graphical presentation data
+----------------------------------------------------------------------------------------------
+
+.. automodule:: arrangeit.data
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`arrangeit.utils` -- Module holding various utility functions
 ------------------------------------------------------------------
 
@@ -67,10 +76,10 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.darwin.player` -- Module responsible for presenting windows (Mac OS platform specific code)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`arrangeit.darwin.controller` -- Module responsible for connecting data and view (Mac OS platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: arrangeit.darwin.player
+.. automodule:: arrangeit.darwin.controller
   :members:
   :undoc-members:
   :show-inheritance:
@@ -103,10 +112,10 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.linux.player` -- Module responsible for presenting windows (GNU/Linux platform specific code)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`arrangeit.darwin.controller` -- Module responsible for connecting data and view (GNU/Linux platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: arrangeit.linux.player
+.. automodule:: arrangeit.linux.controller
   :members:
   :undoc-members:
   :show-inheritance:
@@ -139,10 +148,10 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.windows.player` -- Module responsible for presenting windows (MS Windows platform specific code)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`arrangeit.darwin.controller` -- Module responsible for connecting data and view (MS Windows platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: arrangeit.windows.player
+.. automodule:: arrangeit.windows.controller
   :members:
   :undoc-members:
   :show-inheritance:

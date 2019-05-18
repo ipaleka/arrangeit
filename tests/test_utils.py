@@ -13,7 +13,7 @@ class TestUtils(object):
         assert utils.platform_path() == name.lower()
 
     ## get_class
-    @pytest.mark.parametrize("name", ["App", "Gui", "Collector", "Player"])
+    @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
     def test_get_class_involves_default_val_for_no_arg(self, mocker, name):
         # calls function from utils module made of parameterized 'name'
         klass = utils.get_component_class(name)
@@ -21,19 +21,19 @@ class TestUtils(object):
         assert klass.__module__ == "arrangeit.{}.{}".format(platform, name.lower())
 
     ## get_component_class
-    @pytest.mark.parametrize("name", ["App", "Gui", "Collector", "Player"])
+    @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
     def test_get_component_class_involves_provided_argument(self, mocker, name):
         with pytest.raises(SystemExit):
             utils.get_component_class(name, "fooplatform")
 
-    @pytest.mark.parametrize("name", ["App", "Gui", "Collector", "Player"])
+    @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
     @pytest.mark.parametrize("platform", ["java", "foo", "android"])
     def test_get_component_class_raises_SystemExit_for_invalid_platform(self, platform, name):
         with pytest.raises(SystemExit) as exception:
             utils.get_component_class(name, platform)
         assert "on your platform" in exception.value.code
 
-    @pytest.mark.parametrize("function", ["app", "gui", "collector", "player"])
+    @pytest.mark.parametrize("function", ["app", "gui", "collector"])
     def test_get_component_class_calls_get_class(self, mocker, function):
         mocked = mocker.patch("arrangeit.utils.get_class")
         utils.get_component_class("Foo", "bar")

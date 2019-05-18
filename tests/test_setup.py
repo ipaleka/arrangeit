@@ -12,17 +12,13 @@ class TestStructure(object):
     def test_host_platform_App_issubclass_of_BaseApp(self):
         assert issubclass(get_component_class("App"), base.BaseApp)
 
-    ## BaseGui
-    def test_host_platform_Gui_issubclass_of_BaseGui(self):
-        assert issubclass(get_component_class("Gui"), base.BaseGui)
+    ## BaseController
+    def test_host_platform_Controller_issubclass_of_BaseController(self):
+        assert issubclass(get_component_class("Controller"), base.BaseController)
 
     ## BaseCollector
     def test_host_platform_Collector_issubclass_of_BaseCollector(self):
         assert issubclass(get_component_class("Collector"), base.BaseCollector)
-
-    ## BasePlayer
-    def test_host_platform_Player_issubclass_of_BasePlayer(self):
-        assert issubclass(get_component_class("Player"), base.BasePlayer)
 
 
 class TestSetup(object):

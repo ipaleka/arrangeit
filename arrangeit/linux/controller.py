@@ -1,8 +1,8 @@
-from arrangeit.base import BaseGui
+from arrangeit.base import BaseController
 
 
-class Gui(BaseGui):
-    """GUI class with GNU/Linux specific code."""
+class Controller(BaseController):
+    """Controller class with GNU/Linux specific code."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
