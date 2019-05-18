@@ -36,6 +36,7 @@ def get_class(name, platform):
     return getattr(module, name)
 
 
+# TODO merge following 4 functions into one get_component(name, platform=None)
 def get_app(platform=None):
     """Helper method for retrieving platform specific App class.
 
@@ -44,6 +45,16 @@ def get_app(platform=None):
     :returns: ``App`` class from the platform specific package
     """
     return get_class("App", platform=platform)
+
+
+def get_gui(platform=None):
+    """Helper method for retrieving platform specific Gui class.
+
+    :param platform: platform name
+    :type platform: string
+    :returns: ``Gui`` class from the platform specific package
+    """
+    return get_class("Gui", platform=platform)
 
 
 def get_collector(platform=None):

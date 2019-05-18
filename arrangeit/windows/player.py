@@ -7,5 +7,3 @@ class Player(BasePlayer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def run(self, generator):
-        super().run(generator)

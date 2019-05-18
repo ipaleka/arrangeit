@@ -2,15 +2,19 @@ import pytest
 
 from arrangeit import main, base
 from arrangeit import utils
-from arrangeit.utils import get_app, get_collector, get_player
+from arrangeit.utils import get_app, get_gui, get_collector, get_player
 
 
 class TestStructure(object):
-    """Testing class for platform specific subpackages ctypes.Structure."""
+    """Testing class for platform specific subpackages structure."""
 
     ## BaseApp
     def test_host_platform_App_issubclass_of_BaseApp(self):
         assert issubclass(get_app(), base.BaseApp)
+
+    ## BaseGui
+    def test_host_platform_Gui_issubclass_of_BaseGui(self):
+        assert issubclass(get_gui(), base.BaseGui)
 
     ## BaseCollector
     def test_host_platform_Collector_issubclass_of_BaseCollector(self):

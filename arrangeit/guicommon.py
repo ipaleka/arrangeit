@@ -3,7 +3,7 @@ from tkinter import Tk, Frame, StringVar
 from pynput import mouse
 
 
-def get_initialized_tk_root():
+def get_tkinter_root():
     """Initializes and returns Tkinter root window.
 
     :returns: :class:`tkinter.Tk` window instance
@@ -20,26 +20,26 @@ def get_mouse_listener(callback):
 
 
 class GuiApplication(Frame):
-    """Tkinter frame showing current window from the data provided through player.
+    """Tkinter frame showing current window from the data provided through controller.
 
     :var master: parent Tkinter window
     :type master: :class:`Tk` root window instance
-    :var player: controller object providing windows data
-    :type player: type(:class:`BasePlayer`) instance (platform specific)
+    :var controller: controller object providing windows data
+    :type controller: type(:class:`BaseGui`) instance (platform specific)
     """
 
     master = None
-    player = None
+    controller = None
 
-    def __init__(self, master=None, player=None):
-        """Sets master and player attributes from provided arguments
+    def __init__(self, master=None, controller=None):
+        """Sets master and controller attributes from provided arguments
 
         after super __init__ is called. Then sets the packer and
         calls :func:`create_widgets` method.
         """
         super().__init__(master)
         self.master = master
-        self.player = player
+        self.controller = controller
         self.pack()
         self.create_widgets()
 
@@ -52,12 +52,12 @@ class GuiApplication(Frame):
         # self.title_label.pack(side="top")
 
         # self.hi_there = tk.Button(self)
-        # self.hi_there["text"] = "player.next\n(click me)"
-        # self.hi_there["command"] = self.player.next
+        # self.hi_there["text"] = "controller.next\n(click me)"
+        # self.hi_there["command"] = self.controller.next
         # self.hi_there.pack(side="top")
 
         # self.quit = tk.Button(self, text="QUIT", fg="red",
-        #                       command=self.player.quit)
+        #                       command=self.controller.quit)
         # self.quit.pack(side="bottom")
 
         # bg_image = tk.PhotoImage(file=fname)

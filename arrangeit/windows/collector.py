@@ -148,7 +148,12 @@ class Collector(BaseCollector):
         return True
 
     def is_resizable(self, hwnd):
+        """Checks if provided hwnd represents window that can be resized.
 
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: Boolean
+        """
         return GetWindowLong(hwnd, GWL_EXSTYLE) & WS_THICKFRAME
 
     def get_windows(self):
