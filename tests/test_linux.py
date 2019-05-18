@@ -4,7 +4,22 @@ import gi
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 
+from arrangeit.linux.controller import Controller
 from arrangeit.linux.collector import Collector
+
+
+class TestLinuxController(object):
+    """Testing class for :py:class:`arrangeit.linux.controller.Controller` class."""
+
+    ## Controller.setup_root_window
+    def test_LinuxController_setup_root_window_calls_type_splash(self, mocker):
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocker.patch("arrangeit.base.ViewApplication")
+        Controller().setup_root_window(root)
+        root.wm_attributes.assert_called()
+        calls = [mocker.call("-type", "splash"),]
+        root.wm_attributes.assert_has_calls(calls, any_order=True)
 
 
 class TestLinuxCollector(object):
@@ -102,7 +117,7 @@ class TestLinuxCollector(object):
         Collector().check_window(Wnck.Window)
         mocked.assert_called_once()
 
-    def test_LinuxCollector_check_window_returns_False_for_not_is_applic(self, mocker):
+    def test_LinuxCollector_check_window_returns_False_for_not_is_app(self, mocker):
         mocker.patch("arrangeit.linux.collector.Wnck.Window.get_window_type")
         mocker.patch(
             "arrangeit.linux.collector.Collector.is_applicable", return_value=False

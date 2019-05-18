@@ -1,5 +1,5 @@
-:mod:`tests` -- Unit and integation tests
-*****************************************
+:mod:`tests` -- Unit and integration tests
+******************************************
 
 .. automodule:: tests
 

@@ -48,7 +48,7 @@ class WindowsCollection(object):
     _members = None
 
     def __init__(self):
-        """Initializec empty _members list."""
+        """Initializes empty _members list."""
         self._members = []
 
     @property

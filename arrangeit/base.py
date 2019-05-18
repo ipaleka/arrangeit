@@ -1,6 +1,7 @@
 from arrangeit import utils
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.view import get_tkinter_root, get_mouse_listener, ViewApplication
+from arrangeit.utils import quarter_by_smaller
 
 
 class BaseApp(object):
@@ -71,15 +72,16 @@ class BaseController(object):
 
     def setup_root_window(self, root):
         """Sets provided root window appearance common for all platforms."""
-        pass
-        # root.geometry("140x100")
-        # root.overrideredirect(True)
-
-        # root.wm_attributes("-type", "splash")
-        # root.wm_attributes("-alpha", 0.7)  # doesn't work without -type splash; -type is X Windows only
-        # root.wm_attributes("-topmost", True)
+        width, height = quarter_by_smaller(
+            root.winfo_screenwidth(), root.winfo_screenheight()
+        )
+        root.geometry("{}x{}".format(width, height))
+        root.overrideredirect(True)
+        root.wm_attributes("-alpha", 0.7)
+        root.wm_attributes("-topmost", True)
         # # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
-        # root.config(cursor='ul_angle')  # for resizing 'lr_angle', for released cursor 'left_ptr'
+        # for resizing 'lr_angle', for released cursor 'left_ptr'
+        root.config(cursor="ul_angle")
 
     def run(self, generator):
         """Syncs data, initializes and starts listener, shows root and enters main loop.
@@ -168,4 +170,3 @@ class BaseCollector(object):
             if self.check_window(win):
                 self.add_window(win)
         win = None
-

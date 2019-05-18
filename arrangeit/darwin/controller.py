@@ -9,4 +9,5 @@ class Controller(BaseController):
 
     def setup_root_window(self, root):
         """Sets provided root appearance attributes specific for Mac OS."""
-        pass
+        super().setup_root_window(root)
+

@@ -9,6 +9,7 @@ def mock_main_loop(mocker):
     mocker.patch("arrangeit.base.get_tkinter_root")
     mocker.patch("arrangeit.base.ViewApplication")
     mocker.patch("arrangeit.base.BaseController.mainloop")
+    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
 
 
 class TestBaseApp(object):
@@ -109,6 +110,7 @@ class TestBaseController(object):
 
     ## BaseController.setup
     def test_BaseController_setup_calls_get_tkinter_root(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("arrangeit.base.get_tkinter_root")
         base.BaseController().setup()
         assert mocked.call_count == 2
@@ -132,19 +134,71 @@ class TestBaseController(object):
     ):
         root = mocker.MagicMock()
         mocker.patch("arrangeit.base.get_tkinter_root", return_value=root)
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("arrangeit.base.ViewApplication")
         controller = base.BaseController()
         mocked.assert_called_with(master=root, controller=controller)
 
     def test_BaseController_setup_withdraws_root_tk_window(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("arrangeit.view.Tk")
         base.BaseController().setup()
         assert mocked.return_value.withdraw.call_count == 2
 
+    ## BaseController.setup_root_window
+    def test_BaseController_setup_root_window_calls_quarter_by_smaller(self, mocker):
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        width, height = 1200, 1000
+        root.winfo_screenwidth.return_value = width
+        root.winfo_screenheight.return_value = height
+        controller = base.BaseController()
+        assert mocked.call_count == 1
+        controller.setup_root_window(root)
+        assert mocked.call_count == 2
+        mocked.assert_called_with(width, height)
+
+    def test_BaseController_setup_root_window_calls_geometry(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.utils.quarter_by_smaller")
+        base.BaseController().setup_root_window(root)
+        assert root.config.call_count == 1
+        root.geometry.assert_called_with("100x100")
+
+    def test_BaseController_setup_root_window_calls_overrideredirect(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        base.BaseController().setup_root_window(root)
+        assert root.overrideredirect.call_count == 1
+        root.overrideredirect.assert_called_with(True)
+
+    def test_BaseController_setup_root_window_calls_wm_attributes(self, mocker):
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        base.BaseController().setup_root_window(root)
+        assert root.wm_attributes.call_count == 2
+        calls = [mocker.call("-alpha", 0.7), mocker.call("-topmost", True)]
+        root.wm_attributes.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_setup_root_window_calls_cursor_config(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        base.BaseController().setup_root_window(root)
+        assert root.config.call_count == 1
+        calls = [mocker.call(cursor="ul_angle")]
+        root.config.assert_has_calls(calls, any_order=True)
+
     ## BaseController.run
-    def test_BaseController_run_sets_generator_attribute_from_provided_attr(self, mocker):
+    def test_BaseController_run_sets_generator_attr_from_provided_attr(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         generator = mocker.MagicMock()
         controller = base.BaseController()
         controller.run(generator)
@@ -153,6 +207,7 @@ class TestBaseController(object):
     def test_BaseController_run_calls_next(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("arrangeit.base.BaseController.next")
         base.BaseController().run(mocker.MagicMock())
         mocked.assert_called_once()
@@ -160,6 +215,7 @@ class TestBaseController(object):
     def test_BaseController_run_calls_get_mouse_listener(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("arrangeit.base.get_mouse_listener")
         controller = base.BaseController()
         controller.run(mocker.MagicMock())
@@ -169,6 +225,7 @@ class TestBaseController(object):
     def test_BaseController_run_sets_listener_attribute(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         listener = mocker.MagicMock()
         mocker.patch("arrangeit.base.get_mouse_listener", return_value=listener)
         controller = base.BaseController()
@@ -178,6 +235,7 @@ class TestBaseController(object):
     def test_BaseController_run_starts_listener(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("pynput.mouse.Listener")
         base.BaseController().run(mocker.MagicMock())
         assert mocked.return_value.start.call_count == 1
@@ -186,6 +244,7 @@ class TestBaseController(object):
     def test_BaseController_run_calls_master_showing_up_method(self, mocker, method):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocked = mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         base.BaseController().run(mocker.MagicMock())
         instance = mocked.return_value.master
         assert getattr(instance, method).call_count == 1
@@ -193,21 +252,60 @@ class TestBaseController(object):
     def test_BaseController_run_calls_mainloop(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("arrangeit.base.BaseController.mainloop")
         base.BaseController().run(mocker.MagicMock())
         mocked.assert_called_once()
 
+    ## BaseController.next
+    def test_BaseController_next_runs_generator(self, mocker):
+        mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        collection = data.WindowsCollection()
+        model_instance1 = data.WindowModel()
+        model_instance2 = data.WindowModel()
+        collection.add(data.WindowModel())
+        collection.add(model_instance1)
+        collection.add(data.WindowModel())
+        collection.add(model_instance2)
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        next_value = next(generator)
+        assert next_value == model_instance1
+        controller.next()
+        next_value = next(generator)
+        assert next_value == model_instance2
+
+    @pytest.mark.parametrize("attr,val,typ", [("title", "foo", StringVar)])
+    def test_BaseController_next_sets_attributes_from_gen(self, mocker, attr, val, typ):
+        mocker.patch("arrangeit.base.BaseController.mainloop")
+        model = data.WindowModel(**{attr: val})
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(model)
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        controller.next()
+        instance = getattr(controller.view, attr)
+        assert instance.get() == getattr(model, attr)
+        assert isinstance(instance, typ)
+
     ## BaseController.on_mouse_move
     def test_BaseController_on_mouse_move_moves_root_window(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocked = mocker.patch("arrangeit.base.ViewApplication")
         x, y = 100, 200
         base.BaseController().on_mouse_move(x, y)
-        mocked.return_value.master.geometry.call_count == 1
+        assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with("+{}+{}".format(x, y))
 
     ## BaseController.mainloop
     def test_BaseController_main_loop_calls_Tkinter_mainloop(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocked = mocker.patch("arrangeit.base.ViewApplication")
         base.BaseController().mainloop()
@@ -278,5 +376,5 @@ class TestBaseCollector(object):
         base.BaseCollector().run()
         if len(elements) > 0:
             mocked.assert_called()
-        mocked.call_count == len(elements)
+        assert mocked.call_count == len(elements)
 

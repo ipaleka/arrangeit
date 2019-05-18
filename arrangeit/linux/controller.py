@@ -9,6 +9,5 @@ class Controller(BaseController):
 
     def setup_root_window(self, root):
         """Sets provided root appearance attributes specific for GNU/Linux."""
-        pass
-        # root.wm_attributes("-type", "splash")
-        # root.wm_attributes("-alpha", 0.7)  # doesn't work without -type splash; -type is X Windows only
+        root.wm_attributes("-type", "splash")
+        super().setup_root_window(root)
