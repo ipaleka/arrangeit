@@ -53,22 +53,25 @@ class TestBaseApp(object):
         assert isinstance(getattr(mainapp, "player"), base.BasePlayer)
 
     ## BaseApp.setup_gui
-    def test_BaseApp_setup_collector_calls_get_gui(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.get_gui")
+    def test_BaseApp_setup_collector_calls_get_component_class_Gui(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.get_component_class")
         base.BaseApp().setup_gui()
         mocked.assert_called()
+        mocked.assert_called_with("Gui")
 
     ## BaseApp.setup_collector
-    def test_BaseApp_setup_collector_calls_get_collector(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.get_collector")
+    def test_BaseApp_setup_collector_calls_get_component_class_Collector(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.get_component_class")
         base.BaseApp().setup_collector()
         mocked.assert_called()
+        mocked.assert_called_with("Collector")
 
     ## BaseApp.setup_player
-    def test_BaseApp_setup_player_calls_get_player(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.get_player")
+    def test_BaseApp_setup_player_calls_get_component_class_Player(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.get_component_class")
         base.BaseApp().setup_player()
         mocked.assert_called()
+        mocked.assert_called_with("Player")
 
     ## BaseApp.run
     def test_BaseApp_run_calls_collector_run(self, mocker):
@@ -171,7 +174,7 @@ class TestBaseGui(object):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.GuiApplication")
         mocked = mocker.patch("pynput.mouse.Listener")
-        gui = base.BaseGui().run()
+        base.BaseGui().run()
         assert mocked.return_value.start.call_count == 1
 
     @pytest.mark.parametrize("method", ["update", "deiconify"])
@@ -262,15 +265,15 @@ class TestBaseCollector(object):
         base.BaseCollector().run()
         mocked.assert_called_once()
 
-    @pytest.mark.parametrize("elems", [(), (5, 10, 15), (4,)])
-    def test_BaseCollector__call___calls_add_window(self, mocker, elems):
-        mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=elems)
+    @pytest.mark.parametrize("elements", [(), (5, 10, 15), (4,)])
+    def test_BaseCollector__call___calls_add_window(self, mocker, elements):
+        mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=elements)
         mocker.patch("arrangeit.base.BaseCollector.check_window")
         mocked = mocker.patch("arrangeit.base.BaseCollector.add_window")
         base.BaseCollector().run()
-        if len(elems) > 0:
+        if len(elements) > 0:
             mocked.assert_called()
-        mocked.call_count == len(elems)
+        mocked.call_count == len(elements)
 
 
 class TestBasePlayer(object):

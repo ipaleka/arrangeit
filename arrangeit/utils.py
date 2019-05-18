@@ -36,45 +36,14 @@ def get_class(name, platform):
     return getattr(module, name)
 
 
-# TODO merge following 4 functions into one get_component(name, platform=None)
-def get_app(platform=None):
+def get_component_class(name, platform=None):
     """Helper method for retrieving platform specific App class.
 
     :param platform: platform name
     :type platform: string
-    :returns: ``App`` class from the platform specific package
+    :returns: class with provided `name` from the platform specific package
     """
-    return get_class("App", platform=platform)
-
-
-def get_gui(platform=None):
-    """Helper method for retrieving platform specific Gui class.
-
-    :param platform: platform name
-    :type platform: string
-    :returns: ``Gui`` class from the platform specific package
-    """
-    return get_class("Gui", platform=platform)
-
-
-def get_collector(platform=None):
-    """Helper method for retrieving platform specific Collector class.
-
-    :param platform: platform name
-    :type platform: string
-    :returns: ``Collector`` class from the platform specific package
-    """
-    return get_class("Collector", platform)
-
-
-def get_player(platform=None):
-    """Helper method for retrieving platform specific Player class.
-
-    :param platform: platform name
-    :type platform: string
-    :returns: ``Player`` class from the platform specific package
-    """
-    return get_class("Player", platform)
+    return get_class(name, platform=platform)
 
 
 def get_value_if_valid_type(value, typ):

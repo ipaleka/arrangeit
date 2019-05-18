@@ -13,34 +13,32 @@ class TestUtils(object):
         assert utils.platform_path() == name.lower()
 
     ## get_class
-    @pytest.mark.parametrize("name", ["app", "gui", "collector", "player"])
+    @pytest.mark.parametrize("name", ["App", "Gui", "Collector", "Player"])
     def test_get_class_involves_default_val_for_no_arg(self, mocker, name):
         # calls function from utils module made of parameterized 'name'
-        klass = getattr(utils, "get_{}".format(name))()
+        klass = utils.get_component_class(name)
         platform = utils.platform_path()
-        assert klass.__module__ == "arrangeit.{}.{}".format(platform, name)
+        assert klass.__module__ == "arrangeit.{}.{}".format(platform, name.lower())
 
-    ## get_"function"
-    @pytest.mark.parametrize("name", ["app", "gui", "collector", "player"])
-    def test_get_function_involves_provided_argument(self, mocker, name):
+    ## get_component_class
+    @pytest.mark.parametrize("name", ["App", "Gui", "Collector", "Player"])
+    def test_get_component_class_involves_provided_argument(self, mocker, name):
         with pytest.raises(SystemExit):
-            # calls function from utils module made of parameterized 'name'
-            getattr(utils, "get_{}".format(name))("fooplatform")
+            utils.get_component_class(name, "fooplatform")
 
-    @pytest.mark.parametrize("name", ["app", "gui", "collector", "player"])
+    @pytest.mark.parametrize("name", ["App", "Gui", "Collector", "Player"])
     @pytest.mark.parametrize("platform", ["java", "foo", "android"])
-    def test_get_function_raises_SystemExit_for_invalid_platform(self, platform, name):
+    def test_get_component_class_raises_SystemExit_for_invalid_platform(self, platform, name):
         with pytest.raises(SystemExit) as exception:
-            # calls function from utils module made of parameterized 'name'
-            getattr(utils, "get_{}".format(name))(platform)
+            utils.get_component_class(name, platform)
         assert "on your platform" in exception.value.code
 
     @pytest.mark.parametrize("function", ["app", "gui", "collector", "player"])
-    def test_get_function_calls_get_class(self, mocker, function):
+    def test_get_component_class_calls_get_class(self, mocker, function):
         mocked = mocker.patch("arrangeit.utils.get_class")
-        getattr(utils, "get_{}".format(function))()
+        utils.get_component_class("Foo", "bar")
         mocked.assert_called_once()
-
+        mocked.assert_called_with("Foo", platform="bar")
 
     ## append_to_collection
     @pytest.mark.parametrize(

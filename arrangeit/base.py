@@ -24,15 +24,15 @@ class BaseApp(object):
 
     def setup_gui(self):
         """Returns platform specific Gui class."""
-        return utils.get_gui()
+        return utils.get_component_class("Gui")
 
     def setup_collector(self):
         """Returns platform specific Collector class."""
-        return utils.get_collector()
+        return utils.get_component_class("Collector")
 
     def setup_player(self):
         """Returns platform specific Player class."""
-        return utils.get_player()
+        return utils.get_component_class("Player")
 
     def run(self):
         """Collects data, prepare them for view and finally shows gui application."""
