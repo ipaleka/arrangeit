@@ -33,8 +33,9 @@ class TestView(object):
         mocked.assert_called()
 
     def test_get_mouse_listener_returns_listener_instance(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Listener")
         returned = get_mouse_listener(mocker.MagicMock())
-        assert isinstance(returned, mouse.Listener)
+        assert returned == mocked.return_value
 
 
 class TestViewApplication(object):

@@ -156,6 +156,7 @@ class BaseController(object):
 
     def on_escape_key_pressed(self, event):
         """Calls shutdown method."""
+        print("escape down")
         self.shutdown()
 
     def on_mouse_left_down(self, event):
@@ -164,7 +165,7 @@ class BaseController(object):
         :var event: propagated event
         :type event: Tkinter event
         """
-        pass
+        print("left down")
 
     def on_mouse_right_down(self, event):
         """Skips the window
@@ -172,7 +173,7 @@ class BaseController(object):
         :var event: propagated event
         :type event: Tkinter event
         """
-        pass
+        print("right down")
 
     def shutdown(self):
         """Stops mouse listener and destroys Tkinter root window."""
