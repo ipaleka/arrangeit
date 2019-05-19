@@ -1,4 +1,4 @@
-from arrangeit.constants import WINDOW_SHIFT_PIXELS
+from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
 from arrangeit.view import get_mouse_listener, get_tkinter_root, ViewApplication
@@ -97,7 +97,7 @@ class BaseController(object):
         """
         self.set_root_geometry(root)
         root.overrideredirect(True)
-        root.wm_attributes("-alpha", 0.7)
+        root.wm_attributes("-alpha", ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
         # TODO for resizing 'lr_angle', for released cursor 'left_ptr'
         #      http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
@@ -124,7 +124,8 @@ class BaseController(object):
         self.generator = generator
         self.next()
         self.listener = get_mouse_listener(self.on_mouse_move)
-        self.listener.start()  # self.listener.stop() to stop
+        self.listener.start()
+        # self.listener.stop() to stop - can't restart it afterward, create new instead
         self.on_mouse_move(*self.get_cursor_position())
         self.view.master.update()
         self.view.master.deiconify()

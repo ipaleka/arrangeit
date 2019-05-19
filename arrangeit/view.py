@@ -2,7 +2,13 @@ from tkinter import Tk, Frame, Label, StringVar, X
 
 from pynput import mouse
 
-from arrangeit.constants import TITLE_LABEL_FG, TITLE_LABEL_BG, TITLE_LABEL_ANCHOR
+from arrangeit.constants import (
+    TITLE_LABEL_FG,
+    TITLE_LABEL_BG,
+    TITLE_LABEL_ANCHOR,
+    TITLE_LABEL_PADX,
+    TITLE_LABEL_PADY,
+)
 
 
 def get_tkinter_root():
@@ -54,6 +60,8 @@ class ViewApplication(Frame):
             foreground=TITLE_LABEL_FG,
             background=TITLE_LABEL_BG,
             anchor=TITLE_LABEL_ANCHOR,
+            padx=TITLE_LABEL_PADX,
+            pady=TITLE_LABEL_PADY,
         )
         title_label.pack(fill=X)
 
@@ -85,4 +93,3 @@ class ViewApplication(Frame):
         self.bind("<Button-1>", self.controller.on_mouse_left_down)
         self.bind("<Button-2>", self.controller.on_mouse_left_down)
         self.bind("<Button-3>", self.controller.on_mouse_right_down)
-

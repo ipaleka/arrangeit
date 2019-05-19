@@ -319,7 +319,7 @@ class TestWindowsCollector(object):
         mocker.patch("arrangeit.data.WindowsCollection.add")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
-        mocker.patch("arrangeit.windows.collector.Collector._get_class_name")        
+        mocker.patch("arrangeit.windows.collector.Collector._get_class_name")
         mocked = mocker.patch("arrangeit.windows.collector.WindowModel")
         Collector().add_window(SAMPLE_HWND)
         mocked.assert_called_once()
@@ -336,7 +336,7 @@ class TestWindowsCollector(object):
     def test_WindowsCollector_add_window_calls_methods(self, mocker, method):
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
-        mocker.patch("arrangeit.windows.collector.Collector._get_class_name")        
+        mocker.patch("arrangeit.windows.collector.Collector._get_class_name")
         mocked = mocker.patch("arrangeit.windows.collector.Collector.{}".format(method))
         Collector().add_window(SAMPLE_HWND)
         mocked.assert_called_once()
@@ -357,7 +357,7 @@ class TestWindowsCollector(object):
     ):
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
-        mocker.patch("arrangeit.windows.collector.Collector._get_class_name")    
+        mocker.patch("arrangeit.windows.collector.Collector._get_class_name")
         mocker.patch(
             "arrangeit.windows.collector.Collector.get_windows",
             return_value=(mocker.MagicMock(), mocker.MagicMock()),
@@ -373,4 +373,3 @@ class TestWindowsCollector(object):
         collector = Collector()
         collector.run()
         assert collector.collection.size == value
-

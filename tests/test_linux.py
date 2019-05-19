@@ -18,7 +18,7 @@ class TestLinuxController(object):
         mocker.patch("arrangeit.base.ViewApplication")
         Controller().setup_root_window(root)
         root.wm_attributes.assert_called()
-        calls = [mocker.call("-type", "splash"),]
+        calls = [mocker.call("-type", "splash")]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
 
 
@@ -222,4 +222,3 @@ class TestLinuxCollector(object):
         collector = Collector()
         collector.run()
         assert collector.collection.size == value
-

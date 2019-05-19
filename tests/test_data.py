@@ -36,7 +36,9 @@ class TestWindowModel(object):
 
     ## WindowModel.setup
     @pytest.mark.parametrize("values", SAMPLE_MODEL_VALUES)
-    def test_WindowModel_setup_calls_get_value_if_valid_type_for_all(self, mocker, values):
+    def test_WindowModel_setup_calls_get_value_if_valid_type_for_all(
+        self, mocker, values
+    ):
         mocked = mocker.patch("arrangeit.data.get_value_if_valid_type")
         wm = WindowModel()
         wm.setup(**values)

@@ -3,7 +3,7 @@ from tkinter import StringVar
 import pytest
 
 from arrangeit import base, data, utils
-from arrangeit.constants import WINDOW_SHIFT_PIXELS
+from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS
 
 
 def mock_main_loop(mocker):
@@ -194,7 +194,7 @@ class TestBaseController(object):
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         base.BaseController().setup_root_window(root)
         assert root.wm_attributes.call_count == 2
-        calls = [mocker.call("-alpha", 0.7), mocker.call("-topmost", True)]
+        calls = [mocker.call("-alpha", ROOT_ALPHA), mocker.call("-topmost", True)]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
 
     def test_BaseController_setup_root_window_calls_cursor_config(self, mocker):
@@ -467,4 +467,3 @@ class TestBaseCollector(object):
         if len(elements) > 0:
             mocked.assert_called()
         assert mocked.call_count == len(elements)
-

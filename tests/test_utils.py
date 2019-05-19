@@ -28,7 +28,9 @@ class TestUtils(object):
 
     @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
     @pytest.mark.parametrize("platform", ["java", "foo", "android"])
-    def test_get_component_class_raises_SystemExit_for_invalid_platform(self, platform, name):
+    def test_get_component_class_raises_SystemExit_for_invalid_platform(
+        self, platform, name
+    ):
         with pytest.raises(SystemExit) as exception:
             utils.get_component_class(name, platform)
         assert "on your platform" in exception.value.code
@@ -42,12 +44,7 @@ class TestUtils(object):
 
     ## append_to_collection
     @pytest.mark.parametrize(
-        "elem,collection,expected",
-        [
-            (1, [], [1,]),
-            (5, [2,], [2,5]),
-            (9, [9,], [9,9]),
-        ],
+        "elem,collection,expected", [(1, [], [1]), (5, [2], [2, 5]), (9, [9], [9, 9])]
     )
     def test_append_to_collection_functionality(self, elem, collection, expected):
         utils.append_to_collection(elem, collection)
@@ -56,16 +53,9 @@ class TestUtils(object):
     def test_append_to_collection_returns_True(self):
         assert utils.append_to_collection(1, [])
 
-
     ## get_value_if_valid_type
     @pytest.mark.parametrize(
-        "value,typ",
-        [
-            (None, int),
-            (None, float),
-            (None, str),
-            (None, (int, int)),
-        ],
+        "value,typ", [(None, int), (None, float), (None, str), (None, (int, int))]
     )
     def test_get_value_if_valid_type_returns_None_for_None_value(self, value, typ):
         assert utils.get_value_if_valid_type(value, typ) is None
@@ -99,7 +89,7 @@ class TestUtils(object):
             (1, bool),
             (0, bool),
             ("foo", bool),
-            (-1, bool)
+            (-1, bool),
         ],
     )
     def test_get_value_if_valid_type_for_single_type_returns_None(self, value, typ):
@@ -115,7 +105,9 @@ class TestUtils(object):
             ((2, 5, 0, 3), (int, int, int, int)),
         ],
     )
-    def test_get_value_if_valid_type_for_collection_type_returns_value(self, value, typ):
+    def test_get_value_if_valid_type_for_collection_type_returns_value(
+        self, value, typ
+    ):
         assert utils.get_value_if_valid_type(value, typ) == value
 
     @pytest.mark.parametrize(

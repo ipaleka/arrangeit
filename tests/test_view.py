@@ -4,7 +4,13 @@ import pytest
 from pynput import mouse
 
 from arrangeit.view import get_tkinter_root, get_mouse_listener, ViewApplication
-from arrangeit.constants import TITLE_LABEL_FG, TITLE_LABEL_BG, TITLE_LABEL_ANCHOR
+from arrangeit.constants import (
+    TITLE_LABEL_FG,
+    TITLE_LABEL_BG,
+    TITLE_LABEL_ANCHOR,
+    TITLE_LABEL_PADX,
+    TITLE_LABEL_PADY,
+)
 
 
 class TestView(object):
@@ -29,6 +35,7 @@ class TestView(object):
     def test_get_mouse_listener_returns_listener_instance(self, mocker):
         returned = get_mouse_listener(mocker.MagicMock())
         assert isinstance(returned, mouse.Listener)
+
 
 class TestViewApplication(object):
     """Unit testing class for view module inner functions."""
@@ -69,12 +76,7 @@ class TestViewApplication(object):
         assert mocked.call_count == 1
 
     ## ViewApplication.setup_widgets
-    @pytest.mark.parametrize(
-        "name,typ",
-        [
-            ("title", StringVar),
-        ],
-    )
+    @pytest.mark.parametrize("name,typ", [("title", StringVar)])
     def test_ViewApplication_setup_widgets_sets_tk_variable(self, mocker, name, typ):
         view = ViewApplication(None, mocker.MagicMock())
         setattr(view, name, None)
@@ -89,7 +91,9 @@ class TestViewApplication(object):
             textvariable=view.title,
             foreground=TITLE_LABEL_FG,
             background=TITLE_LABEL_BG,
-            anchor=TITLE_LABEL_ANCHOR
+            anchor=TITLE_LABEL_ANCHOR,
+            padx=TITLE_LABEL_PADX,
+            pady=TITLE_LABEL_PADY,
         )
 
     ## ViewApplication.setup_bindings
@@ -108,5 +112,5 @@ class TestViewApplication(object):
         callback = getattr(controller, method)
         mocked = mocker.patch("arrangeit.view.ViewApplication.bind")
         view.setup_bindings()
-        calls = [mocker.call(event, callback),]
+        calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)

@@ -13,6 +13,8 @@ class TestConstants(object):
             ("TITLE_LABEL_FG", str),
             ("TITLE_LABEL_BG", str),
             ("TITLE_LABEL_ANCHOR", str),
+            ("TITLE_LABEL_PADX", int),
+            ("TITLE_LABEL_PADY", int),
         ],
     )
     def test_constants_for_name_and_typ(self, constant, typ):
