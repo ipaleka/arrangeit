@@ -3,7 +3,13 @@ from tkinter import Frame, StringVar
 import pytest
 from pynput import mouse
 
-from arrangeit.view import get_tkinter_root, get_mouse_listener, ViewApplication
+from arrangeit.view import (
+    click_left,
+    get_tkinter_root,
+    get_mouse_listener,
+    move_cursor,
+    ViewApplication,
+)
 from arrangeit.constants import (
     TITLE_LABEL_FG,
     TITLE_LABEL_BG,
@@ -13,7 +19,7 @@ from arrangeit.constants import (
 )
 
 
-class TestView(object):
+class TestViewFunctions(object):
     """Unit testing class for view module inner functions."""
 
     ## get_tkinter_root
@@ -37,6 +43,30 @@ class TestView(object):
         returned = get_mouse_listener(mocker.MagicMock())
         assert returned == mocked.return_value
 
+    ## click_left
+    def test_click_left_initializes_Controller(self, mocker):
+        mocked = mocker.patch("arrangeit.view.mouse.Controller")
+        click_left()
+        mocked.assert_called()
+
+    def test_click_left_calls_press_and_release(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        click_left()
+        mocked.return_value.press.assert_called_once()
+        mocked.return_value.release.assert_called_once()
+
+    ## move_cursor
+    def test_move_cursor_initializes_Controller(self, mocker):
+        mocked = mocker.patch("arrangeit.view.mouse.Controller")
+        move_cursor(0, 0)
+        mocked.assert_called()
+
+    def test_move_cursor_calls_position_with_provided_x_and_y(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        xy = (101, 202)
+        move_cursor(*xy)
+        assert mocked.return_value.position == xy
+
 
 class TestViewApplication(object):
     """Unit testing class for view module inner functions."""
@@ -57,6 +87,8 @@ class TestViewApplication(object):
     def test_ViewApplication_init_sets_master_and_controller_attributes(self, mocker):
         master = mocker.MagicMock()
         controller = mocker.MagicMock()
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
         view = ViewApplication(master, controller)
         assert view.master == master
         assert view.controller == controller
@@ -111,7 +143,7 @@ class TestViewApplication(object):
         controller = mocker.MagicMock()
         view = ViewApplication(None, controller)
         callback = getattr(controller, method)
-        mocked = mocker.patch("arrangeit.view.ViewApplication.bind")
+        mocked = mocker.patch("arrangeit.view.ViewApplication.bind_all")
         view.setup_bindings()
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)

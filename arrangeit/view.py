@@ -27,6 +27,19 @@ def get_mouse_listener(callback):
     return mouse.Listener(on_move=callback)
 
 
+def click_left():
+    """Makes a left button mouse click in the current cursor position."""
+    controller = mouse.Controller()
+    controller.press(mouse.Button.left)
+    controller.release(mouse.Button.left)
+
+
+def move_cursor(x, y):
+    """Moves cursor position to a point defined by provided x and y."""
+    controller = mouse.Controller()
+    controller.position = (x, y)
+
+
 class ViewApplication(Frame):
     """Tkinter frame showing current window from the data provided through controller.
 
@@ -88,8 +101,11 @@ class ViewApplication(Frame):
         # cv.create_text(15, 20, text="Python Greetings", fill="red", anchor='nw')
 
     def setup_bindings(self):
-        """Binds relevant events to related controller callbacks."""
-        self.bind("<Escape>", self.controller.on_escape_key_pressed)
-        self.bind("<Button-1>", self.controller.on_mouse_left_down)
-        self.bind("<Button-2>", self.controller.on_mouse_left_down)
-        self.bind("<Button-3>", self.controller.on_mouse_right_down)
+        """Binds relevant events to related controller callbacks.
+
+        `bind_all` method is used so events can be catch in label widget too.
+        """
+        self.bind_all("<Escape>", self.controller.on_escape_key_pressed)
+        self.bind_all("<Button-1>", self.controller.on_mouse_left_down)
+        self.bind_all("<Button-2>", self.controller.on_mouse_left_down)
+        self.bind_all("<Button-3>", self.controller.on_mouse_right_down)

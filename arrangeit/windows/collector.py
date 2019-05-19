@@ -70,7 +70,7 @@ class Collector(BaseCollector):
         title_info = TITLEBARINFO()
         title_info.cbSize = ctypes.sizeof(title_info)
         ctypes.windll.user32.GetTitleBarInfo(hwnd, ctypes.byref(title_info))
-        return title_info.rgstate[0] & STATE_SYSTEM_INVISIBLE
+        return title_info.rgstate[0] & STATE_SYSTEM_INVISIBLE != 0
 
     def _is_alt_tab_applicable(self, hwnd):
         """Checks if provided hwnd represents window visible in "Alt+Tab screen".
@@ -99,7 +99,7 @@ class Collector(BaseCollector):
         :type hwnd: int
         :returns: Boolean
         """
-        return GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW
+        return GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW != 0
 
     def is_applicable(self, hwnd):
         """Checks if provided hwnd represents window type that should be collected.
@@ -131,7 +131,7 @@ class Collector(BaseCollector):
         """
         window_info = WINDOWINFO()
         ctypes.windll.user32.GetWindowInfo(hwnd, ctypes.byref(window_info))
-        return window_info.dwExStyle & WS_EX_NOACTIVATE
+        return window_info.dwExStyle & WS_EX_NOACTIVATE == 0
 
     def is_valid_state(self, hwnd):
         """Checks if provided hwnd represents window with valid state for collecting.
@@ -154,7 +154,7 @@ class Collector(BaseCollector):
         :type hwnd: int
         :returns: Boolean
         """
-        return GetWindowLong(hwnd, GWL_EXSTYLE) & WS_THICKFRAME
+        return GetWindowLong(hwnd, GWL_EXSTYLE) & WS_THICKFRAME != 0
 
     def get_windows(self):
         """Creates and returns list of all the windows hwnds

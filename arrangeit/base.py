@@ -1,7 +1,13 @@
 from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
-from arrangeit.view import get_mouse_listener, get_tkinter_root, ViewApplication
+from arrangeit.view import (
+    click_left,
+    get_mouse_listener,
+    get_tkinter_root,
+    move_cursor,
+    ViewApplication,
+)
 
 
 class BaseApp(object):
@@ -96,7 +102,7 @@ class BaseController(object):
         :type root: :class:`tkinter.Tk` instance
         """
         self.set_root_geometry(root)
-        root.overrideredirect(True)
+        # root.overrideredirect(True)
         root.wm_attributes("-alpha", ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
         # TODO for resizing 'lr_angle', for released cursor 'left_ptr'
@@ -123,22 +129,49 @@ class BaseController(object):
         """
         self.generator = generator
         self.next()
+
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()
         # self.listener.stop() to stop - can't restart it afterward, create new instead
-        self.on_mouse_move(*self.get_cursor_position())
         self.view.master.update()
         self.view.master.deiconify()
         self.view.focus_set()
+        click_left()
         self.mainloop()
 
     def next(self):
         """Sets controller ``model`` attribute from the value yielded from ``generator``
 
-        and populate gui widgets with new model data.1
+        and populates view widgets with new model data.
+        Also moves cursor and root window to model's window position.
+        If there are no values left in collection then calls
+        :func:`BaseController.save_default` and :func:`BaseController.shutdown`
+
+        :returns: Boolean
         """
-        self.model = next(self.generator)
+        try:
+            self.model = next(self.generator)
+        except StopIteration:
+            self.save_default()
+            self.shutdown()
+            return True
+
         self.view.title.set(self.model.title)
+
+        self.place_above_model()
+        return False
+
+    def place_above_model(self):
+        """Moves cursor and master on model's x and y position.
+
+        :var x: model's horizontal axis mouse position in pixels
+        :type x: int
+        :var y: model's vertical axis mouse position in pixels
+        :type y: int
+        """
+        x, y = self.model.rect[0], self.model.rect[1]
+        move_cursor(x, y)
+        self.on_mouse_move(x, y)
 
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
@@ -160,20 +193,21 @@ class BaseController(object):
         self.shutdown()
 
     def on_mouse_left_down(self, event):
-        """Position the window
+        """Positions the window
 
-        :var event: propagated event
+        :var event: catched event
         :type event: Tkinter event
         """
         print("left down")
 
     def on_mouse_right_down(self, event):
-        """Skips the window
+        """Skips the current model.
 
-        :var event: propagated event
+        :var event: catched event
         :type event: Tkinter event
         """
         print("right down")
+        self.next()
 
     def shutdown(self):
         """Stops mouse listener and destroys Tkinter root window."""
@@ -182,6 +216,10 @@ class BaseController(object):
 
     def mainloop(self):
         self.view.mainloop()
+
+    def save_default(self):
+        print("save default")
+        pass
 
 
 class BaseCollector(object):

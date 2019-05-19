@@ -12,6 +12,7 @@ def mock_main_loop(mocker):
     mocker.patch("arrangeit.base.BaseController.mainloop")
     mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
     mocker.patch("pynput.mouse.Listener")
+    mocker.patch("pynput.mouse.Controller")
 
 
 class TestBaseApp(object):
@@ -181,6 +182,7 @@ class TestBaseController(object):
         assert mocked.call_count == 2
         mocked.assert_called_with(root)
 
+    @pytest.mark.skip(reason="we don't need this")
     def test_BaseController_setup_root_window_calls_overrideredirect(self, mocker):
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         root = mocker.patch("arrangeit.base.get_tkinter_root")
@@ -264,25 +266,6 @@ class TestBaseController(object):
         base.BaseController().run(mocker.MagicMock())
         assert mocked.return_value.start.call_count == 1
 
-    def test_BaseController_run_calls_get_cursor_position(self, mocker):
-        mock_main_loop(mocker)
-        mocked = mocker.patch(
-            "arrangeit.base.BaseController.get_cursor_position", return_value=(50, 40)
-        )
-        base.BaseController().run(mocker.MagicMock())
-        assert mocked.call_count == 1
-
-    def test_BaseController_run_calls_on_mouse_move(self, mocker):
-        mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        xy = (120, 150)
-        mocker.patch(
-            "arrangeit.base.BaseController.get_cursor_position", return_value=xy
-        )
-        base.BaseController().run(mocker.MagicMock())
-        assert mocked.call_count == 1
-        mocked.assert_called_with(*xy)
-
     @pytest.mark.parametrize("method", ["update", "deiconify"])
     def test_BaseController_run_calls_master_showing_up_method(self, mocker, method):
         mock_main_loop(mocker)
@@ -297,6 +280,12 @@ class TestBaseController(object):
         base.BaseController().run(mocker.MagicMock())
         mocked.return_value.focus_set.assert_called_once()
 
+    def test_BaseController_run_calls_click_left(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.click_left")
+        base.BaseController().run(mocker.MagicMock())
+        mocked.assert_called_once()
+
     def test_BaseController_run_calls_mainloop(self, mocker):
         mock_main_loop(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.mainloop")
@@ -306,6 +295,7 @@ class TestBaseController(object):
     ## BaseController.next
     def test_BaseController_next_runs_generator(self, mocker):
         mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_above_model")
         collection = data.WindowsCollection()
         model_instance1 = data.WindowModel()
         model_instance2 = data.WindowModel()
@@ -326,6 +316,9 @@ class TestBaseController(object):
     def test_BaseController_next_sets_attributes_from_gen(self, mocker, attr, val, typ):
         mocker.patch("arrangeit.base.BaseController.mainloop")
         mocker.patch("pynput.mouse.Listener")
+        mocker.patch("pynput.mouse.Controller")
+        mocker.patch("arrangeit.view.Tk.update")
+        mocker.patch("arrangeit.base.BaseController.place_above_model")
         model = data.WindowModel(**{attr: val})
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
@@ -337,6 +330,90 @@ class TestBaseController(object):
         instance = getattr(controller.view, attr)
         assert instance.get() == getattr(model, attr)
         assert isinstance(instance, typ)
+
+    def test_BaseController_next_calls_place_above_model(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.place_above_model")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        controller.next()
+        mocked.assert_called()
+
+    def test_BaseController_next_calls_save_default_on_StopIteration(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_above_model")
+        mocked = mocker.patch("arrangeit.base.BaseController.save_default")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        controller.next()
+        mocked.assert_not_called()
+        controller.next()
+        mocked.assert_called_once()
+
+    def test_BaseController_next_calls_shutdown_on_StopIteration(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_above_model")
+        mocked = mocker.patch("arrangeit.base.BaseController.shutdown")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        controller.next()
+        mocked.assert_not_called()
+        controller.next()
+        mocked.assert_called_once()
+
+    def test_BaseController_next_returns_True_on_StopIteration(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_above_model")
+        mocked = mocker.patch("arrangeit.base.BaseController.shutdown")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        returned = controller.next()
+        assert not returned
+        returned = controller.next()
+        assert returned
+
+    ## BaseController.place_above_model
+    def test_BaseController_place_above_model_calls_on_mouse_move(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        collection = data.WindowsCollection()
+        rect = (101, 202, 303, 404)
+        collection.add(data.WindowModel(rect=rect))
+        collection.add(data.WindowModel(rect=rect))
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        controller.place_above_model()
+        mocked.assert_called_with(rect[0], rect[1])
+
+    def test_BaseController_place_above_model_calls_move_cursor(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        collection = data.WindowsCollection()
+        rect = (101, 202, 303, 404)
+        collection.add(data.WindowModel(rect=rect))
+        collection.add(data.WindowModel(rect=rect))
+        generator = collection.generator()
+        controller = base.BaseController()
+        controller.run(generator)
+        controller.place_above_model()
+        mocked.assert_called_with(rect[0], rect[1])
 
     ## BaseController.on_mouse_move
     def test_BaseController_on_mouse_move_moves_root_window(self, mocker):
@@ -350,10 +427,16 @@ class TestBaseController(object):
         )
 
     ## BaseController.on_escape_key_pressed
-    def test_BaseController_on_escape_key_pressed(self, mocker):
+    def test_BaseController_on_escape_key_pressed_calls_shutdown(self, mocker):
         mock_main_loop(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.shutdown")
         base.BaseController().on_escape_key_pressed(mocker.MagicMock())
+        assert mocked.call_count == 1
+
+    def test_BaseController_on_mouse_right_down_calls_next(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        base.BaseController().on_mouse_right_down(mocker.MagicMock())
         assert mocked.call_count == 1
 
     ## BaseController.shutdown
