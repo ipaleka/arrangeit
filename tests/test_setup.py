@@ -1,6 +1,6 @@
 import pytest
 
-from arrangeit import main, base
+from arrangeit import __main__, base
 from arrangeit import utils
 from arrangeit.utils import get_component_class
 
@@ -26,8 +26,8 @@ class TestSetup(object):
 
     ## main
     def test_main_calls_get_component_class_App(self, mocker):
-        mocked = mocker.patch("arrangeit.main.get_component_class")
-        main.main()
+        mocked = mocker.patch("arrangeit.__main__.get_component_class")
+        __main__.main()
         mocked.assert_called_once()
         mocked.assert_called_with("App")
 
@@ -35,12 +35,12 @@ class TestSetup(object):
     def test_main_initializes_platform_specific_App(self, mocker, platform):
         mocker.patch("arrangeit.utils.platform_path", return_value=platform)
         mocked = mocker.patch("arrangeit.{}.app.App".format(platform))
-        main.main()
+        __main__.main()
         mocked.assert_called()
 
     @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
     def test_main_calls_App_run(self, mocker, platform):
         mocker.patch("arrangeit.utils.platform_path", return_value=platform)
         mocked = mocker.patch("arrangeit.{}.app.App".format(platform))
-        main.main()
+        __main__.main()
         assert mocked.return_value.run.call_count == 1

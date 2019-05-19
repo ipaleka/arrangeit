@@ -1,9 +1,7 @@
-from arrangeit import utils
-from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.view import get_tkinter_root, get_mouse_listener, ViewApplication
-
-from arrangeit.utils import quarter_by_smaller
 from arrangeit.constants import WINDOW_SHIFT_PIXELS
+from arrangeit.data import WindowModel, WindowsCollection
+from arrangeit.utils import get_component_class, quarter_by_smaller
+from arrangeit.view import get_mouse_listener, get_tkinter_root, ViewApplication
 
 
 class BaseApp(object):
@@ -25,11 +23,11 @@ class BaseApp(object):
 
     def setup_controller(self):
         """Returns platform specific Controller class."""
-        return utils.get_component_class("Controller")
+        return get_component_class("Controller")
 
     def setup_collector(self):
         """Returns platform specific Collector class."""
-        return utils.get_component_class("Collector")
+        return get_component_class("Collector")
 
     def run(self):
         """Collects data, prepare them for view and finally shows view application."""
@@ -44,8 +42,8 @@ class BaseController(object):
     :type model: :class:`WindowModel` instance
     :var BaseController.generator: generator for retrieving model instances from collection
     :type BaseController.generator: Generator[WindowModel, None, None]
-    :var view: Tkinter application showing main window
-    :type view: :class:`ViewApplication` instance
+    :var BaseController.view: Tkinter application showing main window
+    :type BaseController.view: :class:`ViewApplication` instance
     :var listener: Tkinter application showing main window
     :type listener: :class:`ViewApplication` instance
     """
@@ -105,18 +103,32 @@ class BaseController(object):
         #      http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
         root.config(cursor="ul_angle")
 
+    def get_cursor_position(self):
+        """Returns current cursor position by calculating it from master data.
+
+        :returns: (int, int) representing x and y coordinates
+        """
+        return (
+            self.view.master.winfo_pointerx() - self.view.master.winfo_rootx(),
+            self.view.master.winfo_pointery() - self.view.master.winfo_rooty(),
+        )
+
     def run(self, generator):
         """Syncs data, initializes and starts listener, shows root and enters main loop.
 
         Sets generator attribute to provided generator and sets window data
         by calling :func:`BaseController.next` for the first time.
+        Initially calls `on_mouse_move` with current cursor position as arguments.
+        Calls `focus_set` on view frame so key and mouse events may be activated.
         """
         self.generator = generator
         self.next()
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()  # self.listener.stop() to stop
+        self.on_mouse_move(*self.get_cursor_position())
         self.view.master.update()
         self.view.master.deiconify()
+        self.view.focus_set()
         self.mainloop()
 
     def next(self):
@@ -140,6 +152,31 @@ class BaseController(object):
         self.view.master.geometry(
             "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
         )
+
+    def on_escape_key_pressed(self, event):
+        """Calls shutdown method."""
+        self.shutdown()
+
+    def on_mouse_left_down(self, event):
+        """Position the window
+
+        :var event: propagated event
+        :type event: Tkinter event
+        """
+        pass
+
+    def on_mouse_right_down(self, event):
+        """Skips the window
+
+        :var event: propagated event
+        :type event: Tkinter event
+        """
+        pass
+
+    def shutdown(self):
+        """Stops mouse listener and destroys Tkinter root window."""
+        self.listener.stop()
+        self.view.master.destroy()
 
     def mainloop(self):
         self.view.mainloop()

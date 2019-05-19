@@ -4,10 +4,10 @@
 .. automodule:: arrangeit
 
 
-:mod:`arrangeit.main` -- Main module of the arrangeit application
------------------------------------------------------------------
+:mod:`arrangeit.__main__` -- Main module of the arrangeit application
+---------------------------------------------------------------------
 
-.. automodule:: arrangeit.main
+.. automodule:: arrangeit.__main__
   :members:
   :undoc-members:
   :show-inheritance:
@@ -34,7 +34,7 @@
 :mod:`arrangeit.view` -- Module with classes and functions holding graphical presentation data
 ----------------------------------------------------------------------------------------------
 
-.. automodule:: arrangeit.data
+.. automodule:: arrangeit.view
   :members:
   :undoc-members:
   :show-inheritance:
@@ -44,6 +44,15 @@
 ------------------------------------------------------------------
 
 .. automodule:: arrangeit.utils
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`arrangeit.constants` -- Module holding program's constants
+----------------------------------------------------------------
+
+.. automodule:: arrangeit.constants
   :members:
   :undoc-members:
   :show-inheritance:

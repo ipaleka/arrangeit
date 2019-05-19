@@ -1,6 +1,8 @@
-from tkinter import Tk, Frame, StringVar
+from tkinter import Tk, Frame, Label, StringVar, X
 
 from pynput import mouse
+
+from arrangeit.constants import TITLE_LABEL_FG, TITLE_LABEL_BG, TITLE_LABEL_ANCHOR
 
 
 def get_tkinter_root():
@@ -24,8 +26,8 @@ class ViewApplication(Frame):
 
     :var master: parent Tkinter window
     :type master: :class:`Tk` root window instance
-    :var controller: controller object providing windows data
-    :type controller: type(:class:`BaseController`) instance (platform specific)
+    :var ViewApplication.controller: controller object providing windows data
+    :type ViewApplication.controller: type(:class:`BaseController`) instance (platform specific)
     """
 
     master = None
@@ -35,21 +37,25 @@ class ViewApplication(Frame):
         """Sets master and controller attributes from provided arguments
 
         after super __init__ is called. Then sets the packer and
-        calls :func:`create_widgets` method.
+        calls :func:`setup_widgets` method.
         """
         super().__init__(master)
         self.master = master
         self.controller = controller
         self.pack()
-        self.create_widgets()
+        self.setup_widgets()
+        self.setup_bindings()
 
-    def create_widgets(self):
-        """Creates and packs all the frame's widgets."""
-
+    def setup_widgets(self):
+        """Creates and packs all the frame's variables and widgets."""
         self.title = StringVar()
-
-        # self.title_label = tk.Label(self, textvariable=self.title)
-        # self.title_label.pack(side="top")
+        title_label = Label(
+            textvariable=self.title,
+            foreground=TITLE_LABEL_FG,
+            background=TITLE_LABEL_BG,
+            anchor=TITLE_LABEL_ANCHOR,
+        )
+        title_label.pack(fill=X)
 
         # self.hi_there = tk.Button(self)
         # self.hi_there["text"] = "controller.next\n(click me)"
@@ -72,3 +78,11 @@ class ViewApplication(Frame):
         # # add canvas text at coordinates x=15, y=20
         # # anchor='nw' implies upper left corner coordinates
         # cv.create_text(15, 20, text="Python Greetings", fill="red", anchor='nw')
+
+    def setup_bindings(self):
+        """Binds relevant events to related controller callbacks."""
+        self.bind("<Escape>", self.controller.on_escape_key_pressed)
+        self.bind("<Button-1>", self.controller.on_mouse_left_down)
+        self.bind("<Button-2>", self.controller.on_mouse_left_down)
+        self.bind("<Button-3>", self.controller.on_mouse_right_down)
+

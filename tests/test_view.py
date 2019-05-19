@@ -1,9 +1,10 @@
-from tkinter import Frame
+from tkinter import Frame, StringVar
 
 import pytest
 from pynput import mouse
 
 from arrangeit.view import get_tkinter_root, get_mouse_listener, ViewApplication
+from arrangeit.constants import TITLE_LABEL_FG, TITLE_LABEL_BG, TITLE_LABEL_ANCHOR
 
 
 class TestView(object):
@@ -40,7 +41,7 @@ class TestViewApplication(object):
     @pytest.mark.skip(reason="can't get it to work right now")
     def test_ViewApplication_init_calls_super_with_master_arg(self, mocker):
         master = mocker.MagicMock()
-        mocker.patch("arrangeit.view.ViewApplication.create_widgets")
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
         mocked = mocker.patch("arrangeit.view.Frame")
         ViewApplication(master)
         mocked.return_value.assert_called_with(master)
@@ -54,12 +55,58 @@ class TestViewApplication(object):
 
     def test_ViewApplication_init_calls_pack(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.pack")
-        ViewApplication(None)
+        ViewApplication(None, mocker.MagicMock())
         assert mocked.call_count == 1
 
-    def test_ViewApplication_inits_calls_create_widgets(self, mocker):
-        mocked = mocker.patch("arrangeit.view.ViewApplication.create_widgets")
-        ViewApplication(None)
+    def test_ViewApplication_inits_calls_setup_bindings(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        ViewApplication(None, mocker.MagicMock())
         assert mocked.call_count == 1
 
-    ## ViewApplication.create_widgets
+    def test_ViewApplication_inits_calls_setup_widgets(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
+        ViewApplication(None, mocker.MagicMock())
+        assert mocked.call_count == 1
+
+    ## ViewApplication.setup_widgets
+    @pytest.mark.parametrize(
+        "name,typ",
+        [
+            ("title", StringVar),
+        ],
+    )
+    def test_ViewApplication_setup_widgets_sets_tk_variable(self, mocker, name, typ):
+        view = ViewApplication(None, mocker.MagicMock())
+        setattr(view, name, None)
+        view.setup_widgets()
+        assert isinstance(getattr(view, name), typ)
+
+    def test_ViewApplication_setup_widgets_sets_title_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_widgets()
+        mocked.assert_called_with(
+            textvariable=view.title,
+            foreground=TITLE_LABEL_FG,
+            background=TITLE_LABEL_BG,
+            anchor=TITLE_LABEL_ANCHOR
+        )
+
+    ## ViewApplication.setup_bindings
+    @pytest.mark.parametrize(
+        "event,method",
+        [
+            ("<Escape>", "on_escape_key_pressed"),
+            ("<Button-1>", "on_mouse_left_down"),
+            ("<Button-2>", "on_mouse_left_down"),
+            ("<Button-3>", "on_mouse_right_down"),
+        ],
+    )
+    def test_ViewApplication_setup_bindings_callbacks(self, mocker, event, method):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.ViewApplication.bind")
+        view.setup_bindings()
+        calls = [mocker.call(event, callback),]
+        mocked.assert_has_calls(calls, any_order=True)

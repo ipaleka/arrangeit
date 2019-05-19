@@ -49,6 +49,15 @@
   :show-inheritance:
 
 
+:mod:`tests.test_constants` -- Unit tests for constants
+-------------------------------------------------------
+
+.. automodule:: tests.test_constants
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.test_darwin` -- Unit tests for Mac OS specific code
 ---------------------------------------------------------------
 

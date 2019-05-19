@@ -45,14 +45,14 @@ class TestBaseApp(object):
 
     ## BaseApp.setup_controller
     def test_BaseApp_setup_collector_calls_get_component_class_Controller(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.get_component_class")
+        mocked = mocker.patch("arrangeit.base.get_component_class")
         base.BaseApp().setup_controller()
         mocked.assert_called()
         mocked.assert_called_with("Controller")
 
     ## BaseApp.setup_collector
     def test_BaseApp_setup_collector_calls_get_component_class_Collector(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.get_component_class")
+        mocked = mocker.patch("arrangeit.base.get_component_class")
         base.BaseApp().setup_collector()
         mocked.assert_called()
         mocked.assert_called_with("Collector")
@@ -206,6 +206,27 @@ class TestBaseController(object):
         calls = [mocker.call(cursor="ul_angle")]
         root.config.assert_has_calls(calls, any_order=True)
 
+    ## BaseController.get_cursor_position
+    def test_BaseController_get_cursor_position_calls_master_methods(self, mocker):
+        mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        base.BaseController().get_cursor_position()
+        assert mocked.return_value.master.winfo_pointerx.call_count == 1
+        assert mocked.return_value.master.winfo_pointery.call_count == 1
+        assert mocked.return_value.master.winfo_rootx.call_count == 1
+        assert mocked.return_value.master.winfo_rooty.call_count == 1
+
+    def test_BaseController_get_cursor_position_returns(self, mocker):
+        mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        mocked.return_value.master.winfo_pointerx.return_value = 200
+        mocked.return_value.master.winfo_pointery.return_value = 80
+        mocked.return_value.master.winfo_rootx.return_value = 100
+        mocked.return_value.master.winfo_rooty.return_value = 50
+        assert base.BaseController().get_cursor_position() == (100, 30)
+
     ## BaseController.run
     def test_BaseController_run_sets_generator_attr_from_provided_attr(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
@@ -252,6 +273,29 @@ class TestBaseController(object):
         base.BaseController().run(mocker.MagicMock())
         assert mocked.return_value.start.call_count == 1
 
+    def test_BaseController_run_calls_get_cursor_position(self, mocker):
+        mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocked = mocker.patch(
+            "arrangeit.base.BaseController.get_cursor_position", return_value=(50, 40)
+        )
+        base.BaseController().run(mocker.MagicMock())
+        assert mocked.call_count == 1
+
+    def test_BaseController_run_calls_on_mouse_move(self, mocker):
+        mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        xy = (120, 150)
+        mocker.patch(
+            "arrangeit.base.BaseController.get_cursor_position", return_value=xy
+        )
+        base.BaseController().run(mocker.MagicMock())
+        assert mocked.call_count == 1
+        mocked.assert_called_with(*xy)
+
     @pytest.mark.parametrize("method", ["update", "deiconify"])
     def test_BaseController_run_calls_master_showing_up_method(self, mocker, method):
         mocker.patch("arrangeit.base.get_tkinter_root")
@@ -260,6 +304,13 @@ class TestBaseController(object):
         base.BaseController().run(mocker.MagicMock())
         instance = mocked.return_value.master
         assert getattr(instance, method).call_count == 1
+
+    def test_BaseController_run_calls_focus_set_on_view_frame(self, mocker):
+        mocker.patch("arrangeit.base.get_tkinter_root")
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        base.BaseController().run(mocker.MagicMock())
+        mocked.return_value.focus_set.assert_called_once()
 
     def test_BaseController_run_calls_mainloop(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
@@ -316,6 +367,31 @@ class TestBaseController(object):
         mocked.return_value.master.geometry.assert_called_with(
             "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
         )
+
+    ## BaseController.on_escape_key_pressed
+    def test_BaseController_on_escape_key_pressed(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.shutdown")
+        base.BaseController().on_escape_key_pressed(mocker.MagicMock())
+        assert mocked.call_count == 1
+
+    ## BaseController.shutdown
+    def test_BaseController_shutdown_stops_listener(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.view.mouse.Listener")
+        controller = base.BaseController()
+        controller.run(mocker.MagicMock())
+        controller.shutdown()
+        assert mocked.return_value.stop.call_count == 1
+
+    def test_BaseController_shutdown_calls_master_destroy(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocker.patch("arrangeit.base.get_tkinter_root")
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController()
+        controller.run(mocker.MagicMock())
+        controller.shutdown()
+        assert mocked.return_value.master.destroy.call_count == 1
 
     ## BaseController.mainloop
     def test_BaseController_main_loop_calls_Tkinter_mainloop(self, mocker):

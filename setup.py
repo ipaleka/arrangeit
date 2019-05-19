@@ -18,6 +18,7 @@ setup(
     version=__version__,
     description='Cross-platform utility for easy placement of the visible windows on desktop',
     long_description=readme,
+    packages=['arrangeit'],
     python_requires='~=3.5',
     install_requires=[
         'pynput',
@@ -28,5 +29,4 @@ setup(
     author_email='ipaleka@hopemeet.me',
     url='https://github.com/ipaleka/arrangeit',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
 )
