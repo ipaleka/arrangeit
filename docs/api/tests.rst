@@ -13,10 +13,19 @@
   :show-inheritance:
 
 
-:mod:`tests.test_base` -- Unit tests for all the base classes
--------------------------------------------------------------
+:mod:`tests.test_base` -- Unit tests for base classes (without BaseController)
+------------------------------------------------------------------------------
 
 .. automodule:: tests.test_base
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.test_basecontroller` -- Unit tests for BaseController class
+-----------------------------------------------------------------------
+
+.. automodule:: tests.test_basecontroller
   :members:
   :undoc-members:
   :show-inheritance:

@@ -1,4 +1,4 @@
-from tkinter import Frame, StringVar
+import tkinter as tk
 
 import pytest
 from pynput import mouse
@@ -24,12 +24,12 @@ class TestViewFunctions(object):
 
     ## get_tkinter_root
     def test_get_tkinter_root_initializes_Tk(self, mocker):
-        mocked = mocker.patch("arrangeit.view.Tk")
+        mocked = mocker.patch("arrangeit.view.tk.Tk")
         get_tkinter_root()
         mocked.assert_called()
 
     def test_get_tkinter_root_returns_Tk_instance(self, mocker):
-        mocked = mocker.patch("arrangeit.view.Tk")
+        mocked = mocker.patch("arrangeit.view.tk.Tk")
         assert get_tkinter_root() == mocked.return_value
 
     ## get_mouse_listener
@@ -73,19 +73,18 @@ class TestViewApplication(object):
 
     ## ViewApplication
     def test_ViewApplication_issubclass_of_Frame(self):
-        assert issubclass(ViewApplication, Frame)
+        assert issubclass(ViewApplication, tk.Frame)
 
     ## ViewApplication.__init__
     @pytest.mark.skip(reason="can't get it to work right now")
     def test_ViewApplication_init_calls_super_with_master_arg(self, mocker):
         master = mocker.MagicMock()
         mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
-        mocked = mocker.patch("arrangeit.view.Frame")
+        mocked = mocker.patch("arrangeit.view.tk.Frame")
         ViewApplication(master)
         mocked.return_value.assert_called_with(master)
-
-        calls = [mocker.call(mainapp),]
-        mocked.assert_has_calls(calls, any_order=True)
+        # calls = [mocker.call(mainapp),]
+        # mocked.assert_has_calls(calls, any_order=True)
 
     def test_ViewApplication_init_sets_master_and_controller_attributes(self, mocker):
         master = mocker.MagicMock()
@@ -112,7 +111,7 @@ class TestViewApplication(object):
         assert mocked.call_count == 1
 
     ## ViewApplication.setup_widgets
-    @pytest.mark.parametrize("name,typ", [("title", StringVar)])
+    @pytest.mark.parametrize("name,typ", [("title", tk.StringVar)])
     def test_ViewApplication_setup_widgets_sets_tk_variable(self, mocker, name, typ):
         view = ViewApplication(None, mocker.MagicMock())
         setattr(view, name, None)
@@ -120,7 +119,7 @@ class TestViewApplication(object):
         assert isinstance(getattr(view, name), typ)
 
     def test_ViewApplication_setup_widgets_sets_title_label(self, mocker):
-        mocked = mocker.patch("arrangeit.view.Label")
+        mocked = mocker.patch("arrangeit.view.tk.Label")
         view = ViewApplication(None, mocker.MagicMock())
         view.setup_widgets()
         mocked.assert_called_with(

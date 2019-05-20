@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Label, StringVar, X
+import tkinter as tk
 
 from pynput import mouse
 
@@ -16,7 +16,7 @@ def get_tkinter_root():
 
     :returns: :class:`tkinter.Tk` window instance
     """
-    return Tk()
+    return tk.Tk()
 
 
 def get_mouse_listener(callback):
@@ -40,7 +40,7 @@ def move_cursor(x, y):
     controller.position = (x, y)
 
 
-class ViewApplication(Frame):
+class ViewApplication(tk.Frame):
     """Tkinter frame showing current window from the data provided through controller.
 
     :var master: parent Tkinter window
@@ -67,8 +67,8 @@ class ViewApplication(Frame):
 
     def setup_widgets(self):
         """Creates and packs all the frame's variables and widgets."""
-        self.title = StringVar()
-        title_label = Label(
+        self.title = tk.StringVar()
+        title_label = tk.Label(
             textvariable=self.title,
             foreground=TITLE_LABEL_FG,
             background=TITLE_LABEL_BG,
@@ -76,7 +76,7 @@ class ViewApplication(Frame):
             padx=TITLE_LABEL_PADX,
             pady=TITLE_LABEL_PADY,
         )
-        title_label.pack(fill=X)
+        title_label.pack(fill=tk.X)
 
         # self.hi_there = tk.Button(self)
         # self.hi_there["text"] = "controller.next\n(click me)"
