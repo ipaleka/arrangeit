@@ -20,6 +20,8 @@ class TestConstants(object):
             ("LOCATE", int),
             ("RESIZE", int),
             ("OTHER", int),
+            ("WINDOW_MIN_WIDTH", int),
+            ("WINDOW_MIN_HEIGHT", int),
         ],
     )
     def test_constants_for_name_and_typ(self, constant, typ):

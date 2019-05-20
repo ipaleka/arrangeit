@@ -1,7 +1,6 @@
 import tkinter as tk
 
 import pytest
-from pynput import mouse
 
 from arrangeit.view import (
     click_left,

@@ -1,7 +1,6 @@
 import pytest
 
 from arrangeit import __main__, base
-from arrangeit import utils
 from arrangeit.utils import get_component_class
 
 

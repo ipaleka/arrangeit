@@ -1,7 +1,6 @@
 import pytest
 
 from arrangeit import base, data, utils
-from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS, LOCATE, RESIZE, OTHER
 
 from test_basecontroller import mock_main_loop
 

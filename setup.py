@@ -2,7 +2,7 @@
 
 # Learn more: https://github.com/kennethreitz/setup.py
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 from arrangeit import __version__
 

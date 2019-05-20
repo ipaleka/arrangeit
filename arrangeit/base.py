@@ -1,4 +1,11 @@
-from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS, LOCATE, RESIZE, OTHER
+from arrangeit.constants import (
+    ROOT_ALPHA,
+    WINDOW_SHIFT_PIXELS,
+    LOCATE,
+    RESIZE,
+    WINDOW_MIN_WIDTH,
+    WINDOW_MIN_HEIGHT,
+)
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
 from arrangeit.view import (
@@ -52,8 +59,8 @@ class BaseApp(object):
 class BaseController(object):
     """Base Controller class holding common code for all the platforms.
 
-    :var app: platform specific parent app
-    :type app: type(:class:`BaseApp`) instance
+    :var BaseController.app: platform specific parent app
+    :type BaseController.app: type(:class:`BaseApp`) instance
     :var model: model holding window data
     :type model: :class:`WindowModel` instance
     :var BaseController.generator: generator for retrieving model instances from collection
@@ -71,7 +78,7 @@ class BaseController(object):
     generator = None
     view = None
     listener = None
-    state = LOCATE
+    state = None
 
     def __init__(self, app):
         """Sets app attribute and empty model and calls :func:`BaseController.setup`."""
@@ -91,7 +98,7 @@ class BaseController(object):
         self.view = ViewApplication(master=root, controller=self)
         root.withdraw()
 
-    def set_root_geometry(self, root):
+    def set_default_geometry(self, root):
         """Sets provided root window width and height
 
         calculated from available width and height for screen
@@ -116,12 +123,9 @@ class BaseController(object):
         :param root: root tkinter window
         :type root: :class:`tkinter.Tk` instance
         """
-        self.set_root_geometry(root)
+        # self.set_default_geometry(root)
         root.wm_attributes("-alpha", ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
-        # TODO for resizing 'lr_angle', for released cursor 'left_ptr'
-        #      http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
-        root.config(cursor="ul_angle")
 
     def get_cursor_position(self):
         """Returns current cursor position by calculating it from master data.
@@ -142,7 +146,7 @@ class BaseController(object):
         Calls `focus_set` on view frame so key and mouse events may be activated.
         """
         self.generator = generator
-        self.next()
+        self.next(first_time=True)
 
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()
@@ -153,7 +157,7 @@ class BaseController(object):
         click_left()
         self.mainloop()
 
-    def next(self):
+    def next(self, first_time=False):
         """Sets controller ``model`` attribute from the value yielded from ``generator``
 
         and populates view widgets with new model data.
@@ -161,6 +165,8 @@ class BaseController(object):
         If there are no values left in collection then calls
         :func:`BaseController.save_default` and :func:`BaseController.shutdown`
 
+        :param first_time: is method called for the very first time
+        :type first_time: Boolean
         :returns: Boolean
         """
         try:
@@ -170,9 +176,12 @@ class BaseController(object):
             self.shutdown()
             return True
 
-        self.view.title.set(self.model.title)
+        self.view.title.set(self.model.title)  # TODO move to update_widgets method
 
-        self.state = LOCATE
+        if not first_time:
+            self.state = LOCATE
+        # TODO for resizing 'lr_angle', for released cursor 'left_ptr'
+        #      http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
         self.place_above_model()
         return False
 
@@ -180,44 +189,109 @@ class BaseController(object):
         """Updates model with provided cursor position in regard to state
 
         and takes action in regard to state and model type.
+        As we call `click_left` under `run`, so this method is called upon start
+        when state has value of None - we set it to LOCATE right here.
 
         :var x: current horizontal axis mouse position in pixels
         :type x: int
         :var y: current vertical axis mouse position in pixels
         :type y: int
         """
-        if self.state == LOCATE:
+        if self.state is None:
+            self.state = LOCATE
+
+        elif self.state == LOCATE:
             self.model.set_changed(x=x, y=y)
             if not self.model.resizable:
                 self.app.move_window(wid=self.model.wid)  # TODO async
                 self.next()
             else:
                 self.state = RESIZE
+                self.place_on_right_bottom()
 
         elif self.state == RESIZE:
             w, h = self.model.wh_from_ending_xy(x, y)
             self.model.set_changed(w=w, h=h)
-            self.app.move_and_resize_window(self.model.wid)  # TODO async
+            if self.model.changed:  # could be ()
+                self.app.move_and_resize_window(self.model.wid)  # TODO async
             self.next()
 
     def place_above_model(self):
-        """Moves cursor and master on model's x and y position."""
+        """Moves cursor and master on model's x and y position
+
+        after cursor is changed to default config and master to default size.
+        """
+        self.view.master.config(cursor="ul_angle")
+        self.set_default_geometry(self.view.master)
         move_cursor(self.model.x, self.model.y)
         self.on_mouse_move(self.model.x, self.model.y)
+
+    def place_on_right_bottom(self):
+        """Moves cursor and resizes master to bottom right position
+
+        after cursor is changed to resize config.
+        """
+        self.view.master.config(cursor="lr_angle")
+        move_cursor(
+            self.model.changed[0] + self.model.w + WINDOW_SHIFT_PIXELS * 2,
+            self.model.changed[1] + self.model.h + WINDOW_SHIFT_PIXELS * 2,
+        )
+
+    def change_position(self, x, y):
+        """Changes root window position to provided x and y.
+
+        :var x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :var y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
+        self.view.master.geometry(
+            "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
+        )
+
+    def change_size(self, x, y):
+        """Changes root window size in regard to provided ending x and y
+
+        related to model.changed's x and y.
+
+        :var x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :var y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
+        if (
+            x > self.model.changed[0] + WINDOW_MIN_WIDTH
+            and y > self.model.changed[1] + WINDOW_MIN_HEIGHT
+        ):
+            self.view.master.geometry(
+                "{}x{}".format(
+                    x - self.model.changed[0] + WINDOW_SHIFT_PIXELS * 2,
+                    y - self.model.changed[1] + WINDOW_SHIFT_PIXELS * 2,
+                )
+            )
+        else:
+            self.view.master.geometry(
+                "{}x{}".format(
+                    WINDOW_MIN_WIDTH + WINDOW_SHIFT_PIXELS * 2,
+                    WINDOW_MIN_HEIGHT + WINDOW_SHIFT_PIXELS * 2,
+                )
+            )
 
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
 
         Adds negative WINDOW_SHIFT_PIXELS to mouse position for better presentation.
 
-        :var x: current horizontal axis mouse position in pixels
+        :var x: absolute horizontal axis mouse position in pixels
         :type x: int
-        :var y: current vertical axis mouse position in pixels
+        :var y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        self.view.master.geometry(
-            "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
-        )
+        if self.state in (None, LOCATE):
+            self.change_position(x, y)
+
+        elif self.state == RESIZE:
+            self.change_size(x, y)
 
     def on_escape_key_pressed(self, event):
         """Calls shutdown method."""

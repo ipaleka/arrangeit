@@ -1,6 +1,3 @@
-import ctypes
-import ctypes.wintypes
-
 from win32con import (
     STATE_SYSTEM_INVISIBLE,
     WS_EX_TOOLWINDOW,

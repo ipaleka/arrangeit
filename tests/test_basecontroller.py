@@ -2,8 +2,16 @@ import tkinter as tk
 
 import pytest
 
-from arrangeit import base, data, utils
-from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS, LOCATE, RESIZE, OTHER
+from arrangeit import base, data
+from arrangeit.constants import (
+    ROOT_ALPHA,
+    WINDOW_SHIFT_PIXELS,
+    LOCATE,
+    RESIZE,
+    OTHER,
+    WINDOW_MIN_WIDTH,
+    WINDOW_MIN_HEIGHT,
+)
 
 
 def mock_main_loop(mocker):
@@ -44,12 +52,11 @@ class TestBaseController(object):
     """Testing class for base Controller class."""
 
     ## BaseController
-    @pytest.mark.parametrize("attr", ["app", "model", "generator", "view", "listener"])
+    @pytest.mark.parametrize(
+        "attr", ["app", "model", "generator", "view", "listener", "state"]
+    )
     def test_BaseController_inits_attr_as_None(self, attr):
         assert getattr(base.BaseController, attr) is None
-
-    def test_BaseController_inits_state_as_LOCATE(self):
-        assert base.BaseController.state == LOCATE
 
     ## BaseController.__init__
     def test_BaseController_init_sets_app_attribute(self, mocker):
@@ -106,7 +113,7 @@ class TestBaseController(object):
         assert mocked.return_value.withdraw.call_count == 2
 
     ## BaseController.set_geometry
-    def test_BaseController_set_root_geometry_calls_quarter_by_smaller(self, mocker):
+    def test_BaseController_set_default_geometry_calls_quarter_by_smaller(self, mocker):
         root = mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
         mocked = mocker.patch(
@@ -116,38 +123,23 @@ class TestBaseController(object):
         root.winfo_screenwidth.return_value = width
         root.winfo_screenheight.return_value = height
         controller = base.BaseController(mocker.MagicMock())
+        controller.set_default_geometry(root)
         assert mocked.call_count == 1
-        controller.set_root_geometry(root)
-        assert mocked.call_count == 2
         mocked.assert_called_with(width, height)
 
-    def test_BaseController_set_root_geometry_calls_geometry(self, mocker):
+    def test_BaseController_set_default_geometry_calls_geometry(self, mocker):
         root = get_mocked_root(mocker)
-        base.BaseController(mocker.MagicMock()).set_root_geometry(root)
+        base.BaseController(mocker.MagicMock()).set_default_geometry(root)
         assert root.geometry.call_count == 1
         root.geometry.assert_called_with("100x100")
 
     ## BaseController.setup_root_window
-    def test_BaseController_setup_root_window_calls_set_root_geometry(self, mocker):
-        root = get_mocked_root(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.set_root_geometry")
-        base.BaseController(mocker.MagicMock()).setup_root_window(root)
-        assert mocked.call_count == 2
-        mocked.assert_called_with(root)
-
     def test_BaseController_setup_root_window_calls_wm_attributes(self, mocker):
         root = get_mocked_root(mocker)
         base.BaseController(mocker.MagicMock()).setup_root_window(root)
         assert root.wm_attributes.call_count == 2
         calls = [mocker.call("-alpha", ROOT_ALPHA), mocker.call("-topmost", True)]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
-
-    def test_BaseController_setup_root_window_calls_cursor_config(self, mocker):
-        root = get_mocked_root(mocker)
-        base.BaseController(mocker.MagicMock()).setup_root_window(root)
-        assert root.config.call_count == 1
-        calls = [mocker.call(cursor="ul_angle")]
-        root.config.assert_has_calls(calls, any_order=True)
 
     ## BaseController.get_cursor_position
     def test_BaseController_get_cursor_position_calls_master_methods(self, mocker):
@@ -182,6 +174,7 @@ class TestBaseController(object):
         mocked = mocker.patch("arrangeit.base.BaseController.next")
         base.BaseController(mocker.MagicMock()).run(mocker.MagicMock())
         mocked.assert_called_once()
+        mocked.assert_called_with(first_time=True)
 
     def test_BaseController_run_calls_get_mouse_listener(self, mocker):
         mock_main_loop(mocker)
@@ -328,7 +321,7 @@ class TestBaseController(object):
     def test_BaseController_next_returns_True_on_StopIteration(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_above_model")
-        mocked = mocker.patch("arrangeit.base.BaseController.shutdown")
+        mocker.patch("arrangeit.base.BaseController.shutdown")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
         collection.add(data.WindowModel())
@@ -341,14 +334,26 @@ class TestBaseController(object):
         assert returned
 
     ## BaseController.update
+    def test_BaseController_update_sets_state_to_LOCATE_for_None(self, mocker):
+        mocked_next(mocker)
+        model = mocker.patch("arrangeit.base.WindowModel")
+        model.return_value.wh_from_ending_xy.return_value = (100, 100)
+        controller = base.BaseController(base.BaseApp())
+        controller.state = None
+        controller.update(100, 100)
+        assert controller.state == LOCATE
+
     @pytest.mark.parametrize(
-        "state,expected", [(LOCATE, True), (RESIZE, True), (OTHER, False), (100, False)]
+        "state,expected",
+        [(LOCATE, True), (RESIZE, True), (OTHER, False), (None, False), (100, False)],
     )
     def test_BaseController_update_not_calling_set_changed_for_other_states(
         self, mocker, state, expected
     ):
         mocked_next(mocker)
         model = mocker.patch("arrangeit.base.WindowModel")
+        mocker.patch("arrangeit.base.move_cursor")
+        mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
         model.return_value.wh_from_ending_xy.return_value = (100, 100)
         controller = base.BaseController(base.BaseApp())
         controller.state = state
@@ -398,6 +403,7 @@ class TestBaseController(object):
         model = mocker.patch("arrangeit.base.WindowModel")
         type(model.return_value).resizable = mocker.PropertyMock(return_value=True)
         model.return_value.wh_from_ending_xy.return_value = (100, 100)
+        mocker.patch("arrangeit.base.move_cursor")
         mocked_next = mocker.patch("arrangeit.base.BaseController.next")
         mocked_move = mocker.patch("arrangeit.base.BaseApp.move_window")
         controller = base.BaseController(base.BaseApp())
@@ -406,6 +412,22 @@ class TestBaseController(object):
         assert controller.state == RESIZE
         mocked_next.assert_not_called()
         mocked_move.assert_not_called()
+
+    def test_BaseController_update_for_LOCATE_and_resizable_calls_place_on_right_bottom(
+        self, mocker
+    ):
+        mocked = get_mocked_viewapp(mocker)
+        mocker.patch("arrangeit.base.WindowModel.set_changed")
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).resizable = mocker.PropertyMock(return_value=True)
+        model.return_value.wh_from_ending_xy.return_value = (100, 100)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
+        mocker.patch("arrangeit.base.BaseApp.move_window")
+        controller = base.BaseController(base.BaseApp())
+        controller.state = LOCATE
+        controller.update(101, 202)
+        mocked.assert_called()
 
     def test_BaseController_update_calls_wh_from_ending_xy_for_RESIZE(self, mocker):
         mocked_next(mocker)
@@ -434,15 +456,29 @@ class TestBaseController(object):
 
     def test_BaseController_update_calls_move_and_resize_window_RESIZE(self, mocker):
         mocked_next(mocker)
-        mocker.patch("arrangeit.base.WindowModel.set_changed")
+        # mocker.patch("arrangeit.base.WindowModel.set_changed")
         model = mocker.patch("arrangeit.base.WindowModel")
         type(model.return_value).wid = mocker.PropertyMock(return_value=1001)
         model.return_value.wh_from_ending_xy.return_value = (100, 100)
+        type(model.return_value).changed = mocker.PropertyMock(return_value=(200, 200))
         method = mocker.patch("arrangeit.base.BaseApp.move_and_resize_window")
         controller = base.BaseController(base.BaseApp())
         controller.state = RESIZE
         controller.update(101, 202)
         method.assert_called_with(1001)
+
+    def test_BaseController_update_skips_move_and_resize_window_RESIZE(self, mocker):
+        mocked_next(mocker)
+        # mocker.patch("arrangeit.base.WindowModel.set_changed")
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).wid = mocker.PropertyMock(return_value=1001)
+        model.return_value.wh_from_ending_xy.return_value = (None, None)
+        type(model.return_value).changed = mocker.PropertyMock(return_value=())
+        method = mocker.patch("arrangeit.base.BaseApp.move_and_resize_window")
+        controller = base.BaseController(base.BaseApp())
+        controller.state = RESIZE
+        controller.update(101, 202)
+        method.assert_not_called()
 
     def test_BaseController_update_calls_next_for_RESIZE(self, mocker):
         mocked_viewapp(mocker)
@@ -459,6 +495,24 @@ class TestBaseController(object):
         mocked.assert_called()
 
     ## BaseController.place_above_model
+    def test_BaseController_place_above_model_calls_cursor_config(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.place_above_model()
+        calls = [mocker.call(cursor="ul_angle")]
+        mocked.return_value.master.config.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_place_above_model_calls_set_default_geometry(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.BaseController.set_default_geometry")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.place_above_model()
+        mocked.assert_called_with(view.return_value.master)
+
     def test_BaseController_place_above_model_calls_on_mouse_move(self, mocker):
         mock_main_loop(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
@@ -485,16 +539,121 @@ class TestBaseController(object):
         controller.place_above_model()
         mocked.assert_called_with(rect[0], rect[1])
 
-    ## BaseController.on_mouse_move
-    def test_BaseController_on_mouse_move_moves_root_window(self, mocker):
+    def test_BaseController_place_on_right_bottom_calls_cursor_config(self, mocker):
+        mocked = get_mocked_viewapp(mocker)
+        mocker.patch("arrangeit.base.WindowModel.set_changed")
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).resizable = mocker.PropertyMock(return_value=True)
+        model.return_value.wh_from_ending_xy.return_value = (100, 100)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.base.BaseApp.move_window")
+        mocker.patch("arrangeit.base.move_cursor")
+        controller = base.BaseController(base.BaseApp())
+        controller.place_on_right_bottom()
+        calls = [mocker.call(cursor="lr_angle")]
+        mocked.return_value.master.config.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_place_on_right_bottom_calls_move_cursor(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_above_model")
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        collection = data.WindowsCollection()
+        rect = (101, 202, 303, 404)
+        # collection.add(data.WindowModel(rect=rect))
+        model = data.WindowModel(rect=rect)
+        collection.add(model)
+        model.set_changed(rect=rect)
+        generator = collection.generator()
+        controller = base.BaseController(mocker.MagicMock())
+        controller.run(generator)
+        controller.place_on_right_bottom()
+        mocked.assert_called_with(
+            rect[0] + rect[2] + WINDOW_SHIFT_PIXELS * 2,
+            rect[1] + rect[3] + WINDOW_SHIFT_PIXELS * 2,
+        )
+
+    ## BaseController.change_position
+    def test_BaseController_change_position(self, mocker):
         mock_main_loop(mocker)
         mocked = mocker.patch("arrangeit.base.ViewApplication")
         x, y = 100, 200
-        base.BaseController(mocker.MagicMock()).on_mouse_move(x, y)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.change_position(x, y)
         assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with(
             "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
         )
+
+    ## BaseController.change_size
+    def test_BaseController_change_size_valid_x_and_y(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).changed = mocker.PropertyMock(
+            return_value=(100, 200, 300, 400)
+        )
+        x, y = 300, 400
+        controller = base.BaseController(mocker.MagicMock())
+        controller.change_size(x, y)
+        assert mocked.return_value.master.geometry.call_count == 1
+        mocked.return_value.master.geometry.assert_called_with(
+            "{}x{}".format(
+                x - 100 + WINDOW_SHIFT_PIXELS * 2, y - 200 + WINDOW_SHIFT_PIXELS * 2
+            )
+        )
+
+    @pytest.mark.parametrize(
+        "x,y,changed",
+        [
+            (100, 200, (120, 120, 120, 120)),
+            (200, 100, (120, 120, 120, 120)),
+            (100, 100, (120, 120, 120, 120)),
+        ],
+    )
+    def test_BaseController_change_size_invalid_xy(self, mocker, x, y, changed):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).changed = mocker.PropertyMock(return_value=changed)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.change_size(x, y)
+        assert mocked.return_value.master.geometry.call_count == 1
+        mocked.return_value.master.geometry.assert_called_with(
+            "{}x{}".format(
+                WINDOW_MIN_WIDTH + WINDOW_SHIFT_PIXELS * 2,
+                WINDOW_MIN_HEIGHT + WINDOW_SHIFT_PIXELS * 2,
+            )
+        )
+
+    ## BaseController.on_mouse_move
+    def test_BaseController_on_mouse_move_calls_change_position_for_None(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.change_position")
+        x, y = 100, 200
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = None
+        controller.on_mouse_move(x, y)
+        mocked.assert_called_with(x, y)
+
+    def test_BaseController_on_mouse_move_calls_change_position_for_LOCATE(
+        self, mocker
+    ):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.change_position")
+        x, y = 100, 200
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = LOCATE
+        controller.on_mouse_move(x, y)
+        mocked.assert_called_with(x, y)
+
+    def test_BaseController_on_mouse_move_calls_change_size_for_RESIZE(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.change_size")
+        x, y = 100, 200
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = RESIZE
+        controller.on_mouse_move(x, y)
+        mocked.assert_called_with(x, y)
 
     ## BaseController.on_escape_key_pressed
     def test_BaseController_on_escape_key_pressed_calls_shutdown(self, mocker):
