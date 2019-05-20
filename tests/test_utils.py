@@ -15,7 +15,6 @@ class TestUtils(object):
     ## get_class
     @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
     def test_get_class_involves_default_val_for_no_arg(self, mocker, name):
-        # calls function from utils module made of parameterized 'name'
         klass = utils.get_component_class(name)
         platform = utils.platform_path()
         assert klass.__module__ == "arrangeit.{}.{}".format(platform, name.lower())

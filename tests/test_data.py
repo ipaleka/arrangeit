@@ -186,14 +186,19 @@ class TestWindowModel(object):
         [
             {"x": 100.0},
             {"y": "a"},
-            {"w": True},
+            {"w": WindowModel},
             {"h": WindowModel()},
             {"w": 50.0, "x": 50},
+            {"xy": 100},
+            {"wh": 10},
+            {"xywh": 1000},
+            {"foo": 999},
         ],
     )
     def test_WindowModel_set_changed_creates_empty_tuple_for_invalid(self, values):
         model = WindowModel(rect=SAMPLE_RECT)
-        model.set_changed()
+        model.set_changed(**values)
+        assert model.changed == ()
 
     @pytest.mark.parametrize(
         "values", [{"rect": (10, 0, 0, 200)}, {"rect": (300, 50, 155, 200)}]

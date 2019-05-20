@@ -77,14 +77,14 @@ class WindowModel(object):
         changed = list(self.changed) if self.changed != () else list(self.rect)
         for elem, value in kwargs.items():
             if elem not in WINDOW_RECT_ELEMENTS:
-                self.changed = ()
+                changed = []
                 break
             index = WINDOW_RECT_ELEMENTS.index(elem)
             new_value = get_value_if_valid_type(
                 value, WINDOW_MODEL_TYPES["rect"][index]
             )
             if new_value is None:
-                self.changed = ()
+                changed = []
                 break
             changed[index] = new_value
 

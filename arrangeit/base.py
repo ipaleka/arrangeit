@@ -1,10 +1,10 @@
 from arrangeit.constants import (
-    ROOT_ALPHA,
-    WINDOW_SHIFT_PIXELS,
     LOCATE,
     RESIZE,
+    ROOT_ALPHA,
     WINDOW_MIN_WIDTH,
     WINDOW_MIN_HEIGHT,
+    WINDOW_SHIFT_PIXELS,
 )
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
@@ -20,10 +20,10 @@ from arrangeit.view import (
 class BaseApp(object):
     """Base App class holding common code for all the platforms.
 
-    :var BaseController.controller: object that connects data and presentation
-    :type BaseController.controller: type(:class:`BaseController`) instance (platform specific)
-    :var BaseController.collector: object responsible for collecting windows data
-    :type BaseController.collector: type(:class:`BaseCollector`) instance (platform specific)
+    :var BaseApp.controller: object that connects data and presentation
+    :type BaseApp.controller: type(:class:`BaseController`) instance (platform specific)
+    :var BaseApp.collector: object responsible for collecting windows data
+    :type BaseApp.collector: type(:class:`BaseCollector`) instance (platform specific)
     """
 
     controller = None
@@ -81,7 +81,10 @@ class BaseController(object):
     state = None
 
     def __init__(self, app):
-        """Sets app attribute and empty model and calls :func:`BaseController.setup`."""
+        """Sets app attribute to provided argument, model attribute to new empty model
+
+        and calls :func:`BaseController.setup`.
+        """
         self.app = app
         self.model = WindowModel()
         self.setup()
@@ -98,12 +101,20 @@ class BaseController(object):
         self.view = ViewApplication(master=root, controller=self)
         root.withdraw()
 
+    def setup_root_window(self, root):
+        """Sets provided root window appearance common for all platforms.
+
+        :param root: root tkinter window
+        :type root: :class:`tkinter.Tk` instance
+        """
+        root.wm_attributes("-alpha", ROOT_ALPHA)
+        root.wm_attributes("-topmost", True)
+
     def set_default_geometry(self, root):
         """Sets provided root window width and height
 
-        calculated from available width and height for screen
-        as quarter of the smaller element.
-        Returned width and height have 16:9 aspect ratio.
+        calculated from available width and height for screen as quarter of
+        the smaller element. Returned width and height have 16:9 aspect ratio.
 
         :param root: root tkinter window
         :type root: :class:`tkinter.Tk` instance
@@ -116,26 +127,6 @@ class BaseController(object):
             root.winfo_screenwidth(), root.winfo_screenheight()
         )
         root.geometry("{}x{}".format(width, height))
-
-    def setup_root_window(self, root):
-        """Sets provided root window appearance common for all platforms.
-
-        :param root: root tkinter window
-        :type root: :class:`tkinter.Tk` instance
-        """
-        # self.set_default_geometry(root)
-        root.wm_attributes("-alpha", ROOT_ALPHA)
-        root.wm_attributes("-topmost", True)
-
-    def get_cursor_position(self):
-        """Returns current cursor position by calculating it from master data.
-
-        :returns: (int, int) representing x and y coordinates
-        """
-        return (
-            self.view.master.winfo_pointerx() - self.view.master.winfo_rootx(),
-            self.view.master.winfo_pointery() - self.view.master.winfo_rooty(),
-        )
 
     def run(self, generator):
         """Syncs data, initializes and starts listener, shows root and enters main loop.
@@ -161,9 +152,8 @@ class BaseController(object):
         """Sets controller ``model`` attribute from the value yielded from ``generator``
 
         and populates view widgets with new model data.
-        Also moves cursor and root window to model's window position.
-        If there are no values left in collection then calls
-        :func:`BaseController.save_default` and :func:`BaseController.shutdown`
+        Also changes and moves cursor and root window to model's window position.
+        If there are no values left in collection then saves and exits app.
 
         :param first_time: is method called for the very first time
         :type first_time: Boolean
@@ -178,11 +168,10 @@ class BaseController(object):
 
         self.view.title.set(self.model.title)  # TODO move to update_widgets method
 
-        if not first_time:
+        if not first_time:  # we need state to be None in startup
             self.state = LOCATE
-        # TODO for resizing 'lr_angle', for released cursor 'left_ptr'
-        #      http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
-        self.place_above_model()
+        self.set_default_geometry(self.view.master)
+        self.place_on_top_left()
         return False
 
     def update(self, x, y):
@@ -216,25 +205,27 @@ class BaseController(object):
                 self.app.move_and_resize_window(self.model.wid)  # TODO async
             self.next()
 
-    def place_above_model(self):
-        """Moves cursor and master on model's x and y position
+    def place_on_top_left(self):
+        """Changes and moves cursor to model's top left position.
 
-        after cursor is changed to default config and master to default size.
+        TODO for released cursor 'left_ptr'
+        http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
+
+        Cursor is changed to default config. Also calls `on_mouse_move` to force
+        moving if the app is just instantiated.
         """
         self.view.master.config(cursor="ul_angle")
-        self.set_default_geometry(self.view.master)
         move_cursor(self.model.x, self.model.y)
         self.on_mouse_move(self.model.x, self.model.y)
 
     def place_on_right_bottom(self):
-        """Moves cursor and resizes master to bottom right position
+        """Changes and moves cursor to model's bottom right position
 
-        after cursor is changed to resize config.
+        and so indirectly resizes master. Cursor is changed to resize config.
         """
         self.view.master.config(cursor="lr_angle")
         move_cursor(
-            self.model.changed[0] + self.model.w + WINDOW_SHIFT_PIXELS * 2,
-            self.model.changed[1] + self.model.h + WINDOW_SHIFT_PIXELS * 2,
+            self.model.changed[0] + self.model.w, self.model.changed[1] + self.model.h
         )
 
     def change_position(self, x, y):
@@ -250,7 +241,7 @@ class BaseController(object):
         )
 
     def change_size(self, x, y):
-        """Changes root window size in regard to provided ending x and y
+        """Changes root window size in regard to provided bottom left x and y
 
         related to model.changed's x and y.
 
