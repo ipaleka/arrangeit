@@ -60,11 +60,9 @@ def get_value_if_valid_type(value, typ):
     """
     if isinstance(value, (tuple, list)):
         if not isinstance(typ, (tuple, list)) or len(value) != len(typ):
-            return None
+            return ()
         return (
-            value
-            if all(isinstance(val, typ[i]) for i, val in enumerate(value))
-            else None
+            value if all(isinstance(val, typ[i]) for i, val in enumerate(value)) else ()
         )
     return value if isinstance(value, typ) else None
 

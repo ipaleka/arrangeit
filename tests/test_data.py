@@ -1,12 +1,14 @@
 import pytest
 
+from arrangeit.constants import WINDOW_RECT_ELEMENTS
 from arrangeit.data import WindowModel, WindowsCollection
 
 
 WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name"]
+SAMPLE_RECT = (45, 54, 304, 405)
 SAMPLE_MODEL_VALUES = [
     {"wid": 101},
-    {"rect": (45, 54, 304, 405)},
+    {"rect": SAMPLE_RECT},
     {"resizable": True},
     {"title": "foo"},
     {"name": "bar"},
@@ -25,8 +27,14 @@ class TestWindowModel(object):
 
     ## WindowModel
     @pytest.mark.parametrize("attr", WINDOW_MODEL_ATTRS)
-    def test_WindowModel_inits_attr_as_None(self, attr):
-        assert getattr(WindowModel, attr) is None
+    def test_WindowModel_inits_attr_as_None_or_empty_tuple(self, attr):
+        if attr != "rect":
+            assert getattr(WindowModel, attr) is None
+        else:
+            assert getattr(WindowModel, attr) == ()
+
+    def test_WindowModel_inits_changed_as_empty_tuple(self):
+        assert WindowModel.changed == ()
 
     ## WindowModel.__init__
     def test_WindowModel_initialization_calls_setup(self, mocker):
@@ -80,7 +88,6 @@ class TestWindowModel(object):
         [
             {"wid": 101.25},
             {"wid": "foo"},
-            {"rect": "a, 55, 100, 200"},
             {"rect": ("a", 55, 100, 200)},
             {"rect": (55, 100, 200)},
             {"rect": (55, 100, 200, 500, 100)},
@@ -95,7 +102,7 @@ class TestWindowModel(object):
             {"name": WindowModel()},
         ],
     )
-    def test_WindowModel_setup_set_None_for_invalid_type_attr(self, mocker, values):
+    def test_WindowModel_setup_set_None_or_empty_for_invalid_type(self, mocker, values):
         good = {
             "wid": 101,
             "rect": (55, 55, 100, 200),
@@ -106,7 +113,128 @@ class TestWindowModel(object):
         wm = WindowModel(**good)
         wm.setup(**values)
         for key, _ in values.items():
-            assert getattr(wm, key) is None
+            if key != "rect":
+                assert getattr(wm, key) is None
+            else:
+                assert getattr(wm, key) == ()
+
+    ## WindowModel.wh_from_ending_xy
+    @pytest.mark.parametrize(
+        "x,y,old_x,old_y",
+        [(200, 300, 100, 200), (100, 100, 50, 50), (1500, 200, 1400, 100)],
+    )
+    def test_WindowModel_wh_from_ending_xy_for_greater_xy(self, x, y, old_x, old_y):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(x=old_x, y=old_y)
+        wh = model.wh_from_ending_xy(x, y)
+        assert wh == (x - old_x, y - old_y)
+
+    @pytest.mark.parametrize(
+        "x,y,old_x,old_y",
+        [(200, 300, 201, 200), (100, 100, 50, 500), (1500, 200, 1600, 300)],
+    )
+    def test_WindowModel_wh_from_ending_xy_for_invalid_xy(self, x, y, old_x, old_y):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(x=old_x, y=old_y)
+        wh = model.wh_from_ending_xy(x, y)
+        assert wh == (None, None)
+
+    ## WindowModel.set_changed
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"x": 100},
+            {"y": 200},
+            {"x": 100, "y": 50, "w": 40, "h": 100},
+            {"w": 300},
+            {"h": 400},
+            {"w": 300, "x": 50},
+        ],
+    )
+    def test_WindowModel_set_changed_creates_from_rect_elements_rect(self, values):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(**values)
+        new = list(model.rect)
+        for elem, value in values.items():
+            new[WINDOW_RECT_ELEMENTS.index(elem)] = value
+        assert model.changed == tuple(new)
+
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"x": 100},
+            {"y": 200},
+            {"x": 100, "y": 50, "w": 40},
+            {"w": 300},
+            {"w": 300, "x": 50},
+        ],
+    )
+    def test_WindowModel_set_changed_creates_from_rect_elements_changed(self, values):
+        model = WindowModel(rect=SAMPLE_RECT)
+        changed = list(SAMPLE_RECT)
+        changed[3] = 444
+        model.changed = tuple(changed)
+        model.set_changed(**values)
+        new = list(model.rect)
+        for elem, value in values.items():
+            new[WINDOW_RECT_ELEMENTS.index(elem)] = value
+        new[3] = 444
+        assert model.changed == tuple(new)
+
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"x": 100.0},
+            {"y": "a"},
+            {"w": True},
+            {"h": WindowModel()},
+            {"w": 50.0, "x": 50},
+        ],
+    )
+    def test_WindowModel_set_changed_creates_empty_tuple_for_invalid(self, values):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed()
+
+    @pytest.mark.parametrize(
+        "values", [{"rect": (10, 0, 0, 200)}, {"rect": (300, 50, 155, 200)}]
+    )
+    def test_WindowModel_set_changed_creates_from_rect(self, values):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(**values)
+        assert model.changed == values["rect"]
+
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"rect": ("a", 0, 0, 200)},
+            {"rect": (300, 155, 200)},
+            {"rect": (30.0, 0, 155, 200)},
+        ],
+    )
+    def test_WindowModel_set_changed_creates_empty_tuple_invalid_rect(self, values):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(**values)
+        assert model.changed == ()
+
+    ## WindowModel.x
+    def test_WindowModel_x_gets_x_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.x == model.rect[0]
+
+    ## WindowModel.y
+    def test_WindowModel_y_gets_y_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.y == model.rect[1]
+
+    ## WindowModel.w
+    def test_WindowModel_w_gets_width_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.w == model.rect[2]
+
+    ## WindowModel.h
+    def test_WindowModel_h_gets_height_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.h == model.rect[3]
 
 
 class TestWindowsCollection(object):

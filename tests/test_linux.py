@@ -16,7 +16,7 @@ class TestLinuxController(object):
         root = mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocker.patch("arrangeit.base.ViewApplication")
-        Controller().setup_root_window(root)
+        Controller(mocker.MagicMock()).setup_root_window(root)
         root.wm_attributes.assert_called()
         calls = [mocker.call("-type", "splash")]
         root.wm_attributes.assert_has_calls(calls, any_order=True)

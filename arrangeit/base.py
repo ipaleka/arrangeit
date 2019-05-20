@@ -1,4 +1,4 @@
-from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS
+from arrangeit.constants import ROOT_ALPHA, WINDOW_SHIFT_PIXELS, LOCATE, RESIZE, OTHER
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
 from arrangeit.view import (
@@ -24,7 +24,7 @@ class BaseApp(object):
 
     def __init__(self, *args, **kwargs):
         """Instantiates platform specific Controller and Collector classes."""
-        self.controller = self.setup_controller()()
+        self.controller = self.setup_controller()(self)
         self.collector = self.setup_collector()()
 
     def setup_controller(self):
@@ -40,10 +40,20 @@ class BaseApp(object):
         self.collector.run()
         self.controller.run(self.collector.collection.generator())
 
+    def move_window(self, wid):
+        print("move_window")
+        pass
+
+    def move_and_resize_window(self, wid):
+        print("move_and_resize_window")
+        pass
+
 
 class BaseController(object):
     """Base Controller class holding common code for all the platforms.
 
+    :var app: platform specific parent app
+    :type app: type(:class:`BaseApp`) instance
     :var model: model holding window data
     :type model: :class:`WindowModel` instance
     :var BaseController.generator: generator for retrieving model instances from collection
@@ -52,15 +62,20 @@ class BaseController(object):
     :type BaseController.view: :class:`ViewApplication` instance
     :var listener: Tkinter application showing main window
     :type listener: :class:`ViewApplication` instance
+    :var state: controller's state (LOCATE, RESIZE or OTHER)
+    :type state: int
     """
 
+    app = None
     model = None
     generator = None
     view = None
     listener = None
+    state = LOCATE
 
-    def __init__(self):
-        """Initializes empty model and calls :func:`BaseController.setup`."""
+    def __init__(self, app):
+        """Sets app attribute and empty model and calls :func:`BaseController.setup`."""
+        self.app = app
         self.model = WindowModel()
         self.setup()
 
@@ -102,7 +117,6 @@ class BaseController(object):
         :type root: :class:`tkinter.Tk` instance
         """
         self.set_root_geometry(root)
-        # root.overrideredirect(True)
         root.wm_attributes("-alpha", ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
         # TODO for resizing 'lr_angle', for released cursor 'left_ptr'
@@ -158,20 +172,38 @@ class BaseController(object):
 
         self.view.title.set(self.model.title)
 
+        self.state = LOCATE
         self.place_above_model()
         return False
 
-    def place_above_model(self):
-        """Moves cursor and master on model's x and y position.
+    def update(self, x, y):
+        """Updates model with provided cursor position in regard to state
 
-        :var x: model's horizontal axis mouse position in pixels
+        and takes action in regard to state and model type.
+
+        :var x: current horizontal axis mouse position in pixels
         :type x: int
-        :var y: model's vertical axis mouse position in pixels
+        :var y: current vertical axis mouse position in pixels
         :type y: int
         """
-        x, y = self.model.rect[0], self.model.rect[1]
-        move_cursor(x, y)
-        self.on_mouse_move(x, y)
+        if self.state == LOCATE:
+            self.model.set_changed(x=x, y=y)
+            if not self.model.resizable:
+                self.app.move_window(wid=self.model.wid)  # TODO async
+                self.next()
+            else:
+                self.state = RESIZE
+
+        elif self.state == RESIZE:
+            w, h = self.model.wh_from_ending_xy(x, y)
+            self.model.set_changed(w=w, h=h)
+            self.app.move_and_resize_window(self.model.wid)  # TODO async
+            self.next()
+
+    def place_above_model(self):
+        """Moves cursor and master on model's x and y position."""
+        move_cursor(self.model.x, self.model.y)
+        self.on_mouse_move(self.model.x, self.model.y)
 
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
@@ -191,14 +223,20 @@ class BaseController(object):
         """Calls shutdown method."""
         print("escape down")
         self.shutdown()
+        return "break"
 
     def on_mouse_left_down(self, event):
-        """Positions the window
+        """Calls update_model with current cursor position
+
+        if controller is in LOCATE or RESIZE state.
 
         :var event: catched event
         :type event: Tkinter event
         """
-        print("left down")
+        self.update(
+            self.view.master.winfo_pointerx(), self.view.master.winfo_pointery()
+        )
+        return "break"
 
     def on_mouse_right_down(self, event):
         """Skips the current model.
@@ -208,6 +246,7 @@ class BaseController(object):
         """
         print("right down")
         self.next()
+        return "break"
 
     def shutdown(self):
         """Stops mouse listener and destroys Tkinter root window."""

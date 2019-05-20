@@ -1,3 +1,4 @@
+from arrangeit.constants import WINDOW_MODEL_TYPES, WINDOW_RECT_ELEMENTS
 from arrangeit.utils import get_value_if_valid_type
 
 
@@ -14,14 +15,17 @@ class WindowModel(object):
     :type title: string
     :var name: window's application name
     :type name: string
+    :var new: changed window rectangle (x, y, width, height)
+    :type new: (int, int, int, int)
     """
 
     wid = None
-    rect = None
+    rect = ()
     resizable = None
     title = None
     name = None
     # ws = None  # workspace
+    changed = ()
 
     def __init__(self, **kwargs):
         """Calls setup with given kwargs."""
@@ -30,16 +34,77 @@ class WindowModel(object):
     def setup(self, **kwargs):
         """Sets model data from provided kwargs
 
-        or sets the value to None if attribute isn't provided.
+        or sets the value to None/() if attribute isn't provided.
         """
-        for attr, typ in (
-            ("wid", int),
-            ("rect", (int, int, int, int)),
-            ("resizable", bool),
-            ("title", str),
-            ("name", str),
-        ):
+        for attr, typ in WINDOW_MODEL_TYPES.items():
             setattr(self, attr, get_value_if_valid_type(kwargs.get(attr), typ))
+
+    def wh_from_ending_xy(self, x, y):
+        """Returns (width, height) for model rect from provided x and y
+
+        if provided point is greater than changed x and y (set during LOCATE phase),
+        otherwise returns two-tuple of None.
+
+        :returns: (int, int) or (None, None)
+        """
+        if x > self.changed[0] and y > self.changed[1]:
+            return (x - self.changed[0], y - self.changed[1])
+        return (None, None)
+
+    def set_changed(self, **kwargs):
+        """Creates `changed` attribute from provided arguments.
+
+        Accepts either "rect" argument or individual rect element(s) as
+        defined by WINDOW_RECT_ELEMENTS. If some rect part isn't provided
+        then `changed`, respectively `rect` is used.
+
+        Resets to () if any of provided arguments is invalid in regard to
+        WINDOW_MODEL_TYPES for "rect".
+
+        :var index: argument's index in rect tuple
+        :type index: int
+        :var changed: temporary collection holding calculated values
+        :type changed: list
+        :var new_value: new value for rect element
+        :type new_value: int
+        """
+        if "rect" in kwargs:
+            self.changed = get_value_if_valid_type(
+                kwargs["rect"], WINDOW_MODEL_TYPES["rect"]
+            )
+            return None
+
+        changed = list(self.changed) if self.changed != () else list(self.rect)
+        for elem, value in kwargs.items():
+            if elem not in WINDOW_RECT_ELEMENTS:
+                self.changed = ()
+                break
+            index = WINDOW_RECT_ELEMENTS.index(elem)
+            new_value = get_value_if_valid_type(
+                value, WINDOW_MODEL_TYPES["rect"][index]
+            )
+            if new_value is None:
+                self.changed = ()
+                break
+            changed[index] = new_value
+
+        self.changed = tuple(changed)
+
+    @property
+    def x(self):
+        return self.rect[0] if self.rect is not None else None
+
+    @property
+    def y(self):
+        return self.rect[1] if self.rect is not None else None
+
+    @property
+    def w(self):
+        return self.rect[2] if self.rect is not None else None
+
+    @property
+    def h(self):
+        return self.rect[3] if self.rect is not None else None
 
 
 class WindowsCollection(object):

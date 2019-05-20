@@ -120,8 +120,8 @@ class TestUtils(object):
             ((2, 5, 0, 3), (int, int, str, int)),
         ],
     )
-    def test_get_value_if_valid_type_for_collection_type_returns_None(self, value, typ):
-        assert utils.get_value_if_valid_type(value, typ) is None
+    def test_get_value_if_valid_type_for_collection_returns_empty(self, value, typ):
+        assert utils.get_value_if_valid_type(value, typ) is ()
 
     ## quarter_by_smaller
     @pytest.mark.parametrize(

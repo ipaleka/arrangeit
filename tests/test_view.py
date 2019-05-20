@@ -84,6 +84,9 @@ class TestViewApplication(object):
         ViewApplication(master)
         mocked.return_value.assert_called_with(master)
 
+        calls = [mocker.call(mainapp),]
+        mocked.assert_has_calls(calls, any_order=True)
+
     def test_ViewApplication_init_sets_master_and_controller_attributes(self, mocker):
         master = mocker.MagicMock()
         controller = mocker.MagicMock()

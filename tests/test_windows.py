@@ -11,8 +11,22 @@ from win32con import (
 import pytest
 
 from arrangeit.windows.collector import TITLEBARINFO, WINDOWINFO, Collector
+from arrangeit.windows.controller import Controller
 
 SAMPLE_HWND = 1001
+
+
+class TestWindowsController(object):
+    """Testing class for :py:class:`arrangeit.windows.controller.Controller` class."""
+
+    ## Controller.setup_root_window
+    def test_WindowsController_setup_root_window_calls_overrideredirect(self, mocker):
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.ViewApplication")
+        Controller(mocker.MagicMock()).setup_root_window(root)
+        assert root.overrideredirect.call_count == 1
+        root.overrideredirect.assert_called_with(True)
 
 
 class TestTITLEBARINFO(object):
