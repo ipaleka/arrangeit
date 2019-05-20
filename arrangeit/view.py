@@ -107,5 +107,5 @@ class ViewApplication(tk.Frame):
         """
         self.bind_all("<Escape>", self.controller.on_escape_key_pressed)
         self.bind_all("<Button-1>", self.controller.on_mouse_left_down)
-        self.bind_all("<Button-2>", self.controller.on_mouse_left_down)
+        self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)

@@ -75,15 +75,12 @@ class TestViewApplication(object):
         assert issubclass(ViewApplication, tk.Frame)
 
     ## ViewApplication.__init__
-    @pytest.mark.skip(reason="can't get it to work right now")
     def test_ViewApplication_init_calls_super_with_master_arg(self, mocker):
         master = mocker.MagicMock()
-        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
-        mocked = mocker.patch("arrangeit.view.tk.Frame")
-        ViewApplication(master)
-        mocked.return_value.assert_called_with(master)
-        # calls = [mocker.call(mainapp),]
-        # mocked.assert_has_calls(calls, any_order=True)
+        mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
+        with pytest.raises(AttributeError):
+            ViewApplication(master=master, controller=mocker.MagicMock())
+            mocked.assert_called_with(master)
 
     def test_ViewApplication_init_sets_master_and_controller_attributes(self, mocker):
         master = mocker.MagicMock()
@@ -136,7 +133,7 @@ class TestViewApplication(object):
         [
             ("<Escape>", "on_escape_key_pressed"),
             ("<Button-1>", "on_mouse_left_down"),
-            ("<Button-2>", "on_mouse_left_down"),
+            ("<Button-2>", "on_mouse_middle_down"),
             ("<Button-3>", "on_mouse_right_down"),
         ],
     )

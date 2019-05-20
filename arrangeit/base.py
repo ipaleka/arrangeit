@@ -55,6 +55,10 @@ class BaseApp(object):
         print("move_and_resize_window")
         pass
 
+    def save_default(self):
+        print("save default")
+        pass
+
 
 class BaseController(object):
     """Base Controller class holding common code for all the platforms.
@@ -162,7 +166,7 @@ class BaseController(object):
         try:
             self.model = next(self.generator)
         except StopIteration:
-            self.save_default()
+            self.app.save_default()  # TODO async
             self.shutdown()
             return True
 
@@ -208,7 +212,7 @@ class BaseController(object):
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
 
-        TODO for released cursor 'left_ptr'
+        NOTE for released cursor 'left_ptr'
         http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
 
         Cursor is changed to default config. Also calls `on_mouse_move` to force
@@ -303,6 +307,10 @@ class BaseController(object):
         )
         return "break"
 
+    def on_mouse_middle_down(self, event):
+        """Middle button down acts like left button has been pressed."""
+        return self.on_mouse_left_down(event)
+
     def on_mouse_right_down(self, event):
         """Skips the current model.
 
@@ -320,10 +328,6 @@ class BaseController(object):
 
     def mainloop(self):
         self.view.mainloop()
-
-    def save_default(self):
-        print("save default")
-        pass
 
 
 class BaseCollector(object):
