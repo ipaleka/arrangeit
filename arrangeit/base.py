@@ -1,3 +1,7 @@
+import asyncio
+import threading
+from inspect import iscoroutinefunction
+
 from arrangeit.constants import (
     LOCATE,
     RESIZE,
@@ -47,17 +51,54 @@ class BaseApp(object):
         self.collector.run()
         self.controller.run(self.collector.collection.generator())
 
-    def move_window(self, wid):
-        print("move_window")
-        pass
+    def run_task(self, task, *args):
+        """Runs provided task with provided args asynchronously in separate thread.
 
-    def move_and_resize_window(self, wid):
-        print("move_and_resize_window")
-        pass
+        :param task: task name
+        :type task: str
+        """
+        self.run_in_separate_thread(task, *args)
 
-    def save_default(self):
-        print("save default")
-        pass
+    def run_in_separate_thread(self, task, *args):
+        """Initializes and starts a new Thread instance with `run_asynchronously` target
+
+        callback and provided task name and args as arguments.
+
+        :param task: task name
+        :type task: str
+        """
+        threading.Thread(target=self.run_asynchronously, args=(task, *args)).start()
+
+    def run_asynchronously(self, task, *args):
+        """Executes asynchronous callback having provided name with provided args
+
+        in a newly created asyncio event loop if such callback exists.
+
+        :param task: task name
+        :type task: str
+        :var callback: callback having name of the `task` argument
+        :type callback: async type(:class:`BaseApp`) method
+        """
+        callback = getattr(self, task, None)
+        if iscoroutinefunction(callback):
+            asyncio.new_event_loop().run_until_complete(callback(*args))
+
+    async def save_default(self, *args):
+        await asyncio.sleep(0.1)
+        print("finished: save_default with args ", args)
+
+    async def move_and_resize(self, *args):
+        """Method must be overridden."""
+        raise NotImplementedError
+        # await asyncio.sleep(2)
+        # print("finished: move_and_resize_window with args ", args)
+
+    async def move(self, *args):
+        """Method must be overridden."""
+        raise NotImplementedError
+        # await asyncio.sleep(2)
+        # print("finished: move_window with args ", args)
+
 
 
 class BaseController(object):
@@ -166,7 +207,7 @@ class BaseController(object):
         try:
             self.model = next(self.generator)
         except StopIteration:
-            self.app.save_default()  # TODO async
+            self.app.run_task("save_default")
             self.shutdown()
             return True
 
@@ -196,7 +237,7 @@ class BaseController(object):
         elif self.state == LOCATE:
             self.model.set_changed(x=x, y=y)
             if not self.model.resizable:
-                self.app.move_window(wid=self.model.wid)  # TODO async
+                self.app.run_task("move", self.model.wid)
                 self.next()
             else:
                 self.state = RESIZE
@@ -206,7 +247,7 @@ class BaseController(object):
             w, h = self.model.wh_from_ending_xy(x, y)
             self.model.set_changed(w=w, h=h)
             if self.model.changed:  # could be ()
-                self.app.move_and_resize_window(self.model.wid)  # TODO async
+                self.app.run_task("move_and_resize", self.model.wid)
             self.next()
 
     def place_on_top_left(self):

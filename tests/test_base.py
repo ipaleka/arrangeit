@@ -29,7 +29,7 @@ class TestBaseApp(object):
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
         mainapp = base.BaseApp()
-        calls = [mocker.call(mainapp),]
+        calls = [mocker.call(mainapp)]
         mocked.assert_has_calls(calls, any_order=True)
 
     ## BaseApp.__init__.collector
@@ -90,6 +90,64 @@ class TestBaseApp(object):
         generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
         base.BaseApp().run()
         mocked.return_value.run.assert_called_with(generator.return_value)
+
+    ## BaseApp.run_task
+    @pytest.mark.parametrize(
+        "task, args",
+        [("move", (50,)), ("move_and_resize", (100,)), ("save_default", ())],
+    )
+    def test_BaseApp_run_task_calls_run_in_separate_thread(self, mocker, task, args):
+        mocked = mocker.patch("arrangeit.base.BaseApp.run_in_separate_thread")
+        base.BaseApp().run_task(task, *args)
+        mocked.assert_called_with(task, *args)
+
+    ## BaseApp.run_in_separate_thread
+    def test_BaseApp_run_in_separate_thread_initializes_Thread(self, mocker):
+        mocked = mocker.patch("arrangeit.base.threading.Thread")
+        mocked_run_async = mocker.patch("arrangeit.base.BaseApp.run_asynchronously")
+        base.BaseApp().run_in_separate_thread("foo", 5)
+        mocked.assert_called_with(target=mocked_run_async, args=("foo", 5))
+
+    def test_BaseApp_run_in_separate_thread_calls_Thread_start(self, mocker):
+        mocked = mocker.patch("arrangeit.base.threading.Thread")
+        mocker.patch("arrangeit.base.BaseApp.run_asynchronously")
+        base.BaseApp().run_in_separate_thread("foo", 5)
+        calls = [mocker.call()]
+        mocked.return_value.start.assert_has_calls(calls, any_order=True)
+
+    ## BaseApp.run_asynchronously
+    @pytest.mark.parametrize(
+        "task", ["move", "move_and_resize", "save_default", "foobar"]
+    )
+    def test_BaseApp_run_asynchronously_inspect_callback_is_async(self, mocker, task):
+        mocker.patch("arrangeit.base.asyncio.new_event_loop")
+        mocked = mocker.patch("arrangeit.base.iscoroutinefunction", return_value=False)
+        app = base.BaseApp()
+        app.run_asynchronously(task)
+        mocked.assert_called_with(getattr(app, task, None))
+
+    def test_BaseApp_run_asynchronously_initializes_new_event_loop(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.save_default")
+        mocker.patch("arrangeit.base.iscoroutinefunction", return_value=True)
+        mocked = mocker.patch("asyncio.new_event_loop")
+        base.BaseApp().run_asynchronously("save_default")
+        mocked.assert_called()
+
+    def test_BaseApp_run_asynchronously_calls_loop_run_until_complete(self, mocker):
+        mocker.patch("asyncio.new_event_loop")
+        save_default = mocker.patch("arrangeit.base.BaseApp.save_default")
+        mocker.patch("arrangeit.base.iscoroutinefunction", return_value=True)
+        mocked = mocker.patch("asyncio.new_event_loop.return_value.run_until_complete")
+        base.BaseApp().run_asynchronously("save_default")
+        mocked.assert_called_with(save_default.return_value)
+
+    def test_BaseApp_run_asynchronously_calls_callback_with_task_name(self, mocker):
+        mocker.patch("asyncio.new_event_loop")
+        mocker.patch("asyncio.new_event_loop.return_value.run_until_complete")
+        mocker.patch("arrangeit.base.iscoroutinefunction", return_value=True)
+        mocked = mocker.patch("arrangeit.base.BaseApp.save_default")
+        base.BaseApp().run_asynchronously("save_default", 99)
+        mocked.assert_called_with(99)
 
 
 class TestBaseCollector(object):
