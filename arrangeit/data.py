@@ -145,3 +145,15 @@ class WindowsCollection(object):
         """
         for member in self._members:
             yield member
+
+    async def get_model_by_wid(self, wid):
+        """Returns window model having provided wid from collection.
+
+        :param wid: window id (xid, hwnd, ...)
+        :type wid: int
+        :returns: WindowModel instance
+        """
+        try:
+            return next(model for model in self._members if model.wid == wid)
+        except StopIteration:
+            return None

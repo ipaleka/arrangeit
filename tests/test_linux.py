@@ -4,8 +4,12 @@ import gi
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 
-from arrangeit.linux.controller import Controller
+from arrangeit.data import WindowModel
+from arrangeit.linux.app import App
 from arrangeit.linux.collector import Collector
+from arrangeit.linux.controller import Controller
+
+from .test_base import get_async_mock
 
 
 class TestLinuxController(object):
@@ -185,15 +189,6 @@ class TestLinuxCollector(object):
         Collector().run()
         mocked.assert_called()
 
-    def test_LinuxCollector_run_shutdowns_Wnck(self, mocker):
-        mocker.patch(
-            "arrangeit.linux.collector.Collector.get_windows",
-            return_value=(mocker.MagicMock(),),
-        )
-        mocked = mocker.patch("arrangeit.linux.collector.Wnck.shutdown")
-        Collector().run()
-        mocked.assert_called_once()
-
     @pytest.mark.parametrize(
         "is_applicable,is_valid_state,value",
         [
@@ -222,3 +217,76 @@ class TestLinuxCollector(object):
         collector = Collector()
         collector.run()
         assert collector.collection.size == value
+
+
+@pytest.mark.asyncio
+class TestAsyncLinuxCollector(object):
+    """Testing class for :py:class:`arrangeit.linux.Collector` async methods."""
+
+    ## LinuxCollector.get_window_by_wid
+    async def test_LinuxCollector_get_window_by_wid_calls_Wnck_Window_get(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window")
+        collector = Collector()
+        await collector.get_window_by_wid(100)
+        assert mocked.get.call_count == 1
+
+    ## LinuxCollector.get_window_move_resize_mask
+    async def test_LinuxCollector_get_window_move_resize_mask_all(self):
+        collector = Collector()
+        returned = await collector.get_window_move_resize_mask(WindowModel())
+        assert returned == (
+            Wnck.WindowMoveResizeMask.X
+            | Wnck.WindowMoveResizeMask.Y
+            | Wnck.WindowMoveResizeMask.WIDTH
+            | Wnck.WindowMoveResizeMask.HEIGHT
+        )
+
+
+@pytest.mark.asyncio
+@pytest.mark.skip(reason="can't get them for work right now")
+class TestAsyncLinuxApp(object):
+    """Testing class for :py:class:`arrangeit.linux.Collector` async methods."""
+
+    ## LinuxApp.move_and_resize
+    async def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.collection")
+        mocked.get_model_by_wid = get_async_mock(mocker)
+        app = App()
+        # with pytest.raises(AttributeError):
+        await app.move_and_resize(100)
+        assert mocked.get_model_by_wid.call_count == 1
+
+    async def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector")
+        mocked.get_window_by_wid = get_async_mock(mocker)
+        app = App()
+        # with pytest.raises(TypeError):
+        await app.move_and_resize(100)
+        assert mocked.get_window_by_wid.call_count == 1
+
+    async def test_LinuxApp_move_and_resize_c_get_window_move_resize_mask(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector")
+        mocked.get_window_move_resize_mask = get_async_mock(mocker)
+        app = App()
+        # with pytest.raises(TypeError):
+        await app.move_and_resize(100)
+        assert mocked.get_window_move_resize_mask.call_count == 1
+
+    async def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window")
+        mocked.set_geometry = get_async_mock(mocker)
+        app = App()
+        # with pytest.raises(AttributeError):
+        await app.move_and_resize(100)
+        assert mocked.set_geometry.call_count == 1
+
+    ## LinuxApp.move
+    async def test_LinuxApp_move_calls_move_and_resize(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.app.App")
+        mocked.move_and_resize = get_async_mock(mocker)
+        app = App()
+        # with pytest.raises(AttributeError):
+        await app.move(100)
+        assert mocked.move_and_resize.call_count == 1
+        mocked.move_and_resize.assert_called_with(100)
+

@@ -90,15 +90,10 @@ class BaseApp(object):
     async def move_and_resize(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
-        # await asyncio.sleep(2)
-        # print("finished: move_and_resize_window with args ", args)
 
     async def move(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
-        # await asyncio.sleep(2)
-        # print("finished: move_window with args ", args)
-
 
 
 class BaseController(object):

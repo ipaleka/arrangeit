@@ -290,7 +290,7 @@ class TestWindowsCollection(object):
 
         assert isinstance(WindowsCollection().generator(), GeneratorType)
 
-    def test_next_on_WindowsCollection_generator_yields_value(self):
+    def test_WindowsCollection_generator_next_yields_value(self):
         collection = WindowsCollection()
         assert collection.size == 0
         instance1 = WindowModel()
@@ -302,3 +302,32 @@ class TestWindowsCollection(object):
         assert next(generator) == instance2
         with pytest.raises(StopIteration):
             next(generator)
+
+
+@pytest.mark.asyncio
+class TestAsyncWindowsCollection(object):
+    """Testing class for :py:class:`arrangeit.data.WindowsCollection` async methods."""
+
+    ## WindowModel.get_model_by_wid
+    async def test_WindowsCollection_get_model_by_wid_valid_wid(self):
+        collection = WindowsCollection()
+        collection.add(WindowModel(wid=100))
+        model = WindowModel(wid=200)
+        collection.add(model)
+        collection.add(WindowModel(wid=300))
+        returned = await collection.get_model_by_wid(200)
+        assert returned == model
+
+    @pytest.mark.asyncio
+    async def test_WindowsCollection_get_model_by_wid_invalid_wid(self):
+        collection = WindowsCollection()
+        collection.add(WindowModel(wid=100))
+        collection.add(WindowModel(wid=200))
+        returned = await collection.get_model_by_wid(300)
+        assert returned is None
+
+    @pytest.mark.asyncio
+    async def test_WindowsCollection_get_model_by_wid_empty_collection(self):
+        collection = WindowsCollection()
+        returned = await collection.get_model_by_wid(300)
+        assert returned is None

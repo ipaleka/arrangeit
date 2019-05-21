@@ -1,5 +1,4 @@
 import gi
-
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 
@@ -106,8 +105,43 @@ class Collector(BaseCollector):
             )
         )
 
-    def run(self):
-        """Calls super method and then cleans Wnck."""
-        super().run()
+    async def get_window_by_wid(self, wid):
+        """Returns window instance having provided wid.
 
-        Wnck.shutdown()
+        :var wid: window id
+        :type wid: int
+        :returns: Wnck.Window object
+        """
+        return Wnck.Window.get(wid)
+
+    async def get_window_move_resize_mask(self, model):
+        """Returns flag indicating what is changed when we move/resize window.
+
+        Returned flag is combination of the X, Y, WIDTH and HEIGHT bits.
+
+        NOTE we just return all for now
+
+        :param model: model holding window data
+        :type model: :class:`WindowModel` instance
+        :returns: int flag
+        """
+        return (
+            Wnck.WindowMoveResizeMask.X
+            | Wnck.WindowMoveResizeMask.Y
+            | Wnck.WindowMoveResizeMask.WIDTH
+            | Wnck.WindowMoveResizeMask.HEIGHT
+        )
+        # return (
+        #     (0 if model.changed[0] == model.rect[0] else Wnck.WindowMoveResizeMask.X)
+        #     | (0 if model.changed[1] == model.rect[1] else Wnck.WindowMoveResizeMask.Y)
+        #     | (
+        #         0
+        #         if model.changed[2] == model.rect[2]
+        #         else Wnck.WindowMoveResizeMask.WIDTH
+        #     )
+        #     | (
+        #         0
+        #         if model.changed[3] == model.rect[3]
+        #         else Wnck.WindowMoveResizeMask.HEIGHT
+        #     )
+        # )
