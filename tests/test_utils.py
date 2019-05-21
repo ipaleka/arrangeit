@@ -136,3 +136,16 @@ class TestUtils(object):
     )
     def test_quarter_by_smaller(self, w, h, expected):
         assert utils.quarter_by_smaller(w, h) == expected
+
+    ## increased_by_fraction
+    @pytest.mark.parametrize(
+        "value,fraction,expected",
+        [
+            (10, 0.1, 11),
+            (16, 0.1, 18),
+            (12, 0.2, 14),
+            (15, 0.2, 18),
+        ],
+    )
+    def test_increased_by_fraction(self, value, fraction, expected):
+        assert utils.increased_by_fraction(value, fraction) == expected

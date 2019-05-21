@@ -9,6 +9,8 @@ from arrangeit.constants import (
     WINDOW_MIN_WIDTH,
     WINDOW_MIN_HEIGHT,
     WINDOW_SHIFT_PIXELS,
+    ICON_WIDTH,
+    ICON_WIDTH_FRACTION,
 )
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
@@ -185,6 +187,12 @@ class BaseController(object):
         self.view.master.update()
         self.view.master.deiconify()
         self.view.focus_set()
+        self.view.title_label.configure(
+            wraplength=int(self.view.master.winfo_width() * (1 - ICON_WIDTH_FRACTION))
+        )
+        self.view.name_label.configure(
+            wraplength=int(self.view.master.winfo_width() * ICON_WIDTH_FRACTION - ICON_WIDTH)
+        )
         click_left()
         self.mainloop()
 
@@ -206,12 +214,13 @@ class BaseController(object):
             self.shutdown()
             return True
 
-        self.view.update_widgets(self.model)
-
         if not first_time:  # we need state to be None in startup
             self.state = LOCATE
         self.set_default_geometry(self.view.master)
         self.place_on_top_left()
+
+        self.view.update_widgets(self.model)
+
         return False
 
     def update(self, x, y):

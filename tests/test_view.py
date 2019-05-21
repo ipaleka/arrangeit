@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.font import nametofont
 
 import pytest
 
@@ -14,9 +15,23 @@ from arrangeit.constants import (
     TITLE_LABEL_FG,
     TITLE_LABEL_BG,
     TITLE_LABEL_ANCHOR,
+    TITLE_LABEL_FONT_INCREASE,
+    TITLE_LABEL_HEIGHT,
     TITLE_LABEL_PADX,
     TITLE_LABEL_PADY,
+    ICON_LABEL_BG,
+    ICON_LABEL_ANCHOR,
+    ICON_LABEL_PADX,
+    ICON_LABEL_PADY,
+    NAME_LABEL_ANCHOR,
+    NAME_LABEL_BG,
+    NAME_LABEL_FG,
+    NAME_LABEL_HEIGHT,
+    NAME_LABEL_PADX,
+    NAME_LABEL_PADY,
+    BLANK_ICON,
 )
+from arrangeit.utils import increased_by_fraction
 
 
 class TestViewFunctions(object):
@@ -107,26 +122,123 @@ class TestViewApplication(object):
         ViewApplication(None, mocker.MagicMock())
         assert mocked.call_count == 1
 
-    ## ViewApplication.setup_widgets
+    ## ViewApplication.setup_title
     @pytest.mark.parametrize("name,typ", [("title", tk.StringVar)])
-    def test_ViewApplication_setup_widgets_sets_tk_variable(self, mocker, name, typ):
+    def test_ViewApplication_setup_title_sets_tk_variable(self, mocker, name, typ):
         view = ViewApplication(None, mocker.MagicMock())
         setattr(view, name, None)
-        view.setup_widgets()
+        view.setup_title()
         assert isinstance(getattr(view, name), typ)
 
-    def test_ViewApplication_setup_widgets_sets_title_label(self, mocker):
+    def test_ViewApplication_setup_title_sets_title_label(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view = ViewApplication(None, mocker.MagicMock())
-        view.setup_widgets()
+        view.setup_title()
         mocked.assert_called_with(
+            view,
             textvariable=view.title,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"], TITLE_LABEL_FONT_INCREASE
+                ),
+            ),
+            height=TITLE_LABEL_HEIGHT,
             foreground=TITLE_LABEL_FG,
             background=TITLE_LABEL_BG,
             anchor=TITLE_LABEL_ANCHOR,
             padx=TITLE_LABEL_PADX,
             pady=TITLE_LABEL_PADY,
         )
+
+    def test_ViewApplication_setup_title_calls_label_grid(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.grid.call_count = 0
+        view.setup_title()
+        assert mocked.return_value.grid.call_count == 1
+
+    ## ViewApplication.setup_icon
+    def test_ViewApplication_setup_icon_sets_icon_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_icon()
+        mocked.assert_called_with(
+            view,
+            bitmap="hourglass",
+            background=ICON_LABEL_BG,
+            anchor=ICON_LABEL_ANCHOR,
+            padx=ICON_LABEL_PADX,
+            pady=ICON_LABEL_PADY,
+        )
+
+    def test_ViewApplication_setup_icon_calls_label_grid(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.grid.call_count = 0
+        view.setup_icon()
+        assert mocked.return_value.grid.call_count == 1
+
+    ## ViewApplication.setup_name
+    def test_ViewApplication_setup_name_sets_tk_variable(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.name = None
+        view.setup_name()
+        assert isinstance(view.name, tk.StringVar)
+
+    def test_ViewApplication_setup_name_sets_name_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_name()
+        mocked.assert_called_with(
+            view,
+            textvariable=view.name,
+            height=TITLE_LABEL_HEIGHT,
+            foreground=TITLE_LABEL_FG,
+            background=TITLE_LABEL_BG,
+            anchor=NAME_LABEL_ANCHOR,
+            padx=NAME_LABEL_PADX,
+            pady=NAME_LABEL_PADY,
+        )
+
+    def test_ViewApplication_setup_name_calls_label_grid(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.grid.call_count = 0
+        view.setup_name()
+        assert mocked.return_value.grid.call_count == 1
+
+    ## ViewApplication.setup_widgets
+    def test_ViewApplication_setup_widgets_calls_grid_columnconfigure(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Frame.grid_columnconfigure")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.call_count = 0
+        mocked.calls = []
+        view.setup_widgets()
+        assert mocked.call_count == 2
+        calls = [mocker.call(0, weight=7), mocker.call(2, weight=2)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_ViewApplication_setup_widgets_calls_setup_title(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_title")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.call_count = 0
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_icon(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_icon")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.call_count = 0
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_name(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_name")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.call_count = 0
+        view.setup_widgets()
+        assert mocked.call_count == 1
 
     ## ViewApplication.setup_bindings
     @pytest.mark.parametrize(
@@ -148,11 +260,38 @@ class TestViewApplication(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     ## ViewApplication.update_widgets
-    @pytest.mark.parametrize("attr,val,typ", [("title", "foo", tk.StringVar)])
-    def test_ViewApplication_update_widgets_set_attr(self, mocker, attr, val, typ):
+    @pytest.mark.parametrize("attr,val,typ", [
+        ("title", "foo", tk.StringVar),
+        ("name", "bar", tk.StringVar),
+        ])
+    def test_ViewApplication_update_widgets_sets_attr(self, mocker, attr, val, typ):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(**{attr: val})
+        model = WindowModel(**{attr: val}, icon=BLANK_ICON)
         view.update_widgets(model)
         instance = getattr(view, attr)
         assert instance.get() == getattr(model, attr)
         assert isinstance(instance, typ)
+
+    def test_ViewApplication_update_widgets_calls_ImageTk_PhotoImage(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        model = WindowModel(icon=BLANK_ICON)
+        mocker.patch("arrangeit.view.tk.Label.configure")
+        mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        view.update_widgets(model)
+        mocked.call_count == 1
+        mocked.assert_called_with(model.icon)
+
+    def test_ViewApplication_update_widgets_sets_icon_image(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        model = WindowModel(icon=BLANK_ICON)
+        mocker.patch("arrangeit.view.tk.Label.configure")
+        mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        view.update_widgets(model)
+        assert view.icon_image == mocked.return_value
+
+    def test_ViewApplication_update_widgets_sets_icon(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        model = WindowModel(icon=BLANK_ICON)
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view.update_widgets(model)
+        mocked.return_value.configure.call_count == 1

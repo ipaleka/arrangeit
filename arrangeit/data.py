@@ -24,6 +24,7 @@ class WindowModel(object):
     resizable = None
     title = None
     name = None
+    icon = None
     # ws = None  # workspace
     changed = ()
 

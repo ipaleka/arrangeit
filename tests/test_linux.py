@@ -1,10 +1,15 @@
+import os
+
 import asynctest
 import gi
 
 gi.require_version("Wnck", "3.0")
-from gi.repository import Wnck
+gi.require_version("GdkPixbuf", "2.0")
+from gi.repository import Wnck, GdkPixbuf
+from PIL import Image
 import pytest
 
+import arrangeit
 from arrangeit.data import WindowModel
 from arrangeit.linux.app import App
 from arrangeit.linux.collector import Collector
@@ -151,11 +156,13 @@ class TestLinuxCollector(object):
 
     ## LinuxCollector.add_window
     def test_LinuxCollector_add_window_calls_WindowsCollection_add(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
         mocked = mocker.patch("arrangeit.data.WindowsCollection.add")
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
     def test_LinuxCollector_add_window_inits_WindowModel(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
         mocker.patch("arrangeit.data.WindowsCollection.add")
         mocked = mocker.patch("arrangeit.linux.collector.WindowModel")
         Collector().add_window(mocker.MagicMock())
@@ -169,16 +176,26 @@ class TestLinuxCollector(object):
             "get_window_type",
             "get_name",
             "get_class_group_name",
+            "get_icon",
         ],
     )
     def test_LinuxCollector_add_window_calls_Wnck_Window_methods(self, mocker, method):
+        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
         mocked_ww = mocker.patch("arrangeit.linux.collector.Wnck.Window")
         mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window.{}".format(method))
         Collector().add_window(mocked_ww)
         mocked.assert_called_once()
 
     def test_LinuxCollector_add_window_calls_is_resizable(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
         mocked = mocker.patch("arrangeit.linux.collector.Collector.is_resizable")
+        Collector().add_window(mocker.MagicMock())
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_add_window_calls_get_tk_image_from_pixbuf(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf"
+        )
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
@@ -201,6 +218,7 @@ class TestLinuxCollector(object):
     def test_LinuxCollector_run_functionality(
         self, mocker, is_applicable, is_valid_state, value
     ):
+        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
         mocker.patch(
             "arrangeit.linux.collector.Collector.get_windows",
             return_value=(mocker.MagicMock(), mocker.MagicMock()),
@@ -216,6 +234,13 @@ class TestLinuxCollector(object):
         collector = Collector()
         collector.run()
         assert collector.collection.size == value
+
+    def test_LinuxCollector_get_tk_image_from_pixbuf_returns_valid_type(self):
+        collector = Collector()
+        image = GdkPixbuf.Pixbuf.new_from_file(
+            os.path.join(os.path.dirname(arrangeit.__file__), "resources", "blank.png")
+        )
+        assert isinstance(collector.get_tk_image_from_pixbuf(image), Image.Image)
 
 
 @pytest.mark.asyncio
@@ -267,7 +292,9 @@ class TestAsyncLinuxApp(asynctest.TestCase):
 
     @asynctest.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
     @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    async def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocked_win, mocked_model):
+    async def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(
+        self, mocked_win, mocked_model
+    ):
         app = App()
         mocked_win.return_value.set_geometry.return_value = 200
         returned = await app.move_and_resize(100)

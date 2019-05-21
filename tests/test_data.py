@@ -1,10 +1,10 @@
 import pytest
 
-from arrangeit.constants import WINDOW_RECT_ELEMENTS
+from arrangeit.constants import WINDOW_RECT_ELEMENTS, BLANK_ICON
 from arrangeit.data import WindowModel, WindowsCollection
 
 
-WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name"]
+WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name", "icon"]
 SAMPLE_RECT = (45, 54, 304, 405)
 SAMPLE_MODEL_VALUES = [
     {"wid": 101},
@@ -12,12 +12,14 @@ SAMPLE_MODEL_VALUES = [
     {"resizable": True},
     {"title": "foo"},
     {"name": "bar"},
+    {"icon": BLANK_ICON},
     {
         "wid": 502,
         "rect": (4, 5, 25, 25),
         "resizable": True,
         "title": "bar",
         "name": "foo",
+        "icon": BLANK_ICON,
     },
 ]
 
@@ -50,7 +52,7 @@ class TestWindowModel(object):
         mocked = mocker.patch("arrangeit.data.get_value_if_valid_type")
         wm = WindowModel()
         wm.setup(**values)
-        assert mocked.call_count == 2 * 5
+        assert mocked.call_count == 2 * len(WINDOW_MODEL_ATTRS)
 
     @pytest.mark.parametrize("values", SAMPLE_MODEL_VALUES)
     def test_WindowModel_setup_sets_attrs_if_provided(self, mocker, values):
@@ -75,6 +77,7 @@ class TestWindowModel(object):
             {"resizable": True},
             {"title": "some title"},
             {"name": "name foo"},
+            {"icon": BLANK_ICON},
         ],
     )
     def test_WindowModel_setup_sets_attrs_for_valid_type(self, mocker, values):
@@ -100,6 +103,7 @@ class TestWindowModel(object):
             {"title": 5},
             {"name": 78.34},
             {"name": WindowModel()},
+            {"icon": "name"},
         ],
     )
     def test_WindowModel_setup_set_None_or_empty_for_invalid_type(self, mocker, values):

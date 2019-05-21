@@ -100,3 +100,15 @@ def quarter_by_smaller(width, height):
     if width > height:
         return (int((height / 4) * 16 / 9), height // 4)
     return (width // 4, int((width / 4) * 9 / 16))
+
+
+def increased_by_fraction(value, fraction):
+    """Helper method for increasing provided value by provided fraction.
+
+    :param value: value to increase
+    :type value: int
+    :param fraction: fraction of a whole to increase value by
+    :type fraction: float
+    :returns: int
+    """
+    return round(value + value * fraction)

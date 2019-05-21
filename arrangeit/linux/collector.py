@@ -1,6 +1,7 @@
 import gi
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
+from PIL import Image
 
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
@@ -102,8 +103,26 @@ class Collector(BaseCollector):
                 resizable=self.is_resizable(win.get_window_type()),
                 title=win.get_name(),
                 name=win.get_class_group_name(),
+                icon=self.get_tk_image_from_pixbuf(win.get_icon()),
             )
         )
+
+    def get_tk_image_from_pixbuf(self, pixbuf):
+        """Returns PIL image converted from provided pixbuf.
+
+        https://gist.github.com/mozbugbox/10cd35b2872628246140
+
+        :returns: :class:`PIL.Image` instance
+        """
+        data = pixbuf.get_pixels()
+        w = pixbuf.props.width
+        h = pixbuf.props.height
+        stride = pixbuf.props.rowstride
+        mode = "RGB"
+        if pixbuf.props.has_alpha == True:
+            mode = "RGBA"
+        image = Image.frombytes(mode, (w, h), data, "raw", mode, stride)
+        return image
 
     async def get_window_by_wid(self, wid):
         """Returns window instance having provided wid.
