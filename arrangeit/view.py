@@ -78,27 +78,13 @@ class ViewApplication(tk.Frame):
         )
         title_label.pack(fill=tk.X)
 
-        # self.hi_there = tk.Button(self)
-        # self.hi_there["text"] = "controller.next\n(click me)"
-        # self.hi_there["command"] = self.controller.next
-        # self.hi_there.pack(side="top")
+        # bitmap = tk.BitmapImage(file="bitmap.xbm")
 
-        # self.quit = tk.Button(self, text="QUIT", fg="red",
-        #                       command=self.controller.quit)
-        # self.quit.pack(side="bottom")
+        # self.icon = tk.Label(bitmap=bitmap)
+        # self.icon.bitmap = bitmap # keep a reference!
+        # self.icon.pack()
 
-        # bg_image = tk.PhotoImage(file=name)
-        # # get the width and height of the image
-        # w = bg_image.width()
-        # h = bg_image.height()
-        # # size the window so the image will fill it
-        # root.geometry("%dx%d+50+30" % (w, h))
-        # cv = tk.Canvas(width=w, height=h)
-        # cv.pack(side='top', fill='both', expand='yes')
-        # cv.create_image(0, 0, image=bg_image, anchor='nw')
-        # # add canvas text at coordinates x=15, y=20
-        # # anchor='nw' implies upper left corner coordinates
-        # cv.create_text(15, 20, text="Python Greetings", fill="red", anchor='nw')
+        # self.icon["bitmap"] = value
 
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
@@ -109,3 +95,11 @@ class ViewApplication(tk.Frame):
         self.bind_all("<Button-1>", self.controller.on_mouse_left_down)
         self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)
+
+    def update_widgets(self, model):
+        """Updates widgets with the data from provided WindowModel instance.
+
+        :param model: window data
+        :type model: :class:`WindowModel` instance
+        """
+        self.title.set(model.title)

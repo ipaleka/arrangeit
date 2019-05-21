@@ -2,6 +2,7 @@ import tkinter as tk
 
 import pytest
 
+from arrangeit.data import WindowModel
 from arrangeit.view import (
     click_left,
     get_tkinter_root,
@@ -145,3 +146,13 @@ class TestViewApplication(object):
         view.setup_bindings()
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
+
+    ## ViewApplication.update_widgets
+    @pytest.mark.parametrize("attr,val,typ", [("title", "foo", tk.StringVar)])
+    def test_ViewApplication_update_widgets_set_attr(self, mocker, attr, val, typ):
+        view = ViewApplication(None, mocker.MagicMock())
+        model = WindowModel(**{attr: val})
+        view.update_widgets(model)
+        instance = getattr(view, attr)
+        assert instance.get() == getattr(model, attr)
+        assert isinstance(instance, typ)

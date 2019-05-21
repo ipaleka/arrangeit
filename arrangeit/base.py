@@ -206,7 +206,7 @@ class BaseController(object):
             self.shutdown()
             return True
 
-        self.view.title.set(self.model.title)  # TODO move to update_widgets method
+        self.view.update_widgets(self.model)
 
         if not first_time:  # we need state to be None in startup
             self.state = LOCATE

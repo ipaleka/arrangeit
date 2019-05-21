@@ -225,24 +225,19 @@ class TestBaseController(object):
         next_value = next(generator)
         assert next_value == model_instance2
 
-    @pytest.mark.parametrize("attr,val,typ", [("title", "foo", tk.StringVar)])
-    def test_BaseController_next_sets_attributes_from_gen(self, mocker, attr, val, typ):
-        mocker.patch("arrangeit.base.BaseController.mainloop")
-        mocker.patch("pynput.mouse.Listener")
-        mocker.patch("pynput.mouse.Controller")
-        mocker.patch("arrangeit.view.tk.Tk.update")
-        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        model = data.WindowModel(**{attr: val})
+    def test_BaseController_next_calls_update_widgets(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
+        model = data.WindowModel()
         collection.add(model)
         generator = collection.generator()
         controller = base.BaseController(mocker.MagicMock())
         controller.run(generator)
         controller.next()
-        instance = getattr(controller.view, attr)
-        assert instance.get() == getattr(model, attr)
-        assert isinstance(instance, typ)
+        mocked.return_value.update_widgets.assert_called_with(model)
 
     def test_BaseController_next_sets_state_to_LOCATE(self, mocker):
         mock_main_loop(mocker)

@@ -1,15 +1,14 @@
-import pytest
+import asynctest
 import gi
 
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
+import pytest
 
 from arrangeit.data import WindowModel
 from arrangeit.linux.app import App
 from arrangeit.linux.collector import Collector
 from arrangeit.linux.controller import Controller
-
-from .test_base import get_async_mock
 
 
 class TestLinuxController(object):
@@ -242,51 +241,42 @@ class TestAsyncLinuxCollector(object):
         )
 
 
-@pytest.mark.asyncio
-@pytest.mark.skip(reason="can't get them for work right now")
-class TestAsyncLinuxApp(object):
-    """Testing class for :py:class:`arrangeit.linux.Collector` async methods."""
+class TestAsyncLinuxApp(asynctest.TestCase):
 
     ## LinuxApp.move_and_resize
-    async def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.collection")
-        mocked.get_model_by_wid = get_async_mock(mocker)
+    @asynctest.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+    async def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocked):
         app = App()
-        # with pytest.raises(AttributeError):
-        await app.move_and_resize(100)
-        assert mocked.get_model_by_wid.call_count == 1
+        with self.assertRaises(AttributeError):
+            await app.move_and_resize(100)
+        mocked.assert_called()
 
-    async def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector")
-        mocked.get_window_by_wid = get_async_mock(mocker)
+    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+    async def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocked):
         app = App()
-        # with pytest.raises(TypeError):
-        await app.move_and_resize(100)
-        assert mocked.get_window_by_wid.call_count == 1
+        with self.assertRaises(AttributeError):
+            await app.move_and_resize(100)
+        mocked.assert_called()
 
-    async def test_LinuxApp_move_and_resize_c_get_window_move_resize_mask(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector")
-        mocked.get_window_move_resize_mask = get_async_mock(mocker)
+    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+    async def test_LinuxApp_move_and_resize_c_get_window_move_resize_mask(self, mocked):
         app = App()
-        # with pytest.raises(TypeError):
-        await app.move_and_resize(100)
-        assert mocked.get_window_move_resize_mask.call_count == 1
+        with self.assertRaises(AttributeError):
+            await app.move_and_resize(100)
+        mocked.assert_called()
 
-    async def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window")
-        mocked.set_geometry = get_async_mock(mocker)
+    @asynctest.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+    async def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocked_win, mocked_model):
         app = App()
-        # with pytest.raises(AttributeError):
-        await app.move_and_resize(100)
-        assert mocked.set_geometry.call_count == 1
+        mocked_win.return_value.set_geometry.return_value = 200
+        returned = await app.move_and_resize(100)
+        self.assertEqual(returned, 200)
 
     ## LinuxApp.move
-    async def test_LinuxApp_move_calls_move_and_resize(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.app.App")
-        mocked.move_and_resize = get_async_mock(mocker)
+    @asynctest.patch("arrangeit.linux.app.App.move_and_resize")
+    async def test_LinuxApp_move_calls_move_and_resize(self, mocked):
         app = App()
-        # with pytest.raises(AttributeError):
         await app.move(100)
-        assert mocked.move_and_resize.call_count == 1
-        mocked.move_and_resize.assert_called_with(100)
-
+        mocked.assert_called()
+        mocked.assert_called_with(100)

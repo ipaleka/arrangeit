@@ -5,16 +5,6 @@ from arrangeit import base, data, utils
 from .test_basecontroller import mock_main_loop
 
 
-def get_async_mock(mocker, return_value=None):
-    """Helper function for mocking async methods.
-
-    https://stackoverflow.com/a/29905620
-    """
-    async def async_mock(*args, **kwargs):
-        return return_value
-    return mocker.Mock(wraps=async_mock)
-
-
 class TestBaseApp(object):
     """Testing class for BaseApp class."""
 
