@@ -12,6 +12,8 @@ from arrangeit.constants import (
     TITLE_LABEL_HEIGHT,
     TITLE_LABEL_PADX,
     TITLE_LABEL_PADY,
+    ICON_WIDTH,
+    ICON_WIDTH_FRACTION,
     ICON_LABEL_ANCHOR,
     ICON_LABEL_BG,
     ICON_LABEL_PADX,
@@ -90,6 +92,8 @@ class ViewApplication(tk.Frame):
         self.setup_title()
         self.setup_icon()
         self.setup_name()
+        self.setup_workspaces()
+        self.setup_windows()
 
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
@@ -149,6 +153,33 @@ class ViewApplication(tk.Frame):
         )
         self.name_label.grid(row=0, column=2, sticky="nsew")
 
+    def setup_workspaces(self):
+        """Creates `workspaces` widget and sets corresponding variable."""
+        self.workspaces = WorkspacesCollection(self)
+        self.workspaces.grid(row=1, column=0, sticky="nsew")
+
+    def setup_windows(self):
+        """Creates `windows` widget and sets corresponding variable."""
+        self.windows = WindowsList(self)
+        self.windows.grid(row=1, column=2, sticky="nsw")
+
+    def startup(self):
+        """Shows master and then calculates and sets now visible parameters.
+
+        Calls `focus_set` so frame can trigger keyboard events.
+        """
+        self.master.update()
+        self.master.deiconify()
+        self.focus_set()
+        self.title_label.configure(
+            wraplength=int(self.master.winfo_width() * (1 - ICON_WIDTH_FRACTION))
+        )
+        self.name_label.configure(
+            wraplength=int(
+                self.winfo_width() * ICON_WIDTH_FRACTION - ICON_WIDTH
+            )
+        )
+
     def update_widgets(self, model):
         """Updates widgets with the data from provided WindowModel instance.
 
@@ -178,10 +209,17 @@ class WorkspacesCollection(tk.Frame):
         after super __init__ is called.
         """
         super().__init__(parent)
-        # self.parent = parent
-        # self.pack(fill=tk.BOTH, expand=True)
+        self.parent = parent
 
-        # self["background"] = "red"
+        self["background"] = "red"
+
+    def add_workspaces(self, workspaces):
+        """Creates children widgets from provided list of workspaces.
+
+        :var workspaces: list of workspaces two-tuples (number, name)
+        :type workspaces: [(int, str)]
+        """
+        pass
 
     def on_child_activated(self, event):
         """Calls parent's controller method in charge for workspace activation.
@@ -253,10 +291,17 @@ class WindowsList(tk.Frame):
         after super __init__ is called.
         """
         super().__init__(parent)
-        # self.parent = parent
-        # self.pack(fill=tk.BOTH, expand=True)
+        self.parent = parent
 
-        # self["background"] = "red"
+        self["background"] = "red"
+
+    def add_windows(self, windows):
+        """Creates children widgets from provided list of windows.
+
+        :var windows: list of windows two-tuples (wid, title)
+        :type windows: [(int, str)]
+        """
+        pass
 
     def on_child_activated(self, event):
         """Calls parent's controller method in charge for window activation.

@@ -58,7 +58,7 @@ class Collector(BaseCollector):
         """Returns windows list from the Wnck.Screen object.
 
         :var screen: provides all the windows instances
-        :type screen: Wnck.Screen object
+        :type screen: :class:`Wnck.Screen`
         :returns: list of Wnck.Window instances
         """
         screen = Wnck.Screen.get_default()
@@ -104,12 +104,12 @@ class Collector(BaseCollector):
                 resizable=self.is_resizable(win.get_window_type()),
                 title=win.get_name(),
                 name=win.get_class_group_name(),
-                icon=self.get_tk_image_from_pixbuf(win.get_icon()),
-                workspace=self.get_workspace(win),
+                icon=self._get_tk_image_from_pixbuf(win.get_icon()),
+                workspace=self.get_workspace_number_for_window(win),
             )
         )
 
-    def get_tk_image_from_pixbuf(self, pixbuf):
+    def _get_tk_image_from_pixbuf(self, pixbuf):
         """Returns PIL image converted from provided pixbuf.
 
         https://gist.github.com/mozbugbox/10cd35b2872628246140
@@ -126,18 +126,55 @@ class Collector(BaseCollector):
         image = Image.frombytes(mode, (w, h), data, "raw", mode, stride)
         return image
 
-    def get_workspace(self, win):
-        """Returns two-tuple containing screen and workspace numbers of the window.
+    def get_workspace_number(self, workspace):
+        """Returns integer containing screen and workspace numbers of the workspace.
 
-        :param win: window instance
-        :type win: :class:`Wnck.Window`
-        :var workspace: workspace instance
+        In returned integer screen number represents thousands part, and
+        workspace number represents remainder of division by 1000.
+
+        :param workspace: workspace instance
         :type workspace: :class:`Wnck.workspace`
+        :returns: int
         """
-        workspace = win.get_workspace()
         if workspace is None:
             return 0
         return 1000 * workspace.get_screen().get_number() + workspace.get_number()
+
+    def get_workspace_number_for_window(self, win):
+        """Returns workspace number for the provided window.
+
+        :param win: window instance
+        :type win: :class:`Wnck.Window`
+        :returns: int
+        """
+        return self.get_workspace_number(win.get_workspace())
+
+    def get_available_workspaces(self):
+        """Returns list of workspaces available on default screen.
+
+        Returned list contains two-tuples of calculated workspace number
+        and corresponding name.
+
+        :var screen: screen object
+        :type screen: :class:`Wnck.Screen`
+        :var workspaces: workspaces collection
+        :type workspaces: list of :class:`Wnck.Workspace` instances
+        :returns: [(int, str)]
+        """
+        screen = Wnck.Screen.get_default()
+        screen.force_update()
+        workspaces = screen.get_workspaces()
+        if not workspaces:
+            return [(0, ""),]
+        collection = []
+        for i, workspace in enumerate(workspaces):
+            collection.append(
+                (
+                    self.get_workspace_number(workspace),
+                    workspace.get_name()
+                )
+            )
+        return collection
 
     async def get_window_by_wid(self, wid):
         """Returns window instance having provided wid.

@@ -330,7 +330,7 @@ class TestWindowsCollection(object):
         assert collection.size == 0
 
     ## WindowsCollection.sort
-    @pytest.mark.skip(reason="bed time...")
+    @pytest.mark.skip(reason="waiting for tkinter widgets functionality")
     @pytest.mark.parametrize("wses", [(1004, 1003, 1004, 1004, 1006), (0, 3, 1, 0, 1)])
     def test_WindowsCollection_sort_functionality(self, wses):
         assert False

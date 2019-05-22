@@ -156,13 +156,13 @@ class TestLinuxCollector(object):
 
     ## LinuxCollector.add_window
     def test_LinuxCollector_add_window_calls_WindowsCollection_add(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
+        mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")
         mocked = mocker.patch("arrangeit.data.WindowsCollection.add")
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
     def test_LinuxCollector_add_window_inits_WindowModel(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
+        mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")
         mocker.patch("arrangeit.data.WindowsCollection.add")
         mocked = mocker.patch("arrangeit.linux.collector.WindowModel")
         Collector().add_window(mocker.MagicMock())
@@ -180,28 +180,32 @@ class TestLinuxCollector(object):
         ],
     )
     def test_LinuxCollector_add_window_calls_Wnck_Window_methods(self, mocker, method):
-        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
+        mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")
         mocked_ww = mocker.patch("arrangeit.linux.collector.Wnck.Window")
         mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window.{}".format(method))
         Collector().add_window(mocked_ww)
         mocked.assert_called_once()
 
     def test_LinuxCollector_add_window_calls_is_resizable(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
+        mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")
         mocked = mocker.patch("arrangeit.linux.collector.Collector.is_resizable")
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
-    def test_LinuxCollector_add_window_calls_get_tk_image_from_pixbuf(self, mocker):
+    def test_LinuxCollector_add_window_calls__get_tk_image_from_pixbuf(self, mocker):
         mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf"
+            "arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf"
         )
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
-    def test_LinuxCollector_add_window_calls_get_workspace(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_workspace")
+    def test_LinuxCollector_add_window_calls_get_workspace_number_for_window(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_workspace_number_for_window"
+        )
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
@@ -224,7 +228,7 @@ class TestLinuxCollector(object):
     def test_LinuxCollector_run_functionality(
         self, mocker, is_applicable, is_valid_state, value
     ):
-        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
+        mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")
         mocker.patch(
             "arrangeit.linux.collector.Collector.get_windows",
             return_value=(mocker.MagicMock(), mocker.MagicMock()),
@@ -241,40 +245,120 @@ class TestLinuxCollector(object):
         collector.run()
         assert collector.collection.size == value
 
-    ## LinuxCollector.get_tk_image_from_pixbuf
-    def test_LinuxCollector_get_tk_image_from_pixbuf_returns_valid_type(self):
+    ## LinuxCollector._get_tk_image_from_pixbuf
+    def test_LinuxCollector__get_tk_image_from_pixbuf_returns_valid_type(self):
         collector = Collector()
         image = GdkPixbuf.Pixbuf.new_from_file(
             os.path.join(os.path.dirname(arrangeit.__file__), "resources", "blank.png")
         )
-        assert isinstance(collector.get_tk_image_from_pixbuf(image), Image.Image)
+        assert isinstance(collector._get_tk_image_from_pixbuf(image), Image.Image)
 
-    ## LinuxCollector.get_workspace
-    def test_LinuxCollector_get_workspace_returns_0(self, mocker):
-        ws = mocker.patch("arrangeit.linux.collector.Wnck.Window.get_workspace")
-        ws.return_value = None
-        assert Collector().get_workspace(Wnck.Window) == 0
+    ## LinuxCollector.get_workspace_number_for_window
+    def test_LinuxCollector_get_workspace_number_for_window_calls_W_get_workspace(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window.get_workspace")
+        Collector().get_workspace_number_for_window(Wnck.Window)
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_get_workspace_number_for_window_calls_wn_for_window(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.linux.collector.Wnck.Window.get_workspace")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_workspace_number"
+        )
+        Collector().get_workspace_number_for_window(Wnck.Window)
+        mocked.assert_called_once()
+
+    ## LinuxCollector.get_workspace_number
+    def test_LinuxCollector_get_workspace_number_returns_0(self, mocker):
+        assert Collector().get_workspace_number(None) == 0
 
     @pytest.mark.parametrize(
         "screen,workspace,expected",
-        [(0, 0, 0), (0, 1, 1), (0, 9, 9), (1, 0, 1000), (1, 12, 1012),(5, 4, 5004)],
+        [(0, 0, 0), (0, 1, 1), (0, 9, 9), (1, 0, 1000), (1, 12, 1012), (5, 4, 5004)],
     )
-    def test_LinuxCollector_get_workspace_returns_correct_number(
+    def test_LinuxCollector_get_workspace_number_returns_correct_number(
         self, mocker, screen, workspace, expected
     ):
-        ws = mocker.patch("arrangeit.linux.collector.Wnck.Window.get_workspace")
-        ws.return_value.get_screen.return_value.get_number.return_value = screen
-        ws.return_value.get_number.return_value = workspace
+        ws = mocker.MagicMock()
+        ws.get_screen.return_value.get_number.return_value = screen
+        ws.get_number.return_value = workspace
 
-        returned = Collector().get_workspace(Wnck.Window)
-        ws.assert_called_once()
-
-        ws.return_value.get_screen.assert_called_once()
-        ws.return_value.get_screen.return_value.get_number.assert_called_once()
-
-        ws.return_value.get_number.assert_called_once()
+        returned = Collector().get_workspace_number(ws)
+        ws.get_screen.assert_called_once()
+        ws.get_screen.return_value.get_number.assert_called_once()
+        ws.get_number.assert_called_once()
 
         assert returned == expected
+
+    ## LinuxCollector.get_available_workspaces
+    @pytest.mark.parametrize(
+        "method", ["get_default", "force_update", "get_workspaces"]
+    )
+    def test_LinuxCollector_get_available_workspaces_calls_Screen_methods(
+        self, mocker, method
+    ):
+        mocked = mocker.patch("arrangeit.linux.collector.Wnck.Screen.{}".format(method))
+        Collector().get_available_workspaces()
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_get_available_workspaces_returns_list(self, mocker):
+        mocker.patch(
+            "arrangeit.linux.collector.Wnck.Screen.get_workspaces", return_value=[]
+        )
+        assert isinstance(Collector().get_available_workspaces(), list)
+
+    def test_LinuxCollector_get_available_workspaces_returns_one_element(self, mocker):
+        mocker.patch(
+            "arrangeit.linux.collector.Wnck.Screen.get_workspaces", return_value=[]
+        )
+        returned = Collector().get_available_workspaces()
+        assert len(returned) == 1
+        assert returned == [(0, "")]
+
+    def test_LinuxCollector_get_available_workspaces_calls_get_workspace_number(
+        self, mocker
+    ):
+        ws1, ws2 = mocker.MagicMock(), mocker.MagicMock()
+        mocker.patch(
+            "arrangeit.linux.collector.Wnck.Screen.get_workspaces",
+            return_value=(ws1, ws2),
+        )
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_workspace_number")
+        Collector().get_available_workspaces()
+        calls = [mocker.call(ws1), mocker.call(ws2)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_LinuxCollector_get_available_workspaces_calls_W_workspace_get_name(
+        self, mocker
+    ):
+        ws1, ws2 = mocker.MagicMock(), mocker.MagicMock()
+        mocker.patch(
+            "arrangeit.linux.collector.Wnck.Screen.get_workspaces",
+            return_value=(ws1, ws2),
+        )
+        Collector().get_available_workspaces()
+        assert ws1.get_name.call_count == 1
+        assert ws2.get_name.call_count == 1
+
+    def test_LinuxCollector_get_available_workspaces_functionality(
+        self, mocker
+    ):
+        ws1, ws2 = mocker.MagicMock(), mocker.MagicMock()
+        mocker.patch(
+            "arrangeit.linux.collector.Wnck.Screen.get_workspaces",
+            return_value=(ws1, ws2),
+        )
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_workspace_number",
+            return_value=1002,
+        )
+        ws1.get_name.return_value = "foo"
+        ws2.get_name.return_value = "bar"
+        returned = Collector().get_available_workspaces()
+        assert returned == [(1002, "foo"), (1002, "bar")]
 
 
 @pytest.mark.asyncio

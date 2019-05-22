@@ -9,8 +9,6 @@ from arrangeit.constants import (
     WINDOW_MIN_WIDTH,
     WINDOW_MIN_HEIGHT,
     WINDOW_SHIFT_PIXELS,
-    ICON_WIDTH,
-    ICON_WIDTH_FRACTION,
 )
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
@@ -170,32 +168,34 @@ class BaseController(object):
         )
         root.geometry("{}x{}".format(width, height))
 
-    def run(self, generator):
-        """Syncs data, initializes and starts listener, shows root and enters main loop.
+    def prepare_view(self):
+        """Populates view's workspaces and windows list widgets."""
+        pass
+        # self.view.workspaces.add_workspaces()
+        # self.view.windows.add_windows()
 
+    def run(self, generator):
+        """Prepares view, syncs data, starts listener and enters main loop.
+
+        Calls `prepare_view` to create workspaces and windows list widgets.
         Sets generator attribute to provided generator and sets window data
         by calling :func:`BaseController.next` for the first time.
-        Initially calls `on_mouse_move` with current cursor position as arguments.
-        Calls `focus_set` on view frame so key and mouse events may be activated.
+        Calls view application startup routine to show root and calculate
+        visible parameters.
+        Calls `click_left` and so activates Tkinter root window.
         """
+        self.prepare_view()
+
         self.generator = generator
         self.next(first_time=True)
 
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()
-        # self.listener.stop() to stop - can't restart it afterward, create new instead
-        self.view.master.update()
-        self.view.master.deiconify()
-        self.view.focus_set()
-        self.view.title_label.configure(
-            wraplength=int(self.view.master.winfo_width() * (1 - ICON_WIDTH_FRACTION))
-        )
-        self.view.name_label.configure(
-            wraplength=int(
-                self.view.master.winfo_width() * ICON_WIDTH_FRACTION - ICON_WIDTH
-            )
-        )
+
+        self.view.startup()
+
         click_left()
+
         self.mainloop()
 
     def next(self, first_time=False):
@@ -456,6 +456,18 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def add_window(self, win):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def get_workspace_number(self, workspace):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def get_workspace_number_for_window(self, win):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def get_available_workspaces(self, win):
         """Method must be overridden."""
         raise NotImplementedError
 

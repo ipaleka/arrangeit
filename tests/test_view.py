@@ -10,6 +10,8 @@ from arrangeit.view import (
     get_mouse_listener,
     move_cursor,
     ViewApplication,
+    WorkspacesCollection,
+    WindowsList,
 )
 from arrangeit.constants import (
     TITLE_LABEL_FG,
@@ -84,7 +86,7 @@ class TestViewFunctions(object):
 
 
 class TestViewApplication(object):
-    """Unit testing class for view module inner functions."""
+    """Unit testing class for ViewApplication class."""
 
     ## ViewApplication
     def test_ViewApplication_issubclass_of_Frame(self):
@@ -208,6 +210,48 @@ class TestViewApplication(object):
         view.setup_name()
         assert mocked.return_value.grid.call_count == 1
 
+    ## ViewApplication.setup_workspaces
+    def test_ViewApplication_setup_workspaces_initializes_WorkspacesCollection(
+        self, mocker
+    ):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_workspaces()
+        assert isinstance(view.workspaces, WorkspacesCollection)
+
+    def test_ViewApplication_setup_workspaces_sets_viewapp_as_parent(self, mocker):
+        mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_workspaces()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_workspaces_calls_WorkspacesCollection_grid(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.grid.call_count = 0
+        view.setup_workspaces()
+        assert mocked.return_value.grid.call_count == 1
+
+    ## ViewApplication.setup_windows
+    def test_ViewApplication_setup_windows_initializes_WindowsList(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_windows()
+        assert isinstance(view.windows, WindowsList)
+
+    def test_ViewApplication_setup_windows_sets_viewapp_as_parent(self, mocker):
+        mocked = mocker.patch("arrangeit.view.WindowsList")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_windows()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_windows_calls_WindowsList_grid(self, mocker):
+        mocked = mocker.patch("arrangeit.view.WindowsList")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.grid.call_count = 0
+        view.setup_windows()
+        assert mocked.return_value.grid.call_count == 1
+
     ## ViewApplication.setup_widgets
     def test_ViewApplication_setup_widgets_calls_grid_columnconfigure(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Frame.grid_columnconfigure")
@@ -240,6 +284,20 @@ class TestViewApplication(object):
         view.setup_widgets()
         assert mocked.call_count == 1
 
+    def test_ViewApplication_setup_widgets_calls_setup_workspaces(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_workspaces")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.call_count = 0
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_windows(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_windows")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.call_count = 0
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
     ## ViewApplication.setup_bindings
     @pytest.mark.parametrize(
         "event,method",
@@ -259,11 +317,38 @@ class TestViewApplication(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
+    ## ViewApplication.startup
+    @pytest.mark.parametrize("method", ["update", "deiconify"])
+    def test_ViewApplication_startup_calls_master_showing_up_method(
+        self, mocker, method
+    ):
+        mocker.patch("arrangeit.view.tk.StringVar")
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        master = mocker.MagicMock()
+        ViewApplication(master, mocker.MagicMock()).startup()
+        assert getattr(master, method).call_count == 1
+
+    def test_ViewApplication_startup_calls_focus_set_on_view_frame(self, mocker):
+        mocker.patch("arrangeit.view.tk.StringVar")
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocked = mocker.patch("arrangeit.view.tk.Frame.focus_set")
+        ViewApplication(mocker.MagicMock(), mocker.MagicMock()).startup()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_startup_calls_configure_on_labels(self, mocker):
+        mocker.patch("arrangeit.view.tk.StringVar")
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocked = mocker.patch("arrangeit.view.tk.Label.configure")
+        ViewApplication(mocker.MagicMock(), mocker.MagicMock()).startup()
+        assert mocked.call_count == 2
+
     ## ViewApplication.update_widgets
-    @pytest.mark.parametrize("attr,val,typ", [
-        ("title", "foo", tk.StringVar),
-        ("name", "bar", tk.StringVar),
-        ])
+    @pytest.mark.parametrize(
+        "attr,val,typ", [("title", "foo", tk.StringVar), ("name", "bar", tk.StringVar)]
+    )
     def test_ViewApplication_update_widgets_sets_attr(self, mocker, attr, val, typ):
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(**{attr: val}, icon=BLANK_ICON)
@@ -295,3 +380,55 @@ class TestViewApplication(object):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view.update_widgets(model)
         mocked.return_value.configure.call_count == 1
+
+
+class TestWorkspacesCollection(object):
+    """Unit testing class for WorkspacesCollection class."""
+
+    ## WorkspacesCollection
+    def test_WorkspacesCollection_issubclass_of_Frame(self):
+        assert issubclass(WorkspacesCollection, tk.Frame)
+
+    ## WorkspacesCollection.__init__
+    def test_WorkspacesCollection_init_calls_super_with_parent_arg(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
+        with pytest.raises(AttributeError):
+            WorkspacesCollection(parent=parent)
+            mocked.assert_called_with(parent)
+
+    def test_WorkspacesCollection_init_sets_parent_attribute(self, mocker):
+        parent = mocker.MagicMock()
+        workspaces = WorkspacesCollection(parent)
+        assert workspaces.parent == parent
+
+    # def test_WorkspacesCollection_init_calls_grid(self, mocker):
+    #     mocked = mocker.patch("arrangeit.view.WorkspacesCollection.grid")
+    #     WorkspacesCollection(None)
+    #     assert mocked.call_count == 1
+
+
+class TestWindowsList(object):
+    """Unit testing class for WindowsList class."""
+
+    ## WindowsList
+    def test_WindowsList_issubclass_of_Frame(self):
+        assert issubclass(WindowsList, tk.Frame)
+
+    ## WindowsList.__init__
+    def test_WindowsList_init_calls_super_with_parent_arg(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
+        with pytest.raises(AttributeError):
+            WindowsList(parent=parent)
+            mocked.assert_called_with(parent)
+
+    def test_WindowsList_init_sets_parent_attribute(self, mocker):
+        parent = mocker.MagicMock()
+        windows = WindowsList(parent)
+        assert windows.parent == parent
+
+    # def test_WindowsList_init_calls_grid(self, mocker):
+    #     mocked = mocker.patch("arrangeit.view.WindowsList.grid")
+    #     WindowsList(None)
+    #     assert mocked.call_count == 1

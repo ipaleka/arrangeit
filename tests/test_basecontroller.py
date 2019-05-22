@@ -151,6 +151,12 @@ class TestBaseController(object):
         root.wm_attributes.assert_has_calls(calls, any_order=True)
 
     ## BaseController.run
+    def test_BaseController_run_calls_prepare_view(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.prepare_view")
+        base.BaseController(mocker.MagicMock()).run(mocker.MagicMock())
+        mocked.assert_called_once()
+
     def test_BaseController_run_sets_generator_attr_from_provided_attr(self, mocker):
         mock_main_loop(mocker)
         generator = mocker.MagicMock()
@@ -186,32 +192,6 @@ class TestBaseController(object):
         mocked = mocker.patch("pynput.mouse.Listener")
         base.BaseController(mocker.MagicMock()).run(mocker.MagicMock())
         assert mocked.return_value.start.call_count == 1
-
-    @pytest.mark.parametrize("method", ["update", "deiconify"])
-    def test_BaseController_run_calls_master_showing_up_method(self, mocker, method):
-        mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.ViewApplication")
-        base.BaseController(mocker.MagicMock()).run(mocker.MagicMock())
-        instance = mocked.return_value.master
-        assert getattr(instance, method).call_count == 1
-
-    def test_BaseController_run_calls_focus_set_on_view_frame(self, mocker):
-        mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.ViewApplication")
-        base.BaseController(mocker.MagicMock()).run(mocker.MagicMock())
-        mocked.return_value.focus_set.assert_called_once()
-
-    def test_BaseController_run_calls_configure_on_title_label(self, mocker):
-        mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.ViewApplication")
-        base.BaseController(mocker.MagicMock()).run(mocker.MagicMock())
-        assert mocked.return_value.title_label.configure.call_count == 1
-
-    def test_BaseController_run_calls_configure_on_name_label(self, mocker):
-        mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.ViewApplication")
-        base.BaseController(mocker.MagicMock()).run(mocker.MagicMock())
-        assert mocked.return_value.name_label.configure.call_count == 1
 
     def test_BaseController_run_calls_click_left(self, mocker):
         mock_main_loop(mocker)

@@ -193,6 +193,21 @@ class TestBaseCollector(object):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().add_window(None)
 
+    ## BaseCollector.get_workspace_number
+    def test_BaseCollector_get_workspace_number_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().get_workspace_number(None)
+
+    ## BaseCollector.get_workspace_number_for_window
+    def test_BaseCollector_get_workspace_number_for_window_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().get_workspace_number_for_window(None)
+
+    ## BaseCollector.get_available_workspaces
+    def test_BaseCollector_get_available_workspaces_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().get_available_workspaces(None)
+
     ## BaseCollector.run
     def test_BaseCollector_run_calls_get_windows(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseCollector.get_windows")
