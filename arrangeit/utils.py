@@ -111,4 +111,4 @@ def increased_by_fraction(value, fraction):
     :type fraction: float
     :returns: int
     """
-    return round(value + value * fraction)
+    return round(value * (1.0 + fraction))

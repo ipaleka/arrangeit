@@ -34,6 +34,9 @@ def get_tkinter_root():
     return tk.Tk()
 
 
+# NOTE following 3 functions probably should be moved somewhere else
+
+
 def get_mouse_listener(callback):
     """Initializes mouse listener by binding it to provided ``callback`` and returns it.
 
@@ -59,7 +62,7 @@ class ViewApplication(tk.Frame):
     """Tkinter frame showing current window from the data provided through controller.
 
     :var master: parent Tkinter window
-    :type master: :class:`Tk` root window instance
+    :type master: :class:`tk.Tk` root window instance
     :var ViewApplication.controller: controller object providing windows data
     :type ViewApplication.controller: type(:class:`BaseController`) instance (platform specific)
     """
@@ -93,12 +96,13 @@ class ViewApplication(tk.Frame):
 
         `bind_all` method is used so events can be catch in label widget too.
         """
-        self.bind_all("<Escape>", self.controller.on_escape_key_pressed)
         self.bind_all("<Button-1>", self.controller.on_mouse_left_down)
         self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)
+        self.bind_all("<Key>", self.controller.on_key_pressed)
 
     def setup_title(self):
+        """Sets `title` variable and corresponding Label widget."""
         self.title = tk.StringVar()
         self.title_label = tk.Label(
             self,
@@ -119,6 +123,7 @@ class ViewApplication(tk.Frame):
         self.title_label.grid(row=0, column=0, sticky="new")
 
     def setup_icon(self):
+        """Sets `icon` Label widget."""
         self.icon = tk.Label(
             self,
             bitmap="hourglass",
@@ -130,6 +135,7 @@ class ViewApplication(tk.Frame):
         self.icon.grid(row=0, column=1, sticky="nsw")
 
     def setup_name(self):
+        """Sets `name` variable and corresponding Label widget."""
         self.name = tk.StringVar()
         self.name_label = tk.Label(
             self,
@@ -155,3 +161,153 @@ class ViewApplication(tk.Frame):
         self.icon_image = ImageTk.PhotoImage(model.icon)
         self.icon.configure(image=self.icon_image)
         self.name.set(model.name)
+
+
+class WorkspacesCollection(tk.Frame):
+    """Tkinter frame holding all the available workspaces widgets.
+
+    :var parent: parent widget
+    :type parent: :class:`.tk.Frame`
+    """
+
+    parent = None
+
+    def __init__(self, parent=None):
+        """Sets parent attribute from provided argument and sets the packer
+
+        after super __init__ is called.
+        """
+        super().__init__(parent)
+        # self.parent = parent
+        # self.pack(fill=tk.BOTH, expand=True)
+
+        # self["background"] = "red"
+
+    def on_child_activated(self, event):
+        """Calls parent's controller method in charge for workspace activation.
+
+        :var event: catched event
+        :type event: Tkinter event
+        """
+        pass
+        # self.parent.controller.workspace_activated(event.widget.number)
+        # return "break"
+
+    def highlight_workspace(self, number):
+        """Visually emphasizes child workspace having provided number 
+
+        and reset highlighting in other children to default.
+
+        :var number: number of workspace to highlight
+        :type number: int
+        """
+        pass
+
+
+class Workspace(tk.Frame):
+    """Tkinter frame holding individual workspace widget.
+
+    :var parent: parent widget
+    :type parent: :class:`.tk.Frame`
+    :var number: workspace number
+    :type number: int
+    :var name: workspace name
+    :type name: str
+    """
+
+    parent = None
+    number = 0
+    name = ""
+
+    def __init__(self, parent=None, number=0, name=""):
+        """Sets attributes from provided arguments and sets the packer
+
+        after super __init__ is called.
+        """
+        super().__init__(parent)
+        # self.parent = parent
+        # self.number = number
+        # self.name = name
+        # self.pack(fill=tk.BOTH, expand=True)
+
+        # self["background"] = "blue"
+
+    def setup_bindings(self):
+        """Binds relevant events to related parent callback."""
+        # self.bind("<Button-1>", self.parent.on_child_activated)
+        # self.bind("<Button-2>", self.parent.on_child_activated)
+
+
+class WindowsList(tk.Frame):
+    """Tkinter frame holding titles and small icons of the windows in queue.
+
+    :var parent: parent widget
+    :type parent: :class:`.tk.Frame`
+    """
+
+    parent = None
+
+    def __init__(self, parent=None):
+        """Sets parent attribute from provided argument and sets the packer
+
+        after super __init__ is called.
+        """
+        super().__init__(parent)
+        # self.parent = parent
+        # self.pack(fill=tk.BOTH, expand=True)
+
+        # self["background"] = "red"
+
+    def on_child_activated(self, event):
+        """Calls parent's controller method in charge for window activation.
+
+        :var event: catched event
+        :type event: Tkinter event
+        """
+        pass
+        # self.parent.controller.window_activated(event.widget.wid)
+        # return "break"
+
+    def highlight_window(self, wid):
+        """Visually emphasizes child window having provided wid
+
+        and reset highlighting in other children to default.
+
+        :var wid: window id to highlight
+        :type wid: int
+        """
+        pass
+
+
+class ListedWindow(tk.Frame):
+    """Tkinter frame holding window title and smaller icon.
+
+    :var parent: parent widget
+    :type parent: :class:`.tk.Frame`
+    :var number: workspace number
+    :type number: int
+    :var name: workspace name
+    :type name: str
+    """
+
+    parent = None
+    wid = 0
+    title = ""
+
+    def __init__(self, parent=None, wid=None, title=""):
+        """Sets attributes from provided arguments and sets the packer
+
+        after super __init__ is called.
+        """
+        super().__init__(parent)
+        # self.parent = parent
+        # self.wid = wid
+        # self.title = title
+        # self.pack(fill=tk.BOTH, expand=True)
+
+        # self["background"] = "blue"
+
+    def setup_bindings(self):
+        """Binds relevant events to related parent callback."""
+        # self.bind("<Button-1>", self.parent.on_child_activated)
+        # self.bind("<Button-2>", self.parent.on_child_activated)

@@ -189,7 +189,6 @@ class TestWindowModel(object):
         assert model.changed == tuple(new)
         assert model.changed_ws == new_ws
 
-
     @pytest.mark.parametrize(
         "values",
         [
@@ -300,7 +299,7 @@ class TestWindowModel(object):
 class TestWindowsCollection(object):
     """Testing class for :py:class:`arrangeit.data.WindowsCollection` class."""
 
-    ## WindowModel
+    ## WindowsCollection
     def test_WindowsCollection_inits_____members_as_None(self):
         assert WindowsCollection._members is None
 
@@ -309,6 +308,7 @@ class TestWindowsCollection(object):
         assert isinstance(WindowsCollection()._members, list)
         assert len(WindowsCollection()._members) == 0
 
+    ## WindowsCollection.size
     def test_WindowsCollection_size_is_property(self):
         assert isinstance(type(WindowsCollection()).size, property)
 
@@ -319,6 +319,7 @@ class TestWindowsCollection(object):
         collection._members = [WindowModel(), WindowModel()]
         assert collection.size == 2
 
+    ## WindowsCollection.clear
     def test_WindowsCollection_clear_empties__members(self):
         collection = WindowsCollection()
         assert collection._members == []
@@ -327,6 +328,12 @@ class TestWindowsCollection(object):
         assert collection.size == 2
         collection.clear()
         assert collection.size == 0
+
+    ## WindowsCollection.sort
+    @pytest.mark.skip(reason="bed time...")
+    @pytest.mark.parametrize("wses", [(1004, 1003, 1004, 1004, 1006), (0, 3, 1, 0, 1)])
+    def test_WindowsCollection_sort_functionality(self, wses):
+        assert False
 
     ## WindowsCollection.add
     @pytest.mark.parametrize("arg", [0, -0.1, "hej", object, WindowModel])

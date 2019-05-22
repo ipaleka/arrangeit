@@ -207,7 +207,7 @@ class TestBaseCollector(object):
         mocked.assert_called_once()
 
     @pytest.mark.parametrize("elements", [(), (5, 10, 15), (4,)])
-    def test_BaseCollector__call___calls_add_window(self, mocker, elements):
+    def test_BaseCollector_run_calls_add_window(self, mocker, elements):
         mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=elements)
         mocker.patch("arrangeit.base.BaseCollector.check_window")
         mocked = mocker.patch("arrangeit.base.BaseCollector.add_window")
@@ -215,3 +215,11 @@ class TestBaseCollector(object):
         if len(elements) > 0:
             mocked.assert_called()
         assert mocked.call_count == len(elements)
+
+    def test_BaseCollector_run_calls_collection_sort(self, mocker):
+        mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=(0,))
+        mocked = mocker.patch("arrangeit.base.BaseCollector.check_window")
+        mocker.patch("arrangeit.base.BaseCollector.add_window")
+        mocked = mocker.patch("arrangeit.data.WindowsCollection.sort")
+        base.BaseCollector().run()
+        mocked.assert_called_once()

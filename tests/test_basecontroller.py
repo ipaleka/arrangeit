@@ -398,6 +398,19 @@ class TestBaseController(object):
         controller.update(101, 202)
         mocked.assert_called_with("move", 1001)
 
+    def test_BaseController_update_calls_remove_window_LOCATE_and_not_resizable(
+        self, mocker
+    ):
+        mocked_next(mocker)
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).resizable = mocker.PropertyMock(return_value=False)
+        type(model.return_value).wid = mocker.PropertyMock(return_value=1001)
+        mocked = mocker.patch("arrangeit.base.BaseController.remove_window")
+        controller = base.BaseController(base.BaseApp())
+        controller.state = LOCATE
+        controller.update(101, 202)
+        mocked.assert_called_with(1001)
+
     def test_BaseController_update_calls_next_for_LOCATE_and_not_resizable(
         self, mocker
     ):
@@ -482,6 +495,18 @@ class TestBaseController(object):
         controller.state = RESIZE
         controller.update(101, 202)
         method.assert_called_with("move_and_resize", 1001)
+
+    def test_BaseController_update_calls_remove_window_for_RESIZE(self, mocker):
+        mocked_next(mocker)
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).wid = mocker.PropertyMock(return_value=1001)
+        model.return_value.wh_from_ending_xy.return_value = (100, 100)
+        type(model.return_value).changed = mocker.PropertyMock(return_value=(200, 200))
+        method = mocker.patch("arrangeit.base.BaseController.remove_window")
+        controller = base.BaseController(base.BaseApp())
+        controller.state = RESIZE
+        controller.update(101, 202)
+        method.assert_called_with(1001)
 
     def test_BaseController_update_skips_run_task_move_and_resize_window_for_RESIZE(
         self, mocker
@@ -659,20 +684,70 @@ class TestBaseController(object):
         controller.on_mouse_move(x, y)
         mocked.assert_called_with(x, y)
 
-    ## BaseController.on_escape_key_pressed
-    def test_BaseController_on_escape_key_pressed_calls_shutdown(self, mocker):
-        mock_main_loop(mocker)
+    ## BaseController.on_key_pressed
+    def test_BaseController_on_key_pressed_for_Escape_calls_shutdown(self, mocker):
+        mocked_viewapp(mocker)
+        event = mocker.MagicMock()
+        type(event).keysym = mocker.PropertyMock(return_value="Escape")
         mocked = mocker.patch("arrangeit.base.BaseController.shutdown")
-        base.BaseController(mocker.MagicMock()).on_escape_key_pressed(
+        base.BaseController(mocker.MagicMock()).on_key_pressed(event)
+        assert mocked.call_count == 1
+        mocked.assert_called_with()
+
+    def test_BaseController_on_key_pressed_for_Enter_calls_update(self, mocker):
+        view = get_mocked_viewapp(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.update")
+        view.return_value.master.winfo_pointerx.return_value = 101
+        view.return_value.master.winfo_pointery.return_value = 202
+        event = mocker.MagicMock()
+        type(event).keysym = mocker.PropertyMock(return_value="Return")
+        base.BaseController(mocker.MagicMock()).on_key_pressed(event)
+        mocked.assert_called_with(101, 202)
+
+    @pytest.mark.parametrize("key", ["Space", "Tab"])
+    def test_BaseController_on_key_pressed_calls_skip_current_window(self, mocker, key):
+        mocked_viewapp(mocker)
+        event = mocker.MagicMock()
+        type(event).keysym = mocker.PropertyMock(return_value=key)
+        mocked = mocker.patch("arrangeit.base.BaseController.skip_current_window")
+        base.BaseController(mocker.MagicMock()).on_key_pressed(event)
+        assert mocked.call_count == 1
+
+    @pytest.mark.parametrize("key", ["KP_1", "KP_4", "KP_9", "1", "5", "9"])
+    def test_BaseController_on_key_pressed_for_digit_calls_workspace_activated(
+        self, mocker, key
+    ):
+        mocked_viewapp(mocker)
+        event = mocker.MagicMock()
+        type(event).keysym = mocker.PropertyMock(return_value=key)
+        mocked = mocker.patch("arrangeit.base.BaseController.workspace_activated")
+        base.BaseController(mocker.MagicMock()).on_key_pressed(event)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(int(key[-1]))
+
+    @pytest.mark.parametrize("key", ["F1", "F4", "F9", "F12",])
+    def test_BaseController_on_key_pressed_for_func_keys_calls_window_activated(
+        self, mocker, key
+    ):
+        mocked_viewapp(mocker)
+        event = mocker.MagicMock()
+        type(event).keysym = mocker.PropertyMock(return_value=key)
+        mocked = mocker.patch("arrangeit.base.BaseController.window_activated")
+        base.BaseController(mocker.MagicMock()).on_key_pressed(event)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(int(key[1:]))
+
+    def test_BaseController_on_key_pressed_returns_break(self, mocker):
+        mocked_viewapp(mocker)
+        returned = base.BaseController(mocker.MagicMock()).on_key_pressed(
             mocker.MagicMock()
         )
-        assert mocked.call_count == 1
+        assert returned == "break"
 
     ## BaseController.on_mouse_left_down
     def test_BaseController_on_mouse_left_down_calls_update(self, mocker):
-        mock_main_loop(mocker)
+        view = get_mocked_viewapp(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.update")
-        view = mocker.patch("arrangeit.base.ViewApplication")
         view.return_value.master.winfo_pointerx.return_value = 101
         view.return_value.master.winfo_pointery.return_value = 202
         base.BaseController(mocker.MagicMock()).on_mouse_left_down(mocker.MagicMock())
@@ -697,9 +772,9 @@ class TestBaseController(object):
         mocked.assert_called_with(event)
 
     ## BaseController.on_mouse_right_down
-    def test_BaseController_on_mouse_right_down_calls_next(self, mocker):
+    def test_BaseController_on_mouse_right_down_calls_skip_current_window(self, mocker):
         mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.BaseController.skip_current_window")
         base.BaseController(mocker.MagicMock()).on_mouse_right_down(mocker.MagicMock())
         assert mocked.call_count == 1
 
@@ -711,6 +786,23 @@ class TestBaseController(object):
             mocker.MagicMock()
         )
         assert returned == "break"
+
+    ## BaseController.skip_current_window
+    def test_BaseController_skip_current_window_calls_remove_window(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.BaseController.remove_window")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.model.wid = 505
+        controller.skip_current_window()
+        assert mocked.call_count == 1
+        mocked.assert_called_with(505)
+
+    def test_BaseController_skip_current_window_calls_next(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        base.BaseController(mocker.MagicMock()).skip_current_window()
+        assert mocked.call_count == 1
 
     ## BaseController.shutdown
     def test_BaseController_shutdown_stops_listener(self, mocker):

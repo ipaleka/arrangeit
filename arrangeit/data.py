@@ -20,9 +20,9 @@ class WindowModel(object):
     :var workspace: virtual workspace the window is on (screen, number)
     :type workspace: (int, int)
     :var changed: changed window rectangle (x, y, width, height)
-    :type changed: (int, int, int, int)
+    :type changed: () or (int, int, int, int)
     :var changed_ws: changed window workspace
-    :type changed_ws: int or None
+    :type changed_ws: None or int
     """
 
     wid = None
@@ -68,6 +68,8 @@ class WindowModel(object):
 
         Resets to () if any of provided rect arguments is invalid in regard to
         WINDOW_MODEL_TYPES for "rect". changed_ws is reset to None in such a case.
+
+        NOTE this method needs refactoring
 
         :var index: argument's index in rect tuple
         :type index: int
@@ -144,6 +146,15 @@ class WindowsCollection(object):
     def clear(self):
         """Empties the _members list."""
         self._members.clear()
+
+    def sort(self):
+        """Sorts collection for presentation queue.
+
+        First model stays first and the others are sorted by their workspace first
+        and then on current position. <starts from workspace number 0 when all 
+        the windows from greater workspaces numbers are exhausted.
+        """
+        pass
 
     def add(self, instance):
         """Adds given instance to _members list.

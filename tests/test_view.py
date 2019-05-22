@@ -244,10 +244,10 @@ class TestViewApplication(object):
     @pytest.mark.parametrize(
         "event,method",
         [
-            ("<Escape>", "on_escape_key_pressed"),
             ("<Button-1>", "on_mouse_left_down"),
             ("<Button-2>", "on_mouse_middle_down"),
             ("<Button-3>", "on_mouse_right_down"),
+            ("<Key>", "on_key_pressed"),
         ],
     )
     def test_ViewApplication_setup_bindings_callbacks(self, mocker, event, method):

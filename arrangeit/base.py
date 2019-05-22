@@ -232,6 +232,8 @@ class BaseController(object):
         As we call `click_left` under `run`, so this method is called upon start
         when state has value of None - we set it to LOCATE right here.
 
+        NOTE this method probably needs refactoring
+
         :var x: current horizontal axis mouse position in pixels
         :type x: int
         :var y: current vertical axis mouse position in pixels
@@ -243,6 +245,7 @@ class BaseController(object):
         elif self.state == LOCATE:
             self.model.set_changed(x=x, y=y)
             if not self.model.resizable:
+                self.remove_window(self.model.wid)
                 self.app.run_task("move", self.model.wid)
                 self.next()
             else:
@@ -252,9 +255,30 @@ class BaseController(object):
         elif self.state == RESIZE:
             w, h = self.model.wh_from_ending_xy(x, y)
             self.model.set_changed(w=w, h=h)
+            self.remove_window(self.model.wid)
             if self.model.changed:  # could be ()
                 self.app.run_task("move_and_resize", self.model.wid)
             self.next()
+
+    def skip_current_window(self):
+        """Destroys window from list and calls `next` for another one."""
+        self.remove_window(self.model.wid)
+        self.next()
+
+    def workspace_activated(self, number):
+        """"""
+        pass
+
+    def window_activated(self, wid):
+        """"""
+        pass
+
+    def remove_window(self, wid):
+        """Destroys window widget from windows list.
+
+        :var wid: id of window that will be destroyed
+        :type wid: int
+        """
 
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
@@ -335,10 +359,32 @@ class BaseController(object):
         elif self.state == RESIZE:
             self.change_size(x, y)
 
-    def on_escape_key_pressed(self, event):
-        """Calls shutdown method."""
-        print("escape down")
-        self.shutdown()
+    def on_key_pressed(self, event):
+        """Calls method related to pressed key.
+
+        :var event: catched event
+        :type event: Tkinter event
+        """
+        if event.keysym in ("Escape",):
+            self.shutdown()
+
+        elif event.keysym in ("Return",):
+            self.update(
+                self.view.master.winfo_pointerx(), self.view.master.winfo_pointery()
+            )
+
+        elif event.keysym in ("Space", "Tab"):
+            self.skip_current_window()
+
+        elif event.keysym in [str(i) for i in range(1, 10)]:
+            self.workspace_activated(int(event.keysym))
+
+        elif event.keysym in ["KP_{}".format(i) for i in range(1, 10)]:
+            self.workspace_activated(int(event.keysym[-1]))
+
+        elif event.keysym in ["F{}".format(i) for i in range(1, 17)]:
+            self.window_activated(int(event.keysym[1:]))
+
         return "break"
 
     def on_mouse_left_down(self, event):
@@ -364,8 +410,7 @@ class BaseController(object):
         :var event: catched event
         :type event: Tkinter event
         """
-        print("right down")
-        self.next()
+        self.skip_current_window()
         return "break"
 
     def shutdown(self):
@@ -428,3 +473,4 @@ class BaseCollector(object):
             if self.check_window(win):
                 self.add_window(win)
         win = None
+        self.collection.sort()
