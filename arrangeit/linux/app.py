@@ -1,4 +1,5 @@
 import gi
+
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 
@@ -35,4 +36,3 @@ class App(BaseApp):
         in Wnck.Window class under GNU/Linux.
         """
         return await self.move_and_resize(wid)
-

@@ -1,4 +1,5 @@
 import gi
+
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 from PIL import Image
@@ -71,7 +72,7 @@ class Collector(BaseCollector):
         and its state validity for the type with :func:`is_valid_state`.
 
         :param win: window instance to check
-        :type win: Wnck.Window object
+        :type win: :class:`Wnck.Window` object
         :var window_type: window type
         :type window_type: Wnck.WindowType int flag
         :var window_state: window state
@@ -94,7 +95,7 @@ class Collector(BaseCollector):
         """Creates WindowModel instance from provided win and adds it to collection.
 
         :param win: window to create WindowModel from it
-        :type win: Wnck.Window object
+        :type win: :class:`Wnck.Window` object
         """
         self.collection.add(
             WindowModel(
@@ -104,6 +105,7 @@ class Collector(BaseCollector):
                 title=win.get_name(),
                 name=win.get_class_group_name(),
                 icon=self.get_tk_image_from_pixbuf(win.get_icon()),
+                workspace=self.get_workspace(win),
             )
         )
 
@@ -123,6 +125,19 @@ class Collector(BaseCollector):
             mode = "RGBA"
         image = Image.frombytes(mode, (w, h), data, "raw", mode, stride)
         return image
+
+    def get_workspace(self, win):
+        """Returns two-tuple containing screen and workspace numbers of the window.
+
+        :param win: window instance
+        :type win: :class:`Wnck.Window`
+        :var workspace: workspace instance
+        :type workspace: :class:`Wnck.workspace`
+        """
+        workspace = win.get_workspace()
+        if workspace is None:
+            return 0
+        return 1000 * workspace.get_screen().get_number() + workspace.get_number()
 
     async def get_window_by_wid(self, wid):
         """Returns window instance having provided wid.

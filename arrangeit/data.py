@@ -15,8 +15,14 @@ class WindowModel(object):
     :type title: string
     :var name: window's application name
     :type name: string
-    :var new: changed window rectangle (x, y, width, height)
-    :type new: (int, int, int, int)
+    :var icon: window's application icon
+    :type icon: :class:`PIL.Image.Image`
+    :var workspace: virtual workspace the window is on (screen, number)
+    :type workspace: (int, int)
+    :var changed: changed window rectangle (x, y, width, height)
+    :type changed: (int, int, int, int)
+    :var changed_ws: changed window workspace
+    :type changed_ws: int or None
     """
 
     wid = None
@@ -25,8 +31,9 @@ class WindowModel(object):
     title = None
     name = None
     icon = None
-    # ws = None  # workspace
+    workspace = None
     changed = ()
+    changed_ws = None
 
     def __init__(self, **kwargs):
         """Calls setup with given kwargs."""
@@ -55,12 +62,12 @@ class WindowModel(object):
     def set_changed(self, **kwargs):
         """Creates `changed` attribute from provided arguments.
 
-        Accepts either "rect" argument or individual rect element(s) as
-        defined by WINDOW_RECT_ELEMENTS. If some rect part isn't provided
-        then `changed`, respectively `rect` is used.
+        Accepts "rect" argument, individual rect element(s) as defined by
+        WINDOW_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
+        then `changed`, respectively `rect` is used for valid changes or rect elements.
 
-        Resets to () if any of provided arguments is invalid in regard to
-        WINDOW_MODEL_TYPES for "rect".
+        Resets to () if any of provided rect arguments is invalid in regard to
+        WINDOW_MODEL_TYPES for "rect". changed_ws is reset to None in such a case.
 
         :var index: argument's index in rect tuple
         :type index: int
@@ -69,6 +76,14 @@ class WindowModel(object):
         :var new_value: new value for rect element
         :type new_value: int
         """
+        if "ws" in kwargs:
+            self.changed_ws = get_value_if_valid_type(
+                kwargs["ws"], WINDOW_MODEL_TYPES["workspace"]
+            )
+            del kwargs["ws"]
+            if not kwargs:
+                return None
+
         if "rect" in kwargs:
             self.changed = get_value_if_valid_type(
                 kwargs["rect"], WINDOW_MODEL_TYPES["rect"]
@@ -106,6 +121,10 @@ class WindowModel(object):
     @property
     def h(self):
         return self.rect[3] if self.rect is not None else None
+
+    @property
+    def ws(self):
+        return self.workspace
 
 
 class WindowsCollection(object):

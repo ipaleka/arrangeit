@@ -199,6 +199,12 @@ class TestLinuxCollector(object):
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
+    def test_LinuxCollector_add_window_calls_get_workspace(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_tk_image_from_pixbuf")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_workspace")
+        Collector().add_window(mocker.MagicMock())
+        mocked.assert_called_once()
+
     ## LinuxCollector.run
     def test_LinuxCollector_run_super(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseCollector.run")
@@ -235,12 +241,40 @@ class TestLinuxCollector(object):
         collector.run()
         assert collector.collection.size == value
 
+    ## LinuxCollector.get_tk_image_from_pixbuf
     def test_LinuxCollector_get_tk_image_from_pixbuf_returns_valid_type(self):
         collector = Collector()
         image = GdkPixbuf.Pixbuf.new_from_file(
             os.path.join(os.path.dirname(arrangeit.__file__), "resources", "blank.png")
         )
         assert isinstance(collector.get_tk_image_from_pixbuf(image), Image.Image)
+
+    ## LinuxCollector.get_workspace
+    def test_LinuxCollector_get_workspace_returns_0(self, mocker):
+        ws = mocker.patch("arrangeit.linux.collector.Wnck.Window.get_workspace")
+        ws.return_value = None
+        assert Collector().get_workspace(Wnck.Window) == 0
+
+    @pytest.mark.parametrize(
+        "screen,workspace,expected",
+        [(0, 0, 0), (0, 1, 1), (0, 9, 9), (1, 0, 1000), (1, 12, 1012),(5, 4, 5004)],
+    )
+    def test_LinuxCollector_get_workspace_returns_correct_number(
+        self, mocker, screen, workspace, expected
+    ):
+        ws = mocker.patch("arrangeit.linux.collector.Wnck.Window.get_workspace")
+        ws.return_value.get_screen.return_value.get_number.return_value = screen
+        ws.return_value.get_number.return_value = workspace
+
+        returned = Collector().get_workspace(Wnck.Window)
+        ws.assert_called_once()
+
+        ws.return_value.get_screen.assert_called_once()
+        ws.return_value.get_screen.return_value.get_number.assert_called_once()
+
+        ws.return_value.get_number.assert_called_once()
+
+        assert returned == expected
 
 
 @pytest.mark.asyncio

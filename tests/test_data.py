@@ -4,7 +4,7 @@ from arrangeit.constants import WINDOW_RECT_ELEMENTS, BLANK_ICON
 from arrangeit.data import WindowModel, WindowsCollection
 
 
-WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name", "icon"]
+WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name", "icon", "workspace"]
 SAMPLE_RECT = (45, 54, 304, 405)
 SAMPLE_MODEL_VALUES = [
     {"wid": 101},
@@ -13,6 +13,7 @@ SAMPLE_MODEL_VALUES = [
     {"title": "foo"},
     {"name": "bar"},
     {"icon": BLANK_ICON},
+    {"workspace": 1001},
     {
         "wid": 502,
         "rect": (4, 5, 25, 25),
@@ -20,6 +21,7 @@ SAMPLE_MODEL_VALUES = [
         "title": "bar",
         "name": "foo",
         "icon": BLANK_ICON,
+        "workspace": 1002,
     },
 ]
 
@@ -37,6 +39,9 @@ class TestWindowModel(object):
 
     def test_WindowModel_inits_changed_as_empty_tuple(self):
         assert WindowModel.changed == ()
+
+    def test_WindowModel_inits_changed_ws_as_None(self):
+        assert WindowModel.changed_ws == None
 
     ## WindowModel.__init__
     def test_WindowModel_initialization_calls_setup(self, mocker):
@@ -78,6 +83,7 @@ class TestWindowModel(object):
             {"title": "some title"},
             {"name": "name foo"},
             {"icon": BLANK_ICON},
+            {"workspace": 1002},
         ],
     )
     def test_WindowModel_setup_sets_attrs_for_valid_type(self, mocker, values):
@@ -104,6 +110,8 @@ class TestWindowModel(object):
             {"name": 78.34},
             {"name": WindowModel()},
             {"icon": "name"},
+            {"workspace": "name"},
+            {"workspace": 5.0},
         ],
     )
     def test_WindowModel_setup_set_None_or_empty_for_invalid_type(self, mocker, values):
@@ -113,6 +121,8 @@ class TestWindowModel(object):
             "resizable": True,
             "title": "some title",
             "name": "name foo",
+            "icon": BLANK_ICON,
+            "workspace": 1002,
         }
         wm = WindowModel(**good)
         wm.setup(**values)
@@ -144,6 +154,42 @@ class TestWindowModel(object):
         assert wh == (None, None)
 
     ## WindowModel.set_changed
+    @pytest.mark.parametrize("ws", [1000, 0, 2002, 1])
+    def test_WindowModel_set_changed_sets_changed_ws_for_provided_ws(self, ws):
+        model = WindowModel(workspace=3009)
+        model.set_changed(ws=ws)
+        assert model.changed_ws == ws
+
+    @pytest.mark.parametrize("ws", [1000.0, 0.0, "2002", "1"])
+    def test_WindowModel_set_changed_sets_changed_ws_to_None_for_invalid(self, ws):
+        model = WindowModel(workspace=3009)
+        model.set_changed(ws=ws)
+        assert model.changed_ws is None
+
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"ws": 1001, "x": 500},
+            {"ws": 1001, "x": 500, "y": 400},
+            {"ws": 0, "rect": (100, 100, 100, 100)},
+        ],
+    )
+    def test_WindowModel_set_changed_sets_changed_ws_and_changed(self, values):
+        model = WindowModel(rect=SAMPLE_RECT, workspace=2002)
+        model.set_changed(**values)
+        new = list(model.rect)
+        new_ws = None
+        for elem, value in values.items():
+            if elem == "ws":
+                new_ws = value
+            elif elem == "rect":
+                new = value[:]
+            else:
+                new[WINDOW_RECT_ELEMENTS.index(elem)] = value
+        assert model.changed == tuple(new)
+        assert model.changed_ws == new_ws
+
+
     @pytest.mark.parametrize(
         "values",
         [
@@ -244,6 +290,11 @@ class TestWindowModel(object):
     def test_WindowModel_h_gets_height_from_rect(self):
         model = WindowModel(rect=SAMPLE_RECT)
         assert model.h == model.rect[3]
+
+    ## WindowModel.ws
+    def test_WindowModel_ws_is_alias_for_workspace(self):
+        model = WindowModel(workspace=1001)
+        assert model.ws == model.workspace
 
 
 class TestWindowsCollection(object):

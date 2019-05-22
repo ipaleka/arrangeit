@@ -191,7 +191,9 @@ class BaseController(object):
             wraplength=int(self.view.master.winfo_width() * (1 - ICON_WIDTH_FRACTION))
         )
         self.view.name_label.configure(
-            wraplength=int(self.view.master.winfo_width() * ICON_WIDTH_FRACTION - ICON_WIDTH)
+            wraplength=int(
+                self.view.master.winfo_width() * ICON_WIDTH_FRACTION - ICON_WIDTH
+            )
         )
         click_left()
         self.mainloop()

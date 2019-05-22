@@ -10,6 +10,7 @@ WINDOW_MODEL_TYPES = {
     "title": str,
     "name": str,
     "icon": Image.Image,
+    "workspace": int,
 }
 WINDOW_RECT_ELEMENTS = ("x", "y", "w", "h")
 
