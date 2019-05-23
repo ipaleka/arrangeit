@@ -165,14 +165,11 @@ class Collector(BaseCollector):
         screen.force_update()
         workspaces = screen.get_workspaces()
         if not workspaces:
-            return [(0, ""),]
+            return [(0, "")]
         collection = []
         for i, workspace in enumerate(workspaces):
             collection.append(
-                (
-                    self.get_workspace_number(workspace),
-                    workspace.get_name()
-                )
+                (self.get_workspace_number(workspace), workspace.get_name())
             )
         return collection
 

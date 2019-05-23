@@ -3,6 +3,10 @@ import os
 from PIL import Image
 
 
+BLANK_ICON = Image.open(
+    os.path.join(os.path.dirname(__file__), "resources", "blank.png")
+)
+
 WINDOW_MODEL_TYPES = {
     "wid": int,
     "rect": (int, int, int, int),
@@ -45,6 +49,21 @@ LOCATE, RESIZE, OTHER = 0, 1, 2
 WINDOW_MIN_WIDTH = 100
 WINDOW_MIN_HEIGHT = 40
 
-BLANK_ICON = Image.open(
-    os.path.join(os.path.dirname(__file__), "resources", "blank.png")
-)
+WORKSPACE_LABEL_ANCHOR = "center"
+WORKSPACE_LABEL_BG = "white"
+WORKSPACE_LABEL_FG = "black"
+WORKSPACE_TITLE_NAME_FONT_INCREASE = 0.25
+WORKSPACE_LABEL_PADX = 2
+WORKSPACE_LABEL_PADY = 2
+
+LISTED_WINDOW_LABEL_ANCHOR = "center"
+LISTED_WINDOW_LABEL_BG = "white"
+LISTED_WINDOW_LABEL_FG = "black"
+LISTED_WINDOW_NAME_FONT_INCREASE = 0.0
+LISTED_WINDOW_LABEL_PADX = 2
+LISTED_WINDOW_LABEL_PADY = 2
+
+LISTED_ICON_LABEL_BG = "white"
+LISTED_ICON_LABEL_ANCHOR = "w"
+LISTED_ICON_LABEL_PADX = 1
+LISTED_ICON_LABEL_PADY = 1

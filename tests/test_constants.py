@@ -5,7 +5,7 @@ from arrangeit import constants
 
 
 class TestConstants(object):
-    """Unit testing class checking availability of global constants."""
+    """Unit testing class checking availability of global """
 
     @pytest.mark.parametrize(
         "constant,typ",
@@ -34,6 +34,22 @@ class TestConstants(object):
             ("WINDOW_MODEL_TYPES", dict),
             ("WINDOW_RECT_ELEMENTS", tuple),
             ("WINDOW_SHIFT_PIXELS", int),
+            ("WORKSPACE_LABEL_ANCHOR", str),
+            ("WORKSPACE_LABEL_BG", str),
+            ("WORKSPACE_LABEL_FG", str),
+            ("WORKSPACE_TITLE_NAME_FONT_INCREASE", float),
+            ("WORKSPACE_LABEL_PADX", int),
+            ("WORKSPACE_LABEL_PADY", int),
+            ("LISTED_WINDOW_LABEL_ANCHOR", str),
+            ("LISTED_WINDOW_LABEL_BG", str),
+            ("LISTED_WINDOW_LABEL_FG", str),
+            ("LISTED_WINDOW_NAME_FONT_INCREASE", float),
+            ("LISTED_WINDOW_LABEL_PADX", int),
+            ("LISTED_WINDOW_LABEL_PADY", int),
+            ("LISTED_ICON_LABEL_ANCHOR", str),
+            ("LISTED_ICON_LABEL_BG", str),
+            ("LISTED_ICON_LABEL_PADX", int),
+            ("LISTED_ICON_LABEL_PADY", int),
             ("LOCATE", int),
             ("RESIZE", int),
             ("OTHER", int),

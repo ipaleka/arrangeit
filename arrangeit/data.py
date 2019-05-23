@@ -1,4 +1,4 @@
-from arrangeit.constants import WINDOW_MODEL_TYPES, WINDOW_RECT_ELEMENTS
+from arrangeit import constants 
 from arrangeit.utils import get_value_if_valid_type
 
 
@@ -44,13 +44,13 @@ class WindowModel(object):
 
         or sets the value to None/() if attribute isn't provided.
         """
-        for attr, typ in WINDOW_MODEL_TYPES.items():
+        for attr, typ in constants.WINDOW_MODEL_TYPES.items():
             setattr(self, attr, get_value_if_valid_type(kwargs.get(attr), typ))
 
     def wh_from_ending_xy(self, x, y):
         """Returns (width, height) for model rect from provided x and y
 
-        if provided point is greater than changed x and y (set during LOCATE phase),
+        if provided point is greater than changed x and y (set during constants.LOCATE phase),
         otherwise returns two-tuple of None.
 
         :returns: (int, int) or (None, None)
@@ -63,11 +63,11 @@ class WindowModel(object):
         """Creates `changed` attribute from provided arguments.
 
         Accepts "rect" argument, individual rect element(s) as defined by
-        WINDOW_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
+        constants.WINDOW_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
         then `changed`, respectively `rect` is used for valid changes or rect elements.
 
         Resets to () if any of provided rect arguments is invalid in regard to
-        WINDOW_MODEL_TYPES for "rect". changed_ws is reset to None in such a case.
+        constants.WINDOW_MODEL_TYPES for "rect". changed_ws is reset to None in such a case.
 
         NOTE this method needs refactoring
 
@@ -80,7 +80,7 @@ class WindowModel(object):
         """
         if "ws" in kwargs:
             self.changed_ws = get_value_if_valid_type(
-                kwargs["ws"], WINDOW_MODEL_TYPES["workspace"]
+                kwargs["ws"], constants.WINDOW_MODEL_TYPES["workspace"]
             )
             del kwargs["ws"]
             if not kwargs:
@@ -88,18 +88,18 @@ class WindowModel(object):
 
         if "rect" in kwargs:
             self.changed = get_value_if_valid_type(
-                kwargs["rect"], WINDOW_MODEL_TYPES["rect"]
+                kwargs["rect"], constants.WINDOW_MODEL_TYPES["rect"]
             )
             return None
 
         changed = list(self.changed) if self.changed != () else list(self.rect)
         for elem, value in kwargs.items():
-            if elem not in WINDOW_RECT_ELEMENTS:
+            if elem not in constants.WINDOW_RECT_ELEMENTS:
                 changed = []
                 break
-            index = WINDOW_RECT_ELEMENTS.index(elem)
+            index = constants.WINDOW_RECT_ELEMENTS.index(elem)
             new_value = get_value_if_valid_type(
-                value, WINDOW_MODEL_TYPES["rect"][index]
+                value, constants.WINDOW_MODEL_TYPES["rect"][index]
             )
             if new_value is None:
                 changed = []
@@ -176,6 +176,15 @@ class WindowsCollection(object):
         """
         for member in self._members:
             yield member
+
+    def get_windows_list(self):
+        """Prepares and returns list of windows ids, titles and icons.
+
+        :returns: [(int, str, :class:`PIL.Image.Image`)]
+        """
+        return [
+            (model.wid, model.title, model.icon) for model in list(self.generator())
+        ]
 
     async def get_model_by_wid(self, wid):
         """Returns window model having provided wid from collection.

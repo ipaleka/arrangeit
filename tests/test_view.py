@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter.font import nametofont
 
+from PIL import ImageTk
 import pytest
 
 from arrangeit.data import WindowModel
@@ -12,27 +13,10 @@ from arrangeit.view import (
     ViewApplication,
     WorkspacesCollection,
     WindowsList,
+    Workspace,
+    ListedWindow,
 )
-from arrangeit.constants import (
-    TITLE_LABEL_FG,
-    TITLE_LABEL_BG,
-    TITLE_LABEL_ANCHOR,
-    TITLE_LABEL_FONT_INCREASE,
-    TITLE_LABEL_HEIGHT,
-    TITLE_LABEL_PADX,
-    TITLE_LABEL_PADY,
-    ICON_LABEL_BG,
-    ICON_LABEL_ANCHOR,
-    ICON_LABEL_PADX,
-    ICON_LABEL_PADY,
-    NAME_LABEL_ANCHOR,
-    NAME_LABEL_BG,
-    NAME_LABEL_FG,
-    NAME_LABEL_HEIGHT,
-    NAME_LABEL_PADX,
-    NAME_LABEL_PADY,
-    BLANK_ICON,
-)
+from arrangeit import constants
 from arrangeit.utils import increased_by_fraction
 
 
@@ -98,7 +82,7 @@ class TestViewApplication(object):
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         with pytest.raises(AttributeError):
             ViewApplication(master=master, controller=mocker.MagicMock())
-            mocked.assert_called_with(master)
+        mocked.assert_called_with(master)
 
     def test_ViewApplication_init_sets_master_and_controller_attributes(self, mocker):
         master = mocker.MagicMock()
@@ -142,15 +126,15 @@ class TestViewApplication(object):
             font=(
                 "TkDefaultFont",
                 increased_by_fraction(
-                    nametofont("TkDefaultFont")["size"], TITLE_LABEL_FONT_INCREASE
+                    nametofont("TkDefaultFont")["size"], constants.TITLE_LABEL_FONT_INCREASE
                 ),
             ),
-            height=TITLE_LABEL_HEIGHT,
-            foreground=TITLE_LABEL_FG,
-            background=TITLE_LABEL_BG,
-            anchor=TITLE_LABEL_ANCHOR,
-            padx=TITLE_LABEL_PADX,
-            pady=TITLE_LABEL_PADY,
+            height=constants.TITLE_LABEL_HEIGHT,
+            foreground=constants.TITLE_LABEL_FG,
+            background=constants.TITLE_LABEL_BG,
+            anchor=constants.TITLE_LABEL_ANCHOR,
+            padx=constants.TITLE_LABEL_PADX,
+            pady=constants.TITLE_LABEL_PADY,
         )
 
     def test_ViewApplication_setup_title_calls_label_grid(self, mocker):
@@ -168,10 +152,10 @@ class TestViewApplication(object):
         mocked.assert_called_with(
             view,
             bitmap="hourglass",
-            background=ICON_LABEL_BG,
-            anchor=ICON_LABEL_ANCHOR,
-            padx=ICON_LABEL_PADX,
-            pady=ICON_LABEL_PADY,
+            background=constants.ICON_LABEL_BG,
+            anchor=constants.ICON_LABEL_ANCHOR,
+            padx=constants.ICON_LABEL_PADX,
+            pady=constants.ICON_LABEL_PADY,
         )
 
     def test_ViewApplication_setup_icon_calls_label_grid(self, mocker):
@@ -195,12 +179,12 @@ class TestViewApplication(object):
         mocked.assert_called_with(
             view,
             textvariable=view.name,
-            height=TITLE_LABEL_HEIGHT,
-            foreground=TITLE_LABEL_FG,
-            background=TITLE_LABEL_BG,
-            anchor=NAME_LABEL_ANCHOR,
-            padx=NAME_LABEL_PADX,
-            pady=NAME_LABEL_PADY,
+            height=constants.TITLE_LABEL_HEIGHT,
+            foreground=constants.TITLE_LABEL_FG,
+            background=constants.TITLE_LABEL_BG,
+            anchor=constants.NAME_LABEL_ANCHOR,
+            padx=constants.NAME_LABEL_PADX,
+            pady=constants.NAME_LABEL_PADY,
         )
 
     def test_ViewApplication_setup_name_calls_label_grid(self, mocker):
@@ -351,7 +335,7 @@ class TestViewApplication(object):
     )
     def test_ViewApplication_update_widgets_sets_attr(self, mocker, attr, val, typ):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(**{attr: val}, icon=BLANK_ICON)
+        model = WindowModel(**{attr: val}, icon=constants.BLANK_ICON)
         view.update_widgets(model)
         instance = getattr(view, attr)
         assert instance.get() == getattr(model, attr)
@@ -359,7 +343,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_calls_ImageTk_PhotoImage(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(icon=BLANK_ICON)
+        model = WindowModel(icon=constants.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.configure")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         view.update_widgets(model)
@@ -368,7 +352,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_sets_icon_image(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(icon=BLANK_ICON)
+        model = WindowModel(icon=constants.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.configure")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         view.update_widgets(model)
@@ -376,7 +360,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_sets_icon(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(icon=BLANK_ICON)
+        model = WindowModel(icon=constants.BLANK_ICON)
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view.update_widgets(model)
         mocked.return_value.configure.call_count == 1
@@ -395,17 +379,26 @@ class TestWorkspacesCollection(object):
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         with pytest.raises(AttributeError):
             WorkspacesCollection(parent=parent)
-            mocked.assert_called_with(parent)
+        mocked.assert_called_with(parent)
 
     def test_WorkspacesCollection_init_sets_parent_attribute(self, mocker):
         parent = mocker.MagicMock()
         workspaces = WorkspacesCollection(parent)
         assert workspaces.parent == parent
 
-    # def test_WorkspacesCollection_init_calls_grid(self, mocker):
-    #     mocked = mocker.patch("arrangeit.view.WorkspacesCollection.grid")
-    #     WorkspacesCollection(None)
-    #     assert mocked.call_count == 1
+    ## WorkspacesCollection.add_workspaces
+    def test_WorkspacesCollection_add_workspaces_initializes_Workspace(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.Workspace")
+        workspaces = WorkspacesCollection(parent=parent)
+        args = [(0, "foo"), (1, "bar")]
+        workspaces.add_workspaces(args)
+        assert mocked.call_count == 2
+        calls = [
+            mocker.call(workspaces, number=0, name="foo"),
+            mocker.call(workspaces, number=1, name="bar"),
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
 
 
 class TestWindowsList(object):
@@ -421,14 +414,174 @@ class TestWindowsList(object):
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         with pytest.raises(AttributeError):
             WindowsList(parent=parent)
-            mocked.assert_called_with(parent)
+        mocked.assert_called_with(parent)
 
     def test_WindowsList_init_sets_parent_attribute(self, mocker):
         parent = mocker.MagicMock()
         windows = WindowsList(parent)
         assert windows.parent == parent
 
-    # def test_WindowsList_init_calls_grid(self, mocker):
-    #     mocked = mocker.patch("arrangeit.view.WindowsList.grid")
-    #     WindowsList(None)
-    #     assert mocked.call_count == 1
+    ## WindowsList.add_windows
+    def test_WindowsList_add_windows_initializes_ListedWindow(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.ListedWindow")
+        windows = WindowsList(parent=parent)
+        windows_list = [(100, "foo", constants.BLANK_ICON), (200, "bar", constants.BLANK_ICON)]
+        windows.add_windows(windows_list)
+        assert mocked.call_count == 2
+        calls = [
+            mocker.call(windows, wid=100, title="foo", icon=constants.BLANK_ICON),
+            mocker.call(windows, wid=200, title="bar", icon=constants.BLANK_ICON),
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+
+class TestWorkspace(object):
+    """Unit testing class for Workspace class."""
+
+    ## Workspace
+    def test_Workspace_issubclass_of_Frame(self):
+        assert issubclass(Workspace, tk.Frame)
+
+    ## Workspace.__init__
+    def test_Workspace_init_calls_super_with_parent_arg(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
+        with pytest.raises(AttributeError):
+            Workspace(parent=parent)
+        mocked.assert_called_with(parent)
+
+    @pytest.mark.parametrize("attr", ["parent", "number", "name"])
+    def test_Workspace_init_sets_attributes(self, mocker, attr):
+        mocked = mocker.MagicMock()
+        kwargs = {attr: mocked}
+        workspace = Workspace(**kwargs)
+        assert getattr(workspace, attr) == mocked
+
+    def test_Workspace_init_calls_setup_widgets(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.Workspace.setup_widgets")
+        Workspace(parent=parent)
+        mocked.assert_called_once()
+
+    ## Workspace.setup_widgets
+    def test_Workspace_setup_widgets_sets_name_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        workspace = Workspace(mocker.MagicMock(), name="foo")
+        workspace.setup_widgets()
+        mocked.assert_called_with(
+            workspace,
+            text="foo",
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    constants.WORKSPACE_TITLE_NAME_FONT_INCREASE,
+                ),
+            ),
+            foreground=constants.WORKSPACE_LABEL_FG,
+            background=constants.WORKSPACE_LABEL_BG,
+            anchor=constants.WORKSPACE_LABEL_ANCHOR,
+            padx=constants.WORKSPACE_LABEL_PADX,
+            pady=constants.WORKSPACE_LABEL_PADY,
+        )
+
+    def test_Workspace_setup_widgets_calls_label_grid(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        workspace = Workspace(None, mocker.MagicMock())
+        mocked.return_value.grid.call_count = 0
+        workspace.setup_widgets()
+        assert mocked.return_value.grid.call_count == 1
+
+
+class TestListedWindow(object):
+    """Unit testing class for Workspace class."""
+
+    ## ListedWindow
+    def test_ListedWindow_issubclass_of_Frame(self):
+        assert issubclass(ListedWindow, tk.Frame)
+
+    ## ListedWindow.__init__
+    def test_ListedWindow_init_calls_super_with_parent_arg(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
+        with pytest.raises(AttributeError):
+            ListedWindow(parent=parent)
+        mocked.assert_called_with(parent)
+
+    @pytest.mark.parametrize("attr", ["parent", "wid", "title"])
+    def test_ListedWindow_init_sets_attributes(self, mocker, attr):
+        mocked = mocker.MagicMock()
+        kwargs = {attr: mocked}
+        window = ListedWindow(**kwargs)
+        assert getattr(window, attr) == mocked
+
+    def test_ListedWindow_init_sets_icon(self):
+        assert ListedWindow(icon=constants.BLANK_ICON).icon == constants.BLANK_ICON
+
+    def test_ListedWindow_init_calls_setup_widgets(self, mocker):
+        parent = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.ListedWindow.setup_widgets")
+        ListedWindow(parent=parent)
+        mocked.assert_called_once()
+
+    ## ListedWindow.setup_widgets
+    def test_ListedWindow_setup_widgets_sets_title_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        window = ListedWindow(mocker.MagicMock(), title="foo")
+        window.setup_widgets()
+        calls = [
+            mocker.call(
+                window,
+                text="foo",
+                font=(
+                    "TkDefaultFont",
+                    increased_by_fraction(
+                        nametofont("TkDefaultFont")["size"],
+                        constants.LISTED_WINDOW_NAME_FONT_INCREASE,
+                    ),
+                ),
+                foreground=constants.LISTED_WINDOW_LABEL_FG,
+                background=constants.LISTED_WINDOW_LABEL_BG,
+                anchor=constants.LISTED_WINDOW_LABEL_ANCHOR,
+                padx=constants.LISTED_WINDOW_LABEL_PADX,
+                pady=constants.LISTED_WINDOW_LABEL_PADY,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_ListedWindow_setup_widgets_sets_icon_label(self, mocker):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocked_icon = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        window = ListedWindow(mocker.MagicMock(), icon=constants.BLANK_ICON)
+        window.setup_widgets()
+        calls = [
+            mocker.call(
+                window,
+                image=mocked_icon.return_value,
+                background=constants.LISTED_ICON_LABEL_BG,
+                anchor=constants.LISTED_ICON_LABEL_ANCHOR,
+                padx=constants.LISTED_ICON_LABEL_PADX,
+                pady=constants.LISTED_ICON_LABEL_PADY,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_ListedWindow_setup_widgets_calls_label_grid(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        window = ListedWindow(None, mocker.MagicMock())
+        mocked.return_value.grid.call_count = 0
+        window.setup_widgets()
+        assert mocked.return_value.grid.call_count == 2
+
+    def test_ListedWindow_setup_widgets_calls_grid_columnconfigure(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Frame.grid_columnconfigure")
+        window = ListedWindow(None, mocker.MagicMock())
+        mocked.call_count = 0
+        mocked.calls = []
+        window.setup_widgets()
+        assert mocked.call_count == 1
+        calls = [mocker.call(0, weight=1), ]
+        mocked.assert_has_calls(calls, any_order=True)

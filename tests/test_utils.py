@@ -145,6 +145,8 @@ class TestUtils(object):
             (16, 0.1, 18),
             (12, 0.2, 14),
             (15, 0.2, 18),
+            (15, -0.2, 12),
+            (10, -0.1, 9),
         ],
     )
     def test_increased_by_fraction(self, value, fraction, expected):

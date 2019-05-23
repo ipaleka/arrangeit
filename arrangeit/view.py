@@ -4,27 +4,7 @@ from tkinter.font import nametofont
 from PIL import ImageTk
 from pynput import mouse
 
-from arrangeit.constants import (
-    TITLE_LABEL_ANCHOR,
-    TITLE_LABEL_BG,
-    TITLE_LABEL_FG,
-    TITLE_LABEL_FONT_INCREASE,
-    TITLE_LABEL_HEIGHT,
-    TITLE_LABEL_PADX,
-    TITLE_LABEL_PADY,
-    ICON_WIDTH,
-    ICON_WIDTH_FRACTION,
-    ICON_LABEL_ANCHOR,
-    ICON_LABEL_BG,
-    ICON_LABEL_PADX,
-    ICON_LABEL_PADY,
-    NAME_LABEL_ANCHOR,
-    NAME_LABEL_BG,
-    NAME_LABEL_FG,
-    NAME_LABEL_HEIGHT,
-    NAME_LABEL_PADX,
-    NAME_LABEL_PADY,
-)
+from arrangeit import constants
 from arrangeit.utils import increased_by_fraction
 
 
@@ -114,15 +94,15 @@ class ViewApplication(tk.Frame):
             font=(
                 "TkDefaultFont",
                 increased_by_fraction(
-                    nametofont("TkDefaultFont")["size"], TITLE_LABEL_FONT_INCREASE
+                    nametofont("TkDefaultFont")["size"], constants.TITLE_LABEL_FONT_INCREASE
                 ),
             ),
-            height=TITLE_LABEL_HEIGHT,
-            foreground=TITLE_LABEL_FG,
-            background=TITLE_LABEL_BG,
-            anchor=TITLE_LABEL_ANCHOR,
-            padx=TITLE_LABEL_PADX,
-            pady=TITLE_LABEL_PADY,
+            height=constants.TITLE_LABEL_HEIGHT,
+            foreground=constants.TITLE_LABEL_FG,
+            background=constants.TITLE_LABEL_BG,
+            anchor=constants.TITLE_LABEL_ANCHOR,
+            padx=constants.TITLE_LABEL_PADX,
+            pady=constants.TITLE_LABEL_PADY,
         )
         self.title_label.grid(row=0, column=0, sticky="new")
 
@@ -131,10 +111,10 @@ class ViewApplication(tk.Frame):
         self.icon = tk.Label(
             self,
             bitmap="hourglass",
-            background=ICON_LABEL_BG,
-            anchor=ICON_LABEL_ANCHOR,
-            padx=ICON_LABEL_PADX,
-            pady=ICON_LABEL_PADY,
+            background=constants.ICON_LABEL_BG,
+            anchor=constants.ICON_LABEL_ANCHOR,
+            padx=constants.ICON_LABEL_PADX,
+            pady=constants.ICON_LABEL_PADY,
         )
         self.icon.grid(row=0, column=1, sticky="nsw")
 
@@ -144,12 +124,12 @@ class ViewApplication(tk.Frame):
         self.name_label = tk.Label(
             self,
             textvariable=self.name,
-            height=NAME_LABEL_HEIGHT,
-            foreground=NAME_LABEL_FG,
-            background=NAME_LABEL_BG,
-            anchor=NAME_LABEL_ANCHOR,
-            padx=NAME_LABEL_PADX,
-            pady=NAME_LABEL_PADY,
+            height=constants.NAME_LABEL_HEIGHT,
+            foreground=constants.NAME_LABEL_FG,
+            background=constants.NAME_LABEL_BG,
+            anchor=constants.NAME_LABEL_ANCHOR,
+            padx=constants.NAME_LABEL_PADX,
+            pady=constants.NAME_LABEL_PADY,
         )
         self.name_label.grid(row=0, column=2, sticky="nsew")
 
@@ -172,12 +152,10 @@ class ViewApplication(tk.Frame):
         self.master.deiconify()
         self.focus_set()
         self.title_label.configure(
-            wraplength=int(self.master.winfo_width() * (1 - ICON_WIDTH_FRACTION))
+            wraplength=int(self.master.winfo_width() * (1 - constants.ICON_WIDTH_FRACTION))
         )
         self.name_label.configure(
-            wraplength=int(
-                self.winfo_width() * ICON_WIDTH_FRACTION - ICON_WIDTH
-            )
+            wraplength=int(self.winfo_width() * constants.ICON_WIDTH_FRACTION - constants.ICON_WIDTH)
         )
 
     def update_widgets(self, model):
@@ -216,10 +194,12 @@ class WorkspacesCollection(tk.Frame):
     def add_workspaces(self, workspaces):
         """Creates children widgets from provided list of workspaces.
 
-        :var workspaces: list of workspaces two-tuples (number, name)
+        :param workspaces: list of workspaces two-tuples (number, name)
         :type workspaces: [(int, str)]
         """
-        pass
+        for i, workspace in enumerate(workspaces):
+            widget = Workspace(self, number=workspace[0], name=workspace[1])
+            widget.grid(row=i % 2, column=i // 2, sticky="nw")
 
     def on_child_activated(self, event):
         """Calls parent's controller method in charge for workspace activation.
@@ -232,7 +212,7 @@ class WorkspacesCollection(tk.Frame):
         # return "break"
 
     def highlight_workspace(self, number):
-        """Visually emphasizes child workspace having provided number 
+        """Visually emphasizes child workspace having provided number
 
         and reset highlighting in other children to default.
 
@@ -263,17 +243,35 @@ class Workspace(tk.Frame):
         after super __init__ is called.
         """
         super().__init__(parent)
-        # self.parent = parent
-        # self.number = number
-        # self.name = name
-        # self.pack(fill=tk.BOTH, expand=True)
-
+        self.parent = parent
+        self.number = number
+        self.name = name
+        self.setup_widgets()
         # self["background"] = "blue"
+
+    def setup_widgets(self):
+        """Creates and packs all the frame's variables and widgets."""
+        name_label = tk.Label(
+            self,
+            text=self.name,
+           font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"], constants.WORKSPACE_TITLE_NAME_FONT_INCREASE
+                ),
+            ),
+            foreground=constants.WORKSPACE_LABEL_FG,
+            background=constants.WORKSPACE_LABEL_BG,
+            anchor=constants.WORKSPACE_LABEL_ANCHOR,
+            padx=constants.WORKSPACE_LABEL_PADX,
+            pady=constants.WORKSPACE_LABEL_PADY,
+        )
+        name_label.grid(row=0, column=0, sticky="nsew")
 
     def setup_bindings(self):
         """Binds relevant events to related parent callback."""
-        # self.bind("<Button-1>", self.parent.on_child_activated)
-        # self.bind("<Button-2>", self.parent.on_child_activated)
+        # self.bind_all("<Button-1>", self.parent.on_child_activated)
+        # self.bind_all("<Button-2>", self.parent.on_child_activated)
 
 
 class WindowsList(tk.Frame):
@@ -296,12 +294,14 @@ class WindowsList(tk.Frame):
         self["background"] = "red"
 
     def add_windows(self, windows):
-        """Creates children widgets from provided list of windows.
+        """Creates children widgets from provided windows list.
 
-        :var windows: list of windows two-tuples (wid, title)
-        :type windows: [(int, str)]
+        :param windows: list of windows tuples (number, title, icon)
+        :type windows: [(int, str, :class:`PIL.Image.Image`)]
         """
-        pass
+        for i, window in enumerate(windows):
+            widget = ListedWindow(self, wid=window[0], title=window[1], icon=window[2])
+            widget.grid(row=i, column=0, sticky="nw")
 
     def on_child_activated(self, event):
         """Calls parent's controller method in charge for window activation.
@@ -329,30 +329,68 @@ class ListedWindow(tk.Frame):
 
     :var parent: parent widget
     :type parent: :class:`.tk.Frame`
-    :var number: workspace number
-    :type number: int
-    :var name: workspace name
-    :type name: str
+    :var wid: window id
+    :type wid: int
+    :var title: window title
+    :type title: str
+    :var icon: window's application icon
+    :type icon: Image.Image
     """
 
     parent = None
     wid = 0
     title = ""
+    icon = constants.BLANK_ICON
 
-    def __init__(self, parent=None, wid=None, title=""):
+    def __init__(self, parent=None, wid=0, title="", icon=constants.BLANK_ICON):
         """Sets attributes from provided arguments and sets the packer
 
         after super __init__ is called.
         """
         super().__init__(parent)
-        # self.parent = parent
-        # self.wid = wid
-        # self.title = title
-        # self.pack(fill=tk.BOTH, expand=True)
-
+        self.parent = parent
+        self.wid = wid
+        self.title = title
+        self.icon = icon
+        self.setup_widgets()
         # self["background"] = "blue"
+
+    def setup_widgets(self):
+        """Creates and packs all the frame's variables and widgets."""
+        pass
+
+    def setup_widgets(self):
+        """Creates and packs all the frame's variables and widgets."""
+        title_label = tk.Label(
+            self,
+            text=self.title,
+             font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"], constants.LISTED_WINDOW_NAME_FONT_INCREASE
+                ),
+            ),
+            foreground=constants.LISTED_WINDOW_LABEL_FG,
+            background=constants.LISTED_WINDOW_LABEL_BG,
+            anchor=constants.LISTED_WINDOW_LABEL_ANCHOR,
+            padx=constants.LISTED_WINDOW_LABEL_PADX,
+            pady=constants.LISTED_WINDOW_LABEL_PADY,
+        )
+        title_label.grid(row=0, column=0, sticky="nse")
+
+        icon_label = tk.Label(
+            self,
+            image=ImageTk.PhotoImage(self.icon),
+            background=constants.LISTED_ICON_LABEL_BG,
+            anchor=constants.LISTED_ICON_LABEL_ANCHOR,
+            padx=constants.LISTED_ICON_LABEL_PADX,
+            pady=constants.LISTED_ICON_LABEL_PADY,
+        )
+        icon_label.grid(row=0, column=1, sticky="nsew")
+
+        self.grid_columnconfigure(0, weight=1)
 
     def setup_bindings(self):
         """Binds relevant events to related parent callback."""
-        # self.bind("<Button-1>", self.parent.on_child_activated)
-        # self.bind("<Button-2>", self.parent.on_child_activated)
+        # self.bind_all("<Button-1>", self.parent.on_child_activated)
+        # self.bind_all("<Button-2>", self.parent.on_child_activated)

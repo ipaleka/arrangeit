@@ -2,14 +2,7 @@ import asyncio
 import threading
 from inspect import iscoroutinefunction
 
-from arrangeit.constants import (
-    LOCATE,
-    RESIZE,
-    ROOT_ALPHA,
-    WINDOW_MIN_WIDTH,
-    WINDOW_MIN_HEIGHT,
-    WINDOW_SHIFT_PIXELS,
-)
+from arrangeit import constants
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
 from arrangeit.view import (
@@ -147,7 +140,7 @@ class BaseController(object):
         :param root: root tkinter window
         :type root: :class:`tkinter.Tk` instance
         """
-        root.wm_attributes("-alpha", ROOT_ALPHA)
+        root.wm_attributes("-alpha", constants.ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
 
     def set_default_geometry(self, root):
@@ -170,9 +163,10 @@ class BaseController(object):
 
     def prepare_view(self):
         """Populates view's workspaces and windows list widgets."""
-        pass
-        # self.view.workspaces.add_workspaces()
-        # self.view.windows.add_windows()
+        self.view.workspaces.add_workspaces(
+            self.app.collector.get_available_workspaces()
+        )
+        self.view.windows.add_windows(self.app.collector.collection.get_windows_list())
 
     def run(self, generator):
         """Prepares view, syncs data, starts listener and enters main loop.
@@ -217,7 +211,7 @@ class BaseController(object):
             return True
 
         if not first_time:  # we need state to be None in startup
-            self.state = LOCATE
+            self.state = constants.LOCATE
         self.set_default_geometry(self.view.master)
         self.place_on_top_left()
 
@@ -230,7 +224,7 @@ class BaseController(object):
 
         and takes action in regard to state and model type.
         As we call `click_left` under `run`, so this method is called upon start
-        when state has value of None - we set it to LOCATE right here.
+        when state has value of None - we set it to constants.LOCATE right here.
 
         NOTE this method probably needs refactoring
 
@@ -240,19 +234,19 @@ class BaseController(object):
         :type y: int
         """
         if self.state is None:
-            self.state = LOCATE
+            self.state = constants.LOCATE
 
-        elif self.state == LOCATE:
+        elif self.state == constants.LOCATE:
             self.model.set_changed(x=x, y=y)
             if not self.model.resizable:
                 self.remove_window(self.model.wid)
                 self.app.run_task("move", self.model.wid)
                 self.next()
             else:
-                self.state = RESIZE
+                self.state = constants.RESIZE
                 self.place_on_right_bottom()
 
-        elif self.state == RESIZE:
+        elif self.state == constants.RESIZE:
             w, h = self.model.wh_from_ending_xy(x, y)
             self.model.set_changed(w=w, h=h)
             self.remove_window(self.model.wid)
@@ -312,7 +306,7 @@ class BaseController(object):
         :type y: int
         """
         self.view.master.geometry(
-            "+{}+{}".format(x - WINDOW_SHIFT_PIXELS, y - WINDOW_SHIFT_PIXELS)
+            "+{}+{}".format(x - constants.WINDOW_SHIFT_PIXELS, y - constants.WINDOW_SHIFT_PIXELS)
         )
 
     def change_size(self, x, y):
@@ -326,37 +320,37 @@ class BaseController(object):
         :type y: int
         """
         if (
-            x > self.model.changed[0] + WINDOW_MIN_WIDTH
-            and y > self.model.changed[1] + WINDOW_MIN_HEIGHT
+            x > self.model.changed[0] + constants.WINDOW_MIN_WIDTH
+            and y > self.model.changed[1] + constants.WINDOW_MIN_HEIGHT
         ):
             self.view.master.geometry(
                 "{}x{}".format(
-                    x - self.model.changed[0] + WINDOW_SHIFT_PIXELS * 2,
-                    y - self.model.changed[1] + WINDOW_SHIFT_PIXELS * 2,
+                    x - self.model.changed[0] + constants.WINDOW_SHIFT_PIXELS * 2,
+                    y - self.model.changed[1] + constants.WINDOW_SHIFT_PIXELS * 2,
                 )
             )
         else:
             self.view.master.geometry(
                 "{}x{}".format(
-                    WINDOW_MIN_WIDTH + WINDOW_SHIFT_PIXELS * 2,
-                    WINDOW_MIN_HEIGHT + WINDOW_SHIFT_PIXELS * 2,
+                    constants.WINDOW_MIN_WIDTH + constants.WINDOW_SHIFT_PIXELS * 2,
+                    constants.WINDOW_MIN_HEIGHT + constants.WINDOW_SHIFT_PIXELS * 2,
                 )
             )
 
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
 
-        Adds negative WINDOW_SHIFT_PIXELS to mouse position for better presentation.
+        Adds negative constants.WINDOW_SHIFT_PIXELS to mouse position for better presentation.
 
         :var x: absolute horizontal axis mouse position in pixels
         :type x: int
         :var y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        if self.state in (None, LOCATE):
+        if self.state in (None, constants.LOCATE):
             self.change_position(x, y)
 
-        elif self.state == RESIZE:
+        elif self.state == constants.RESIZE:
             self.change_size(x, y)
 
     def on_key_pressed(self, event):
@@ -390,7 +384,7 @@ class BaseController(object):
     def on_mouse_left_down(self, event):
         """Calls update_model with current cursor position
 
-        if controller is in LOCATE or RESIZE state.
+        if controller is in constants.LOCATE or constants.RESIZE state.
 
         :var event: catched event
         :type event: Tkinter event
