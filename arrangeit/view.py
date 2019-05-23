@@ -207,14 +207,15 @@ class WorkspacesCollection(tk.Frame):
         """
         super().__init__(parent)
         self.parent = parent
+        self.config(background=constants.WORKSPACE_NUMBER_LABEL_BG)
 
     def add_workspaces(self, workspaces):
         """Creates children workspaces widgets from provided list of workspaces
 
         Creates no widget for configuration without multiple workspaces.
-        Widgets are stacked related to their numbers from top right
-        towards bottom and then left towards bottom,
-        Actual workspaces are placed from left to right, then down.
+        Widgets are stacked related to their numbers from top right two positions
+        towards bottom and then too the left,
+        Actual workspaces are placed from left to right, then down the same orientation.
 
         :param workspaces: list of workspaces two-tuples (number, name)
         :type workspaces: [(int, str)]
@@ -224,14 +225,14 @@ class WorkspacesCollection(tk.Frame):
         if len(workspaces) < 2:
             return True
 
-        relwidth = float(1 / ((len(workspaces) - 1) // 2 + 1))
+        relheight = float(1 / ((len(workspaces) - 1) // 2 + 1))
         for i, workspace in enumerate(workspaces):
             widget = Workspace(self, number=workspace[0], name=workspace[1])
             widget.place(
-                relheight=0.5,
-                relwidth=relwidth,
-                relx=i // 2 * relwidth,
-                rely=0.5 * (1 - (i + 1) % 2),
+                relheight=relheight,
+                relwidth=0.5,
+                relx=(i % 2) * 0.5,
+                rely=(i // 2) * relheight,
             )
 
     def on_child_activated(self, event):
@@ -282,7 +283,32 @@ class Workspace(tk.Frame):
         self.setup_widgets()
 
     def setup_widgets(self):
-        """Creates and packs all the frame's variables and widgets."""
+        """Creates and packs all the frame's variables and widgets.
+
+        As systems counts workspace from 0, we increase number by 1.
+        """
+
+        number_label = tk.Label(
+            self,
+            text=str(self.number + 1),
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    constants.WORKSPACE_NUMBER_FONT_INCREASE,
+                ),
+            ),
+            foreground=constants.WORKSPACE_NUMBER_LABEL_FG,
+            background=constants.WORKSPACE_NUMBER_LABEL_BG,
+            anchor=constants.WORKSPACE_NUMBER_LABEL_ANCHOR,
+            padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
+            pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
+        )
+        number_label.place(
+            relheight=constants.WORKSPACE_NUMBER_RELHEIGHT,
+            relwidth=constants.WORKSPACE_NUMBER_RELWIDTH,
+        )
+
         name_label = tk.Label(
             self,
             text=self.name,
@@ -290,16 +316,21 @@ class Workspace(tk.Frame):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.WORKSPACE_TITLE_NAME_FONT_INCREASE,
+                    constants.WORKSPACE_NAME_FONT_INCREASE,
                 ),
             ),
-            foreground=constants.WORKSPACE_LABEL_FG,
-            background=constants.WORKSPACE_LABEL_BG,
-            anchor=constants.WORKSPACE_LABEL_ANCHOR,
-            padx=constants.WORKSPACE_LABEL_PADX,
-            pady=constants.WORKSPACE_LABEL_PADY,
+            height=constants.WORKSPACE_NAME_LABEL_HEIGHT,
+            foreground=constants.WORKSPACE_NAME_LABEL_FG,
+            background=constants.WORKSPACE_NAME_LABEL_BG,
+            anchor=constants.WORKSPACE_NAME_LABEL_ANCHOR,
+            padx=constants.WORKSPACE_NAME_LABEL_PADX,
+            pady=constants.WORKSPACE_NAME_LABEL_PADY,
         )
-        name_label.place(relheight=1.0, relwidth=1.0)
+        name_label.place(
+            rely=constants.WORKSPACE_NUMBER_RELHEIGHT,
+            relheight=constants.WORKSPACE_NAME_RELHEIGHT,
+            relwidth=constants.WORKSPACE_NAME_RELWIDTH,
+        )
 
     def setup_bindings(self):
         """Binds relevant events to related parent callback."""
@@ -455,8 +486,10 @@ class ListedWindow(tk.Frame):
         icon_label.place(
             x=constants.LISTED_ICON_LABEL_PADX / 2,
             rely=0.5,
+            relheight=1.0,
             anchor=constants.LISTED_ICON_LABEL_ANCHOR,
         )
+        self.config(background=constants.LISTED_WINDOW_LABEL_BG)
 
     def setup_bindings(self):
         """Binds relevant events to related parent callback."""
