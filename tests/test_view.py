@@ -397,6 +397,19 @@ class TestViewApplication(object):
         view.update_widgets(model)
         mocked.return_value.configure.call_count == 1
 
+    def test_ViewApplication_update_widgets_calls_workspaces_select_active(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.view.tk.Label.configure")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
+        view = ViewApplication(None, mocker.MagicMock())
+        model = WindowModel(workspace=1002)
+        view.update_widgets(model)
+        mocked.return_value.select_active.call_count == 1
+        calls = [mocker.call(1002)]
+        mocked.return_value.select_active.assert_has_calls(calls, any_order=True)
+
 
 class TestWorkspacesCollection(object):
     """Unit testing class for WorkspacesCollection class."""
@@ -478,6 +491,39 @@ class TestWorkspacesCollection(object):
                 )
             )
         mocked.return_value.place.assert_has_calls(calls, any_order=True)
+
+    ## WorkspacesCollection.select_active
+    def test_WorkspacesCollection_select_active_for_single_workspace(self, mocker):
+        workspaces = WorkspacesCollection()
+        children = mocker.patch(
+            "arrangeit.view.WorkspacesCollection.winfo_children",
+            return_value=[mocker.MagicMock()],
+        )
+        returned = workspaces.select_active(1000)
+        assert returned is True
+
+    def test_WorkspacesCollection_select_active_calls_label_config(self, mocker):
+        workspaces = WorkspacesCollection()
+        widget0 = mocker.MagicMock()
+        type(widget0).number = mocker.PropertyMock(return_value=1000)
+        widget1 = mocker.MagicMock()
+        type(widget1).number = mocker.PropertyMock(return_value=1001)
+        widget2 = mocker.MagicMock()
+        type(widget2).number = mocker.PropertyMock(return_value=1002)
+        mocker.patch(
+            "arrangeit.view.WorkspacesCollection.winfo_children",
+            return_value=[widget0, widget1, widget2],
+        )
+        workspaces.select_active(1001)
+        calls = [mocker.call(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)]
+        widget0.number_label.config.assert_has_calls(calls, any_order=True)
+        widget2.number_label.config.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call(foreground=constants.WORKSPACE_NAME_LABEL_FG)]
+        widget0.name_label.config.assert_has_calls(calls, any_order=True)
+        widget2.name_label.config.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call(foreground=constants.SELECTED_COLOR)]
+        widget1.number_label.config.assert_has_calls(calls, any_order=True)
+        widget1.name_label.config.assert_has_calls(calls, any_order=True)
 
 
 class TestWindowsList(object):
@@ -629,65 +675,28 @@ class TestWorkspace(object):
         Workspace(parent=parent)
         mocked.assert_called_once()
 
-    # def test_Workspace_setup_widgets_sets_number_label(self, mocker):
-    #     mocked = mocker.patch("arrangeit.view.tk.Label")
-    #     workspace = Workspace(mocker.MagicMock(), name="foo")
-    #     workspace.setup_widgets()
-    #     mocked.assert_called_with(
-    #         workspace,
-    #         text="foo",
-    #         font=(
-    #             "TkDefaultFont",
-    #             increased_by_fraction(
-    #                 nametofont("TkDefaultFont")["size"],
-    #                 constants.WORKSPACE_NUMBER_FONT_INCREASE,
-    #             ),
-    #         ),
-    #         foreground=constants.WORKSPACE_NUMBER_LABEL_FG,
-    #         background=constants.WORKSPACE_NUMBER_LABEL_BG,
-    #         anchor=constants.WORKSPACE_NUMBER_LABEL_ANCHOR,
-    #         padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
-    #         pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
-    #     )
-
-    # def test_Workspace_setup_widgets_calls_label_place(self, mocker):
-    #     mocked = mocker.patch("arrangeit.view.tk.Label")
-    #     workspace = Workspace(None, mocker.MagicMock())
-    #     mocked.return_value.place.call_count = 0
-    #     workspace.setup_widgets()
-    #     assert mocked.return_value.place.call_count == 2
-    #     mocked.return_value.place.assert_called_with(relheight=1.0, relwidth=1.0)
-
-    # def test_Workspace_setup_widgets_sets_name_label(self, mocker):
-    #     mocked = mocker.patch("arrangeit.view.tk.Label")
-    #     workspace = Workspace(mocker.MagicMock(), name="foo")
-    #     workspace.setup_widgets()
-    #     mocked.assert_called_with(
-    #         workspace,
-    #         text="foo",
-    #         font=(
-    #             "TkDefaultFont",
-    #             increased_by_fraction(
-    #                 nametofont("TkDefaultFont")["size"],
-    #                 constants.WORKSPACE_NUMBER_FONT_INCREASE,
-    #             ),
-    #         ),
-    #         foreground=constants.WORKSPACE_NUMBER_LABEL_FG,
-    #         background=constants.WORKSPACE_NUMBER_LABEL_BG,
-    #         anchor=constants.WORKSPACE_NUMBER_LABEL_ANCHOR,
-    #         padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
-    #         pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
-    #     )
-
-    # def test_Workspace_setup_widgets_calls_label_place(self, mocker):
-    #     mocked = mocker.patch("arrangeit.view.tk.Label")
-    #     workspace = Workspace(None, mocker.MagicMock())
-    #     mocked.return_value.place.call_count = 0
-    #     workspace.setup_widgets()
-    #     assert mocked.return_value.place.call_count == 1
-    #     mocked.return_value.place.assert_called_with(relheight=1.0, relwidth=1.0)
+    ## Workspace.get_humanized_number
+    @pytest.mark.parametrize("number", [1002, 2007, 5, 0])
+    def test_Workspace_get_humanized_number(self, mocker, number):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        workspace = Workspace(mocker.MagicMock(), number=number)
+        returned = workspace.get_humanized_number(number)
+        assert isinstance(returned, str)
+        assert returned == str(number % 1000 + 1)
 
     ## Workspace.setup_widgets
+    def test_Workspace_setup_widgets_calls_get_humanized_number(self, mocker):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocked = mocker.patch("arrangeit.view.Workspace.get_humanized_number")
+        window = Workspace(mocker.MagicMock(), number=1002)
+        mocked.call_count = 0
+        window.setup_widgets()
+        assert mocked.call_count == 1
+        calls = [mocker.call(1002)]
+        mocked.assert_has_calls(calls, any_order=True)
+
     def test_Workspace_setup_widgets_sets_number_label(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         window = Workspace(mocker.MagicMock(), number=0)

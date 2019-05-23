@@ -17,8 +17,8 @@ class WindowModel(object):
     :type name: string
     :var icon: window's application icon
     :type icon: :class:`PIL.Image.Image`
-    :var workspace: virtual workspace the window is on (screen, number)
-    :type workspace: (int, int)
+    :var workspace: virtual workspace the window is on in format 1000 * screen + number
+    :type workspace: int
     :var changed: changed window rectangle (x, y, width, height)
     :type changed: () or (int, int, int, int)
     :var changed_ws: changed window workspace

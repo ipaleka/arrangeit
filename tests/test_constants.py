@@ -4,8 +4,6 @@ from PIL import Image
 from arrangeit import constants
 
 
-
-
 class TestConstants(object):
     """Unit testing class checking availability of global """
 
@@ -39,6 +37,8 @@ class TestConstants(object):
             ("WINDOW_MODEL_TYPES", dict),
             ("WINDOW_RECT_ELEMENTS", tuple),
             ("WINDOW_SHIFT_PIXELS", int),
+            ("SELECTED_COLOR", str),
+            ("HIGHLIGHTED_COLOR", str),
             ("WORKSPACES_FRAME_RELHEIGHT", float),
             ("WORKSPACES_FRAME_RELWIDTH", float),
             ("WORKSPACE_NUMBER_RELHEIGHT", float),
@@ -75,7 +75,7 @@ class TestConstants(object):
             ("LOCATE", int),
             ("RESIZE", int),
             ("OTHER", int),
-            ("BLANK_ICON", Image.Image)
+            ("BLANK_ICON", Image.Image),
         ],
     )
     def test_constants_for_name_and_typ(self, constant, typ):

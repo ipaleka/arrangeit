@@ -189,6 +189,7 @@ class ViewApplication(tk.Frame):
         self.icon_image = ImageTk.PhotoImage(model.icon)
         self.icon.configure(image=self.icon_image)
         self.name.set(model.name)
+        self.workspaces.select_active(model.workspace)
 
 
 class WorkspacesCollection(tk.Frame):
@@ -234,6 +235,28 @@ class WorkspacesCollection(tk.Frame):
                 relx=(i % 2) * 0.5,
                 rely=(i // 2) * relheight,
             )
+
+    def select_active(self, number):
+        """Emphasizes active workspace and deemphasizes all others.
+
+        Foreground text coloured by constant SELECTED_COLOR is used
+        to emphasize selection.
+
+        :var number: number of workspace to select
+        :type number: int
+         """
+        workspaces = self.winfo_children()
+        if len(workspaces) < 2:
+            return True
+
+        for workspace in workspaces:
+            color = (
+                constants.SELECTED_COLOR
+                if workspace.number == number
+                else constants.WORKSPACE_NUMBER_LABEL_FG
+            )
+            workspace.number_label.config(foreground=color)
+            workspace.name_label.config(foreground=color)
 
     def on_child_activated(self, event):
         """Calls parent's controller method in charge for workspace activation.
@@ -282,15 +305,25 @@ class Workspace(tk.Frame):
         self.name = name
         self.setup_widgets()
 
+    def get_humanized_number(self, number):
+        """Returns workspace number without screen part and increased by 1
+
+        as systems count workspaces from 0, but users expect to be from 1.
+
+        :var number: workspace number
+        :type number: int
+        """
+        return str(number % 1000 + 1)
+
     def setup_widgets(self):
         """Creates and packs all the frame's variables and widgets.
 
         As systems counts workspace from 0, we increase number by 1.
         """
 
-        number_label = tk.Label(
+        self.number_label = tk.Label(
             self,
-            text=str(self.number + 1),
+            text=self.get_humanized_number(self.number),
             font=(
                 "TkDefaultFont",
                 increased_by_fraction(
@@ -304,12 +337,12 @@ class Workspace(tk.Frame):
             padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
             pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
         )
-        number_label.place(
+        self.number_label.place(
             relheight=constants.WORKSPACE_NUMBER_RELHEIGHT,
             relwidth=constants.WORKSPACE_NUMBER_RELWIDTH,
         )
 
-        name_label = tk.Label(
+        self.name_label = tk.Label(
             self,
             text=self.name,
             font=(
@@ -326,7 +359,7 @@ class Workspace(tk.Frame):
             padx=constants.WORKSPACE_NAME_LABEL_PADX,
             pady=constants.WORKSPACE_NAME_LABEL_PADY,
         )
-        name_label.place(
+        self.name_label.place(
             rely=constants.WORKSPACE_NUMBER_RELHEIGHT,
             relheight=constants.WORKSPACE_NAME_RELHEIGHT,
             relwidth=constants.WORKSPACE_NAME_RELWIDTH,
