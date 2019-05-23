@@ -4,6 +4,8 @@ from PIL import Image
 from arrangeit import constants
 
 
+
+
 class TestConstants(object):
     """Unit testing class checking availability of global """
 
@@ -17,8 +19,11 @@ class TestConstants(object):
             ("TITLE_LABEL_HEIGHT", int),
             ("TITLE_LABEL_PADX", int),
             ("TITLE_LABEL_PADY", int),
+            ("TITLE_LABEL_RELWIDTH", float),
+            ("TITLE_LABEL_RELHEIGHT", float),
             ("ICON_WIDTH", int),
-            ("ICON_WIDTH_FRACTION", float),
+            ("NAME_LABEL_RELHEIGHT", float),
+            ("NAME_LABEL_RELWIDTH", float),
             ("ICON_LABEL_BG", str),
             ("ICON_LABEL_ANCHOR", str),
             ("ICON_LABEL_PADX", int),
@@ -34,12 +39,18 @@ class TestConstants(object):
             ("WINDOW_MODEL_TYPES", dict),
             ("WINDOW_RECT_ELEMENTS", tuple),
             ("WINDOW_SHIFT_PIXELS", int),
+            ("WORKSPACES_FRAME_RELHEIGHT", float),
+            ("WORKSPACES_FRAME_RELWIDTH", float),
             ("WORKSPACE_LABEL_ANCHOR", str),
             ("WORKSPACE_LABEL_BG", str),
             ("WORKSPACE_LABEL_FG", str),
             ("WORKSPACE_TITLE_NAME_FONT_INCREASE", float),
             ("WORKSPACE_LABEL_PADX", int),
             ("WORKSPACE_LABEL_PADY", int),
+            ("WINDOWS_LIST_RELHEIGHT", float),
+            ("WINDOWS_LIST_RELWIDTH", float),
+            ("LISTED_WINDOW_RELWIDTH", float),
+            ("LISTED_WINDOW_RELHEIGHT", float),
             ("LISTED_WINDOW_LABEL_ANCHOR", str),
             ("LISTED_WINDOW_LABEL_BG", str),
             ("LISTED_WINDOW_LABEL_FG", str),

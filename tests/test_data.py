@@ -345,8 +345,10 @@ class TestWindowsCollection(object):
 
     def test_WindowsCollection_get_windows_list_returns_list_of_windows(self):
         collection = WindowsCollection()
+        instance0 = WindowModel(wid=0, title="first", icon=constants.BLANK_ICON)
         instance1 = WindowModel(wid=100, title="foo", icon=constants.BLANK_ICON)
         instance2 = WindowModel(wid=200, title="bar", icon=constants.BLANK_ICON)
+        collection.add(instance0)
         collection.add(instance1)
         collection.add(instance2)
         windows = collection.get_windows_list()

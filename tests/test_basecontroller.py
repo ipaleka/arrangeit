@@ -138,7 +138,10 @@ class TestBaseController(object):
         root = get_mocked_root(mocker)
         base.BaseController(mocker.MagicMock()).setup_root_window(root)
         assert root.wm_attributes.call_count == 2
-        calls = [mocker.call("-alpha", constants.ROOT_ALPHA), mocker.call("-topmost", True)]
+        calls = [
+            mocker.call("-alpha", constants.ROOT_ALPHA),
+            mocker.call("-topmost", True),
+        ]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
 
     ## BaseController.prepare_view
@@ -160,9 +163,7 @@ class TestBaseController(object):
         base.BaseController(app).prepare_view()
         assert view.return_value.windows.add_windows.call_count == 1
         calls = [mocker.call(app.collector.collection.get_windows_list.return_value)]
-        view.return_value.windows.add_windows.assert_has_calls(
-            calls, any_order=True
-        )
+        view.return_value.windows.add_windows.assert_has_calls(calls, any_order=True)
 
     ## BaseController.run
     def test_BaseController_run_calls_prepare_view(self, mocker):
@@ -352,7 +353,13 @@ class TestBaseController(object):
 
     @pytest.mark.parametrize(
         "state,expected",
-        [(constants.LOCATE, True), (constants.RESIZE, True), (constants.OTHER, False), (None, False), (100, False)],
+        [
+            (constants.LOCATE, True),
+            (constants.RESIZE, True),
+            (constants.OTHER, False),
+            (None, False),
+            (100, False),
+        ],
     )
     def test_BaseController_update_not_calling_set_changed_for_other_states(
         self, mocker, state, expected
@@ -604,7 +611,9 @@ class TestBaseController(object):
         controller.change_position(x, y)
         assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with(
-            "+{}+{}".format(x - constants.WINDOW_SHIFT_PIXELS, y - constants.WINDOW_SHIFT_PIXELS)
+            "+{}+{}".format(
+                x - constants.WINDOW_SHIFT_PIXELS, y - constants.WINDOW_SHIFT_PIXELS
+            )
         )
 
     ## BaseController.change_size
@@ -621,7 +630,8 @@ class TestBaseController(object):
         assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with(
             "{}x{}".format(
-                x - 100 + constants.WINDOW_SHIFT_PIXELS * 2, y - 200 + constants.WINDOW_SHIFT_PIXELS * 2
+                x - 100 + constants.WINDOW_SHIFT_PIXELS * 2,
+                y - 200 + constants.WINDOW_SHIFT_PIXELS * 2,
             )
         )
 
@@ -782,9 +792,15 @@ class TestBaseController(object):
         assert returned == "break"
 
     ## BaseController.skip_current_window
+    def test_BaseController_skip_current_window_calls_next(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        base.BaseController(mocker.MagicMock()).skip_current_window()
+        assert mocked.call_count == 1
+
     def test_BaseController_skip_current_window_calls_remove_window(self, mocker):
         mock_main_loop(mocker)
-        mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.base.BaseController.next", return_value=False)
         mocked = mocker.patch("arrangeit.base.BaseController.remove_window")
         controller = base.BaseController(mocker.MagicMock())
         controller.model.wid = 505
@@ -792,11 +808,24 @@ class TestBaseController(object):
         assert mocked.call_count == 1
         mocked.assert_called_with(505)
 
-    def test_BaseController_skip_current_window_calls_next(self, mocker):
+    def test_BaseController_skip_current_window_not_calling_remove_window(self, mocker):
         mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.next")
-        base.BaseController(mocker.MagicMock()).skip_current_window()
-        assert mocked.call_count == 1
+        mocker.patch("arrangeit.base.BaseController.next", return_value=True)
+        mocked = mocker.patch("arrangeit.base.BaseController.remove_window")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.skip_current_window()
+        assert mocked.call_count == 0
+
+    ## BaseController.remove_window
+    def test_BaseController_remove_window_calls_widget_destroy(self, mocker):
+        view = get_mocked_viewapp(mocker)
+        widget = mocker.MagicMock()
+        type(widget).wid = 100
+        view.return_value.windows.winfo_children.return_value = [widget]
+        # mocked = mocker.patch("arrangeit.view.tk.Frame.destroy")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.remove_window(100)
+        assert widget.destroy.call_count == 1
 
     ## BaseController.shutdown
     def test_BaseController_shutdown_stops_listener(self, mocker):

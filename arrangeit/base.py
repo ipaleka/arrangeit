@@ -255,9 +255,9 @@ class BaseController(object):
             self.next()
 
     def skip_current_window(self):
-        """Destroys window from list and calls `next` for another one."""
-        self.remove_window(self.model.wid)
-        self.next()
+        """Calls `next` and then destroys that new window from the windows list."""
+        if not self.next():
+            self.remove_window(self.model.wid)
 
     def workspace_activated(self, number):
         """"""
@@ -273,6 +273,10 @@ class BaseController(object):
         :var wid: id of window that will be destroyed
         :type wid: int
         """
+        for widget in self.view.windows.winfo_children():
+            if widget.wid == wid:
+                widget.destroy()
+                break
 
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
@@ -306,7 +310,9 @@ class BaseController(object):
         :type y: int
         """
         self.view.master.geometry(
-            "+{}+{}".format(x - constants.WINDOW_SHIFT_PIXELS, y - constants.WINDOW_SHIFT_PIXELS)
+            "+{}+{}".format(
+                x - constants.WINDOW_SHIFT_PIXELS, y - constants.WINDOW_SHIFT_PIXELS
+            )
         )
 
     def change_size(self, x, y):

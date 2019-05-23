@@ -1,4 +1,4 @@
-from arrangeit import constants 
+from arrangeit import constants
 from arrangeit.utils import get_value_if_valid_type
 
 
@@ -178,13 +178,15 @@ class WindowsCollection(object):
             yield member
 
     def get_windows_list(self):
-        """Prepares and returns list of windows ids, titles and icons.
+        """Prepares and returns list of windows ids, titles and icons
+
+        without the first window.
 
         :returns: [(int, str, :class:`PIL.Image.Image`)]
         """
         return [
             (model.wid, model.title, model.icon) for model in list(self.generator())
-        ]
+        ][1:]
 
     async def get_model_by_wid(self, wid):
         """Returns window model having provided wid from collection.
