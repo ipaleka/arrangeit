@@ -178,15 +178,13 @@ class WindowsCollection(object):
             yield member
 
     def get_windows_list(self):
-        """Prepares and returns list of windows ids, titles and icons
-
-        without the first window.
+        """Prepares and returns list of windows ids, titles and icons.
 
         :returns: [(int, str, :class:`PIL.Image.Image`)]
         """
         return [
             (model.wid, model.title, model.icon) for model in list(self.generator())
-        ][1:]
+        ]
 
     async def get_model_by_wid(self, wid):
         """Returns window model having provided wid from collection.

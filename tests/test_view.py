@@ -532,24 +532,64 @@ class TestWindowsList(object):
             ],
         ],
     )
-    def test_WindowsList_add_windows_calls_place_on_frame(self, mocker, args):
+    def test_WindowsList_add_windows_calls_place_widget_on_position(self, mocker, args):
         parent = mocker.MagicMock()
-        mocker.patch("arrangeit.view.ListedWindow")
         windows = WindowsList(parent=parent)
-        mocked = mocker.patch("arrangeit.view.ListedWindow")
+        mocked = mocker.patch("arrangeit.view.WindowsList.place_widget_on_position")
+        window = mocker.patch("arrangeit.view.ListedWindow")
         windows.add_windows(args)
-        assert mocked.return_value.place.call_count == len(args)
+        assert mocked.call_count == len(args)
         calls = []
         for current in range(len(args)):
-            calls.append(
-                mocker.call(
-                    relheight=constants.LISTED_WINDOW_RELHEIGHT,
-                    relwidth=1.0,
-                    relx=0.0,
-                    rely=current * constants.LISTED_WINDOW_RELHEIGHT,
-                )
+            calls.append(mocker.call(window.return_value, current))
+        mocked.assert_has_calls(calls, any_order=True)
+
+    ## WindowsList.place_widget_on_position
+    def test_WindowsList_place_widget_on_position_calls_place_on_frame(self, mocker):
+        parent = mocker.MagicMock()
+        windows = WindowsList(parent=parent)
+        mocked = mocker.MagicMock()
+        windows.place_widget_on_position(mocked, 0)
+        calls = [
+            mocker.call(
+                relheight=constants.LISTED_WINDOW_RELHEIGHT,
+                relwidth=1.0,
+                relx=0.0,
+                rely=0,
             )
-        mocked.return_value.place.assert_has_calls(calls, any_order=True)
+        ]
+        mocked.place.assert_has_calls(calls, any_order=True)
+        windows.place_widget_on_position(mocked, 4)
+        calls = [
+            mocker.call(
+                relheight=constants.LISTED_WINDOW_RELHEIGHT,
+                relwidth=1.0,
+                relx=0.0,
+                rely=4 * constants.LISTED_WINDOW_RELHEIGHT,
+            )
+        ]
+        mocked.place.assert_has_calls(calls, any_order=True)
+
+    ## WindowsList.place_children
+    def test_WindowsList_place_children_calls_place_widget_on_position(self, mocker):
+        windows = WindowsList(parent=mocker.MagicMock())
+        mocked = mocker.patch("arrangeit.view.WindowsList.place_widget_on_position")
+        widget0 = mocker.MagicMock()
+        widget1 = mocker.MagicMock()
+        widget2 = mocker.MagicMock()
+        children = mocker.patch(
+            "arrangeit.view.WindowsList.winfo_children",
+            return_value=[widget0, widget1, widget2],
+        )
+        windows.place_children()
+        assert children.call_count == 1
+        assert mocked.call_count == 3
+        calls = [
+            mocker.call(widget0, 0),
+            mocker.call(widget1, 1),
+            mocker.call(widget2, 2),
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
 
 
 class TestWorkspace(object):

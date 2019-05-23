@@ -82,10 +82,12 @@ class BaseApp(object):
 
     async def move_and_resize(self, *args):
         """Method must be overridden."""
+        # print("*************************NotImplementedError", args)
         raise NotImplementedError
 
     async def move(self, *args):
         """Method must be overridden."""
+        # print("*************************NotImplementedError", args)
         raise NotImplementedError
 
 
@@ -162,11 +164,16 @@ class BaseController(object):
         root.geometry("{}x{}".format(width, height))
 
     def prepare_view(self):
-        """Populates view's workspaces and windows list widgets."""
+        """Populates view's workspaces and windows list widgets.
+
+        Very first window is our main window so we skip it in listing.
+        """
         self.view.workspaces.add_workspaces(
             self.app.collector.get_available_workspaces()
         )
-        self.view.windows.add_windows(self.app.collector.collection.get_windows_list())
+        self.view.windows.add_windows(
+            self.app.collector.collection.get_windows_list()[1:]
+        )
 
     def run(self, generator):
         """Prepares view, syncs data, starts listener and enters main loop.
@@ -239,7 +246,7 @@ class BaseController(object):
         elif self.state == constants.LOCATE:
             self.model.set_changed(x=x, y=y)
             if not self.model.resizable:
-                self.remove_window(self.model.wid)
+                self.remove_listed_window(self.model.wid)
                 self.app.run_task("move", self.model.wid)
                 self.next()
             else:
@@ -249,7 +256,7 @@ class BaseController(object):
         elif self.state == constants.RESIZE:
             w, h = self.model.wh_from_ending_xy(x, y)
             self.model.set_changed(w=w, h=h)
-            self.remove_window(self.model.wid)
+            self.remove_listed_window(self.model.wid)
             if self.model.changed:  # could be ()
                 self.app.run_task("move_and_resize", self.model.wid)
             self.next()
@@ -257,7 +264,7 @@ class BaseController(object):
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""
         if not self.next():
-            self.remove_window(self.model.wid)
+            self.remove_listed_window(self.model.wid)
 
     def workspace_activated(self, number):
         """"""
@@ -267,16 +274,21 @@ class BaseController(object):
         """"""
         pass
 
-    def remove_window(self, wid):
-        """Destroys window widget from windows list.
+    def remove_listed_window(self, wid):
+        """Destroys window widget from windows list and refreshes the list afterward.
 
         :var wid: id of window that will be destroyed
         :type wid: int
         """
-        for widget in self.view.windows.winfo_children():
-            if widget.wid == wid:
-                widget.destroy()
-                break
+        try:
+            next(
+                widget
+                for widget in self.view.windows.winfo_children()
+                if widget.wid == wid
+            ).destroy()
+        except StopIteration:
+            pass
+        self.view.windows.place_children()
 
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.

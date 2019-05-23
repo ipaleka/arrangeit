@@ -15,7 +15,7 @@ SAMPLE_MODEL_VALUES = [
     {"title": "foo"},
     {"name": "bar"},
     {"icon": constants.BLANK_ICON},
-    {"workspace": 1001},
+    {"workspace": 2001},
     {
         "wid": 502,
         "rect": (4, 5, 25, 25),
@@ -171,8 +171,8 @@ class TestWindowModel(object):
     @pytest.mark.parametrize(
         "values",
         [
-            {"ws": 1001, "x": 500},
-            {"ws": 1001, "x": 500, "y": 400},
+            {"ws": 7001, "x": 500},
+            {"ws": 9001, "x": 500, "y": 400},
             {"ws": 0, "rect": (100, 100, 100, 100)},
         ],
     )
@@ -294,7 +294,7 @@ class TestWindowModel(object):
 
     ## WindowModel.ws
     def test_WindowModel_ws_is_alias_for_workspace(self):
-        model = WindowModel(workspace=1001)
+        model = WindowModel(workspace=5002)
         assert model.ws == model.workspace
 
 
@@ -345,14 +345,15 @@ class TestWindowsCollection(object):
 
     def test_WindowsCollection_get_windows_list_returns_list_of_windows(self):
         collection = WindowsCollection()
-        instance0 = WindowModel(wid=0, title="first", icon=constants.BLANK_ICON)
         instance1 = WindowModel(wid=100, title="foo", icon=constants.BLANK_ICON)
         instance2 = WindowModel(wid=200, title="bar", icon=constants.BLANK_ICON)
-        collection.add(instance0)
         collection.add(instance1)
         collection.add(instance2)
         windows = collection.get_windows_list()
-        assert windows == [(100, "foo", constants.BLANK_ICON), (200, "bar", constants.BLANK_ICON)]
+        assert windows == [
+            (100, "foo", constants.BLANK_ICON),
+            (200, "bar", constants.BLANK_ICON),
+        ]
 
     ## WindowsCollection.add
     @pytest.mark.parametrize("arg", [0, -0.1, "hej", object, WindowModel])

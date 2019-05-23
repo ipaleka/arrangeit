@@ -332,12 +332,30 @@ class WindowsList(tk.Frame):
         """
         for i, window in enumerate(windows):
             widget = ListedWindow(self, wid=window[0], title=window[1], icon=window[2])
-            widget.place(
-                relheight=constants.LISTED_WINDOW_RELHEIGHT,
-                relwidth=1.0,
-                relx=0.0,
-                rely=i * constants.LISTED_WINDOW_RELHEIGHT,
-            )
+            self.place_widget_on_position(widget, i)
+
+    def place_widget_on_position(self, widget, position):
+        """Configure placement and place provided widget at provided vertical position.
+
+        :param widget: Tkinter Frame widget
+        :type widget: :class:`ListedWindow`
+        :param position: vertical position in parent starting from top
+        :type position: int
+        """
+        widget.place(
+            relheight=constants.LISTED_WINDOW_RELHEIGHT,
+            relwidth=1.0,
+            relx=0.0,
+            rely=position * constants.LISTED_WINDOW_RELHEIGHT,
+        )
+
+    def place_children(self):
+        """Place children widgets in order.
+
+        Used after the top widget is destroyed.
+        """
+        for i, widget in enumerate(self.winfo_children()):
+            self.place_widget_on_position(widget, i)
 
     def on_child_activated(self, event):
         """Calls parent's controller method in charge for window activation.
@@ -435,7 +453,7 @@ class ListedWindow(tk.Frame):
             pady=constants.LISTED_ICON_LABEL_PADY,
         )
         icon_label.place(
-            x=constants.LISTED_ICON_LABEL_PADX/2,
+            x=constants.LISTED_ICON_LABEL_PADX / 2,
             rely=0.5,
             anchor=constants.LISTED_ICON_LABEL_ANCHOR,
         )
