@@ -72,8 +72,9 @@ class ViewApplication(tk.Frame):
         self.setup_workspaces()
         self.setup_windows()
 
-        temp_quit = tk.Button(self, text="QUIT", fg="red",
-                              command=self.controller.shutdown)
+        temp_quit = tk.Button(
+            self, text="QUIT", fg="red", command=self.controller.shutdown
+        )
         temp_quit.place(rely=1.0, relx=1.0, anchor="se")
 
     def setup_bindings(self):
@@ -208,9 +209,12 @@ class WorkspacesCollection(tk.Frame):
 
     :var parent: parent widget
     :type parent: :class:`.tk.Frame`
+    :var active: currently active workspace number
+    :type active: int
     """
 
     parent = None
+    active = None
 
     def __init__(self, parent=None):
         """Sets parent attribute from provided argument and sets the packer
@@ -239,7 +243,9 @@ class WorkspacesCollection(tk.Frame):
         if len(workspaces) < 2:
             return True
 
-        relheight = 0.5 if len(workspaces) < 5 else float(1 / ((len(workspaces) - 1) // 2 + 1))
+        relheight = (
+            0.5 if len(workspaces) < 5 else float(1 / ((len(workspaces) - 1) // 2 + 1))
+        )
         for i, workspace in enumerate(workspaces):
             widget = Workspace(self, number=workspace[0], name=workspace[1])
             widget.place(
@@ -253,10 +259,16 @@ class WorkspacesCollection(tk.Frame):
         """Emphasizes active workspace and deemphasizes all others.
 
         Foreground text coloured by constant SELECTED_COLOR is used
-        to emphasize selection.
+        to emphasize selection, together with SELECT_CURSOR constant.
 
-        :var number: number of workspace to select
+        :param number: number of workspace to select
         :type number: int
+        :var workspace: child widget
+        :type number: :class:`Workspace`
+        :var color: Tkinter color name
+        :type color: str
+        :var cursor: Tkinter cursor name
+        :type cursor: str
          """
         workspaces = self.winfo_children()
         if len(workspaces) < 2:
@@ -270,6 +282,14 @@ class WorkspacesCollection(tk.Frame):
             )
             workspace.number_label.config(foreground=color)
             workspace.name_label.config(foreground=color)
+            cursor = (
+                constants.DEFAULT_CURSOR
+                if workspace.number == number
+                else constants.SELECT_CURSOR
+            )
+            workspace.config(cursor=cursor)
+
+        self.active = number
 
     def on_child_activated(self, event):
         """Calls parent's controller method in charge for workspace activation.
@@ -290,98 +310,6 @@ class WorkspacesCollection(tk.Frame):
         :type number: int
         """
         pass
-
-
-class Workspace(tk.Frame):
-    """Tkinter frame holding individual workspace widget.
-
-    :var parent: parent widget
-    :type parent: :class:`.tk.Frame`
-    :var number: workspace number
-    :type number: int
-    :var name: workspace name
-    :type name: str
-    """
-
-    parent = None
-    number = 0
-    name = ""
-
-    def __init__(self, parent=None, number=0, name=""):
-        """Sets attributes from provided arguments and sets the packer
-
-        after super __init__ is called.
-        """
-        super().__init__(parent)
-        self.parent = parent
-        self.number = number
-        self.name = name
-        self.setup_widgets()
-
-    def get_humanized_number(self, number):
-        """Returns workspace number without screen part and increased by 1
-
-        as systems count workspaces from 0, but users expect to be from 1.
-
-        :var number: workspace number
-        :type number: int
-        """
-        return str(number % 1000 + 1)
-
-    def setup_widgets(self):
-        """Creates and packs all the frame's variables and widgets.
-
-        As systems counts workspace from 0, we increase number by 1.
-        """
-
-        self.number_label = tk.Label(
-            self,
-            text=self.get_humanized_number(self.number),
-            font=(
-                "TkDefaultFont",
-                increased_by_fraction(
-                    nametofont("TkDefaultFont")["size"],
-                    constants.WORKSPACE_NUMBER_FONT_INCREASE,
-                ),
-            ),
-            foreground=constants.WORKSPACE_NUMBER_LABEL_FG,
-            background=constants.WORKSPACE_NUMBER_LABEL_BG,
-            anchor=constants.WORKSPACE_NUMBER_LABEL_ANCHOR,
-            padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
-            pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
-        )
-        self.number_label.place(
-            relheight=constants.WORKSPACE_NUMBER_RELHEIGHT,
-            relwidth=constants.WORKSPACE_NUMBER_RELWIDTH,
-        )
-
-        self.name_label = tk.Label(
-            self,
-            text=self.name,
-            font=(
-                "TkDefaultFont",
-                increased_by_fraction(
-                    nametofont("TkDefaultFont")["size"],
-                    constants.WORKSPACE_NAME_FONT_INCREASE,
-                ),
-            ),
-            height=constants.WORKSPACE_NAME_LABEL_HEIGHT,
-            foreground=constants.WORKSPACE_NAME_LABEL_FG,
-            background=constants.WORKSPACE_NAME_LABEL_BG,
-            anchor=constants.WORKSPACE_NAME_LABEL_ANCHOR,
-            padx=constants.WORKSPACE_NAME_LABEL_PADX,
-            pady=constants.WORKSPACE_NAME_LABEL_PADY,
-        )
-        self.name_label.place(
-            rely=constants.WORKSPACE_NUMBER_RELHEIGHT,
-            relheight=constants.WORKSPACE_NAME_RELHEIGHT,
-            relwidth=constants.WORKSPACE_NAME_RELWIDTH,
-        )
-
-    def setup_bindings(self):
-        """Binds relevant events to related parent callback."""
-        # self.bind_all("<Button-1>", self.parent.on_child_activated)
-        # self.bind_all("<Button-2>", self.parent.on_child_activated)
 
 
 class WindowsList(tk.Frame):
@@ -455,6 +383,113 @@ class WindowsList(tk.Frame):
         pass
 
 
+class Workspace(tk.Frame):
+    """Tkinter frame holding individual workspace widget.
+
+    :var parent: parent widget
+    :type parent: :class:`.tk.Frame`
+    :var number: workspace number
+    :type number: int
+    :var name: workspace name
+    :type name: str
+    """
+
+    parent = None
+    number = 0
+    name = ""
+
+    def __init__(self, parent=None, number=0, name=""):
+        """Sets attributes from provided arguments and sets the packer
+
+        after super __init__ is called.
+        """
+        super().__init__(parent)
+        self.parent = parent
+        self.number = number
+        self.name = name
+        self.setup_widgets()
+        self.setup_bindings()
+
+    def get_humanized_number(self, number):
+        """Returns workspace number without screen part and increased by 1
+
+        as systems count workspaces from 0, but users expect to be from 1.
+
+        :var number: workspace number
+        :type number: int
+        """
+        return str(number % 1000 + 1)
+
+    def setup_widgets(self):
+        """Creates and packs all the frame's variables and widgets.
+
+        As systems counts workspace from 0, we increase number by 1.
+        """
+
+        self.number_label = tk.Label(
+            self,
+            text=self.get_humanized_number(self.number),
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    constants.WORKSPACE_NUMBER_FONT_INCREASE,
+                ),
+            ),
+            foreground=constants.WORKSPACE_NUMBER_LABEL_FG,
+            background=constants.WORKSPACE_NUMBER_LABEL_BG,
+            anchor=constants.WORKSPACE_NUMBER_LABEL_ANCHOR,
+            padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
+            pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
+        )
+        self.number_label.place(
+            relheight=constants.WORKSPACE_NUMBER_RELHEIGHT,
+            relwidth=constants.WORKSPACE_NUMBER_RELWIDTH,
+        )
+
+        self.name_label = tk.Label(
+            self,
+            text=self.name,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    constants.WORKSPACE_NAME_FONT_INCREASE,
+                ),
+            ),
+            height=constants.WORKSPACE_NAME_LABEL_HEIGHT,
+            foreground=constants.WORKSPACE_NAME_LABEL_FG,
+            background=constants.WORKSPACE_NAME_LABEL_BG,
+            anchor=constants.WORKSPACE_NAME_LABEL_ANCHOR,
+            padx=constants.WORKSPACE_NAME_LABEL_PADX,
+            pady=constants.WORKSPACE_NAME_LABEL_PADY,
+        )
+        self.name_label.place(
+            rely=constants.WORKSPACE_NUMBER_RELHEIGHT,
+            relheight=constants.WORKSPACE_NAME_RELHEIGHT,
+            relwidth=constants.WORKSPACE_NAME_RELWIDTH,
+        )
+
+    def setup_bindings(self):
+        """Binds relevant events to related callback."""
+        self.bind("<Enter>", self.on_widget_enter)
+        self.bind("<Leave>", self.on_widget_leave)
+
+    def on_widget_enter(self, event):
+        """Highlights widget by changing foreground color."""
+        if self.number != self.parent.active:
+            self.number_label.config(foreground=constants.HIGHLIGHTED_COLOR)
+            self.name_label.config(foreground=constants.HIGHLIGHTED_COLOR)
+        return "break"
+
+    def on_widget_leave(self, event):
+        """Resets widget foreground color."""
+        if self.number != self.parent.active:
+            self.number_label.config(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)
+            self.name_label.config(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)
+        return "break"
+
+
 class ListedWindow(tk.Frame):
     """Tkinter frame holding window title and smaller icon.
 
@@ -478,12 +513,13 @@ class ListedWindow(tk.Frame):
 
         after super __init__ is called.
         """
-        super().__init__(parent)
+        super().__init__(parent, cursor=constants.SELECT_CURSOR)
         self.parent = parent
         self.wid = wid
         self.title = title
         self.icon = self.get_icon_image(icon)
         self.setup_widgets()
+        self.setup_bindings()
 
     def get_icon_image(self, icon):
         """Returns provided icon resized and converted to format suitable for Tkinter.
@@ -499,7 +535,7 @@ class ListedWindow(tk.Frame):
 
     def setup_widgets(self):
         """Creates and packs all the frame's variables and widgets."""
-        title_label = tk.Label(
+        self.title_label = tk.Label(
             self,
             text=self.title,
             font=(
@@ -515,7 +551,7 @@ class ListedWindow(tk.Frame):
             padx=constants.LISTED_WINDOW_LABEL_PADX,
             pady=constants.LISTED_WINDOW_LABEL_PADY,
         )
-        title_label.place(
+        self.title_label.place(
             x=constants.ICON_WIDTH / 2 + constants.LISTED_ICON_LABEL_PADX,
             relheight=1.0,
             relwidth=constants.LISTED_WINDOW_RELWIDTH,
@@ -538,6 +574,16 @@ class ListedWindow(tk.Frame):
         self.config(background=constants.LISTED_WINDOW_LABEL_BG)
 
     def setup_bindings(self):
-        """Binds relevant events to related parent callback."""
-        # self.bind_all("<Button-1>", self.parent.on_child_activated)
-        # self.bind_all("<Button-2>", self.parent.on_child_activated)
+        """Binds relevant events to related callback."""
+        self.bind("<Enter>", self.on_widget_enter)
+        self.bind("<Leave>", self.on_widget_leave)
+
+    def on_widget_enter(self, event):
+        """Highlights widget by changing foreground color."""
+        self.title_label.config(foreground=constants.HIGHLIGHTED_COLOR)
+        return "break"
+
+    def on_widget_leave(self, event):
+        """Resets widget foreground color."""
+        self.title_label.config(foreground=constants.LISTED_WINDOW_LABEL_FG)
+        return "break"

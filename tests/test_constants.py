@@ -37,6 +37,8 @@ class TestConstants(object):
             ("WINDOW_MODEL_TYPES", dict),
             ("WINDOW_RECT_ELEMENTS", tuple),
             ("WINDOW_SHIFT_PIXELS", int),
+            ("DEFAULT_CURSOR", str),
+            ("SELECT_CURSOR", str),
             ("SELECTED_COLOR", str),
             ("HIGHLIGHTED_COLOR", str),
             ("WORKSPACES_FRAME_RELHEIGHT", float),
