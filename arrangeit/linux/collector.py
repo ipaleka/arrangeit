@@ -1,10 +1,8 @@
 import gi
-
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 from PIL import Image
 from Xlib import X
-# from Xlib.display import Display
 
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel

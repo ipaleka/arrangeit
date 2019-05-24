@@ -310,6 +310,18 @@ class TestViewApplication(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
+    ## ViewApplication.setup_bindings
+    @pytest.mark.parametrize(
+        "event", ["<Button-1>", "<Button-2>", "<Button-3>", "<Key>"]
+    )
+    def test_ViewApplication_unbind_events(self, mocker, event):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        mocked = mocker.patch("arrangeit.view.ViewApplication.unbind_all")
+        view.unbind_events()
+        calls = [mocker.call(event)]
+        mocked.assert_has_calls(calls, any_order=True)
+
     ## ViewApplication.startup
     @pytest.mark.parametrize("method", ["update", "deiconify"])
     def test_ViewApplication_startup_calls_master_showing_up_method(

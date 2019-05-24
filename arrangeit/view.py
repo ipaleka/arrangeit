@@ -72,6 +72,10 @@ class ViewApplication(tk.Frame):
         self.setup_workspaces()
         self.setup_windows()
 
+        temp_quit = tk.Button(self, text="QUIT", fg="red",
+                              command=self.controller.shutdown)
+        temp_quit.place(rely=1.0, relx=1.0, anchor="se")
+
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
 
@@ -81,6 +85,13 @@ class ViewApplication(tk.Frame):
         self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)
         self.bind_all("<Key>", self.controller.on_key_pressed)
+
+    def unbind_events(self):
+        """Unbinds all relevant events"""
+        self.unbind_all("<Button-1>")
+        self.unbind_all("<Button-2>")
+        self.unbind_all("<Button-3>")
+        self.unbind_all("<Key>")
 
     def setup_title(self):
         """Sets `title` variable and corresponding Label widget."""
@@ -430,7 +441,7 @@ class WindowsList(tk.Frame):
         :type event: Tkinter event
         """
         pass
-        # self.parent.controller.window_activated(event.widget.wid)
+        # self.parent.controller.listed_window_activated(event.widget.wid)
         # return "break"
 
     def highlight_window(self, wid):

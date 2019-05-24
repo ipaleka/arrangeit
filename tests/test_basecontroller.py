@@ -618,6 +618,7 @@ class TestBaseController(object):
         controller.place_on_top_left()
         mocked.assert_called_with(rect[0], rect[1])
 
+    ## BaseController.place_on_right_bottom
     def test_BaseController_place_on_right_bottom_calls_cursor_config(self, mocker):
         mocked = get_mocked_viewapp(mocker)
         mocker.patch("arrangeit.base.WindowModel.set_changed")
@@ -646,6 +647,41 @@ class TestBaseController(object):
         controller.run(generator)
         controller.place_on_right_bottom()
         mocked.assert_called_with(rect[0] + rect[2], rect[1] + rect[3])
+
+    ## BaseController.release_mouse
+    def test_BaseController_release_mouse_calls_unbind_events(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.run(mocker.MagicMock())
+        controller.release_mouse()
+        assert mocked.return_value.unbind_events.call_count == 1
+
+    def test_BaseController_release_mouse_calls_cursor_config(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.run(mocker.MagicMock())
+        controller.release_mouse()
+        calls = [mocker.call(cursor="left_ptr")]
+        mocked.return_value.master.config.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_release_mouse_changes_state_to_OTHER(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.view.mouse.Listener")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.run(mocker.MagicMock())
+        controller.state = 5
+        controller.release_mouse()
+        assert controller.state == constants.OTHER
+
+    def test_BaseController_release_mouse_stops_listener(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.view.mouse.Listener")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.run(mocker.MagicMock())
+        controller.release_mouse()
+        assert mocked.return_value.stop.call_count == 1
 
     ## BaseController.change_position
     def test_BaseController_change_position(self, mocker):
@@ -775,13 +811,13 @@ class TestBaseController(object):
         mocked.assert_called_with(int(key[-1]))
 
     @pytest.mark.parametrize("key", ["F1", "F4", "F9", "F12"])
-    def test_BaseController_on_key_pressed_for_func_keys_calls_window_activated(
+    def test_BaseController_on_key_pressed_for_func_keys_calls_listed_window_activated(
         self, mocker, key
     ):
         mocked_viewapp(mocker)
         event = mocker.MagicMock()
         type(event).keysym = mocker.PropertyMock(return_value=key)
-        mocked = mocker.patch("arrangeit.base.BaseController.window_activated")
+        mocked = mocker.patch("arrangeit.base.BaseController.listed_window_activated")
         base.BaseController(mocker.MagicMock()).on_key_pressed(event)
         assert mocked.call_count == 1
         mocked.assert_called_with(int(key[1:]))
@@ -812,13 +848,12 @@ class TestBaseController(object):
         assert returned == "break"
 
     ## BaseController.on_mouse_middle_down
-    def test_BaseController_on_mouse_middle_down_calls_on_mouse_left_down(self, mocker):
+    def test_BaseController_on_mouse_middle_down_calls_release_mouse(self, mocker):
         mock_main_loop(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_left_down")
+        mocked = mocker.patch("arrangeit.base.BaseController.release_mouse")
         event = mocker.MagicMock()
         base.BaseController(mocker.MagicMock()).on_mouse_middle_down(event)
         assert mocked.call_count == 1
-        mocked.assert_called_with(event)
 
     ## BaseController.on_mouse_right_down
     def test_BaseController_on_mouse_right_down_calls_skip_current_window(self, mocker):

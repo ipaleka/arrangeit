@@ -124,6 +124,7 @@ class BaseController(object):
         self.model = WindowModel()
         self.setup()
 
+    ## CONFIGURATION
     def setup(self):
         """Initializes Tkinter ViewApplication with root window and self as arguments.
 
@@ -175,6 +176,7 @@ class BaseController(object):
             self.app.collector.collection.get_windows_list()[1:]
         )
 
+    ## BUSINESS LOGIC
     def run(self, generator):
         """Prepares view, syncs data, starts listener and enters main loop.
 
@@ -233,12 +235,6 @@ class BaseController(object):
 
         return False
 
-    def switch_to_workspace(self):
-        """Activates workspace and moves root window onto it."""
-        self.app.collector.activate_workspace(self.model.workspace)
-        self.view.master.update_idletasks()
-        # move_cursor(self.model.x, self.model.y)
-
     def update(self, x, y):
         """Updates model with provided cursor position in regard to state
 
@@ -274,6 +270,12 @@ class BaseController(object):
                 self.app.run_task("move_and_resize", self.model.wid)
             self.next()
 
+    ## COMMANDS
+    def switch_to_workspace(self):
+        """Activates workspace and moves root window onto it."""
+        self.app.collector.activate_workspace(self.model.workspace)
+        self.view.master.update_idletasks()
+
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""
         if not self.next():
@@ -283,7 +285,7 @@ class BaseController(object):
         """"""
         pass
 
-    def window_activated(self, wid):
+    def listed_window_activated(self, wid):
         """"""
         pass
 
@@ -306,9 +308,6 @@ class BaseController(object):
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
 
-        NOTE for released cursor 'left_ptr'
-        http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/cursors.html
-
         Cursor is changed to default config. Also calls `on_mouse_move` to force
         moving if the app is just instantiated.
         """
@@ -325,6 +324,13 @@ class BaseController(object):
         move_cursor(
             self.model.changed[0] + self.model.w, self.model.changed[1] + self.model.h
         )
+
+    def release_mouse(self):
+        """Changes cursor, stops listener and switches to third state."""
+        self.view.unbind_events()
+        self.view.master.config(cursor="left_ptr")
+        self.state = constants.OTHER
+        self.listener.stop()
 
     def change_position(self, x, y):
         """Changes root window position to provided x and y.
@@ -368,6 +374,12 @@ class BaseController(object):
                 )
             )
 
+    def shutdown(self):
+        """Stops mouse listener and destroys Tkinter root window."""
+        self.listener.stop()
+        self.view.master.destroy()
+
+    ## EVENTS CALLBACKS
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
 
@@ -408,7 +420,7 @@ class BaseController(object):
             self.workspace_activated(int(event.keysym[-1]))
 
         elif event.keysym in ["F{}".format(i) for i in range(1, 17)]:
-            self.window_activated(int(event.keysym[1:]))
+            self.listed_window_activated(int(event.keysym[1:]))
 
         return "break"
 
@@ -426,8 +438,13 @@ class BaseController(object):
         return "break"
 
     def on_mouse_middle_down(self, event):
-        """Middle button down acts like left button has been pressed."""
-        return self.on_mouse_left_down(event)
+        """Switches to third state.
+
+        :var event: catched event
+        :type event: Tkinter event
+        """
+        self.release_mouse()
+        return "break"
 
     def on_mouse_right_down(self, event):
         """Skips the current model.
@@ -438,11 +455,7 @@ class BaseController(object):
         self.skip_current_window()
         return "break"
 
-    def shutdown(self):
-        """Stops mouse listener and destroys Tkinter root window."""
-        self.listener.stop()
-        self.view.master.destroy()
-
+    ## MAIN LOOP
     def mainloop(self):
         self.view.mainloop()
 
