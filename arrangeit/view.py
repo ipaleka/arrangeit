@@ -217,6 +217,8 @@ class WorkspacesCollection(tk.Frame):
         Widgets are stacked related to their numbers from top right two positions
         towards bottom and then too the left,
         Actual workspaces are placed from left to right, then down the same orientation.
+        Still, as a design decision, we use the same size for every configuration
+        having less than 5 workspaces.
 
         :param workspaces: list of workspaces two-tuples (number, name)
         :type workspaces: [(int, str)]
@@ -226,7 +228,7 @@ class WorkspacesCollection(tk.Frame):
         if len(workspaces) < 2:
             return True
 
-        relheight = float(1 / ((len(workspaces) - 1) // 2 + 1))
+        relheight = 0.5 if len(workspaces) < 5 else float(1 / ((len(workspaces) - 1) // 2 + 1))
         for i, workspace in enumerate(workspaces):
             widget = Workspace(self, number=workspace[0], name=workspace[1])
             widget.place(

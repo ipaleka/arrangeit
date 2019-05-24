@@ -3,6 +3,8 @@ import gi
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 from PIL import Image
+from Xlib import X
+# from Xlib.display import Display
 
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
@@ -149,21 +151,28 @@ class Collector(BaseCollector):
         """
         return self.get_workspace_number(win.get_workspace())
 
+    def _get_available_wnck_workspaces(self):
+        """Returns Wnck list of workspaces available on default screen.
+
+        :var screen: screen object
+        :type screen: :class:`Wnck.Screen`
+        :returns: list of :class:`Wnck.Workspace` instances
+        """
+        screen = Wnck.Screen.get_default()
+        screen.force_update()
+        return screen.get_workspaces()
+
     def get_available_workspaces(self):
-        """Returns list of workspaces available on default screen.
+        """Returns custom list of workspaces available on default screen.
 
         Returned list contains two-tuples of calculated workspace number
         and corresponding name.
 
-        :var screen: screen object
-        :type screen: :class:`Wnck.Screen`
         :var workspaces: workspaces collection
         :type workspaces: list of :class:`Wnck.Workspace` instances
         :returns: [(int, str)]
         """
-        screen = Wnck.Screen.get_default()
-        screen.force_update()
-        workspaces = screen.get_workspaces()
+        workspaces = self._get_available_wnck_workspaces()
         if not workspaces:
             return [(0, "")]
         collection = []
@@ -172,6 +181,27 @@ class Collector(BaseCollector):
                 (self.get_workspace_number(workspace), workspace.get_name())
             )
         return collection
+
+    def _get_wnck_workspace_for_custom_number(self, number):
+        """Returns :class:`Wnck.Workspace` instance from provided custom number.
+
+        :var number: our custom workspace number
+        :type number: int
+        """
+        try:
+            return next(
+                workspace
+                for workspace in self._get_available_wnck_workspaces()
+                if self.get_workspace_number(workspace) == number
+            )
+        except StopIteration:
+            return False
+
+    def activate_workspace(self, number):
+        """Activates workspace identified by provided our custom workspace number."""
+        workspace = self._get_wnck_workspace_for_custom_number(number)
+        if workspace:
+            workspace.activate(X.CurrentTime)
 
     async def get_window_by_wid(self, wid):
         """Returns window instance having provided wid.

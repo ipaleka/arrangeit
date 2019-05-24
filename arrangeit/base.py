@@ -195,7 +195,7 @@ class BaseController(object):
 
         self.view.startup()
 
-        click_left()
+        click_left()  # TODO try with Wnck.Window.activate on GNU/Linux instead
 
         self.mainloop()
 
@@ -205,11 +205,15 @@ class BaseController(object):
         and populates view widgets with new model data.
         Also changes and moves cursor and root window to model's window position.
         If there are no values left in collection then saves and exits app.
+        Switches workspace if it's changed.
 
-        :param first_time: is method called for the very first time
+        :var old_workspace: old model's workspace number
+        :type old_workspace: ind
+        :var first_time: is method called for the very first time
         :type first_time: Boolean
         :returns: Boolean
         """
+        old_workspace = self.model.workspace
         try:
             self.model = next(self.generator)
         except StopIteration:
@@ -217,14 +221,23 @@ class BaseController(object):
             self.shutdown()
             return True
 
-        if not first_time:  # we need state to be None in startup
-            self.state = constants.LOCATE
+        if not first_time:
+            self.state = constants.LOCATE  # we need state to be None during startup
+            if self.model.workspace != old_workspace:
+                self.switch_to_workspace()
+
         self.set_default_geometry(self.view.master)
         self.place_on_top_left()
 
         self.view.update_widgets(self.model)
 
         return False
+
+    def switch_to_workspace(self):
+        """Activates workspace and moves root window onto it."""
+        self.app.collector.activate_workspace(self.model.workspace)
+        self.view.master.update_idletasks()
+        # move_cursor(self.model.x, self.model.y)
 
     def update(self, x, y):
         """Updates model with provided cursor position in regard to state
@@ -480,6 +493,10 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def get_available_workspaces(self, win):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def activate_workspace(self, number):
         """Method must be overridden."""
         raise NotImplementedError
 

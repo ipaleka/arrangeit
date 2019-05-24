@@ -254,6 +254,19 @@ class TestBaseController(object):
         controller.next()
         assert controller.state == constants.LOCATE
 
+    def test_BaseController_next_calls_switch_to_workspace(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        mocked = mocker.patch("arrangeit.base.BaseController.switch_to_workspace")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel(workspace=1001))
+        collection.add(data.WindowModel(workspace=1002))
+        generator = collection.generator()
+        controller = base.BaseController(mocker.MagicMock())
+        controller.run(generator)
+        controller.next()
+        assert mocked.call_count == 1
+
     def test_BaseController_next_calls_set_default_geometry(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
@@ -341,6 +354,35 @@ class TestBaseController(object):
         assert not returned
         returned = controller.next()
         assert returned
+
+    ## BaseController.switch_to_workspace
+    def test_BaseController_switch_to_workspace_calls_activate_workspace(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        app = mocker.MagicMock()
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel(workspace=1001))
+        generator = collection.generator()
+        controller = base.BaseController(app)
+        controller.run(generator)
+        controller.switch_to_workspace()
+        assert app.collector.activate_workspace.call_count == 1
+        calls = [mocker.call(1001)]
+        app.collector.activate_workspace.assert_has_calls(
+            calls, any_order=True
+        )
+
+    def test_BaseController_switch_to_workspace_calls_update_idletasks(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel(workspace=1001))
+        generator = collection.generator()
+        controller = base.BaseController(mocker.MagicMock())
+        controller.run(generator)
+        controller.switch_to_workspace()
+        assert view.return_value.master.update_idletasks.call_count == 1
 
     ## BaseController.update
     def test_BaseController_update_sets_state_to_LOCATE_for_None(self, mocker):

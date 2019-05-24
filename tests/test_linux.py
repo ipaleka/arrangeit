@@ -7,6 +7,7 @@ gi.require_version("Wnck", "3.0")
 gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import Wnck, GdkPixbuf
 from PIL import Image
+from Xlib import X
 import pytest
 
 import arrangeit
@@ -293,14 +294,32 @@ class TestLinuxCollector(object):
 
         assert returned == expected
 
-    ## LinuxCollector.get_available_workspaces
+    ## LinuxCollector._get_available_wnck_workspaces
     @pytest.mark.parametrize(
         "method", ["get_default", "force_update", "get_workspaces"]
     )
-    def test_LinuxCollector_get_available_workspaces_calls_Screen_methods(
+    def test_LinuxCollector__get_available_wnck_workspaces_calls_Screen_methods(
         self, mocker, method
     ):
         mocked = mocker.patch("arrangeit.linux.collector.Wnck.Screen.{}".format(method))
+        Collector()._get_available_wnck_workspaces()
+        mocked.assert_called_once()
+
+    def test_LinuxCollector__get_available_wnck_workspaces_returns_list(
+        self, mocker 
+    ):
+        workspaces = Collector()._get_available_wnck_workspaces()
+        assert isinstance(workspaces, list)
+        if len(workspaces):
+            assert isinstance(workspaces[0], Wnck.Workspace)
+
+    ## LinuxCollector.get_available_workspaces
+    def test_LinuxCollector_get_available_workspaces_calls__get_available_wnck(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector._get_available_wnck_workspaces"
+        )
         Collector().get_available_workspaces()
         mocked.assert_called_once()
 
@@ -326,7 +345,9 @@ class TestLinuxCollector(object):
             "arrangeit.linux.collector.Wnck.Screen.get_workspaces",
             return_value=(ws1, ws2),
         )
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_workspace_number")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_workspace_number"
+        )
         Collector().get_available_workspaces()
         calls = [mocker.call(ws1), mocker.call(ws2)]
         mocked.assert_has_calls(calls, any_order=True)
@@ -343,9 +364,7 @@ class TestLinuxCollector(object):
         assert ws1.get_name.call_count == 1
         assert ws2.get_name.call_count == 1
 
-    def test_LinuxCollector_get_available_workspaces_functionality(
-        self, mocker
-    ):
+    def test_LinuxCollector_get_available_workspaces_functionality(self, mocker):
         ws1, ws2 = mocker.MagicMock(), mocker.MagicMock()
         mocker.patch(
             "arrangeit.linux.collector.Wnck.Screen.get_workspaces",
@@ -359,6 +378,38 @@ class TestLinuxCollector(object):
         ws2.get_name.return_value = "bar"
         returned = Collector().get_available_workspaces()
         assert returned == [(1002, "foo"), (1002, "bar")]
+
+    ## LinuxCollector._get_wnck_workspace_for_custom_number
+    def test_LinuxCollector__get_wnck_workspace_for_custom_number_calls__get_available(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector._get_available_wnck_workspaces"
+        )
+        Collector().activate_workspace(0)
+        mocked.assert_called_once()
+
+    ## LinuxCollector.activate_workspace
+    def test_LinuxCollector_activate_workspace_calls__get_wnck_workspace_for_custom(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector._get_wnck_workspace_for_custom_number"
+        )
+        Collector().activate_workspace(0)
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_activate_workspace_calls_Wnck_Workspace_activate(
+        self, mocker
+    ):
+        mocked = mocker.MagicMock()
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_workspace_number", return_value=0
+        )
+        mocker.patch(
+            "arrangeit.linux.collector.Collector._get_available_wnck_workspaces",
+            return_value=[mocked],
+        )
+        Collector().activate_workspace(0)
+        assert mocked.activate.call_count == 1
+        calls = [mocker.call(X.CurrentTime)]
+        mocked.activate.assert_has_calls(calls, any_order=True)
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter.font import nametofont
 
-from PIL import ImageTk
 import pytest
 
 from arrangeit.data import WindowModel
@@ -479,7 +478,7 @@ class TestWorkspacesCollection(object):
         mocked = mocker.patch("arrangeit.view.Workspace")
         workspaces.add_workspaces(args)
         assert mocked.return_value.place.call_count == len(args)
-        relheight = float(1 / ((len(args) - 1) // 2 + 1))
+        relheight = 0.5 if len(args) < 5 else float(1 / ((len(args) - 1) // 2 + 1))
         calls = []
         for i in range(len(args)):
             calls.append(
@@ -495,7 +494,7 @@ class TestWorkspacesCollection(object):
     ## WorkspacesCollection.select_active
     def test_WorkspacesCollection_select_active_for_single_workspace(self, mocker):
         workspaces = WorkspacesCollection()
-        children = mocker.patch(
+        mocker.patch(
             "arrangeit.view.WorkspacesCollection.winfo_children",
             return_value=[mocker.MagicMock()],
         )

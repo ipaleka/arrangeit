@@ -2,6 +2,8 @@
 pynput==1.4.2
 ## pygobject (GNU/Linux dependency)
 PyGObject==3.32.1
+## python-xlib - dependency number copied from pynput
+python-xlib >= 0.17
 ## pywin32 (MS Windows dependency)
 # pywin32==
 # Pillow
