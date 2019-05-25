@@ -29,9 +29,13 @@ class App(BaseApp):
         :type win: :class:`Wnck.Window` object
         """
         model = self.collector.collection.get_model_by_wid(wid)
+        if model.is_ws_changed:
+            self._move_window_to_workspace(wid, model.changed_ws)
         mask = self.collector.get_window_move_resize_mask(model)
         win = self.collector.get_window_by_wid(wid)
-        return win.set_geometry(Wnck.WindowGravity.CURRENT, mask, *model.changed)
+        if model.changed:
+            win.set_geometry(Wnck.WindowGravity.CURRENT, mask, *model.changed)
+        return False
 
     def move(self, wid):
         """Just calls `move_and_resize` as the same method moves and resizes
@@ -55,8 +59,8 @@ class App(BaseApp):
             return workspace
         return True
 
-    def move_to_workspace(self, wid, number):
-        """Move active window to provided custom workspace number.
+    def _move_window_to_workspace(self, wid, number):
+        """Moves window with provided wid to provided custom workspace number.
 
         It shutdowns Wnck in beginning as this is the only method that uses Wnck
         after initial windows collecting - without shutdown wid is not recognized.
@@ -74,10 +78,22 @@ class App(BaseApp):
         Wnck.shutdown()
         workspace = self._activate_workspace(number)
         if workspace:
-            # FIXME nasty hack wid+1
-            win = self.collector.get_window_by_wid(wid+1)
+            win = self.collector.get_window_by_wid(wid)
             win.move_to_workspace(workspace)
             # TODO X.CurrentTime/0 activates with a warning
             win.activate(X.CurrentTime)
             return False
         return True
+
+    def move_to_workspace(self, wid, number):
+        """Move root window to provided custom workspace number.
+
+        Calls `_move_window_to_workspace` with wid increased by 1.
+        FIXME possible nasty hack wid+1
+
+        :param wid: root id got from Tkinter
+        :type wid: int
+        :param number: our custom workspace number
+        :type number: int
+        """
+        return self._move_window_to_workspace(wid + 1, number)

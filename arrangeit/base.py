@@ -190,7 +190,7 @@ class BaseController(object):
         :type first_time: Boolean
         :returns: Boolean
         """
-        old_workspace = self.model.workspace
+        old_workspace = self.model.changed_ws or self.model.workspace
         try:
             self.model = next(self.generator)
         except StopIteration:
@@ -220,9 +220,9 @@ class BaseController(object):
 
         NOTE this method probably needs refactoring
 
-        :var x: current horizontal axis mouse position in pixels
+        :param x: current horizontal axis mouse position in pixels
         :type x: int
-        :var y: current vertical axis mouse position in pixels
+        :param y: current vertical axis mouse position in pixels
         :type y: int
         """
         if self.state is None:
@@ -231,7 +231,8 @@ class BaseController(object):
         elif self.state == constants.LOCATE:
             self.model.set_changed(x=x, y=y)
             if not self.model.resizable:
-                self.app.run_task("move", self.model.wid)
+                if self.model.changed or self.model.is_ws_changed:
+                    self.app.run_task("move", self.model.wid)
                 self.next()
             else:
                 self.state = constants.RESIZE
@@ -240,7 +241,7 @@ class BaseController(object):
         elif self.state == constants.RESIZE:
             w, h = self.model.wh_from_ending_xy(x, y)
             self.model.set_changed(w=w, h=h)
-            if self.model.changed:  # could be ()
+            if self.model.changed or self.model.is_ws_changed:
                 self.app.run_task("move_and_resize", self.model.wid)
             self.next()
 
@@ -350,10 +351,22 @@ class BaseController(object):
         )
 
     def workspace_activated(self, number):
-        """"""
-        # self.app.run_task(
-        #     "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
-        # )
+        """Activates workspace with humanized number equal to provided number.
+
+        :param number: number of 1 to 9 representing workspace
+        :type number: int
+        :var workspaces: available workspaces in view
+        :type workspaces: :class:`WorkspacesCollection`
+        :var custom_number: our custom workspace number (screen*1000 + workspace)
+        :type custom_number: int
+        """
+        workspaces = self.view.workspaces.winfo_children()
+        if len(workspaces) >= number:
+            custom_number = workspaces[number - 1].number
+            self.app.run_task(
+                "move_to_workspace", self.view.master.winfo_id(), custom_number
+            )
+            self.model.set_changed(ws=custom_number)
 
     ## EVENTS CALLBACKS
     def on_key_pressed(self, event):

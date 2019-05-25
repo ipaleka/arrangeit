@@ -211,6 +211,8 @@ class WorkspacesCollection(tk.Frame):
     :type parent: :class:`.tk.Frame`
     :var active: currently active workspace number
     :type active: int
+    :var capacity: number of children workspaces
+    :type capacity: int
     """
 
     parent = None

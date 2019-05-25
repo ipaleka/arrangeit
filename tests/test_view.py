@@ -844,7 +844,7 @@ class TestWorkspace(object):
         workspace = Workspace(mocker.MagicMock())
         workspace.on_widget_enter(mocker.MagicMock())
         assert mocked.call_count == 2
-        calls = [mocker.call(foreground=constants.HIGHLIGHTED_COLOR)]*2
+        calls = [mocker.call(foreground=constants.HIGHLIGHTED_COLOR)] * 2
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Workspace_on_widget_enter_not_setting_foreground_for_active(self, mocker):
@@ -873,7 +873,7 @@ class TestWorkspace(object):
         workspace = Workspace(mocker.MagicMock())
         workspace.on_widget_leave(mocker.MagicMock())
         assert mocked.call_count == 2
-        calls = [mocker.call(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)]*2
+        calls = [mocker.call(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)] * 2
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Workspace_on_widget_leave_not_setting_foreground_for_active(self, mocker):
@@ -1037,7 +1037,6 @@ class TestListedWindow(object):
         window.setup_bindings()
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
-
 
     ## ListedWindow.on_widget_enter
     def test_ListedWindow_on_widget_enter_sets_foreground(self, mocker):

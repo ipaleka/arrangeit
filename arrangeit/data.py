@@ -111,6 +111,14 @@ class WindowModel(object):
         self.changed = tuple(changed)
 
     @property
+    def is_ws_changed(self):
+        """Checks if workspace has been changed.
+
+        :returns: Boolean
+        """
+        return self.changed_ws is not None and self.changed_ws != self.ws
+
+    @property
     def x(self):
         return self.rect[0] if self.rect is not None else None
 
@@ -163,7 +171,7 @@ class WindowsCollection(object):
         """
         others = sorted(self._members[1:], key=attrgetter("ws"))
         index = next(
-            i for i, model in enumerate(others) if model.ws >= self._members[0].ws
+            (i for i, model in enumerate(others) if model.ws >= self._members[0].ws), 0
         )
         self._members = self._members[:1] + others[index:] + others[:index]
 

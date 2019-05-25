@@ -272,6 +272,23 @@ class TestWindowModel(object):
         model.set_changed(**values)
         assert model.changed == ()
 
+
+    ## WindowModel.is_ws_changed
+    @pytest.mark.parametrize(
+        "changed_ws,ws,expected",
+        [
+            (None, 1001, False),
+            (1002, 1002, False),
+            (1002, 1001, True),
+            (0, 0, False),
+            (0, 1, True),
+        ],
+    )
+    def test_WindowModel_is_ws_changed_functionality(self, changed_ws,ws,expected):
+        model = WindowModel(workspace=ws)
+        model.set_changed(ws=changed_ws)
+        assert model.is_ws_changed is expected
+
     ## WindowModel.x
     def test_WindowModel_x_gets_x_from_rect(self):
         model = WindowModel(rect=SAMPLE_RECT)
@@ -341,6 +358,9 @@ class TestWindowsCollection(object):
             (((2, 0), (1, 1), (2, 2), (0, 3), (2, 4)), [0, 2, 4, 3, 1]),
             (((2, 0), (1, 1), (2, 2)), [0, 2, 1]),
             (((0, 0), (1, 1), (2, 2)), [0, 1, 2]),
+            (((0, 0),), [0,]),
+            (((0, 0), (1, 1)), [0, 1]),
+            (((1, 0), (0, 1), (0, 2)), [0, 1, 2]),  # activates default value for next()
         ],
     )
     def test_WindowsCollection_sort_functionality(self, ws_wid, expected):
