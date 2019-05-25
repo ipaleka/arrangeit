@@ -740,30 +740,6 @@ class TestBaseController(object):
         view.return_value.windows.add_windows.assert_called_once()
         view.return_value.windows.add_windows.assert_called_with(windows_list[1:])
 
-    def test_BaseController_listed_window_activated_initializes_generator(self, mocker):
-        mocked_next(mocker)
-        mocker.patch("arrangeit.base.BaseApp.run_task")
-        generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
-        controller = base.BaseController(base.BaseApp())
-        controller.listed_window_activated(90108)
-        generator.assert_called()
-
-    def test_BaseController_listed_window_activated_sets_generator_attr(self, mocker):
-        mocked_next(mocker)
-        mocker.patch("arrangeit.base.BaseApp.run_task")
-        generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
-        controller = base.BaseController(base.BaseApp())
-        controller.listed_window_activated(90108)
-        assert controller.generator == generator.return_value
-
-    def test_BaseController_listed_window_activated_calls_next(self, mocker):
-        mocked_viewapp(mocker)
-        mocker.patch("arrangeit.base.BaseApp.run_task")
-        mocked = mocker.patch("arrangeit.base.BaseController.next")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.listed_window_activated(90423)
-        mocked.assert_called_once()
-        mocked.assert_called_with(first_time=True)
 
     def test_BaseController_listed_window_activated_calls_recapture_mouse_for_OTHER(
         self, mocker
@@ -801,6 +777,31 @@ class TestBaseController(object):
         controller.state = state
         controller.listed_window_activated(90104)
         mocked.assert_not_called()
+
+    def test_BaseController_listed_window_activated_initializes_generator(self, mocker):
+        mocked_next(mocker)
+        mocker.patch("arrangeit.base.BaseApp.run_task")
+        generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
+        controller = base.BaseController(base.BaseApp())
+        controller.listed_window_activated(90108)
+        generator.assert_called()
+
+    def test_BaseController_listed_window_activated_sets_generator_attr(self, mocker):
+        mocked_next(mocker)
+        mocker.patch("arrangeit.base.BaseApp.run_task")
+        generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
+        controller = base.BaseController(base.BaseApp())
+        controller.listed_window_activated(90108)
+        assert controller.generator == generator.return_value
+
+    def test_BaseController_listed_window_activated_calls_next(self, mocker):
+        mocked_viewapp(mocker)
+        mocker.patch("arrangeit.base.BaseApp.run_task")
+        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.listed_window_activated(90423)
+        mocked.assert_called_once()
+        mocked.assert_called_with(first_time=True)
 
     ## BaseController.place_on_top_left
     def test_BaseController_place_on_top_left_calls_cursor_config(self, mocker):

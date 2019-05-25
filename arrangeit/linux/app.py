@@ -86,7 +86,7 @@ class App(BaseApp):
         return True
 
     def move_to_workspace(self, wid, number):
-        """Move root window to provided custom workspace number.
+        """Moves root window to provided custom workspace number.
 
         Calls `_move_window_to_workspace` with wid increased by 1.
         FIXME possible nasty hack wid+1
@@ -98,7 +98,7 @@ class App(BaseApp):
         """
         return self._move_window_to_workspace(wid + 1, number)
 
-    def rerun_from_window(self, wid, from_wid):
+    def rerun_from_window(self, wid, remove_before):
         """Restart positioning routine from the window with provided wid
 
         without already positioned/skipped windows.
@@ -106,4 +106,4 @@ class App(BaseApp):
         :param wid: windows identifier
         :type wid: int
         """
-        pass
+        self.collector.collection.repopulate_for_wid(wid, remove_before)

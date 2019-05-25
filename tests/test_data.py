@@ -272,7 +272,6 @@ class TestWindowModel(object):
         model.set_changed(**values)
         assert model.changed == ()
 
-
     ## WindowModel.is_ws_changed
     @pytest.mark.parametrize(
         "changed_ws,ws,expected",
@@ -284,7 +283,7 @@ class TestWindowModel(object):
             (0, 1, True),
         ],
     )
-    def test_WindowModel_is_ws_changed_functionality(self, changed_ws,ws,expected):
+    def test_WindowModel_is_ws_changed_functionality(self, changed_ws, ws, expected):
         model = WindowModel(workspace=ws)
         model.set_changed(ws=changed_ws)
         assert model.is_ws_changed is expected
@@ -358,15 +357,15 @@ class TestWindowsCollection(object):
             (((2, 0), (1, 1), (2, 2), (0, 3), (2, 4)), [0, 2, 4, 3, 1]),
             (((2, 0), (1, 1), (2, 2)), [0, 2, 1]),
             (((0, 0), (1, 1), (2, 2)), [0, 1, 2]),
-            (((0, 0),), [0,]),
+            (((0, 0),), [0]),
             (((0, 0), (1, 1)), [0, 1]),
             (((1, 0), (0, 1), (0, 2)), [0, 1, 2]),  # activates default value for next()
         ],
     )
     def test_WindowsCollection_sort_functionality(self, ws_wid, expected):
         collection = WindowsCollection()
-        for el in ws_wid:
-            collection.add(WindowModel(workspace=el[0], wid=el[1]))
+        for elem in ws_wid:
+            collection.add(WindowModel(workspace=elem[0], wid=elem[1]))
         collection.sort()
         assert expected == [model.wid for model in list(collection.generator())]
 
@@ -437,3 +436,23 @@ class TestWindowsCollection(object):
         collection = WindowsCollection()
         returned = collection.get_model_by_wid(300)
         assert returned is None
+
+    ## WindowModel.repopulate_for_wid
+    @pytest.mark.parametrize(
+        "elements,wid,remove_before,expected",
+        [
+            ((100, 200, 300, 400, 500), 400, 200, [400, 500, 200, 300]),
+            ((100, 200, 300, 400, 500, 600, 700, 800), 800, 700, [800, 700]),
+            ((1, 2, 3, 4, 5, 6, 7, 8), 5, 4, [5, 6, 7, 8, 4]),
+            ((1, 2, 3, 4, 5, 6, 7), 2, 1, [2, 3, 4, 5, 6, 7, 1]),
+            ((1, 2, 3), 3, 1, [3, 1, 2]),
+        ],
+    )
+    def test_WindowsCollection_repopulate_for_wid_functionality(
+        self, elements, wid, remove_before, expected
+    ):
+        collection = WindowsCollection()
+        for elem in elements:
+            collection.add(WindowModel(wid=elem))
+        collection.repopulate_for_wid(wid, remove_before)
+        assert expected == [model.wid for model in list(collection.generator())]

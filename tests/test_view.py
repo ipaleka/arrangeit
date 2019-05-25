@@ -324,6 +324,21 @@ class TestViewApplication(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     @pytest.mark.parametrize("event,method", [("<Button-1>", "on_mouse_left_down")])
+    def test_ViewApplication_setup_bindings_root_bind_callbacks(
+        self, mocker, event, method
+    ):
+        mocker.patch("arrangeit.view.tk.StringVar")
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        controller = mocker.MagicMock()
+        master = mocker.MagicMock()
+        view = ViewApplication(master, controller)
+        callback = getattr(controller, method)
+        view.setup_bindings()
+        calls = [mocker.call(event, callback)]
+        master.bind.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_mouse_left_down")])
     def test_ViewApplication_setup_bindings_label_bind_callbacks(
         self, mocker, event, method
     ):

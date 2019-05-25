@@ -72,17 +72,27 @@ class ViewApplication(tk.Frame):
         self.setup_workspaces()
         self.setup_windows()
 
+        ## TODO delete code from below
         temp_quit = tk.Button(
             self, text="QUIT", fg="red", command=self.controller.shutdown
         )
-        temp_quit.place(rely=1.0, relx=1.0, anchor="se")
+        temp_quit.place(rely=1.0, relx=1.0, x=-4, y=-4, anchor="se")
+        try:
+            self.master["background"] = "gray"
+            self["background"] = "blue"
+        except TypeError:
+            pass
 
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
 
+        NOTE master is None check exists solely because unit tests
+
         `bind_all` method is used so events can be catch in label widget too.
         """
         self.bind("<Button-1>", self.controller.on_mouse_left_down)
+        if self.master is not None:
+            self.master.bind("<Button-1>", self.controller.on_mouse_left_down)
         self.title_label.bind("<Button-1>", self.controller.on_mouse_left_down)
         self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)

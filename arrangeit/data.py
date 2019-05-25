@@ -216,3 +216,29 @@ class WindowsCollection(object):
             return next(model for model in self._members if model.wid == wid)
         except StopIteration:
             return None
+
+    def repopulate_for_wid(self, wid, remove_before):
+        """Repopulates collection starting from the window with identifier `wid`
+
+        without including models placed before provided `remove_before`.
+
+        :param wid: window id (xid, hwnd, ...)
+        :type wid: int
+        :param remove_before: window id (xid, hwnd, ...)
+        :type wid: int
+
+        :var start_index: index of model that is going to become the first
+        :type start_index: int
+        :var remove_index: index of first model that is not going to be removed
+        :type remove_index: int
+        """
+        start_index = next(
+            i for i, model in enumerate(self._members) if model.wid == wid
+        )
+        remove_index = next(
+            i for i, model in enumerate(self._members) if model.wid == remove_before
+        )
+        self._members = (
+            self._members[start_index:] + self._members[remove_index:start_index]
+        )
+

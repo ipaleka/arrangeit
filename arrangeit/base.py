@@ -317,10 +317,10 @@ class BaseController(object):
         self.view.windows.add_windows(
             self.app.collector.collection.get_windows_list()[1:]
         )
-        self.generator = self.app.collector.collection.generator()
-        self.next(first_time=True)
         if self.state == constants.OTHER:
             self.recapture_mouse()
+        self.generator = self.app.collector.collection.generator()
+        self.next(first_time=True)
 
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
