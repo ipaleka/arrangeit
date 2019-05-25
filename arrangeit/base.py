@@ -50,9 +50,6 @@ class BaseApp(object):
         """
         return getattr(self, task)(*args)
 
-    def save_default(self, *args):
-        print("finished: save_default with args ", args)
-
     def move_and_resize(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
@@ -64,6 +61,13 @@ class BaseApp(object):
     def move_to_workspace(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
+
+    def rerun_from_window(self, *args):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def save_default(self, *args):
+        print("finished: save_default with args ", args)
 
 
 class BaseController(object):
@@ -288,9 +292,35 @@ class BaseController(object):
                 )
             )
 
+    def listed_window_activated_by_digit(self, number):
+        """Activates listed window by its ordinal in list presented by provided number.
+
+        :param number: number of 1 to 16 representing ordinal in list
+        :type number: int
+        :var windows: available workspaces in view
+        :type windows: :class:`WorkspacesCollection`
+        """
+        windows = self.view.windows.winfo_children()
+        if len(windows) >= number:
+            self.listed_window_activated(windows[number - 1].wid)
+
     def listed_window_activated(self, wid):
-        """"""
-        pass
+        """Calls task that restarts positioning routine from provided window id
+
+        not including windows prior to current model.
+
+        :var wid: windows identifier
+        :type wid: int
+        """
+        self.app.run_task("rerun_from_window", wid, self.model.wid)
+        self.view.windows.clear_list()
+        self.view.windows.add_windows(
+            self.app.collector.collection.get_windows_list()[1:]
+        )
+        self.generator = self.app.collector.collection.generator()
+        self.next(first_time=True)
+        if self.state == constants.OTHER:
+            self.recapture_mouse()
 
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
@@ -409,7 +439,7 @@ class BaseController(object):
             self.workspace_activated_by_digit(int(event.keysym[-1]))
 
         elif event.keysym in ["F{}".format(i) for i in range(1, 17)]:
-            self.listed_window_activated(int(event.keysym[1:]))
+            self.listed_window_activated_by_digit(int(event.keysym[1:]))
 
         return "break"
 

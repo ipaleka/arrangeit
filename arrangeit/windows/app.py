@@ -7,8 +7,3 @@ class App(BaseApp):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def move_and_resize(self, wid):
-        pass
-
-    def move(self, wid):
-        pass

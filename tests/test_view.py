@@ -302,7 +302,9 @@ class TestViewApplication(object):
             ("<Key>", "on_key_pressed"),
         ],
     )
-    def test_ViewApplication_setup_bindings_bind_all_callbacks(self, mocker, event, method):
+    def test_ViewApplication_setup_bindings_bind_all_callbacks(
+        self, mocker, event, method
+    ):
         controller = mocker.MagicMock()
         view = ViewApplication(None, controller)
         callback = getattr(controller, method)
@@ -311,12 +313,7 @@ class TestViewApplication(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    @pytest.mark.parametrize(
-        "event,method",
-        [
-            ("<Button-1>", "on_mouse_left_down"),
-        ],
-    )
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_mouse_left_down")])
     def test_ViewApplication_setup_bindings_bind_callbacks(self, mocker, event, method):
         controller = mocker.MagicMock()
         view = ViewApplication(None, controller)
@@ -326,13 +323,10 @@ class TestViewApplication(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    @pytest.mark.parametrize(
-        "event,method",
-        [
-            ("<Button-1>", "on_mouse_left_down"),
-        ],
-    )
-    def test_ViewApplication_setup_bindings_label_bind_callbacks(self, mocker, event, method):
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_mouse_left_down")])
+    def test_ViewApplication_setup_bindings_label_bind_callbacks(
+        self, mocker, event, method
+    ):
         controller = mocker.MagicMock()
         view = ViewApplication(None, controller)
         callback = getattr(controller, method)
@@ -606,9 +600,7 @@ class TestWorkspacesCollection(object):
         master = mocker.MagicMock()
         workspaces = WorkspacesCollection(master=master)
         event = mocker.MagicMock()
-        type(event.widget.master).number = mocker.PropertyMock(
-            return_value=1002
-        )
+        type(event.widget.master).number = mocker.PropertyMock(return_value=1002)
         workspaces.on_workspace_label_button_down(event)
         master.controller.workspace_activated.assert_called_with(1002)
 
@@ -695,6 +687,27 @@ class TestWindowsList(object):
             calls.append(mocker.call(window.return_value, current))
         mocked.assert_has_calls(calls, any_order=True)
 
+    ## WindowsList.clear_list
+    def test_WindowsList_clear_list_calls_winfo_children(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.view.WindowsList.winfo_children",
+            return_value=[mocker.MagicMock()],
+        )
+        windows = WindowsList()
+        windows.clear_list()
+        mocked.assert_called_once()
+
+    def test_WindowsList_clear_list_calls_widget_destroy(self, mocker):
+        widget1 = mocker.MagicMock()
+        widget2 = mocker.MagicMock()
+        mocker.patch(
+            "arrangeit.view.WindowsList.winfo_children", return_value=[widget1, widget2]
+        )
+        windows = WindowsList()
+        windows.clear_list()
+        widget1.destroy.assert_called_once()
+        widget2.destroy.assert_called_once()
+
     ## WindowsList.place_widget_on_position
     def test_WindowsList_place_widget_on_position_calls_place_on_frame(self, mocker):
         master = mocker.MagicMock()
@@ -741,6 +754,22 @@ class TestWindowsList(object):
             mocker.call(widget2, 2),
         ]
         mocked.assert_has_calls(calls, any_order=True)
+
+    ## WindowsList.on_window_label_button_down
+    def test_WindowsList_on_window_label_button_down_calls_listed_window_activated(
+        self, mocker
+    ):
+        master = mocker.MagicMock()
+        windows = WindowsList(master=master)
+        event = mocker.MagicMock()
+        type(event.widget.master).wid = mocker.PropertyMock(return_value=5432)
+        windows.on_window_label_button_down(event)
+        master.controller.listed_window_activated.assert_called_with(5432)
+
+    def test_WindowsList_on_window_label_button_returns_break(self, mocker):
+        windows = WindowsList(mocker.MagicMock())
+        returned = windows.on_window_label_button_down(mocker.MagicMock())
+        assert returned == "break"
 
 
 class TestWorkspace(object):
@@ -993,6 +1022,8 @@ class TestListedWindow(object):
 
     @pytest.mark.parametrize("attr", ["master", "wid", "title"])
     def test_ListedWindow_init_sets_attributes(self, mocker, attr):
+        mocker.patch("arrangeit.view.ListedWindow.setup_bindings")
+        mocker.patch("arrangeit.view.ListedWindow.setup_widgets")
         mocked = mocker.MagicMock()
         kwargs = {attr: mocked}
         window = ListedWindow(**kwargs)
@@ -1006,6 +1037,7 @@ class TestListedWindow(object):
 
     def test_ListedWindow_init_calls_setup_widgets(self, mocker):
         master = mocker.MagicMock()
+        mocker.patch("arrangeit.view.ListedWindow.setup_bindings")
         mocked = mocker.patch("arrangeit.view.ListedWindow.setup_widgets")
         ListedWindow(master=master)
         mocked.assert_called_once()
@@ -1018,6 +1050,7 @@ class TestListedWindow(object):
 
     ## ListedWindow.get_icon_image
     def test_ListedWindow_get_icon_image_calls_ImageTk_PhotoImage(self, mocker):
+        mocker.patch("arrangeit.view.ListedWindow.setup_bindings")
         master = mocker.MagicMock()
         mocker.patch("arrangeit.view.ListedWindow.setup_widgets")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
@@ -1071,8 +1104,12 @@ class TestListedWindow(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_ListedWindow_setup_widgets_calls_label_place(self, mocker):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
-        window = ListedWindow(None, mocker.MagicMock())
+        window = ListedWindow(mocker.MagicMock(), mocker.MagicMock())
         mocked.call_count = 0
         window.setup_widgets()
         assert mocked.call_count == 2
@@ -1092,8 +1129,12 @@ class TestListedWindow(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_ListedWindow_setup_widgets_calls_config_background(self, mocker):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Frame.config")
-        window = ListedWindow(None, mocker.MagicMock())
+        window = ListedWindow(mocker.MagicMock(), mocker.MagicMock())
         mocked.call_count = 0
         window.setup_widgets()
         assert mocked.call_count == 1
@@ -1105,11 +1146,32 @@ class TestListedWindow(object):
         "event,method", [("<Enter>", "on_widget_enter"), ("<Leave>", "on_widget_leave")]
     )
     def test_ListedWindow_setup_bindings_callbacks(self, mocker, event, method):
-        window = ListedWindow(None)
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        window = ListedWindow(mocker.MagicMock())
         callback = getattr(window, method)
         mocked = mocker.patch("arrangeit.view.ListedWindow.bind")
         window.setup_bindings()
         calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize(
+        "event,method", [("<Button-1>", "on_window_label_button_down")]
+    )
+    def test_ListedWindow_setup_bindings_labels_master_callbacks(
+        self, mocker, event, method
+    ):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        window = ListedWindow(mocker.MagicMock())
+        callback = getattr(window.master, method)
+        mocked = mocker.patch("arrangeit.view.tk.Label.bind")
+        window.setup_bindings()
+        calls = [mocker.call(event, callback), mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
     ## ListedWindow.on_widget_enter

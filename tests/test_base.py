@@ -94,12 +94,38 @@ class TestBaseApp(object):
     ## BaseApp.run_task
     @pytest.mark.parametrize(
         "task, args",
-        [("move", (50,)), ("move_and_resize", (100,)), ("save_default", ())],
+        [
+            ("move", (50,)),
+            ("move_and_resize", (100,)),
+            ("move_to_workspace", (50001, 1001)),
+            ("rerun_from_window", (20001,)),
+            ("save_default", ()),
+        ],
     )
     def test_BaseApp_run_task_calls_related_methods(self, mocker, task, args):
         mocked = mocker.patch("arrangeit.base.BaseApp.{}".format(task))
         base.BaseApp().run_task(task, *args)
         mocked.assert_called_with(*args)
+
+    ## BaseApp.move_and_resize
+    def test_BaseApp_move_and_resize_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().move_and_resize()
+
+    ## BaseApp.move
+    def test_BaseApp_move_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().move()
+
+    ## BaseApp.move_to_workspace
+    def test_BaseApp_move_to_workspace_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().move_to_workspace()
+
+    ## BaseApp.rerun_from_window
+    def test_BaseApp_rerun_from_window_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().rerun_from_window()
 
 
 class TestBaseCollector(object):
@@ -151,7 +177,9 @@ class TestBaseCollector(object):
             base.BaseCollector().get_workspace_number(None)
 
     ## BaseCollector.get_workspace_number_for_window
-    def test_BaseCollector_get_workspace_number_for_window_raises_NotImplementedError(self):
+    def test_BaseCollector_get_workspace_number_for_window_raises_NotImplementedError(
+        self
+    ):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().get_workspace_number_for_window(None)
 

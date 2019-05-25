@@ -295,23 +295,13 @@ class WorkspacesCollection(tk.Frame):
         self.active = number
 
     def on_workspace_label_button_down(self, event):
-        """Activates workspace by number carried with event.
+        """Activates workspace by number carried with provided event.
 
         :var event: catched event
         :type event: Tkinter event
         """
         self.master.controller.workspace_activated(event.widget.master.number)
         return "break"
-
-    def highlight_workspace(self, number):
-        """Visually emphasizes child workspace having provided number
-
-        and reset highlighting in other children to default.
-
-        :var number: number of workspace to highlight
-        :type number: int
-        """
-        pass
 
 
 class WindowsList(tk.Frame):
@@ -341,6 +331,11 @@ class WindowsList(tk.Frame):
             widget = ListedWindow(self, wid=window[0], title=window[1], icon=window[2])
             self.place_widget_on_position(widget, i)
 
+    def clear_list(self):
+        """Destroys all children widgets."""
+        for widget in self.winfo_children():
+            widget.destroy()
+
     def place_widget_on_position(self, widget, position):
         """Configure placement and place provided widget at provided vertical position.
 
@@ -364,25 +359,14 @@ class WindowsList(tk.Frame):
         for i, widget in enumerate(self.winfo_children()):
             self.place_widget_on_position(widget, i)
 
-    def on_child_activated(self, event):
-        """Calls master's controller method in charge for window activation.
+    def on_window_label_button_down(self, event):
+        """Activates window by wid carried with provided event.
 
         :var event: catched event
         :type event: Tkinter event
         """
-        pass
-        # self.master.controller.listed_window_activated(event.widget.wid)
-        # return "break"
-
-    def highlight_window(self, wid):
-        """Visually emphasizes child window having provided wid
-
-        and reset highlighting in other children to default.
-
-        :var wid: window id to highlight
-        :type wid: int
-        """
-        pass
+        self.master.controller.listed_window_activated(event.widget.master.wid)
+        return "break"
 
 
 class Workspace(tk.Frame):
@@ -561,7 +545,7 @@ class ListedWindow(tk.Frame):
             relwidth=constants.LISTED_WINDOW_RELWIDTH,
         )
 
-        icon_label = tk.Label(
+        self.icon_label = tk.Label(
             self,
             image=self.icon,
             background=constants.LISTED_ICON_LABEL_BG,
@@ -569,7 +553,7 @@ class ListedWindow(tk.Frame):
             padx=constants.LISTED_ICON_LABEL_PADX,
             pady=constants.LISTED_ICON_LABEL_PADY,
         )
-        icon_label.place(
+        self.icon_label.place(
             x=constants.LISTED_ICON_LABEL_PADX / 2,
             rely=0.5,
             relheight=1.0,
@@ -581,6 +565,8 @@ class ListedWindow(tk.Frame):
         """Binds relevant events to related callback."""
         self.bind("<Enter>", self.on_widget_enter)
         self.bind("<Leave>", self.on_widget_leave)
+        self.title_label.bind("<Button-1>", self.master.on_window_label_button_down)
+        self.icon_label.bind("<Button-1>", self.master.on_window_label_button_down)
 
     def on_widget_enter(self, event):
         """Highlights widget by changing foreground color."""

@@ -97,3 +97,13 @@ class App(BaseApp):
         :type number: int
         """
         return self._move_window_to_workspace(wid + 1, number)
+
+    def rerun_from_window(self, wid, from_wid):
+        """Restart positioning routine from the window with provided wid
+
+        without already positioned/skipped windows.
+
+        :param wid: windows identifier
+        :type wid: int
+        """
+        pass
