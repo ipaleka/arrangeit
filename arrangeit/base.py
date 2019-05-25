@@ -1,5 +1,3 @@
-import asyncio
-import threading
 from inspect import iscoroutinefunction
 
 from arrangeit import constants
@@ -45,50 +43,25 @@ class BaseApp(object):
         self.controller.run(self.collector.collection.generator())
 
     def run_task(self, task, *args):
-        """Runs provided task with provided args asynchronously in separate thread.
+        """Runs provided task with provided args
 
         :param task: task name
         :type task: str
         """
-        self.run_in_separate_thread(task, *args)
+        return getattr(self, task)(*args)
 
-    def run_in_separate_thread(self, task, *args):
-        """Initializes and starts a new Thread instance with `run_asynchronously` target
-
-        callback and provided task name and args as arguments.
-
-        :param task: task name
-        :type task: str
-        """
-        threading.Thread(target=self.run_asynchronously, args=(task, *args)).start()
-
-    def run_asynchronously(self, task, *args):
-        """Executes asynchronous callback having provided name with provided args
-
-        in a newly created asyncio event loop if such callback exists.
-
-        :param task: task name
-        :type task: str
-        :var callback: callback having name of the `task` argument
-        :type callback: async type(:class:`BaseApp`) method
-        """
-        callback = getattr(self, task, None)
-        if iscoroutinefunction(callback):
-            asyncio.new_event_loop().run_until_complete(callback(*args))
-
-    async def save_default(self, *args):
-        await asyncio.sleep(0.1)
+    def save_default(self, *args):
         print("finished: save_default with args ", args)
 
-    async def move_and_resize(self, *args):
+    def move_and_resize(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
 
-    async def move(self, *args):
+    def move(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
 
-    async def move_to_workspace(self, *args):
+    def move_to_workspace(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
 
@@ -227,6 +200,7 @@ class BaseController(object):
 
         if not first_time:
             self.state = constants.LOCATE  # we need state to be None during startup
+            self.remove_listed_window(self.model.wid)
             if self.model.workspace != old_workspace:
                 self.switch_workspace()
 
@@ -257,7 +231,6 @@ class BaseController(object):
         elif self.state == constants.LOCATE:
             self.model.set_changed(x=x, y=y)
             if not self.model.resizable:
-                self.remove_listed_window(self.model.wid)
                 self.app.run_task("move", self.model.wid)
                 self.next()
             else:
@@ -267,7 +240,6 @@ class BaseController(object):
         elif self.state == constants.RESIZE:
             w, h = self.model.wh_from_ending_xy(x, y)
             self.model.set_changed(w=w, h=h)
-            self.remove_listed_window(self.model.wid)
             if self.model.changed:  # could be ()
                 self.app.run_task("move_and_resize", self.model.wid)
             self.next()
@@ -369,8 +341,7 @@ class BaseController(object):
 
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""
-        if not self.next():
-            self.remove_listed_window(self.model.wid)
+        self.next()
 
     def switch_workspace(self):
         """Activates workspace and moves root window onto it."""

@@ -383,31 +383,24 @@ class TestWindowsCollection(object):
         with pytest.raises(StopIteration):
             next(generator)
 
-
-@pytest.mark.asyncio
-class TestAsyncWindowsCollection(object):
-    """Testing class for :py:class:`arrangeit.data.WindowsCollection` async methods."""
-
     ## WindowModel.get_model_by_wid
-    async def test_WindowsCollection_get_model_by_wid_valid_wid(self):
+    def test_WindowsCollection_get_model_by_wid_valid_wid(self):
         collection = WindowsCollection()
         collection.add(WindowModel(wid=100))
         model = WindowModel(wid=200)
         collection.add(model)
         collection.add(WindowModel(wid=300))
-        returned = await collection.get_model_by_wid(200)
+        returned = collection.get_model_by_wid(200)
         assert returned == model
 
-    @pytest.mark.asyncio
-    async def test_WindowsCollection_get_model_by_wid_invalid_wid(self):
+    def test_WindowsCollection_get_model_by_wid_invalid_wid(self):
         collection = WindowsCollection()
         collection.add(WindowModel(wid=100))
         collection.add(WindowModel(wid=200))
-        returned = await collection.get_model_by_wid(300)
+        returned = collection.get_model_by_wid(300)
         assert returned is None
 
-    @pytest.mark.asyncio
-    async def test_WindowsCollection_get_model_by_wid_empty_collection(self):
+    def test_WindowsCollection_get_model_by_wid_empty_collection(self):
         collection = WindowsCollection()
-        returned = await collection.get_model_by_wid(300)
+        returned = collection.get_model_by_wid(300)
         assert returned is None

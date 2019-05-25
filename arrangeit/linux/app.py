@@ -15,7 +15,7 @@ class App(BaseApp):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    async def move_and_resize(self, wid):
+    def move_and_resize(self, wid):
         """Moves and resizes window having provided wid.
 
         Gravity stays the same (Wnck.WindowGravity.CURRENT) and the other arguments
@@ -28,19 +28,19 @@ class App(BaseApp):
         :var win: window instance
         :type win: :class:`Wnck.Window` object
         """
-        model = await self.collector.collection.get_model_by_wid(wid)
-        mask = await self.collector.get_window_move_resize_mask(model)
-        win = await self.collector.get_window_by_wid(wid)
+        model = self.collector.collection.get_model_by_wid(wid)
+        mask = self.collector.get_window_move_resize_mask(model)
+        win = self.collector.get_window_by_wid(wid)
         return win.set_geometry(Wnck.WindowGravity.CURRENT, mask, *model.changed)
 
-    async def move(self, wid):
+    def move(self, wid):
         """Just calls `move_and_resize` as the same method moves and resizes
 
         in Wnck.Window class under GNU/Linux.
         """
-        return await self.move_and_resize(wid)
+        return self.move_and_resize(wid)
 
-    async def activate_workspace(self, number, return_workspace=False):
+    def activate_workspace(self, number, return_workspace=False):
         """Activates workspace identified by provided our custom workspace number."""
         workspace = self.collector.get_wnck_workspace_for_custom_number(number)
         if workspace:
@@ -48,13 +48,13 @@ class App(BaseApp):
             return workspace if return_workspace else False
         return True
 
-    async def move_to_workspace(self, wid, number):
+    def move_to_workspace(self, wid, number):
         """Move active window to provided custom workspace number."""
         Wnck.shutdown()
-        workspace = await self.activate_workspace(number, return_workspace=True)
+        workspace = self.activate_workspace(number, return_workspace=True)
         if workspace:
             # FIXME nasty hack wid+1
-            win = await self.collector.get_window_by_wid(wid+1)
+            win = self.collector.get_window_by_wid(wid+1)
             win.move_to_workspace(workspace)
             # TODO X.CurrentTime/0 activates with a warning
             win.activate(X.CurrentTime)

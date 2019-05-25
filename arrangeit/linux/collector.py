@@ -196,7 +196,7 @@ class Collector(BaseCollector):
         except StopIteration:
             return False
 
-    async def get_window_by_wid(self, wid):
+    def get_window_by_wid(self, wid):
         """Returns window instance having provided wid.
 
         :var wid: window id
@@ -205,7 +205,7 @@ class Collector(BaseCollector):
         """
         return Wnck.Window.get(wid)
 
-    async def get_window_move_resize_mask(self, model):
+    def get_window_move_resize_mask(self, model):
         """Returns flag indicating what is changed when we move/resize window.
 
         Returned flag is combination of the X, Y, WIDTH and HEIGHT bits.

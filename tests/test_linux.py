@@ -1,6 +1,5 @@
 import os
 
-import asynctest
 import gi
 
 gi.require_version("Wnck", "3.0")
@@ -15,6 +14,151 @@ from arrangeit.data import WindowModel
 from arrangeit.linux.app import App
 from arrangeit.linux.collector import Collector
 from arrangeit.linux.controller import Controller
+
+
+class TestLinuxApp(object):
+
+    ## LinuxApp.move_and_resize
+    def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        with pytest.raises(AttributeError):
+            app.move_and_resize(100)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        app = App()
+        with pytest.raises(AttributeError):
+            app.move_and_resize(100)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_and_resize_c_get_window_move_resize_mask(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask"
+        )
+        app = App()
+        with pytest.raises(AttributeError):
+            app.move_and_resize(100)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        mocked.return_value.set_geometry.return_value = 200
+        returned = app.move_and_resize(100)
+        assert returned == 200
+
+    ## LinuxApp.move
+    def test_LinuxApp_move_calls_move_and_resize(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.app.App.move_and_resize")
+        app = App()
+        app.move(100)
+        mocked.assert_called()
+        mocked.assert_called_with(100)
+
+    ## LinuxApp.activate_workspace
+    def test_LinuxApp_activate_workspace_calls__get_wnck_workspace_for_custom(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        app = App()
+        app.activate_workspace(1000)
+        mocked.assert_called()
+        mocked.assert_called_with(1000)
+
+    def test_LinuxApp_activate_workspace_calls_Wnck_Workspace_activate(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        app = App()
+        app.activate_workspace(1000)
+        assert mocked.return_value.activate.call_count == 1
+
+    def test_LinuxApp_activate_workspace_returns_True(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        mocked.return_value = False
+        app = App()
+        returned = app.activate_workspace(1000)
+        assert returned is True
+
+    def test_LinuxApp_activate_workspace_returns_False(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        app = App()
+        returned = app.activate_workspace(1000)
+        assert returned is False
+
+    def test_LinuxApp_activate_workspace_returns_workspace(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        app = App()
+        returned = app.activate_workspace(1000, return_workspace=True)
+        assert returned == mocked.return_value
+
+    ## LinuxApp.move_to_workspace
+    def test_LinuxApp_move_to_workspace_calls_Wnck_shutdown(self, mocker):
+        mocked_ws = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocked_ws.return_value = False
+        mocked = mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        app = App()
+        app.move_to_workspace(500, 1000)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_to_workspace_calls_Wnck_Workspace_activate(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocked = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        app = App()
+        app.move_to_workspace(500, 1000)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(1000, return_workspace=True)
+
+    def test_LinuxApp_move_to_workspace_calls_get_window_by_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        app = App()
+        app.move_to_workspace(500, 1000)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(501)
+
+    def test_LinuxApp_move_to_workspace_calls_win_move_to_workspace(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocked_ws = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        app = App()
+        app.move_to_workspace(500, 1000)
+        assert mocked.return_value.move_to_workspace.call_count == 1
+        mocked.return_value.move_to_workspace.assert_called_with(mocked_ws.return_value)
+
+    def test_LinuxApp_move_to_workspace_calls_win_activate(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        app = App()
+        app.move_to_workspace(500, 1000)
+        assert mocked.return_value.activate.call_count == 1
+        mocked.return_value.activate.assert_called_with(X.CurrentTime)
+
+    def test_LinuxApp_move_to_workspace_returns_False(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        app = App()
+        returned = app.move_to_workspace(500, 1000)
+        assert returned is False
+
+    def test_LinuxApp_move_to_workspace_returns_True(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocked = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocked.return_value = False
+        app = App()
+        returned = app.move_to_workspace(500, 1000)
+        assert returned is True
 
 
 class TestLinuxController(object):
@@ -396,180 +540,20 @@ class TestLinuxCollector(object):
         Collector().get_wnck_workspace_for_custom_number(0)
         mocked.assert_called()
 
-
-@pytest.mark.asyncio
-class TestAsyncLinuxCollector(object):
-    """Testing class for :py:class:`arrangeit.linux.Collector` async methods."""
-
     ## LinuxCollector.get_window_by_wid
-    async def test_LinuxCollector_get_window_by_wid_calls_Wnck_Window_get(self, mocker):
+    def test_LinuxCollector_get_window_by_wid_calls_Wnck_Window_get(self, mocker):
         mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window")
         collector = Collector()
-        await collector.get_window_by_wid(100)
+        collector.get_window_by_wid(100)
         assert mocked.get.call_count == 1
 
     ## LinuxCollector.get_window_move_resize_mask
-    async def test_LinuxCollector_get_window_move_resize_mask_all(self):
+    def test_LinuxCollector_get_window_move_resize_mask_all(self):
         collector = Collector()
-        returned = await collector.get_window_move_resize_mask(WindowModel())
+        returned = collector.get_window_move_resize_mask(WindowModel())
         assert returned == (
             Wnck.WindowMoveResizeMask.X
             | Wnck.WindowMoveResizeMask.Y
             | Wnck.WindowMoveResizeMask.WIDTH
             | Wnck.WindowMoveResizeMask.HEIGHT
         )
-
-
-class TestAsyncLinuxApp(asynctest.TestCase):
-
-    ## LinuxApp.move_and_resize
-    @asynctest.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-    async def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocked):
-        app = App()
-        with self.assertRaises(AttributeError):
-            await app.move_and_resize(100)
-        mocked.assert_called()
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    async def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocked):
-        app = App()
-        with self.assertRaises(AttributeError):
-            await app.move_and_resize(100)
-        mocked.assert_called()
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-    async def test_LinuxApp_move_and_resize_c_get_window_move_resize_mask(self, mocked):
-        app = App()
-        with self.assertRaises(AttributeError):
-            await app.move_and_resize(100)
-        mocked.assert_called()
-
-    @asynctest.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    async def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(
-        self, mocked_win, mocked_model
-    ):
-        app = App()
-        mocked_win.return_value.set_geometry.return_value = 200
-        returned = await app.move_and_resize(100)
-        self.assertEqual(returned, 200)
-
-    ## LinuxApp.move
-    @asynctest.patch("arrangeit.linux.app.App.move_and_resize")
-    async def test_LinuxApp_move_calls_move_and_resize(self, mocked):
-        app = App()
-        await app.move(100)
-        mocked.assert_called()
-        mocked.assert_called_with(100)
-
-    ## LinuxApp.activate_workspace
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number")
-    async def test_LinuxApp_activate_workspace_calls__get_wnck_workspace_for_custom(
-        self, mocked
-    ):
-        app = App()
-        await app.activate_workspace(1000)
-        mocked.assert_called()
-        mocked.assert_called_with(1000)
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number")
-    async def test_LinuxApp_activate_workspace_calls_Wnck_Workspace_activate(
-        self, mocked
-    ):
-        app = App()
-        await app.activate_workspace(1000)
-        assert mocked.return_value.activate.call_count == 1
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number")
-    async def test_LinuxApp_activate_workspace_returns_True(
-        self, mocked
-    ):
-        mocked.return_value = False
-        app = App()
-        returned = await app.activate_workspace(1000)
-        assert returned is True
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number")
-    async def test_LinuxApp_activate_workspace_returns_False(
-        self, mocked
-    ):
-        app = App()
-        returned = await app.activate_workspace(1000)
-        assert returned is False
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number")
-    async def test_LinuxApp_activate_workspace_returns_workspace(
-        self, mocked
-    ):
-        app = App()
-        returned = await app.activate_workspace(1000, return_workspace=True)
-        assert returned == mocked.return_value
-
-    ## LinuxApp.move_to_workspace
-    @asynctest.patch("arrangeit.linux.app.App.activate_workspace")
-    @asynctest.patch("arrangeit.linux.app.Wnck.shutdown")
-    async def test_LinuxApp_move_to_workspace_calls_Wnck_shutdown(
-        self, mocked, mocked_ws
-    ):
-        mocked_ws.return_value = False
-        app = App()
-        await app.move_to_workspace(500, 1000)
-        mocked.assert_called()
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    @asynctest.patch("arrangeit.linux.app.App.activate_workspace")
-    async def test_LinuxApp_move_to_workspace_calls_Wnck_Workspace_activate(
-        self, mocked, mocked_win
-    ):
-        app = App()
-        await app.move_to_workspace(500, 1000)
-        assert mocked.call_count == 1
-        mocked.assert_called_with(1000, return_workspace=True)
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    @asynctest.patch("arrangeit.linux.app.App.activate_workspace")
-    async def test_LinuxApp_move_to_workspace_calls_get_window_by_wid(
-        self, mocked_ws, mocked_win
-    ):
-        app = App()
-        await app.move_to_workspace(500, 1000)
-        assert mocked_win.call_count == 1
-        mocked_win.assert_called_with(501)
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    @asynctest.patch("arrangeit.linux.app.App.activate_workspace")
-    async def test_LinuxApp_move_to_workspace_calls_win_move_to_workspace(
-        self, mocked_ws, mocked_win
-    ):
-        app = App()
-        await app.move_to_workspace(500, 1000)
-        assert mocked_win.return_value.move_to_workspace.call_count == 1
-        mocked_win.return_value.move_to_workspace.assert_called_with(mocked_ws.return_value)
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    @asynctest.patch("arrangeit.linux.app.App.activate_workspace")
-    async def test_LinuxApp_move_to_workspace_calls_win_activate(
-        self, mocked_ws, mocked_win
-    ):
-        app = App()
-        await app.move_to_workspace(500, 1000)
-        assert mocked_win.return_value.activate.call_count == 1
-        mocked_win.return_value.activate.assert_called_with(X.CurrentTime)
-
-    @asynctest.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-    @asynctest.patch("arrangeit.linux.app.App.activate_workspace")
-    async def test_LinuxApp_move_to_workspace_returns_False(
-        self, mocked_ws, mocked_win
-    ):
-        app = App()
-        returned = await app.move_to_workspace(500, 1000)
-        assert returned is False
-
-    @asynctest.patch("arrangeit.linux.app.App.activate_workspace")
-    async def test_LinuxApp_move_to_workspace_returns_True(
-        self, mocked_ws
-    ):
-        mocked_ws.return_value = False
-        app = App()
-        returned = await app.move_to_workspace(500, 1000)
-        assert returned is True

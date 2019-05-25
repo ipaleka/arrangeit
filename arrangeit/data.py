@@ -186,7 +186,7 @@ class WindowsCollection(object):
             (model.wid, model.title, model.icon) for model in list(self.generator())
         ]
 
-    async def get_model_by_wid(self, wid):
+    def get_model_by_wid(self, wid):
         """Returns window model having provided wid from collection.
 
         :param wid: window id (xid, hwnd, ...)

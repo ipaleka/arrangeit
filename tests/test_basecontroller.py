@@ -444,20 +444,6 @@ class TestBaseController(object):
         controller.update(101, 202)
         mocked.assert_called_with("move", 2002)
 
-    def test_BaseController_update_calls_remove_listed_window_LOCATE_and_not_resizable(
-        self, mocker
-    ):
-        mocked_next(mocker)
-        mocker.patch("arrangeit.base.BaseApp.run_task")
-        model = mocker.patch("arrangeit.base.WindowModel")
-        type(model.return_value).resizable = mocker.PropertyMock(return_value=False)
-        type(model.return_value).wid = mocker.PropertyMock(return_value=3003)
-        mocked = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
-        controller = base.BaseController(base.BaseApp())
-        controller.state = constants.LOCATE
-        controller.update(101, 202)
-        mocked.assert_called_with(3003)
-
     def test_BaseController_update_calls_next_for_LOCATE_and_not_resizable(
         self, mocker
     ):
@@ -542,19 +528,6 @@ class TestBaseController(object):
         controller.state = constants.RESIZE
         controller.update(101, 202)
         method.assert_called_with("move_and_resize", 5005)
-
-    def test_BaseController_update_calls_remove_listed_window_for_RESIZE(self, mocker):
-        mocked_next(mocker)
-        mocker.patch("arrangeit.base.BaseApp.run_task")
-        model = mocker.patch("arrangeit.base.WindowModel")
-        type(model.return_value).wid = mocker.PropertyMock(return_value=6006)
-        model.return_value.wh_from_ending_xy.return_value = (100, 100)
-        type(model.return_value).changed = mocker.PropertyMock(return_value=(200, 200))
-        method = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
-        controller = base.BaseController(base.BaseApp())
-        controller.state = constants.RESIZE
-        controller.update(101, 202)
-        method.assert_called_with(6006)
 
     def test_BaseController_update_skips_run_task_move_and_resize_window_for_RESIZE(
         self, mocker
@@ -879,28 +852,6 @@ class TestBaseController(object):
         mocked = mocker.patch("arrangeit.base.BaseController.next")
         base.BaseController(mocker.MagicMock()).skip_current_window()
         assert mocked.call_count == 1
-
-    def test_BaseController_skip_current_window_calls_remove_listed_window(
-        self, mocker
-    ):
-        mock_main_loop(mocker)
-        mocker.patch("arrangeit.base.BaseController.next", return_value=False)
-        mocked = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.model.wid = 505
-        controller.skip_current_window()
-        assert mocked.call_count == 1
-        mocked.assert_called_with(505)
-
-    def test_BaseController_skip_current_window_not_calling_remove_listed_window(
-        self, mocker
-    ):
-        mock_main_loop(mocker)
-        mocker.patch("arrangeit.base.BaseController.next", return_value=True)
-        mocked = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.skip_current_window()
-        assert mocked.call_count == 0
 
     ## BaseController.remove_listed_window
     def test_BaseController_remove_listed_window_calls_widget_destroy(self, mocker):
