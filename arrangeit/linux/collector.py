@@ -1,8 +1,9 @@
 import gi
-gi.require_version("Wnck", "3.0")
-from gi.repository import Wnck
 from PIL import Image
 from Xlib import X
+
+gi.require_version("Wnck", "3.0")
+from gi.repository import Wnck
 
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
@@ -180,7 +181,7 @@ class Collector(BaseCollector):
             )
         return collection
 
-    def _get_wnck_workspace_for_custom_number(self, number):
+    def get_wnck_workspace_for_custom_number(self, number):
         """Returns :class:`Wnck.Workspace` instance from provided custom number.
 
         :var number: our custom workspace number
@@ -194,12 +195,6 @@ class Collector(BaseCollector):
             )
         except StopIteration:
             return False
-
-    def activate_workspace(self, number):
-        """Activates workspace identified by provided our custom workspace number."""
-        workspace = self._get_wnck_workspace_for_custom_number(number)
-        if workspace:
-            workspace.activate(X.CurrentTime)
 
     async def get_window_by_wid(self, wid):
         """Returns window instance having provided wid.

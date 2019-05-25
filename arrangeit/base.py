@@ -82,12 +82,14 @@ class BaseApp(object):
 
     async def move_and_resize(self, *args):
         """Method must be overridden."""
-        # print("*************************NotImplementedError", args)
         raise NotImplementedError
 
     async def move(self, *args):
         """Method must be overridden."""
-        # print("*************************NotImplementedError", args)
+        raise NotImplementedError
+
+    async def move_to_workspace(self, *args):
+        """Method must be overridden."""
         raise NotImplementedError
 
 
@@ -226,7 +228,7 @@ class BaseController(object):
         if not first_time:
             self.state = constants.LOCATE  # we need state to be None during startup
             if self.model.workspace != old_workspace:
-                self.switch_to_workspace()
+                self.switch_workspace()
 
         self.set_default_geometry(self.view.master)
         self.place_on_top_left()
@@ -271,67 +273,6 @@ class BaseController(object):
             self.next()
 
     ## COMMANDS
-    def switch_to_workspace(self):
-        """Activates workspace and moves root window onto it."""
-        self.app.collector.activate_workspace(self.model.workspace)
-        self.view.master.update_idletasks()
-
-    def skip_current_window(self):
-        """Calls `next` and then destroys that new window from the windows list."""
-        if not self.next():
-            self.remove_listed_window(self.model.wid)
-
-    def workspace_activated(self, number):
-        """"""
-        pass
-
-    def listed_window_activated(self, wid):
-        """"""
-        pass
-
-    def remove_listed_window(self, wid):
-        """Destroys window widget from windows list and refreshes the list afterward.
-
-        :var wid: id of window that will be destroyed
-        :type wid: int
-        """
-        try:
-            next(
-                widget
-                for widget in self.view.windows.winfo_children()
-                if widget.wid == wid
-            ).destroy()
-        except StopIteration:
-            pass
-        self.view.windows.place_children()
-
-    def place_on_top_left(self):
-        """Changes and moves cursor to model's top left position.
-
-        Cursor is changed to default config. Also calls `on_mouse_move` to force
-        moving if the app is just instantiated.
-        """
-        self.view.master.config(cursor="ul_angle")
-        move_cursor(self.model.x, self.model.y)
-        self.on_mouse_move(self.model.x, self.model.y)
-
-    def place_on_right_bottom(self):
-        """Changes and moves cursor to model's bottom right position
-
-        and so indirectly resizes master. Cursor is changed to resize config.
-        """
-        self.view.master.config(cursor="lr_angle")
-        move_cursor(
-            self.model.changed[0] + self.model.w, self.model.changed[1] + self.model.h
-        )
-
-    def release_mouse(self):
-        """Changes cursor, stops listener and switches to third state."""
-        self.view.unbind_events()
-        self.view.master.config(cursor="left_ptr")
-        self.state = constants.OTHER
-        self.listener.stop()
-
     def change_position(self, x, y):
         """Changes root window position to provided x and y.
 
@@ -374,28 +315,79 @@ class BaseController(object):
                 )
             )
 
+    def listed_window_activated(self, wid):
+        """"""
+        pass
+
+    def place_on_top_left(self):
+        """Changes and moves cursor to model's top left position.
+
+        Cursor is changed to default config. Also calls `on_mouse_move` to force
+        moving if the app is just instantiated.
+        """
+        self.view.master.config(cursor="ul_angle")
+        move_cursor(self.model.x, self.model.y)
+        self.on_mouse_move(self.model.x, self.model.y)
+
+    def place_on_right_bottom(self):
+        """Changes and moves cursor to model's bottom right position
+
+        and so indirectly resizes master. Cursor is changed to resize config.
+        """
+        self.view.master.config(cursor="lr_angle")
+        move_cursor(
+            self.model.changed[0] + self.model.w, self.model.changed[1] + self.model.h
+        )
+
+    def remove_listed_window(self, wid):
+        """Destroys window widget from windows list and refreshes the list afterward.
+
+        :var wid: id of window that will be destroyed
+        :type wid: int
+        """
+        try:
+            next(
+                widget
+                for widget in self.view.windows.winfo_children()
+                if widget.wid == wid
+            ).destroy()
+        except StopIteration:
+            pass
+        self.view.windows.place_children()
+
+    def release_mouse(self):
+        """Changes cursor, stops listener and switches to third state."""
+        self.view.unbind_events()
+        self.view.master.config(cursor="left_ptr")
+        self.state = constants.OTHER
+        self.listener.stop()
+
     def shutdown(self):
         """Stops mouse listener and destroys Tkinter root window."""
         self.listener.stop()
         self.view.master.destroy()
 
+    def skip_current_window(self):
+        """Calls `next` and then destroys that new window from the windows list."""
+        if not self.next():
+            self.remove_listed_window(self.model.wid)
+
+    def switch_workspace(self):
+        """Activates workspace and moves root window onto it."""
+        self.app.run_task(
+            "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
+        )
+
+    def workspace_activated(self, number):
+        """"""
+        # self.app.collector.activate_workspace(self.model.workspace)
+        # self.view.master.update()
+        # import time
+        # time.sleep(1)
+        # self.view.master.wm_attributes("-type", "dialog")
+        # self.view.master.update_idletasks()
+
     ## EVENTS CALLBACKS
-    def on_mouse_move(self, x, y):
-        """Moves root Tkinter window to provided mouse coordinates.
-
-        Adds negative constants.WINDOW_SHIFT_PIXELS to mouse position for better presentation.
-
-        :var x: absolute horizontal axis mouse position in pixels
-        :type x: int
-        :var y: absolute vertical axis mouse position in pixels
-        :type y: int
-        """
-        if self.state in (None, constants.LOCATE):
-            self.change_position(x, y)
-
-        elif self.state == constants.RESIZE:
-            self.change_size(x, y)
-
     def on_key_pressed(self, event):
         """Calls method related to pressed key.
 
@@ -423,6 +415,22 @@ class BaseController(object):
             self.listed_window_activated(int(event.keysym[1:]))
 
         return "break"
+
+    def on_mouse_move(self, x, y):
+        """Moves root Tkinter window to provided mouse coordinates.
+
+        Adds negative constants.WINDOW_SHIFT_PIXELS to mouse position for better presentation.
+
+        :var x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :var y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
+        if self.state in (None, constants.LOCATE):
+            self.change_position(x, y)
+
+        elif self.state == constants.RESIZE:
+            self.change_size(x, y)
 
     def on_mouse_left_down(self, event):
         """Calls update_model with current cursor position

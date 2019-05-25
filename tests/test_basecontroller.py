@@ -157,13 +157,15 @@ class TestBaseController(object):
             calls, any_order=True
         )
 
-    def test_BaseController_prepare_view_calls_WindowsList_add_windows_without_first(self, mocker):
+    def test_BaseController_prepare_view_calls_WindowsList_add_windows_without_first(
+        self, mocker
+    ):
         view = get_mocked_viewapp(mocker)
         app = mocker.MagicMock()
-        app.collector.collection.get_windows_list.return_value = [1, 2, ]
+        app.collector.collection.get_windows_list.return_value = [1, 2]
         base.BaseController(app).prepare_view()
         assert view.return_value.windows.add_windows.call_count == 1
-        calls = [mocker.call([2, ])]
+        calls = [mocker.call([2])]
         view.return_value.windows.add_windows.assert_has_calls(calls, any_order=True)
 
     ## BaseController.run
@@ -254,10 +256,10 @@ class TestBaseController(object):
         controller.next()
         assert controller.state == constants.LOCATE
 
-    def test_BaseController_next_calls_switch_to_workspace(self, mocker):
+    def test_BaseController_next_calls_switch_workspace(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocked = mocker.patch("arrangeit.base.BaseController.switch_to_workspace")
+        mocked = mocker.patch("arrangeit.base.BaseController.switch_workspace")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel(workspace=1001))
         collection.add(data.WindowModel(workspace=1002))
@@ -355,34 +357,34 @@ class TestBaseController(object):
         returned = controller.next()
         assert returned
 
-    ## BaseController.switch_to_workspace
-    def test_BaseController_switch_to_workspace_calls_activate_workspace(self, mocker):
+    ## BaseController.switch_workspace
+    def test_BaseController_switch_workspace_calls_winfo_id(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        app = mocker.MagicMock()
-        collection = data.WindowsCollection()
-        collection.add(data.WindowModel(workspace=1001))
-        generator = collection.generator()
-        controller = base.BaseController(app)
-        controller.run(generator)
-        controller.switch_to_workspace()
-        assert app.collector.activate_workspace.call_count == 1
-        calls = [mocker.call(1001)]
-        app.collector.activate_workspace.assert_has_calls(
-            calls, any_order=True
-        )
-
-    def test_BaseController_switch_to_workspace_calls_update_idletasks(self, mocker):
-        mock_main_loop(mocker)
-        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        mocker.patch("arrangeit.base.BaseApp.run_task")
         view = mocker.patch("arrangeit.base.ViewApplication")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel(workspace=1001))
         generator = collection.generator()
-        controller = base.BaseController(mocker.MagicMock())
+        controller = base.BaseController(base.BaseApp())
         controller.run(generator)
-        controller.switch_to_workspace()
-        assert view.return_value.master.update_idletasks.call_count == 1
+        controller.switch_workspace()
+        view.return_value.master.winfo_id.call_count == 1
+
+    def test_BaseController_switch_workspace_calls_task_move_to_workspace(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.BaseApp.run_task")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel(workspace=1001))
+        generator = collection.generator()
+        controller = base.BaseController(base.BaseApp())
+        controller.run(generator)
+        controller.switch_workspace()
+        mocked.assert_called_with(
+            "move_to_workspace", view.return_value.master.winfo_id.return_value, 1001
+        )
 
     ## BaseController.update
     def test_BaseController_update_sets_state_to_LOCATE_for_None(self, mocker):
@@ -878,7 +880,9 @@ class TestBaseController(object):
         base.BaseController(mocker.MagicMock()).skip_current_window()
         assert mocked.call_count == 1
 
-    def test_BaseController_skip_current_window_calls_remove_listed_window(self, mocker):
+    def test_BaseController_skip_current_window_calls_remove_listed_window(
+        self, mocker
+    ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.next", return_value=False)
         mocked = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
@@ -888,7 +892,9 @@ class TestBaseController(object):
         assert mocked.call_count == 1
         mocked.assert_called_with(505)
 
-    def test_BaseController_skip_current_window_not_calling_remove_listed_window(self, mocker):
+    def test_BaseController_skip_current_window_not_calling_remove_listed_window(
+        self, mocker
+    ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.next", return_value=True)
         mocked = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
@@ -906,7 +912,9 @@ class TestBaseController(object):
         controller.remove_listed_window(100)
         assert widget.destroy.call_count == 1
 
-    def test_BaseController_remove_listed_window_not_calling_destroy_for_wrong_widget(self, mocker):
+    def test_BaseController_remove_listed_window_not_calling_destroy_for_wrong_widget(
+        self, mocker
+    ):
         view = get_mocked_viewapp(mocker)
         widget = mocker.MagicMock()
         type(widget).wid = 100
@@ -919,7 +927,7 @@ class TestBaseController(object):
         view = get_mocked_viewapp(mocker)
         widget = mocker.MagicMock()
         type(widget).wid = 100
-        view.return_value.windows.winfo_children.return_value = [widget,]
+        view.return_value.windows.winfo_children.return_value = [widget]
         controller = base.BaseController(mocker.MagicMock())
         # mocked = mocker.patch("arrangeit.view.WindowsList.place_children")
         controller.remove_listed_window(100)
