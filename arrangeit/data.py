@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from arrangeit import constants
 from arrangeit.utils import get_value_if_valid_type
 
@@ -151,10 +153,19 @@ class WindowsCollection(object):
         """Sorts collection for presentation queue.
 
         First model stays first and the others are sorted by their workspace first
-        and then on current position. <starts from workspace number 0 when all 
+        and then on current position. <starts from workspace number 0 when all
         the windows from greater workspaces numbers are exhausted.
+
+        :var others: sorted list without first element
+        :type others: list
+        :var index: index of first element having greater or equal workspace like first
+        :type index: int
         """
-        pass
+        others = sorted(self._members[1:], key=attrgetter("ws"))
+        index = next(
+            i for i, model in enumerate(others) if model.ws >= self._members[0].ws
+        )
+        self._members = self._members[:1] + others[index:] + others[:index]
 
     def add(self, instance):
         """Adds given instance to _members list.

@@ -332,10 +332,23 @@ class TestWindowsCollection(object):
         assert collection.size == 0
 
     ## WindowsCollection.sort
-    @pytest.mark.skip(reason="waiting for tkinter widgets functionality")
-    @pytest.mark.parametrize("wses", [(1004, 1003, 1004, 1004, 1006), (0, 3, 1, 0, 1)])
-    def test_WindowsCollection_sort_functionality(self, wses):
-        assert False
+    @pytest.mark.parametrize(
+        "ws_wid,expected",
+        [
+            (((1004, 0), (1003, 1), (1004, 2), (1004, 3), (1006, 4)), [0, 2, 3, 4, 1]),
+            (((0, 0), (2, 1), (1, 2), (0, 3), (1, 4)), [0, 3, 2, 4, 1]),
+            (((2, 0), (1, 1), (1, 2), (4, 3), (2, 4)), [0, 4, 3, 1, 2]),
+            (((2, 0), (1, 1), (2, 2), (0, 3), (2, 4)), [0, 2, 4, 3, 1]),
+            (((2, 0), (1, 1), (2, 2)), [0, 2, 1]),
+            (((0, 0), (1, 1), (2, 2)), [0, 1, 2]),
+        ],
+    )
+    def test_WindowsCollection_sort_functionality(self, ws_wid, expected):
+        collection = WindowsCollection()
+        for el in ws_wid:
+            collection.add(WindowModel(workspace=el[0], wid=el[1]))
+        collection.sort()
+        assert expected == [model.wid for model in list(collection.generator())]
 
     ## WindowsCollection.get_windows_list
     def test_WindowsCollection_get_windows_calls_generator(self, mocker):

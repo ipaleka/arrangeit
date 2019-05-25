@@ -163,6 +163,7 @@ class TestBaseCollector(object):
     ## BaseCollector.run
     def test_BaseCollector_run_calls_get_windows(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseCollector.get_windows")
+        mocker.patch("arrangeit.data.WindowsCollection.sort")
         base.BaseCollector().run()
         mocked.assert_called_once()
 
@@ -170,6 +171,7 @@ class TestBaseCollector(object):
         mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=(0,))
         mocked = mocker.patch("arrangeit.base.BaseCollector.check_window")
         mocker.patch("arrangeit.base.BaseCollector.add_window")
+        mocker.patch("arrangeit.data.WindowsCollection.sort")
         base.BaseCollector().run()
         mocked.assert_called_once()
 
@@ -177,6 +179,7 @@ class TestBaseCollector(object):
     def test_BaseCollector_run_calls_add_window(self, mocker, elements):
         mocker.patch("arrangeit.base.BaseCollector.get_windows", return_value=elements)
         mocker.patch("arrangeit.base.BaseCollector.check_window")
+        mocker.patch("arrangeit.data.WindowsCollection.sort")
         mocked = mocker.patch("arrangeit.base.BaseCollector.add_window")
         base.BaseCollector().run()
         if len(elements) > 0:

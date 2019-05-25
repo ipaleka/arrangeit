@@ -378,6 +378,7 @@ class TestLinuxCollector(object):
             "arrangeit.linux.collector.Collector.is_valid_state",
             side_effect=is_valid_state,
         )
+        mocker.patch("arrangeit.data.WindowsCollection.sort")
         collector = Collector()
         collector.run()
         assert collector.collection.size == value
