@@ -351,12 +351,9 @@ class BaseController(object):
 
     def workspace_activated(self, number):
         """"""
-        # self.app.collector.activate_workspace(self.model.workspace)
-        # self.view.master.update()
-        # import time
-        # time.sleep(1)
-        # self.view.master.wm_attributes("-type", "dialog")
-        # self.view.master.update_idletasks()
+        # self.app.run_task(
+        #     "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
+        # )
 
     ## EVENTS CALLBACKS
     def on_key_pressed(self, event):
@@ -485,10 +482,6 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def get_available_workspaces(self, win):
-        """Method must be overridden."""
-        raise NotImplementedError
-
-    def activate_workspace(self, number):
         """Method must be overridden."""
         raise NotImplementedError
 

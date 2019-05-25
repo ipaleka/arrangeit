@@ -40,18 +40,39 @@ class App(BaseApp):
         """
         return self.move_and_resize(wid)
 
-    def activate_workspace(self, number, return_workspace=False):
-        """Activates workspace identified by provided our custom workspace number."""
+    def _activate_workspace(self, number):
+        """Activates workspace identified by provided our custom workspace number.
+
+        :param number: our custom workspace number
+        :type number: int
+        :var workspace: workspace to move to
+        :type workspace: :class:`Wnck.Workspace`
+        :returns: :class:`Wnck.Workspace`
+        """
         workspace = self.collector.get_wnck_workspace_for_custom_number(number)
         if workspace:
             workspace.activate(X.CurrentTime)
-            return workspace if return_workspace else False
+            return workspace
         return True
 
     def move_to_workspace(self, wid, number):
-        """Move active window to provided custom workspace number."""
+        """Move active window to provided custom workspace number.
+
+        It shutdowns Wnck in beginning as this is the only method that uses Wnck
+        after initial windows collecting - without shutdown wid is not recognized.
+
+        :param wid: windows id
+        :type wid: int
+        :param number: our custom workspace number
+        :type number: int
+        :var workspace: workspace to move to
+        :type workspace: :class:`Wnck.Workspace`
+        :var win: window instance
+        :type win: :class:`Wnck.Window`
+        :returns: Boolean
+        """
         Wnck.shutdown()
-        workspace = self.activate_workspace(number, return_workspace=True)
+        workspace = self._activate_workspace(number)
         if workspace:
             # FIXME nasty hack wid+1
             win = self.collector.get_window_by_wid(wid+1)

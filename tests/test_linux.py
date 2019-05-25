@@ -59,54 +59,46 @@ class TestLinuxApp(object):
         mocked.assert_called()
         mocked.assert_called_with(100)
 
-    ## LinuxApp.activate_workspace
-    def test_LinuxApp_activate_workspace_calls__get_wnck_workspace_for_custom(
+    ## LinuxApp._activate_workspace
+    def test_LinuxApp__activate_workspace_calls__get_wnck_workspace_for_custom(
         self, mocker
     ):
         mocked = mocker.patch(
             "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
         )
         app = App()
-        app.activate_workspace(1000)
+        app._activate_workspace(1000)
         mocked.assert_called()
         mocked.assert_called_with(1000)
 
-    def test_LinuxApp_activate_workspace_calls_Wnck_Workspace_activate(self, mocker):
+    def test_LinuxApp__activate_workspace_calls_Wnck_Workspace_activate(self, mocker):
         mocked = mocker.patch(
             "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
         )
         app = App()
-        app.activate_workspace(1000)
+        app._activate_workspace(1000)
         assert mocked.return_value.activate.call_count == 1
 
-    def test_LinuxApp_activate_workspace_returns_True(self, mocker):
+    def test_LinuxApp__activate_workspace_returns_True(self, mocker):
         mocked = mocker.patch(
             "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
         )
         mocked.return_value = False
         app = App()
-        returned = app.activate_workspace(1000)
+        returned = app._activate_workspace(1000)
         assert returned is True
 
-    def test_LinuxApp_activate_workspace_returns_False(self, mocker):
+    def test_LinuxApp__activate_workspace_returns_workspace(self, mocker):
         mocked = mocker.patch(
             "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
         )
         app = App()
-        returned = app.activate_workspace(1000)
-        assert returned is False
-
-    def test_LinuxApp_activate_workspace_returns_workspace(self, mocker):
-        mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
-        )
-        app = App()
-        returned = app.activate_workspace(1000, return_workspace=True)
+        returned = app._activate_workspace(1000)
         assert returned == mocked.return_value
 
     ## LinuxApp.move_to_workspace
     def test_LinuxApp_move_to_workspace_calls_Wnck_shutdown(self, mocker):
-        mocked_ws = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocked_ws = mocker.patch("arrangeit.linux.app.App._activate_workspace")
         mocked_ws.return_value = False
         mocked = mocker.patch("arrangeit.linux.app.Wnck.shutdown")
         app = App()
@@ -115,15 +107,15 @@ class TestLinuxApp(object):
 
     def test_LinuxApp_move_to_workspace_calls_Wnck_Workspace_activate(self, mocker):
         mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocked = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocked = mocker.patch("arrangeit.linux.app.App._activate_workspace")
         app = App()
         app.move_to_workspace(500, 1000)
         assert mocked.call_count == 1
-        mocked.assert_called_with(1000, return_workspace=True)
+        mocked.assert_called_with(1000)
 
     def test_LinuxApp_move_to_workspace_calls_get_window_by_wid(self, mocker):
         mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocker.patch("arrangeit.linux.app.App._activate_workspace")
         app = App()
         app.move_to_workspace(500, 1000)
         assert mocked.call_count == 1
@@ -131,7 +123,7 @@ class TestLinuxApp(object):
 
     def test_LinuxApp_move_to_workspace_calls_win_move_to_workspace(self, mocker):
         mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocked_ws = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocked_ws = mocker.patch("arrangeit.linux.app.App._activate_workspace")
         app = App()
         app.move_to_workspace(500, 1000)
         assert mocked.return_value.move_to_workspace.call_count == 1
@@ -139,7 +131,7 @@ class TestLinuxApp(object):
 
     def test_LinuxApp_move_to_workspace_calls_win_activate(self, mocker):
         mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocker.patch("arrangeit.linux.app.App._activate_workspace")
         app = App()
         app.move_to_workspace(500, 1000)
         assert mocked.return_value.activate.call_count == 1
@@ -147,14 +139,14 @@ class TestLinuxApp(object):
 
     def test_LinuxApp_move_to_workspace_returns_False(self, mocker):
         mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocker.patch("arrangeit.linux.app.App._activate_workspace")
         app = App()
         returned = app.move_to_workspace(500, 1000)
         assert returned is False
 
     def test_LinuxApp_move_to_workspace_returns_True(self, mocker):
         mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocked = mocker.patch("arrangeit.linux.app.App.activate_workspace")
+        mocked = mocker.patch("arrangeit.linux.app.App._activate_workspace")
         mocked.return_value = False
         app = App()
         returned = app.move_to_workspace(500, 1000)

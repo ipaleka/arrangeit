@@ -160,11 +160,6 @@ class TestBaseCollector(object):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().get_available_workspaces(None)
 
-    ## BaseCollector.activate_workspace
-    def test_BaseCollector_activate_workspace_raises_NotImplementedError(self):
-        with pytest.raises(NotImplementedError):
-            base.BaseCollector().activate_workspace(None)
-
     ## BaseCollector.run
     def test_BaseCollector_run_calls_get_windows(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseCollector.get_windows")
