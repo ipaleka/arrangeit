@@ -98,6 +98,7 @@ class TestViewApplication(object):
         assert mocked.call_count == 1
 
     def test_ViewApplication_inits_calls_setup_widgets(self, mocker):
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
         ViewApplication(None, mocker.MagicMock())
         assert mocked.call_count == 1
@@ -211,7 +212,7 @@ class TestViewApplication(object):
         view.setup_workspaces()
         assert isinstance(view.workspaces, WorkspacesCollection)
 
-    def test_ViewApplication_setup_workspaces_sets_viewapp_as_parent(self, mocker):
+    def test_ViewApplication_setup_workspaces_sets_viewapp_as_master(self, mocker):
         mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
         view = ViewApplication(None, mocker.MagicMock())
         view.setup_workspaces()
@@ -238,7 +239,7 @@ class TestViewApplication(object):
         view.setup_windows()
         assert isinstance(view.windows, WindowsList)
 
-    def test_ViewApplication_setup_windows_sets_viewapp_as_parent(self, mocker):
+    def test_ViewApplication_setup_windows_sets_viewapp_as_master(self, mocker):
         mocked = mocker.patch("arrangeit.view.WindowsList")
         view = ViewApplication(None, mocker.MagicMock())
         view.setup_windows()
@@ -257,6 +258,7 @@ class TestViewApplication(object):
         )
 
     def test_ViewApplication_setup_widgets_calls_setup_title(self, mocker):
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_title")
         view = ViewApplication(None, mocker.MagicMock())
         mocked.call_count = 0
@@ -295,17 +297,46 @@ class TestViewApplication(object):
     @pytest.mark.parametrize(
         "event,method",
         [
-            ("<Button-1>", "on_mouse_left_down"),
             ("<Button-2>", "on_mouse_middle_down"),
             ("<Button-3>", "on_mouse_right_down"),
             ("<Key>", "on_key_pressed"),
         ],
     )
-    def test_ViewApplication_setup_bindings_callbacks(self, mocker, event, method):
+    def test_ViewApplication_setup_bindings_bind_all_callbacks(self, mocker, event, method):
         controller = mocker.MagicMock()
         view = ViewApplication(None, controller)
         callback = getattr(controller, method)
         mocked = mocker.patch("arrangeit.view.ViewApplication.bind_all")
+        view.setup_bindings()
+        calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize(
+        "event,method",
+        [
+            ("<Button-1>", "on_mouse_left_down"),
+        ],
+    )
+    def test_ViewApplication_setup_bindings_bind_callbacks(self, mocker, event, method):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.ViewApplication.bind")
+        view.setup_bindings()
+        calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize(
+        "event,method",
+        [
+            ("<Button-1>", "on_mouse_left_down"),
+        ],
+    )
+    def test_ViewApplication_setup_bindings_label_bind_callbacks(self, mocker, event, method):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.tk.Label.bind")
         view.setup_bindings()
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
@@ -429,36 +460,36 @@ class TestWorkspacesCollection(object):
     def test_WorkspacesCollection_issubclass_of_Frame(self):
         assert issubclass(WorkspacesCollection, tk.Frame)
 
-    @pytest.mark.parametrize("attr", ["parent", "active"])
+    @pytest.mark.parametrize("attr", ["master", "active"])
     def test_WorkspacesCollection_inits_attr_as_None(self, attr):
         assert getattr(WorkspacesCollection, attr) is None
 
     ## WorkspacesCollection.__init__
-    def test_WorkspacesCollection_init_calls_super_with_parent_arg(self, mocker):
+    def test_WorkspacesCollection_init_calls_super_with_master_arg(self, mocker):
         mocker.patch("arrangeit.view.tk.Frame.config")
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
-        WorkspacesCollection(parent=parent)
-        mocked.assert_called_with(parent)
+        WorkspacesCollection(master=master)
+        mocked.assert_called_with(master)
 
-    def test_WorkspacesCollection_init_sets_parent_attribute(self, mocker):
-        parent = mocker.MagicMock()
-        workspaces = WorkspacesCollection(parent)
-        assert workspaces.parent == parent
+    def test_WorkspacesCollection_init_sets_master_attribute(self, mocker):
+        master = mocker.MagicMock()
+        workspaces = WorkspacesCollection(master)
+        assert workspaces.master == master
 
     def test_WorkspacesCollection_init_calls_config_background(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Frame.config")
-        parent = mocker.MagicMock()
-        WorkspacesCollection(parent)
+        master = mocker.MagicMock()
+        WorkspacesCollection(master)
         assert mocked.call_count == 1
         calls = [mocker.call(background=constants.WORKSPACE_NUMBER_LABEL_BG)]
         mocked.assert_has_calls(calls, any_order=True)
 
     ## WorkspacesCollection.add_workspaces
     def test_WorkspacesCollection_add_workspaces_initializes_Workspace(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.Workspace")
-        workspaces = WorkspacesCollection(parent=parent)
+        workspaces = WorkspacesCollection(master=master)
         args = [(0, "foo"), (1, "bar")]
         workspaces.add_workspaces(args)
         assert mocked.call_count == 2
@@ -469,9 +500,9 @@ class TestWorkspacesCollection(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_WorkspacesCollection_add_workspaces_not_calling_place(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocker.patch("arrangeit.view.Workspace")
-        workspaces = WorkspacesCollection(parent=parent)
+        workspaces = WorkspacesCollection(master=master)
         mocked = mocker.patch("arrangeit.view.tk.Frame")
         workspaces.add_workspaces([(0, "foo")])
         mocked.return_value.place.assert_not_called()
@@ -488,9 +519,9 @@ class TestWorkspacesCollection(object):
     def test_WorkspacesCollection_add_workspaces_calls_place_on_frame(
         self, mocker, args
     ):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocker.patch("arrangeit.view.Workspace")
-        workspaces = WorkspacesCollection(parent=parent)
+        workspaces = WorkspacesCollection(master=master)
         mocked = mocker.patch("arrangeit.view.Workspace")
         workspaces.add_workspaces(args)
         assert mocked.return_value.place.call_count == len(args)
@@ -568,6 +599,24 @@ class TestWorkspacesCollection(object):
         workspaces.select_active(1000)
         assert workspaces.active == 1000
 
+    ## WorkspacesCollection.on_workspace_label_button_down
+    def test_WorkspacesCollection_on_workspace_label_button_down_calls_workspace_active(
+        self, mocker
+    ):
+        master = mocker.MagicMock()
+        workspaces = WorkspacesCollection(master=master)
+        event = mocker.MagicMock()
+        type(event.widget.master).number = mocker.PropertyMock(
+            return_value=1002
+        )
+        workspaces.on_workspace_label_button_down(event)
+        master.controller.workspace_activated.assert_called_with(1002)
+
+    def test_WorkspacesCollection_on_workspace_label_button_returns_break(self, mocker):
+        workspaces = WorkspacesCollection(mocker.MagicMock())
+        returned = workspaces.on_workspace_label_button_down(mocker.MagicMock())
+        assert returned == "break"
+
 
 class TestWindowsList(object):
     """Unit testing class for WindowsList class."""
@@ -576,27 +625,27 @@ class TestWindowsList(object):
     def test_WindowsList_issubclass_of_Frame(self):
         assert issubclass(WindowsList, tk.Frame)
 
-    @pytest.mark.parametrize("attr", ["parent"])
+    @pytest.mark.parametrize("attr", ["master"])
     def test_WindowsList_inits_attr_as_None(self, attr):
         assert getattr(WindowsList, attr) is None
 
     ## WindowsList.__init__
-    def test_WindowsList_init_calls_super_with_parent_arg(self, mocker):
-        parent = mocker.MagicMock()
+    def test_WindowsList_init_calls_super_with_master_arg(self, mocker):
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
-        WindowsList(parent=parent)
-        mocked.assert_called_with(parent)
+        WindowsList(master=master)
+        mocked.assert_called_with(master)
 
-    def test_WindowsList_init_sets_parent_attribute(self, mocker):
-        parent = mocker.MagicMock()
-        windows = WindowsList(parent)
-        assert windows.parent == parent
+    def test_WindowsList_init_sets_master_attribute(self, mocker):
+        master = mocker.MagicMock()
+        windows = WindowsList(master)
+        assert windows.master == master
 
     ## WindowsList.add_windows
     def test_WindowsList_add_windows_initializes_ListedWindow(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.ListedWindow")
-        windows = WindowsList(parent=parent)
+        windows = WindowsList(master=master)
         windows_list = [
             (100, "foo", constants.BLANK_ICON),
             (200, "bar", constants.BLANK_ICON),
@@ -635,8 +684,8 @@ class TestWindowsList(object):
         ],
     )
     def test_WindowsList_add_windows_calls_place_widget_on_position(self, mocker, args):
-        parent = mocker.MagicMock()
-        windows = WindowsList(parent=parent)
+        master = mocker.MagicMock()
+        windows = WindowsList(master=master)
         mocked = mocker.patch("arrangeit.view.WindowsList.place_widget_on_position")
         window = mocker.patch("arrangeit.view.ListedWindow")
         windows.add_windows(args)
@@ -648,8 +697,8 @@ class TestWindowsList(object):
 
     ## WindowsList.place_widget_on_position
     def test_WindowsList_place_widget_on_position_calls_place_on_frame(self, mocker):
-        parent = mocker.MagicMock()
-        windows = WindowsList(parent=parent)
+        master = mocker.MagicMock()
+        windows = WindowsList(master=master)
         mocked = mocker.MagicMock()
         windows.place_widget_on_position(mocked, 0)
         calls = [
@@ -674,7 +723,7 @@ class TestWindowsList(object):
 
     ## WindowsList.place_children
     def test_WindowsList_place_children_calls_place_widget_on_position(self, mocker):
-        windows = WindowsList(parent=mocker.MagicMock())
+        windows = WindowsList(master=mocker.MagicMock())
         mocked = mocker.patch("arrangeit.view.WindowsList.place_widget_on_position")
         widget0 = mocker.MagicMock()
         widget1 = mocker.MagicMock()
@@ -702,36 +751,39 @@ class TestWorkspace(object):
         assert issubclass(Workspace, tk.Frame)
 
     @pytest.mark.parametrize(
-        "attr,value", [("parent", None), ("number", 0), ("name", "")]
+        "attr,value", [("master", None), ("number", 0), ("name", "")]
     )
     def test_Workspace_inits_attr_as_empty(self, attr, value):
         assert getattr(Workspace, attr) == value
 
     ## Workspace.__init__
-    def test_Workspace_init_calls_super_with_parent_arg(self, mocker):
-        parent = mocker.MagicMock()
+    def test_Workspace_init_calls_super_with_master_arg(self, mocker):
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         with pytest.raises(AttributeError):
-            Workspace(parent=parent)
-        mocked.assert_called_with(parent)
+            Workspace(master=master)
+        mocked.assert_called_with(master)
 
-    @pytest.mark.parametrize("attr", ["parent", "number", "name"])
+    @pytest.mark.parametrize("attr", ["master", "number", "name"])
     def test_Workspace_init_sets_attributes(self, mocker, attr):
+        mocker.patch("arrangeit.view.Workspace.setup_bindings")
+        mocker.patch("arrangeit.view.Workspace.setup_widgets")
         mocked = mocker.MagicMock()
         kwargs = {attr: mocked}
         workspace = Workspace(**kwargs)
         assert getattr(workspace, attr) == mocked
 
     def test_Workspace_init_calls_setup_widgets(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
+        mocker.patch("arrangeit.view.Workspace.setup_bindings")
         mocked = mocker.patch("arrangeit.view.Workspace.setup_widgets")
-        Workspace(parent=parent)
+        Workspace(master=master)
         mocked.assert_called_once()
 
     def test_Workspace_init_calls_setup_bindings(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.Workspace.setup_bindings")
-        Workspace(parent=parent)
+        Workspace(master=master)
         mocked.assert_called_once()
 
     ## Workspace.get_humanized_number
@@ -806,8 +858,11 @@ class TestWorkspace(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Workspace_setup_widgets_calls_label_place(self, mocker):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocker.patch("arrangeit.view.tk.Label.config")
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
-        workspace = Workspace(None, mocker.MagicMock())
+        workspace = Workspace(mocker.MagicMock(), mocker.MagicMock())
         mocked.call_count = 0
         workspace.setup_widgets()
         assert mocked.call_count == 2
@@ -829,11 +884,30 @@ class TestWorkspace(object):
         "event,method", [("<Enter>", "on_widget_enter"), ("<Leave>", "on_widget_leave")]
     )
     def test_Workspace_setup_bindings_callbacks(self, mocker, event, method):
-        workspace = Workspace(None)
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        workspace = Workspace(mocker.MagicMock())
         callback = getattr(workspace, method)
         mocked = mocker.patch("arrangeit.view.Workspace.bind")
         workspace.setup_bindings()
         calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize(
+        "event,method", [("<Button-1>", "on_workspace_label_button_down")]
+    )
+    def test_Workspace_setup_bindings_labels_master_callbacks(
+        self, mocker, event, method
+    ):
+        mocker.patch("arrangeit.view.nametofont")
+        mocker.patch("arrangeit.view.increased_by_fraction")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        workspace = Workspace(mocker.MagicMock())
+        callback = getattr(workspace.master, method)
+        mocked = mocker.patch("arrangeit.view.tk.Label.bind")
+        workspace.setup_bindings()
+        calls = [mocker.call(event, callback), mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
     ## Workspace.on_widget_enter
@@ -851,9 +925,9 @@ class TestWorkspace(object):
         mocker.patch("arrangeit.view.nametofont")
         mocker.patch("arrangeit.view.increased_by_fraction")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
-        parent = mocker.MagicMock()
-        type(parent).active = mocker.PropertyMock(return_value=1000)
-        workspace = Workspace(parent, number=1000)
+        master = mocker.MagicMock()
+        type(master).active = mocker.PropertyMock(return_value=1000)
+        workspace = Workspace(master, number=1000)
         workspace.on_widget_enter(mocker.MagicMock())
         assert mocked.call_count == 0
 
@@ -880,9 +954,9 @@ class TestWorkspace(object):
         mocker.patch("arrangeit.view.nametofont")
         mocker.patch("arrangeit.view.increased_by_fraction")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
-        parent = mocker.MagicMock()
-        type(parent).active = mocker.PropertyMock(return_value=1000)
-        workspace = Workspace(parent, number=1000)
+        master = mocker.MagicMock()
+        type(master).active = mocker.PropertyMock(return_value=1000)
+        workspace = Workspace(master, number=1000)
         workspace.on_widget_leave(mocker.MagicMock())
         assert mocked.call_count == 0
 
@@ -904,20 +978,20 @@ class TestListedWindow(object):
 
     @pytest.mark.parametrize(
         "attr,value",
-        [("parent", None), ("wid", 0), ("title", ""), ("icon", constants.BLANK_ICON)],
+        [("master", None), ("wid", 0), ("title", ""), ("icon", constants.BLANK_ICON)],
     )
     def test_ListedWindow_inits_attr_as_empty(self, attr, value):
         assert getattr(ListedWindow, attr) == value
 
     ## ListedWindow.__init__
-    def test_ListedWindow_init_calls_super_with_parent_and_cursor_arg(self, mocker):
-        parent = mocker.MagicMock()
+    def test_ListedWindow_init_calls_super_with_master_and_cursor_arg(self, mocker):
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         with pytest.raises(AttributeError):
-            ListedWindow(parent=parent)
-        mocked.assert_called_with(parent, cursor=constants.SELECT_CURSOR)
+            ListedWindow(master=master)
+        mocked.assert_called_with(master, cursor=constants.SELECT_CURSOR)
 
-    @pytest.mark.parametrize("attr", ["parent", "wid", "title"])
+    @pytest.mark.parametrize("attr", ["master", "wid", "title"])
     def test_ListedWindow_init_sets_attributes(self, mocker, attr):
         mocked = mocker.MagicMock()
         kwargs = {attr: mocked}
@@ -925,29 +999,29 @@ class TestListedWindow(object):
         assert getattr(window, attr) == mocked
 
     def test_ListedWindow_init_calls_get_icon_image(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.ListedWindow.get_icon_image")
-        ListedWindow(parent=parent)
+        ListedWindow(master=master)
         mocked.assert_called_once()
 
     def test_ListedWindow_init_calls_setup_widgets(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.ListedWindow.setup_widgets")
-        ListedWindow(parent=parent)
+        ListedWindow(master=master)
         mocked.assert_called_once()
 
     def test_ListedWindow_init_calls_setup_bindings(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.ListedWindow.setup_bindings")
-        ListedWindow(parent=parent)
+        ListedWindow(master=master)
         mocked.assert_called_once()
 
     ## ListedWindow.get_icon_image
     def test_ListedWindow_get_icon_image_calls_ImageTk_PhotoImage(self, mocker):
-        parent = mocker.MagicMock()
+        master = mocker.MagicMock()
         mocker.patch("arrangeit.view.ListedWindow.setup_widgets")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
-        window = ListedWindow(parent=parent)
+        window = ListedWindow(master=master)
         mocked.call_count = 0
         window.get_icon_image(constants.BLANK_ICON)
         mocked.assert_called_once()

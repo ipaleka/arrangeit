@@ -778,6 +778,65 @@ class TestBaseController(object):
         controller.release_mouse()
         assert mocked.return_value.stop.call_count == 1
 
+    ## BaseController.recapture_mouse
+    def test_BaseController_recapture_mouse_calls_view_setup_bindings(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.recapture_mouse()
+        assert mocked.return_value.setup_bindings.call_count == 1
+
+    def test_BaseController_recapture_mouse_calls_cursor_config(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.recapture_mouse()
+        calls = [mocker.call(cursor="ul_angle")]
+        mocked.return_value.master.config.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_recapture_mouse_changes_state_to_LOCATE(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.view.mouse.Listener")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = 5
+        controller.recapture_mouse()
+        assert controller.state == constants.LOCATE
+
+    def test_BaseController_recapture_mouse_calls_move_cursor(self, mocker):
+        mock_main_loop(mocker)
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.recapture_mouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            view.return_value.master.winfo_x.return_value,
+            view.return_value.master.winfo_y.return_value,
+        )
+
+    def test_BaseController_recapture_mouse_calls_get_mouse_listener(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.get_mouse_listener")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.recapture_mouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with(controller.on_mouse_move)
+
+    def test_BaseController_recapture_mouse_sets_listener_attribute(self, mocker):
+        mock_main_loop(mocker)
+        listener = mocker.MagicMock()
+        mocker.patch("arrangeit.base.get_mouse_listener", return_value=listener)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.recapture_mouse()
+        assert controller.listener == listener
+
+    def test_BaseController_recapture_mouse_starts_listener(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("pynput.mouse.Listener")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.recapture_mouse()
+        assert mocked.return_value.start.call_count == 1
+
     ## BaseController.shutdown
     def test_BaseController_shutdown_stops_listener(self, mocker):
         mock_main_loop(mocker)
@@ -831,8 +890,10 @@ class TestBaseController(object):
             "move_to_workspace", view.return_value.master.winfo_id.return_value, 1001
         )
 
-    ## BaseController.workspace_activated
-    def test_BaseController_workspace_activated_calls_winfo_children(self, mocker):
+    ## BaseController.workspace_activated_by_digit
+    def test_BaseController_workspace_activated_by_digit_calls_winfo_children(
+        self, mocker
+    ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
         mocker.patch("arrangeit.base.BaseApp.run_task")
@@ -842,16 +903,16 @@ class TestBaseController(object):
         generator = collection.generator()
         controller = base.BaseController(base.BaseApp())
         controller.run(generator)
-        controller.workspace_activated(1)
+        controller.workspace_activated_by_digit(1)
         workspaces.return_value.winfo_children.call_count == 1
 
-    def test_BaseController_workspace_activated_calls_task_move_to_workspace(
+    def test_BaseController_workspace_activated_by_digit_calls_workspace_activated(
         self, mocker
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
         view = mocker.patch("arrangeit.base.ViewApplication")
-        mocked = mocker.patch("arrangeit.base.BaseApp.run_task")
+        mocked = mocker.patch("arrangeit.base.BaseController.workspace_activated")
         mocked_children = [mocker.MagicMock(), mocker.MagicMock()]
         view.return_value.workspaces.winfo_children.return_value = mocked_children
         type(mocked_children[1]).number = mocker.PropertyMock(return_value=1002)
@@ -861,36 +922,16 @@ class TestBaseController(object):
         generator = collection.generator()
         controller = base.BaseController(base.BaseApp())
         controller.run(generator)
-        controller.workspace_activated(2)
-        mocked.assert_called_with(
-            "move_to_workspace", view.return_value.master.winfo_id.return_value, 1002
-        )
+        controller.workspace_activated_by_digit(2)
+        mocked.assert_called_with(1002)
 
-    def test_BaseController_workspace_activated_calls_set_changed(self, mocker):
-        mock_main_loop(mocker)
-        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        view = mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
-        mocked = mocker.patch("arrangeit.data.WindowModel.set_changed")
-        mocked_children = [mocker.MagicMock(), mocker.MagicMock()]
-        view.return_value.workspaces.winfo_children.return_value = mocked_children
-        type(mocked_children[1]).number = mocker.PropertyMock(return_value=1207)
-        collection = data.WindowsCollection()
-        collection.add(data.WindowModel())
-        collection.add(data.WindowModel())
-        generator = collection.generator()
-        controller = base.BaseController(base.BaseApp())
-        controller.run(generator)
-        controller.workspace_activated(2)
-        mocked.assert_called_with(ws=1207)
-
-    def test_BaseController_workspace_activated_not_calling_task_for_invalid_number(
+    def test_BaseController_workspace_activated_by_digit_not_calling_workspace_active(
         self, mocker
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
         mocker.patch("arrangeit.base.ViewApplication")
-        mocked = mocker.patch("arrangeit.base.BaseApp.run_task")
+        mocked = mocker.patch("arrangeit.base.BaseController.workspace_activated")
         mocked_children = [mocker.MagicMock(), mocker.MagicMock()]
         mocker.patch(
             "arrangeit.view.WorkspacesCollection.winfo_children",
@@ -902,7 +943,80 @@ class TestBaseController(object):
         generator = collection.generator()
         controller = base.BaseController(base.BaseApp())
         controller.run(generator)
-        controller.workspace_activated(3)
+        controller.workspace_activated_by_digit(3)
+        mocked.assert_not_called()
+
+    ## BaseController.workspace_activated
+    def test_BaseController_workspace_activated_calls_task_move_to_workspace(
+        self, mocker
+    ):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.BaseApp.run_task")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController(base.BaseApp())
+        controller.run(generator)
+        controller.workspace_activated(1002)
+        mocked.assert_called_with(
+            "move_to_workspace", view.return_value.master.winfo_id.return_value, 1002
+        )
+
+    def test_BaseController_workspace_activated_calls_set_changed(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.BaseApp.run_task")
+        mocked = mocker.patch("arrangeit.data.WindowModel.set_changed")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController(base.BaseApp())
+        controller.run(generator)
+        controller.workspace_activated(1503)
+        mocked.assert_called_with(ws=1503)
+
+    def test_BaseController_workspace_activated_calls_recapture_mouse_for_OTHER(
+        self, mocker
+    ):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.BaseApp.run_task")
+        mocker.patch("arrangeit.data.WindowModel.set_changed")
+        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController(base.BaseApp())
+        controller.run(generator)
+        controller.state = constants.OTHER
+        controller.workspace_activated(1502)
+        mocked.assert_called_with()
+
+    @pytest.mark.parametrize("state", [constants.LOCATE, constants.RESIZE])
+    def test_BaseController_workspace_activated_not_calling_recapture_mouse_not_OTHER(
+        self, mocker, state
+    ):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_top_left")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.BaseApp.run_task")
+        mocker.patch("arrangeit.data.WindowModel.set_changed")
+        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        collection = data.WindowsCollection()
+        collection.add(data.WindowModel())
+        collection.add(data.WindowModel())
+        generator = collection.generator()
+        controller = base.BaseController(base.BaseApp())
+        controller.run(generator)
+        controller.state = state
+        controller.workspace_activated(1207)
         mocked.assert_not_called()
 
     ## BaseController.on_key_pressed
@@ -935,25 +1049,29 @@ class TestBaseController(object):
         assert mocked.call_count == 1
 
     @pytest.mark.parametrize("key", ["KP_1", "KP_4", "KP_9", "1", "5", "9"])
-    def test_BaseController_on_key_pressed_for_digit_calls_workspace_activated(
+    def test_BaseController_on_key_pressed_for_digit_calls_workspace_activated_by_digit(
         self, mocker, key
     ):
         mocked_viewapp(mocker)
         event = mocker.MagicMock()
         type(event).keysym = mocker.PropertyMock(return_value=key)
-        mocked = mocker.patch("arrangeit.base.BaseController.workspace_activated")
+        mocked = mocker.patch(
+            "arrangeit.base.BaseController.workspace_activated_by_digit"
+        )
         base.BaseController(mocker.MagicMock()).on_key_pressed(event)
         assert mocked.call_count == 1
         mocked.assert_called_with(int(key[-1]))
 
     @pytest.mark.parametrize("key", ["KP_0", "0"])
-    def test_BaseController_on_key_pressed_for_digit_0_not_calling_workspace_activated(
+    def test_BaseController_on_key_pressed_for_digit_0_not_calling_workspace_activated_by_digit(
         self, mocker, key
     ):
         mocked_viewapp(mocker)
         event = mocker.MagicMock()
         type(event).keysym = mocker.PropertyMock(return_value="0")
-        mocked = mocker.patch("arrangeit.base.BaseController.workspace_activated")
+        mocked = mocker.patch(
+            "arrangeit.base.BaseController.workspace_activated_by_digit"
+        )
         base.BaseController(mocker.MagicMock()).on_key_pressed(event)
         mocked.assert_not_called()
 

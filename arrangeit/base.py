@@ -329,11 +329,22 @@ class BaseController(object):
         self.view.windows.place_children()
 
     def release_mouse(self):
-        """Changes cursor, stops listener and switches to third state."""
+        """Stops positioning/resizing routine and releases mouse."""
         self.view.unbind_events()
         self.view.master.config(cursor="left_ptr")
         self.state = constants.OTHER
         self.listener.stop()
+
+    def recapture_mouse(self):
+        """Creates and starts mouse listener and starts positioning/resizing routine."""
+        self.view.setup_bindings()
+        self.view.master.config(cursor="ul_angle")
+        self.state = constants.LOCATE
+        move_cursor(
+            self.view.master.winfo_x(), self.view.master.winfo_y()
+        )
+        self.listener = get_mouse_listener(self.on_mouse_move)
+        self.listener.start()
 
     def shutdown(self):
         """Stops mouse listener and destroys Tkinter root window."""
@@ -350,23 +361,28 @@ class BaseController(object):
             "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
         )
 
-    def workspace_activated(self, number):
+    def workspace_activated_by_digit(self, number):
         """Activates workspace with humanized number equal to provided number.
 
         :param number: number of 1 to 9 representing workspace
         :type number: int
         :var workspaces: available workspaces in view
         :type workspaces: :class:`WorkspacesCollection`
-        :var custom_number: our custom workspace number (screen*1000 + workspace)
-        :type custom_number: int
         """
         workspaces = self.view.workspaces.winfo_children()
         if len(workspaces) >= number:
-            custom_number = workspaces[number - 1].number
-            self.app.run_task(
-                "move_to_workspace", self.view.master.winfo_id(), custom_number
-            )
-            self.model.set_changed(ws=custom_number)
+            self.workspace_activated(workspaces[number - 1].number)
+
+    def workspace_activated(self, number):
+        """Activates workspace with number equal to provided number.
+
+        :var number: our custom workspace number (screen*1000 + workspace)
+        :type number: int
+        """
+        self.app.run_task("move_to_workspace", self.view.master.winfo_id(), number)
+        self.model.set_changed(ws=number)
+        if self.state == constants.OTHER:
+            self.recapture_mouse()
 
     ## EVENTS CALLBACKS
     def on_key_pressed(self, event):
@@ -387,10 +403,10 @@ class BaseController(object):
             self.skip_current_window()
 
         elif event.keysym in [str(i) for i in range(1, 10)]:
-            self.workspace_activated(int(event.keysym))
+            self.workspace_activated_by_digit(int(event.keysym))
 
         elif event.keysym in ["KP_{}".format(i) for i in range(1, 10)]:
-            self.workspace_activated(int(event.keysym[-1]))
+            self.workspace_activated_by_digit(int(event.keysym[-1]))
 
         elif event.keysym in ["F{}".format(i) for i in range(1, 17)]:
             self.listed_window_activated(int(event.keysym[1:]))

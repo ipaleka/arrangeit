@@ -43,7 +43,7 @@ def move_cursor(x, y):
 class ViewApplication(tk.Frame):
     """Tkinter frame showing current window from the data provided through controller.
 
-    :var master: parent Tkinter window
+    :var master: master Tkinter window
     :type master: :class:`tk.Tk` root window instance
     :var ViewApplication.controller: controller object providing windows data
     :type ViewApplication.controller: type(:class:`BaseController`) instance (platform specific)
@@ -82,7 +82,8 @@ class ViewApplication(tk.Frame):
 
         `bind_all` method is used so events can be catch in label widget too.
         """
-        self.bind_all("<Button-1>", self.controller.on_mouse_left_down)
+        self.bind("<Button-1>", self.controller.on_mouse_left_down)
+        self.title_label.bind("<Button-1>", self.controller.on_mouse_left_down)
         self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)
         self.bind_all("<Key>", self.controller.on_key_pressed)
@@ -207,24 +208,24 @@ class ViewApplication(tk.Frame):
 class WorkspacesCollection(tk.Frame):
     """Tkinter frame holding all the available workspaces widgets.
 
-    :var parent: parent widget
-    :type parent: :class:`.tk.Frame`
+    :var master: master widget
+    :type master: :class:`.tk.Frame`
     :var active: currently active workspace number
     :type active: int
     :var capacity: number of children workspaces
     :type capacity: int
     """
 
-    parent = None
+    master = None
     active = None
 
-    def __init__(self, parent=None):
-        """Sets parent attribute from provided argument and sets the packer
+    def __init__(self, master=None):
+        """Sets master attribute from provided argument and sets the packer
 
         after super __init__ is called.
         """
-        super().__init__(parent)
-        self.parent = parent
+        super().__init__(master)
+        self.master = master
         self.config(background=constants.WORKSPACE_NUMBER_LABEL_BG)
 
     def add_workspaces(self, workspaces):
@@ -293,15 +294,14 @@ class WorkspacesCollection(tk.Frame):
 
         self.active = number
 
-    def on_child_activated(self, event):
-        """Calls parent's controller method in charge for workspace activation.
+    def on_workspace_label_button_down(self, event):
+        """Activates workspace by number carried with event.
 
         :var event: catched event
         :type event: Tkinter event
         """
-        pass
-        # self.parent.controller.workspace_activated(event.widget.number)
-        # return "break"
+        self.master.controller.workspace_activated(event.widget.master.number)
+        return "break"
 
     def highlight_workspace(self, number):
         """Visually emphasizes child workspace having provided number
@@ -317,19 +317,19 @@ class WorkspacesCollection(tk.Frame):
 class WindowsList(tk.Frame):
     """Tkinter frame holding titles and small icons of the windows in queue.
 
-    :var parent: parent widget
-    :type parent: :class:`.tk.Frame`
+    :var master: master widget
+    :type master: :class:`.tk.Frame`
     """
 
-    parent = None
+    master = None
 
-    def __init__(self, parent=None):
-        """Sets parent attribute from provided argument and sets the packer
+    def __init__(self, master=None):
+        """Sets master attribute from provided argument and sets the packer
 
         after super __init__ is called.
         """
-        super().__init__(parent)
-        self.parent = parent
+        super().__init__(master)
+        self.master = master
 
     def add_windows(self, windows):
         """Creates children widgets from provided windows list.
@@ -346,7 +346,7 @@ class WindowsList(tk.Frame):
 
         :param widget: Tkinter Frame widget
         :type widget: :class:`ListedWindow`
-        :param position: vertical position in parent starting from top
+        :param position: vertical position in master starting from top
         :type position: int
         """
         widget.place(
@@ -365,13 +365,13 @@ class WindowsList(tk.Frame):
             self.place_widget_on_position(widget, i)
 
     def on_child_activated(self, event):
-        """Calls parent's controller method in charge for window activation.
+        """Calls master's controller method in charge for window activation.
 
         :var event: catched event
         :type event: Tkinter event
         """
         pass
-        # self.parent.controller.listed_window_activated(event.widget.wid)
+        # self.master.controller.listed_window_activated(event.widget.wid)
         # return "break"
 
     def highlight_window(self, wid):
@@ -388,25 +388,25 @@ class WindowsList(tk.Frame):
 class Workspace(tk.Frame):
     """Tkinter frame holding individual workspace widget.
 
-    :var parent: parent widget
-    :type parent: :class:`.tk.Frame`
+    :var master: master widget
+    :type master: :class:`.tk.Frame`
     :var number: workspace number
     :type number: int
     :var name: workspace name
     :type name: str
     """
 
-    parent = None
+    master = None
     number = 0
     name = ""
 
-    def __init__(self, parent=None, number=0, name=""):
+    def __init__(self, master=None, number=0, name=""):
         """Sets attributes from provided arguments and sets the packer
 
         after super __init__ is called.
         """
-        super().__init__(parent)
-        self.parent = parent
+        super().__init__(master)
+        self.master = master
         self.number = number
         self.name = name
         self.setup_widgets()
@@ -476,17 +476,19 @@ class Workspace(tk.Frame):
         """Binds relevant events to related callback."""
         self.bind("<Enter>", self.on_widget_enter)
         self.bind("<Leave>", self.on_widget_leave)
+        self.number_label.bind("<Button-1>", self.master.on_workspace_label_button_down)
+        self.name_label.bind("<Button-1>", self.master.on_workspace_label_button_down)
 
     def on_widget_enter(self, event):
         """Highlights widget by changing foreground color."""
-        if self.number != self.parent.active:
+        if self.number != self.master.active:
             self.number_label.config(foreground=constants.HIGHLIGHTED_COLOR)
             self.name_label.config(foreground=constants.HIGHLIGHTED_COLOR)
         return "break"
 
     def on_widget_leave(self, event):
         """Resets widget foreground color."""
-        if self.number != self.parent.active:
+        if self.number != self.master.active:
             self.number_label.config(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)
             self.name_label.config(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)
         return "break"
@@ -495,8 +497,8 @@ class Workspace(tk.Frame):
 class ListedWindow(tk.Frame):
     """Tkinter frame holding window title and smaller icon.
 
-    :var parent: parent widget
-    :type parent: :class:`.tk.Frame`
+    :var master: master widget
+    :type master: :class:`.tk.Frame`
     :var wid: window id
     :type wid: int
     :var title: window title
@@ -505,18 +507,18 @@ class ListedWindow(tk.Frame):
     :type icon: Image.Image
     """
 
-    parent = None
+    master = None
     wid = 0
     title = ""
     icon = constants.BLANK_ICON
 
-    def __init__(self, parent=None, wid=0, title="", icon=constants.BLANK_ICON):
+    def __init__(self, master=None, wid=0, title="", icon=constants.BLANK_ICON):
         """Sets attributes from provided arguments and sets the packer
 
         after super __init__ is called.
         """
-        super().__init__(parent, cursor=constants.SELECT_CURSOR)
-        self.parent = parent
+        super().__init__(master, cursor=constants.SELECT_CURSOR)
+        self.master = master
         self.wid = wid
         self.title = title
         self.icon = self.get_icon_image(icon)
