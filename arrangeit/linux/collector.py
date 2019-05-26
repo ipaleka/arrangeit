@@ -1,6 +1,5 @@
 import gi
 from PIL import Image
-from Xlib import X
 
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck

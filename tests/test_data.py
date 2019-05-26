@@ -456,3 +456,106 @@ class TestWindowsCollection(object):
             collection.add(WindowModel(wid=elem))
         collection.repopulate_for_wid(wid, remove_before)
         assert expected == [model.wid for model in list(collection.generator())]
+
+    ## WindowsCollection.export
+    @pytest.mark.parametrize(
+        "elements",
+        [
+            (
+                (
+                    {
+                        "wid": 501,
+                        "rect": (40, 50, 250, 425),
+                        "resizable": True,
+                        "title": "bar",
+                        "name": "foo",
+                        "icon": constants.BLANK_ICON,
+                        "workspace": 1002,
+                    },
+                    (45, 55, 250, 425),
+                    1005,
+                ),
+                (
+                    {
+                        "wid": 502,
+                        "rect": (400, 500, 200, 300),
+                        "resizable": True,
+                        "title": "bar",
+                        "name": "foobar",
+                        "icon": constants.BLANK_ICON,
+                        "workspace": 1004,
+                    },
+                    (400, 550, 300, 400),
+                    1004,
+                ),
+            ),
+            (
+                (
+                    {
+                        "wid": 503,
+                        "rect": (400, 500, 200, 300),
+                        "resizable": True,
+                        "title": "bar",
+                        "name": "foobar",
+                        "icon": constants.BLANK_ICON,
+                        "workspace": 1004,
+                    },
+                    (400, 550, 300, 400),
+                    1004,
+                ),
+            ),
+            (
+                (
+                    {
+                        "wid": 504,
+                        "rect": (354, 50, 250, 425),
+                        "resizable": True,
+                        "title": "bar",
+                        "name": "foo",
+                        "icon": constants.BLANK_ICON,
+                        "workspace": 1002,
+                    },
+                    (),
+                    1009,
+                ),
+            ),
+            (
+                (
+                    {
+                        "wid": 505,
+                        "rect": (427, 50, 250, 425),
+                        "resizable": True,
+                        "title": "bar",
+                        "name": "foo",
+                        "icon": constants.BLANK_ICON,
+                        "workspace": 1002,
+                    },
+                    (),
+                    None,
+                ),
+            ),
+        ],
+    )
+    def test_WindowsCollection_export(self, elements):
+        collection = WindowsCollection()
+        for elem in elements:
+            model = WindowModel(**elem[0])
+            model.set_changed(rect=elem[1], ws=elem[2])
+            collection.add(model)
+        data = collection.export()
+        assert len(data) == len(elements)
+        assert all(len(elem) == 5 for elem in data)
+        assert all(len(elem[0]) == 4 for elem in data)
+        assert all(isinstance(elem[1], bool) for elem in data)
+        assert all(isinstance(elem[2], str) for elem in data)
+        assert all(isinstance(elem[3], str) for elem in data)
+        assert all(isinstance(elem[4], int) for elem in data)
+        assert all(
+            elem[0] == elements[i][1] or elements[i][0]["rect"]
+            for i, elem in enumerate(data)
+        )
+        assert all(
+            elem[4] == elements[i][2] or elements[i][0]["workspace"]
+            for i, elem in enumerate(data)
+        )
+

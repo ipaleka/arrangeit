@@ -107,6 +107,11 @@ class TestBaseApp(object):
         base.BaseApp().run_task(task, *args)
         mocked.assert_called_with(*args)
 
+    ## BaseApp.user_data_path
+    def test_BaseApp_user_data_path_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().user_data_path()
+
     ## BaseApp.move_and_resize
     def test_BaseApp_move_and_resize_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
@@ -126,6 +131,39 @@ class TestBaseApp(object):
     def test_BaseApp_rerun_from_window_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
             base.BaseApp().rerun_from_window()
+
+    ## BaseApp.save_default
+    def test_BaseApp_save_default_calls_user_data_path(self, mocker):
+        mocker.patch("arrangeit.base.os")
+        mocked = mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        base.BaseApp().save_default()
+        mocked.assert_called_once()
+
+    def test_BaseApp_save_default_checks_if_directory_exists(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocker.patch("arrangeit.base.json")
+        mocker.patch("arrangeit.base.os")
+        mocked = mocker.patch("arrangeit.base.os.path.exists")
+        base.BaseApp().save_default()
+        mocked.assert_called_once()
+
+    def test_BaseApp_save_default_creates_directory(self, mocker):
+        path = mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocker.patch("arrangeit.base.json")
+        mocker.patch("arrangeit.base.os")
+        mocker.patch("arrangeit.base.os.path.exists", return_value=False)
+        mocked = mocker.patch("arrangeit.base.os.mkdir")
+        base.BaseApp().save_default()
+        mocked.assert_called_once()
+        mocked.assert_called_once_with(path.return_value)
+
+    def test_BaseApp_save_default_calls_collection_export(self, mocker):
+        mocker.patch("arrangeit.base.os")
+        mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocker.patch("arrangeit.base.json")
+        mocked = mocker.patch("arrangeit.data.WindowsCollection.export")
+        base.BaseApp().save_default()
+        mocked.assert_called_once()
 
 
 class TestBaseCollector(object):

@@ -242,3 +242,15 @@ class WindowsCollection(object):
             self._members[start_index:] + self._members[remove_index:start_index]
         )
 
+    def export(self):
+        """Prepares useful data from collection for saving."""
+        return [
+            (
+                model.changed or model.rect,
+                model.resizable,
+                model.title,
+                model.name,
+                model.changed_ws or model.ws,
+            )
+            for model in self._members
+        ]

@@ -1,11 +1,11 @@
+import os
 import gi
-import subprocess
-import time
 
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 from Xlib import X
 
+import arrangeit
 from arrangeit.base import BaseApp
 
 
@@ -14,6 +14,12 @@ class App(BaseApp):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def user_data_path(self):
+        """Returns GNU/Linux platform specific path for saving user's data."""
+        return os.path.expanduser(
+            os.path.join("~", ".{}".format(arrangeit.__appname__))
+        )
 
     def move_and_resize(self, wid):
         """Moves and resizes window having provided wid.
@@ -75,6 +81,10 @@ class App(BaseApp):
         :type win: :class:`Wnck.Window`
         :returns: Boolean
         """
+        import warnings
+
+        warnings.filterwarnings("ignore")
+
         Wnck.shutdown()
         workspace = self._activate_workspace(number)
         if workspace:

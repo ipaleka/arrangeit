@@ -6,11 +6,24 @@ from win32con import (
 )
 
 import pytest
-
+from arrangeit.windows.app import App
 from arrangeit.windows.collector import TITLEBARINFO, WINDOWINFO, Collector
 from arrangeit.windows.controller import Controller
 
 SAMPLE_HWND = 1001
+
+
+
+class TestWindowsApp(object):
+
+    ## WindowsApp.user_data_path
+    def test_WindowsApp_user_data_path(self, mocker):
+        mocker.patch(
+            "os.path.expanduser",
+            side_effect=lambda e: "C:/Users/tempuser/{}".format(e).replace("~/", ""),
+        )
+        app = App()
+        assert app.user_data_path() == "C:/Users/tempuser/arrangeit"
 
 
 class TestWindowsController(object):

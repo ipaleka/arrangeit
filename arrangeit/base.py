@@ -1,4 +1,5 @@
-from inspect import iscoroutinefunction
+import os
+import json
 
 from arrangeit import constants
 from arrangeit.data import WindowModel, WindowsCollection
@@ -50,6 +51,10 @@ class BaseApp(object):
         """
         return getattr(self, task)(*args)
 
+    def user_data_path(self):
+        """Method must be overridden."""
+        raise NotImplementedError
+
     def move_and_resize(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
@@ -68,6 +73,12 @@ class BaseApp(object):
 
     def save_default(self, *args):
         print("finished: save_default with args ", args)
+        directory = self.user_data_path()
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+
+        with open(os.path.join(directory, "default.json"), "w") as default:
+            json.dump(self.collector.collection.export(), default)
 
 
 class BaseController(object):
@@ -370,9 +381,7 @@ class BaseController(object):
         self.view.setup_bindings()
         self.view.master.config(cursor="ul_angle")
         self.state = constants.LOCATE
-        move_cursor(
-            self.view.master.winfo_x(), self.view.master.winfo_y()
-        )
+        move_cursor(self.view.master.winfo_x(), self.view.master.winfo_y())
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()
 
@@ -432,6 +441,9 @@ class BaseController(object):
         elif event.keysym in ("Space", "Tab"):
             self.skip_current_window()
 
+        elif event.keysym in ("Control_L",):
+            self.release_mouse()
+
         elif event.keysym in [str(i) for i in range(1, 10)]:
             self.workspace_activated_by_digit(int(event.keysym))
 
@@ -460,9 +472,7 @@ class BaseController(object):
             self.change_size(x, y)
 
     def on_mouse_left_down(self, event):
-        """Calls update_model with current cursor position
-
-        if controller is in constants.LOCATE or constants.RESIZE state.
+        """Calls :class:`BaseController.update` with current cursor position
 
         :var event: catched event
         :type event: Tkinter event

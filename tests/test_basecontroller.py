@@ -1125,7 +1125,7 @@ class TestBaseController(object):
     def test_BaseController_workspace_activated_calls_set_changed(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.ViewApplication")
         mocker.patch("arrangeit.base.BaseApp.run_task")
         mocked = mocker.patch("arrangeit.data.WindowModel.set_changed")
         collection = data.WindowsCollection()
@@ -1202,6 +1202,15 @@ class TestBaseController(object):
         event = mocker.MagicMock()
         type(event).keysym = mocker.PropertyMock(return_value=key)
         mocked = mocker.patch("arrangeit.base.BaseController.skip_current_window")
+        base.BaseController(mocker.MagicMock()).on_key_pressed(event)
+        assert mocked.call_count == 1
+
+    @pytest.mark.parametrize("key", ["Control_L", ])
+    def test_BaseController_on_key_pressed_calls_release_mouse(self, mocker, key):
+        mocked_viewapp(mocker)
+        event = mocker.MagicMock()
+        type(event).keysym = mocker.PropertyMock(return_value=key)
+        mocked = mocker.patch("arrangeit.base.BaseController.release_mouse")
         base.BaseController(mocker.MagicMock()).on_key_pressed(event)
         assert mocked.call_count == 1
 
