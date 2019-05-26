@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter.font import nametofont
+from gettext import gettext as _
 
 import pytest
 
@@ -14,6 +15,7 @@ from arrangeit.view import (
     WindowsList,
     Workspace,
     ListedWindow,
+    Toolbar,
 )
 from arrangeit import constants
 from arrangeit.utils import increased_by_fraction
@@ -69,7 +71,7 @@ class TestViewFunctions(object):
 
 
 class TestViewApplication(object):
-    """Unit testing class for ViewApplication class."""
+    """Unit testing class for :class:`ViewApplication` class."""
 
     ## ViewApplication
     def test_ViewApplication_issubclass_of_Frame(self):
@@ -286,12 +288,44 @@ class TestViewApplication(object):
         view.setup_widgets()
         assert mocked.call_count == 1
 
+    def test_ViewApplication_setup_widgets_calls_setup_toolbar(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_toolbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.call_count = 0
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
     def test_ViewApplication_setup_widgets_calls_setup_windows(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_windows")
         view = ViewApplication(None, mocker.MagicMock())
         mocked.call_count = 0
         view.setup_widgets()
         assert mocked.call_count == 1
+
+    ## ViewApplication.setup_toolbar
+    def test_ViewApplication_setup_toolbar_initializes_Toolbar(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_toolbar()
+        assert isinstance(view.toolbar, Toolbar)
+
+    def test_ViewApplication_setup_toolbar_sets_viewapp_as_master(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Toolbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_toolbar()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_toolbar_calls_Toolbar_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Toolbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.call_count = 0
+        view.setup_toolbar()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            rely=constants.TITLE_LABEL_RELHEIGHT + constants.WORKSPACES_FRAME_RELHEIGHT,
+            relx=constants.WINDOWS_LIST_RELWIDTH,
+            relheight=constants.TOOLBAR_RELHEIGHT,
+            relwidth=constants.TOOLBAR_RELWIDTH,
+        )
 
     ## ViewApplication.setup_bindings
     @pytest.mark.parametrize(
@@ -463,7 +497,7 @@ class TestViewApplication(object):
 
 
 class TestWorkspacesCollection(object):
-    """Unit testing class for WorkspacesCollection class."""
+    """Unit testing class for :class:`WorkspacesCollection` class."""
 
     ## WorkspacesCollection
     def test_WorkspacesCollection_issubclass_of_Frame(self):
@@ -626,7 +660,7 @@ class TestWorkspacesCollection(object):
 
 
 class TestWindowsList(object):
-    """Unit testing class for WindowsList class."""
+    """Unit testing class for :class:`WindowsList` class."""
 
     ## WindowsList
     def test_WindowsList_issubclass_of_Frame(self):
@@ -788,7 +822,7 @@ class TestWindowsList(object):
 
 
 class TestWorkspace(object):
-    """Unit testing class for Workspace class."""
+    """Unit testing class for :class:`Workspace` class."""
 
     ## Workspace
     def test_Workspace_issubclass_of_Frame(self):
@@ -1014,7 +1048,7 @@ class TestWorkspace(object):
 
 
 class TestListedWindow(object):
-    """Unit testing class for Workspace class."""
+    """Unit testing class for :class:`ListedWindow` class."""
 
     ## ListedWindow
     def test_ListedWindow_issubclass_of_Frame(self):
@@ -1228,3 +1262,110 @@ class TestListedWindow(object):
         window = ListedWindow(mocker.MagicMock())
         returned = window.on_widget_leave(mocker.MagicMock())
         assert returned == "break"
+
+
+class TestToolbar(object):
+    """Unit testing class for :class:`Toolbar` class."""
+
+    ## Toolbar
+    def test_Toolbar_issubclass_of_Frame(self):
+        assert issubclass(Toolbar, tk.Frame)
+
+    @pytest.mark.parametrize("attr,value", [("master", None), ])
+    def test_Toolbar_inits_attributtes(self, attr, value):
+        assert getattr(Toolbar, attr) == value
+
+    ## Toolbar.__init__
+    def test_Toolbar_init_calls_super_with_master_arg(self, mocker):
+        master = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
+        with pytest.raises(AttributeError):
+            Toolbar(master=master)
+        mocked.assert_called_with(master)
+
+    @pytest.mark.parametrize("attr", ["master"])
+    def test_Toolbar_init_sets_attributes(self, mocker, attr):
+        mocker.patch("arrangeit.view.Toolbar.setup_widgets")
+        mocked = mocker.MagicMock()
+        kwargs = {attr: mocked}
+        toolbar = Toolbar(**kwargs)
+        assert getattr(toolbar, attr) == mocked
+
+    def test_Toolbar_init_calls_setup_widgets(self, mocker):
+        master = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.Toolbar.setup_widgets")
+        Toolbar(master=master)
+        mocked.assert_called_once()
+
+    ## Toolbar.setup_widgets
+    def test_Toolbar_setup_widgets_sets_options_button(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Button")
+        master = mocker.MagicMock()
+        toolbar = Toolbar(master)
+        toolbar.setup_widgets()
+        calls = [
+            mocker.call(
+                toolbar,
+                font=(
+                    "TkDefaultFont",
+                    increased_by_fraction(
+                        nametofont("TkDefaultFont")["size"],
+                        constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                    ),
+                ),
+                text=_("Options"),
+                activeforeground=constants.HIGHLIGHTED_COLOR,
+                command=toolbar.on_options_click,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Toolbar_setup_widgets_sets_quit_button(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Button")
+        master = mocker.MagicMock()
+        toolbar = Toolbar(master)
+        toolbar.setup_widgets()
+        calls = [
+            mocker.call(
+                toolbar,
+                font=(
+                    "TkDefaultFont",
+                    increased_by_fraction(
+                        nametofont("TkDefaultFont")["size"],
+                        constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                    ),
+                ),
+                text=_("Quit"),
+                activeforeground=constants.HIGHLIGHTED_COLOR,
+                command=master.controller.shutdown,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Toolbar_setup_widgets_calls_button_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Button.place")
+        toolbar = Toolbar(mocker.MagicMock())
+        mocked.call_count = 0
+        toolbar.setup_widgets()
+        assert mocked.call_count == 2
+        calls = [
+            mocker.call(
+                rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+                relx=constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+                relheight=constants.OPTIONS_BUTTON_RELHEIGHT
+                - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+                relwidth=constants.OPTIONS_BUTTON_RELWIDTH
+                - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
+                anchor=constants.OPTIONS_BUTTON_ANCHOR,
+            ),
+            mocker.call(
+                rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+                relx=0.5 + constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+                relheight=constants.QUIT_BUTTON_RELHEIGHT
+                - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+                relwidth=constants.QUIT_BUTTON_RELWIDTH
+                - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
+                anchor=constants.QUIT_BUTTON_ANCHOR,
+            ),
+        ]
+        mocked.assert_has_calls(calls, any_order=True)

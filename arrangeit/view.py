@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter.font import nametofont
+from gettext import gettext as _
 
 from PIL import ImageTk, Image
 from pynput import mouse
@@ -71,12 +72,9 @@ class ViewApplication(tk.Frame):
         self.setup_icon()
         self.setup_workspaces()
         self.setup_windows()
+        self.setup_toolbar()
 
         ## TODO delete code from below
-        temp_quit = tk.Button(
-            self, text="QUIT", fg="red", command=self.controller.shutdown
-        )
-        temp_quit.place(rely=1.0, relx=1.0, x=-4, y=-4, anchor="se")
         try:
             self.master["background"] = "gray"
             self["background"] = "blue"
@@ -182,6 +180,16 @@ class ViewApplication(tk.Frame):
             rely=constants.TITLE_LABEL_RELHEIGHT,
             relheight=constants.WINDOWS_LIST_RELHEIGHT,
             relwidth=constants.WINDOWS_LIST_RELWIDTH,
+        )
+
+    def setup_toolbar(self):
+        """Creates and places `toolbar` widget and sets corresponding variable."""
+        self.toolbar = Toolbar(self)
+        self.toolbar.place(
+            rely=constants.TITLE_LABEL_RELHEIGHT + constants.WORKSPACES_FRAME_RELHEIGHT,
+            relx=constants.WINDOWS_LIST_RELWIDTH,
+            relheight=constants.TOOLBAR_RELHEIGHT,
+            relwidth=constants.TOOLBAR_RELWIDTH,
         )
 
     def startup(self):
@@ -590,3 +598,72 @@ class ListedWindow(tk.Frame):
         self.title_label.config(foreground=constants.LISTED_WINDOW_LABEL_FG)
         return "break"
 
+
+class Toolbar(tk.Frame):
+    """Tkinter frame holding options button.
+
+    :var Toolbar.master: master widget
+    :type Toolbar.master: :class:`.tk.Frame`
+    """
+
+    master = None
+
+    def __init__(self, master=None):
+        """Sets master attribute from provided argument
+
+        after super __init__ is called.
+        """
+        super().__init__(master)
+        self.master = master
+        self.setup_widgets()
+
+    def setup_widgets(self):
+        """Creates and places all the frame's variables and widgets."""
+        options_button = tk.Button(
+            self,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                ),
+            ),
+            text=_("Options"),
+            activeforeground=constants.HIGHLIGHTED_COLOR,
+            command=self.on_options_click,
+        )
+        options_button.place(
+            rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+            relx=constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+            relheight=constants.OPTIONS_BUTTON_RELHEIGHT
+            - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+            relwidth=constants.OPTIONS_BUTTON_RELWIDTH
+            - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
+            anchor=constants.OPTIONS_BUTTON_ANCHOR,
+        )
+
+        quit_button = tk.Button(
+            self,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                ),
+            ),
+            text=_("Quit"),
+            activeforeground=constants.HIGHLIGHTED_COLOR,
+            command=self.master.controller.shutdown,
+        )
+        quit_button.place(
+            rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+            relx=0.5 + constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+            relheight=constants.QUIT_BUTTON_RELHEIGHT
+            - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+            relwidth=constants.QUIT_BUTTON_RELWIDTH
+            - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
+            anchor=constants.QUIT_BUTTON_ANCHOR,
+        )
+
+    def on_options_click(self):
+        pass

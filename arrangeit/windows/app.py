@@ -13,4 +13,3 @@ class App(BaseApp):
     def user_data_path(self):
         """Returns MS Windows specific path for saving user's data."""
         return os.path.expanduser(os.path.join("~", arrangeit.__appname__))
-
