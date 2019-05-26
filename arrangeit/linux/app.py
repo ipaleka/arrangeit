@@ -1,11 +1,14 @@
 import os
+
 import gi
 
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
-from Xlib import X
+from PIL import Image, ImageTk
+from Xlib import display, X
 
 import arrangeit
+from arrangeit import constants
 from arrangeit.base import BaseApp
 
 
@@ -16,10 +19,31 @@ class App(BaseApp):
         super().__init__(*args, **kwargs)
 
     def user_data_path(self):
-        """Returns GNU/Linux platform specific path for saving user's data."""
+        """Returns GNU/Linux platform specific path for saving user's data.
+
+        It first try with .local/share in user home directory, and if there's
+        no such directory returns .arrangeit directory in user home directory.
+
+        :returns: str path
+        """
+        local = os.path.join("~", ".local", "share")
+        if os.path.exists(os.path.expanduser(local)):
+            return os.path.expanduser(os.path.join(local, arrangeit.__appname__))
         return os.path.expanduser(
             os.path.join("~", ".{}".format(arrangeit.__appname__))
         )
+
+    def grab_window_screen(self, model):
+        """Grabs and returns screenshot of the window from provided model.
+
+        :param model: model of the window we want screenshot form
+        :type model: :class:`WindowModel`
+        :returns: :class:`PIL.ImageTk.PhotoImage`
+        """
+        root = display.Display().screen().root
+        raw = root.get_image(model.x, model.y, model.w, model.h, X.ZPixmap, 0xFFFFFFFF)
+        image = Image.frombytes("RGB", (model.w, model.h), raw.data, "raw", "BGRX")
+        return ImageTk.PhotoImage(image)
 
     def move_and_resize(self, wid):
         """Moves and resizes window having provided wid.

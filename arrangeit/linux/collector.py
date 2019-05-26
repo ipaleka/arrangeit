@@ -97,10 +97,19 @@ class Collector(BaseCollector):
         :param win: window to create WindowModel from it
         :type win: :class:`Wnck.Window` object
         """
+        print(
+            "x {} y {} w {} h {}  {}".format(
+                win.get_geometry()[0] - win.get_client_window_geometry()[0],
+                win.get_geometry()[1] - win.get_client_window_geometry()[1],
+                win.get_geometry()[2] - win.get_client_window_geometry()[2],
+                win.get_geometry()[3] - win.get_client_window_geometry()[3],
+                win.get_name(),
+            )
+        )
         self.collection.add(
             WindowModel(
                 wid=win.get_xid(),
-                rect=win.get_geometry(),
+                rect=tuple(win.get_geometry()),
                 resizable=self.is_resizable(win.get_window_type()),
                 title=win.get_name(),
                 name=win.get_class_group_name(),
@@ -215,23 +224,30 @@ class Collector(BaseCollector):
         :type model: :class:`WindowModel` instance
         :returns: int flag
         """
-        return (
+        value = (
             Wnck.WindowMoveResizeMask.X
             | Wnck.WindowMoveResizeMask.Y
             | Wnck.WindowMoveResizeMask.WIDTH
             | Wnck.WindowMoveResizeMask.HEIGHT
         )
+        print(int(value))
+        if model.changed_x == model.rect[0]:
+            value &= ~Wnck.WindowMoveResizeMask.X
+        print(int(value))
+        if model.changed_y == model.rect[1]:
+            value &= ~Wnck.WindowMoveResizeMask.Y
+        print(int(value))
+        if model.changed_w == model.rect[2]:
+            value &= ~Wnck.WindowMoveResizeMask.WIDTH
+        print(int(value))
+        if model.changed_h == model.rect[3]:
+            value &= ~Wnck.WindowMoveResizeMask.HEIGHT
+        print(int(value))
+        return value
+
         # return (
-        #     (0 if model.changed[0] == model.rect[0] else Wnck.WindowMoveResizeMask.X)
-        #     | (0 if model.changed[1] == model.rect[1] else Wnck.WindowMoveResizeMask.Y)
-        #     | (
-        #         0
-        #         if model.changed[2] == model.rect[2]
-        #         else Wnck.WindowMoveResizeMask.WIDTH
-        #     )
-        #     | (
-        #         0
-        #         if model.changed[3] == model.rect[3]
-        #         else Wnck.WindowMoveResizeMask.HEIGHT
-        #     )
+        #     Wnck.WindowMoveResizeMask.X
+        #     | Wnck.WindowMoveResizeMask.Y
+        #     | Wnck.WindowMoveResizeMask.WIDTH
+        #     | Wnck.WindowMoveResizeMask.HEIGHT
         # )

@@ -8,6 +8,7 @@ from arrangeit.view import (
     click_left,
     get_mouse_listener,
     get_tkinter_root,
+    get_screenshot_widget,
     move_cursor,
     ViewApplication,
 )
@@ -55,6 +56,10 @@ class BaseApp(object):
         """Method must be overridden."""
         raise NotImplementedError
 
+    def grab_window_screen(self, model):
+        """Method must be overridden."""
+        raise NotImplementedError
+
     def move_and_resize(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
@@ -96,6 +101,10 @@ class BaseController(object):
     :type listener: :class:`ViewApplication` instance
     :var state: controller's state (LOCATE, RESIZE or OTHER)
     :type state: int
+    :var screenshot_widget: widget holding background image
+    :type screenshot_widget: :class:`tk.Label`
+    :var screenshot: screenshot image of the window model
+    :type screenshot: :class:`tk.PhotoImage`
     """
 
     app = None
@@ -104,6 +113,8 @@ class BaseController(object):
     view = None
     listener = None
     state = None
+    screenshot_widget = None
+    screenshot = None
 
     def __init__(self, app):
         """Sets app attribute to provided argument, model attribute to new empty model
@@ -124,6 +135,7 @@ class BaseController(object):
         """
         root = get_tkinter_root()
         self.setup_root_window(root)
+        self.screenshot_widget = get_screenshot_widget(root)
         self.view = ViewApplication(master=root, controller=self)
         root.withdraw()
 
@@ -219,6 +231,8 @@ class BaseController(object):
             if self.model.workspace != old_workspace:
                 self.switch_workspace()
 
+        self.screenshot = self.app.grab_window_screen(self.model)
+        self.screenshot_widget.configure(image=self.screenshot)
         self.set_default_geometry(self.view.master)
         self.place_on_top_left()
 
@@ -269,11 +283,7 @@ class BaseController(object):
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        self.view.master.geometry(
-            "+{}+{}".format(
-                x - constants.WINDOW_SHIFT_PIXELS, y - constants.WINDOW_SHIFT_PIXELS
-            )
-        )
+        self.view.master.geometry("+{}+{}".format(x, y))
 
     def change_size(self, x, y):
         """Changes root window size in regard to provided bottom left x and y
@@ -286,21 +296,15 @@ class BaseController(object):
         :type y: int
         """
         if (
-            x > self.model.changed[0] + constants.WINDOW_MIN_WIDTH
-            and y > self.model.changed[1] + constants.WINDOW_MIN_HEIGHT
+            x > self.model.changed_x + constants.WINDOW_MIN_WIDTH
+            and y > self.model.changed_y + constants.WINDOW_MIN_HEIGHT
         ):
             self.view.master.geometry(
-                "{}x{}".format(
-                    x - self.model.changed[0] + constants.WINDOW_SHIFT_PIXELS * 2,
-                    y - self.model.changed[1] + constants.WINDOW_SHIFT_PIXELS * 2,
-                )
+                "{}x{}".format(x - self.model.changed_x, y - self.model.changed_y)
             )
         else:
             self.view.master.geometry(
-                "{}x{}".format(
-                    constants.WINDOW_MIN_WIDTH + constants.WINDOW_SHIFT_PIXELS * 2,
-                    constants.WINDOW_MIN_HEIGHT + constants.WINDOW_SHIFT_PIXELS * 2,
-                )
+                "{}x{}".format(constants.WINDOW_MIN_WIDTH, constants.WINDOW_MIN_HEIGHT)
             )
 
     def listed_window_activated_by_digit(self, number):
@@ -350,7 +354,7 @@ class BaseController(object):
         """
         self.view.master.config(cursor="lr_angle")
         move_cursor(
-            self.model.changed[0] + self.model.w, self.model.changed[1] + self.model.h
+            self.model.changed_x + self.model.w, self.model.changed_y + self.model.h
         )
 
     def remove_listed_window(self, wid):
@@ -433,7 +437,7 @@ class BaseController(object):
         if event.keysym in ("Escape",):
             self.shutdown()
 
-        elif event.keysym in ("Return",):
+        elif event.keysym in ("Return", "KP_Enter"):
             self.update(
                 self.view.master.winfo_pointerx(), self.view.master.winfo_pointery()
             )

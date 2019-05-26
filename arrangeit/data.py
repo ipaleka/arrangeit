@@ -57,8 +57,8 @@ class WindowModel(object):
 
         :returns: (int, int) or (None, None)
         """
-        if x > self.changed[0] and y > self.changed[1]:
-            return (x - self.changed[0], y - self.changed[1])
+        if x > self.changed_x and y > self.changed_y:
+            return (x - self.changed_x, y - self.changed_y)
         return (None, None)
 
     def set_changed(self, **kwargs):
@@ -88,13 +88,16 @@ class WindowModel(object):
             if not kwargs:
                 return None
 
+        previous = list(self.changed) if self.changed != () else list(self.rect)
         if "rect" in kwargs:
-            self.changed = get_value_if_valid_type(
+            changed = get_value_if_valid_type(
                 kwargs["rect"], constants.WINDOW_MODEL_TYPES["rect"]
             )
+            if changed != tuple(previous):
+                self.changed = changed
             return None
 
-        changed = list(self.changed) if self.changed != () else list(self.rect)
+        changed = []
         for elem, value in kwargs.items():
             if elem not in constants.WINDOW_RECT_ELEMENTS:
                 changed = []
@@ -106,7 +109,9 @@ class WindowModel(object):
             if new_value is None:
                 changed = []
                 break
-            changed[index] = new_value
+            if new_value != previous[index]:
+                changed = previous
+                changed[index] = new_value
 
         self.changed = tuple(changed)
 
@@ -117,6 +122,38 @@ class WindowModel(object):
         :returns: Boolean
         """
         return self.changed_ws is not None and self.changed_ws != self.ws
+
+    @property
+    def changed_x(self):
+        return (
+            self.changed[0]
+            if self.changed != ()
+            else (self.rect[0] if self.rect != () else None)
+        )
+
+    @property
+    def changed_y(self):
+        return (
+            self.changed[1]
+            if self.changed != ()
+            else (self.rect[1] if self.rect != () else None)
+        )
+
+    @property
+    def changed_w(self):
+        return (
+            self.changed[2]
+            if self.changed != ()
+            else (self.rect[2] if self.rect != () else None)
+        )
+
+    @property
+    def changed_h(self):
+        return (
+            self.changed[3]
+            if self.changed != ()
+            else (self.rect[3] if self.rect != () else None)
+        )
 
     @property
     def x(self):

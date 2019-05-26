@@ -112,6 +112,11 @@ class TestBaseApp(object):
         with pytest.raises(NotImplementedError):
             base.BaseApp().user_data_path()
 
+    ## BaseApp.grab_window_screen
+    def test_BaseApp_grab_window_screen_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().grab_window_screen(None)
+
     ## BaseApp.move_and_resize
     def test_BaseApp_move_and_resize_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):

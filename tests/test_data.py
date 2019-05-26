@@ -235,6 +235,22 @@ class TestWindowModel(object):
     @pytest.mark.parametrize(
         "values",
         [
+            {"x": SAMPLE_RECT[0]},
+            {"y": SAMPLE_RECT[1]},
+            {"x": SAMPLE_RECT[0], "y": SAMPLE_RECT[1], "w": SAMPLE_RECT[2]},
+            {"w": SAMPLE_RECT[2]},
+            {"w": SAMPLE_RECT[2], "x": SAMPLE_RECT[0]},
+            {"rect": SAMPLE_RECT},
+        ],
+    )
+    def test_WindowModel_set_changed_not_changing_same_value(self, values):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(**values)
+        assert model.changed == ()
+
+    @pytest.mark.parametrize(
+        "values",
+        [
             {"x": 100.0},
             {"y": "a"},
             {"w": WindowModel},
@@ -287,6 +303,46 @@ class TestWindowModel(object):
         model = WindowModel(workspace=ws)
         model.set_changed(ws=changed_ws)
         assert model.is_ws_changed is expected
+
+    ## WindowModel.changed_x
+    def test_WindowModel_changed_x_gets_x_from_changed(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(x=1000)
+        assert model.changed_x == model.changed[0]
+
+    def test_WindowModel_changed_x_gets_x_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.changed_x == model.rect[0]
+
+    ## WindowModel.changed_y
+    def test_WindowModel_changed_y_gets_y_from_changed(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(y=1000)
+        assert model.changed_y == model.changed[1]
+
+    def test_WindowModel_changed_y_gets_y_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.changed_y == model.rect[1]
+
+    ## WindowModel.changed_w
+    def test_WindowModel_changed_w_gets_w_from_changed(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(w=1000)
+        assert model.changed_w == model.changed[2]
+
+    def test_WindowModel_changed_w_gets_w_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.changed_w == model.rect[2]
+
+    ## WindowModel.changed_h
+    def test_WindowModel_changed_h_gets_h_from_changed(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(h=1000)
+        assert model.changed_h == model.changed[3]
+
+    def test_WindowModel_changed_h_gets_h_from_rect(self):
+        model = WindowModel(rect=SAMPLE_RECT)
+        assert model.changed_h == model.rect[3]
 
     ## WindowModel.x
     def test_WindowModel_x_gets_x_from_rect(self):

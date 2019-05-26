@@ -16,6 +16,17 @@ def get_tkinter_root():
     """
     return tk.Tk()
 
+def get_screenshot_widget(root):
+    """Returns Label widget that will hold screenshot image in background.
+
+    :param root: application main window
+    :type root: :class:`tk.Tk`
+    :returns: :class:`tk.Label`
+    """
+    label = tk.Label(root)
+    label.place(x=-1, y=-1)
+    return label
+
 
 # NOTE following 3 functions probably should be moved somewhere else
 
@@ -74,12 +85,12 @@ class ViewApplication(tk.Frame):
         self.setup_windows()
         self.setup_toolbar()
 
-        ## TODO delete code from below
-        try:
-            self.master["background"] = "gray"
-            self["background"] = "blue"
-        except TypeError:
-            pass
+        # ## TODO delete code from below
+        # try:
+        #     self.master["background"] = "gray"
+        #     self["background"] = "blue"
+        # except TypeError:
+        #     pass
 
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
@@ -666,4 +677,5 @@ class Toolbar(tk.Frame):
         )
 
     def on_options_click(self):
-        pass
+        from tkinter import messagebox
+        messagebox.showinfo("arrangeit", _("Not implemented yet!"))

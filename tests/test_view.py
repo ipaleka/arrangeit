@@ -8,6 +8,7 @@ from arrangeit.data import WindowModel
 from arrangeit.view import (
     click_left,
     get_tkinter_root,
+    get_screenshot_widget,
     get_mouse_listener,
     move_cursor,
     ViewApplication,
@@ -33,6 +34,21 @@ class TestViewFunctions(object):
     def test_get_tkinter_root_returns_Tk_instance(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Tk")
         assert get_tkinter_root() == mocked.return_value
+
+    ## get_tkinter_root
+    def test_get_screenshot_widget_initializes_Label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        get_screenshot_widget(mocker.MagicMock())
+        mocked.assert_called()
+
+    def test_get_screenshot_widget_calls_label_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label.place")
+        get_screenshot_widget(mocker.MagicMock())
+        mocked.assert_called()
+
+    def test_get_screenshot_widget_returns_label_instance(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        assert get_screenshot_widget(mocker.MagicMock()) == mocked.return_value
 
     ## get_mouse_listener
     def test_get_mouse_listener_initializes_Listener(self, mocker):
