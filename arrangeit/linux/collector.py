@@ -198,7 +198,7 @@ class Collector(BaseCollector):
     def get_window_by_wid(self, wid):
         """Returns window instance having provided wid.
 
-        :var wid: window id
+        :param wid: window id
         :type wid: int
         :returns: Wnck.Window object
         """

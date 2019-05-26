@@ -27,6 +27,8 @@ class App(BaseApp):
         Gravity stays the same (Wnck.WindowGravity.CURRENT) and the other arguments
         are calculated/retrieved from model where `changed` attribute holds needed data.
 
+        :param wid: windows id
+        :type wid: int
         :var model: window data
         :type model: :class:`WindowModel` instance
         :var mask: combination of bits holding information what is changed
@@ -47,6 +49,9 @@ class App(BaseApp):
         """Just calls `move_and_resize` as the same method moves and resizes
 
         in Wnck.Window class under GNU/Linux.
+
+        :param wid: windows id
+        :type wid: int
         """
         return self.move_and_resize(wid)
 

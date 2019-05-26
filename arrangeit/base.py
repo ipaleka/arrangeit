@@ -264,9 +264,9 @@ class BaseController(object):
     def change_position(self, x, y):
         """Changes root window position to provided x and y.
 
-        :var x: absolute horizontal axis mouse position in pixels
+        :param x: absolute horizontal axis mouse position in pixels
         :type x: int
-        :var y: absolute vertical axis mouse position in pixels
+        :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
         self.view.master.geometry(
@@ -280,9 +280,9 @@ class BaseController(object):
 
         related to model.changed's x and y.
 
-        :var x: absolute horizontal axis mouse position in pixels
+        :param x: absolute horizontal axis mouse position in pixels
         :type x: int
-        :var y: absolute vertical axis mouse position in pixels
+        :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
         if (
@@ -320,7 +320,7 @@ class BaseController(object):
 
         not including windows prior to current model.
 
-        :var wid: windows identifier
+        :param wid: windows identifier
         :type wid: int
         """
         self.app.run_task("rerun_from_window", wid, self.model.wid)
@@ -356,7 +356,7 @@ class BaseController(object):
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.
 
-        :var wid: id of window that will be destroyed
+        :param wid: id of window that will be destroyed
         :type wid: int
         """
         try:
@@ -415,7 +415,7 @@ class BaseController(object):
     def workspace_activated(self, number):
         """Activates workspace with number equal to provided number.
 
-        :var number: our custom workspace number (screen*1000 + workspace)
+        :param number: our custom workspace number (screen*1000 + workspace)
         :type number: int
         """
         self.app.run_task("move_to_workspace", self.view.master.winfo_id(), number)
@@ -427,7 +427,7 @@ class BaseController(object):
     def on_key_pressed(self, event):
         """Calls method related to pressed key.
 
-        :var event: catched event
+        :param event: catched event
         :type event: Tkinter event
         """
         if event.keysym in ("Escape",):
@@ -460,9 +460,9 @@ class BaseController(object):
 
         Adds negative constants.WINDOW_SHIFT_PIXELS to mouse position for better presentation.
 
-        :var x: absolute horizontal axis mouse position in pixels
+        :param x: absolute horizontal axis mouse position in pixels
         :type x: int
-        :var y: absolute vertical axis mouse position in pixels
+        :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
         if self.state in (None, constants.LOCATE):
@@ -474,7 +474,7 @@ class BaseController(object):
     def on_mouse_left_down(self, event):
         """Calls :class:`BaseController.update` with current cursor position
 
-        :var event: catched event
+        :param event: catched event
         :type event: Tkinter event
         """
         self.update(
@@ -485,7 +485,7 @@ class BaseController(object):
     def on_mouse_middle_down(self, event):
         """Switches to third state.
 
-        :var event: catched event
+        :param event: catched event
         :type event: Tkinter event
         """
         self.release_mouse()
@@ -494,7 +494,7 @@ class BaseController(object):
     def on_mouse_right_down(self, event):
         """Skips the current model.
 
-        :var event: catched event
+        :param event: catched event
         :type event: Tkinter event
         """
         self.skip_current_window()

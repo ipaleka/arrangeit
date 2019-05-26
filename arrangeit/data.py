@@ -7,18 +7,18 @@ from arrangeit.utils import get_value_if_valid_type
 class WindowModel(object):
     """Class holding window data.
 
-    :var wid: window id (xid, hwnd, ...)
-    :type wid: int
+    :var WindowModel.wid: window id (xid, hwnd, ...)
+    :type WindowModel.wid: int
     :var rect: window rectangle (x, y, width, height)
     :type rect: (int, int, int, int)
     :var WindowModel.resizable: is window resizable or not
     :type WindowModel.resizable: Boolean
-    :var title: window title/caption
-    :type title: string
-    :var name: window's application name
-    :type name: string
-    :var icon: window's application icon
-    :type icon: :class:`PIL.Image.Image`
+    :var WindowModel.title: window title/caption
+    :type WindowModel.title: string
+    :var WindowModel.name: window's application name
+    :type WindowModel.name: string
+    :var WindowModel.icon: window's application icon
+    :type WindowModel.icon: :class:`PIL.Image.Image`
     :var workspace: virtual workspace the window is on in format 1000 * screen + number
     :type workspace: int
     :var changed: changed window rectangle (x, y, width, height)

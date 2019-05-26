@@ -43,8 +43,8 @@ def move_cursor(x, y):
 class ViewApplication(tk.Frame):
     """Tkinter frame showing current window from the data provided through controller.
 
-    :var master: master Tkinter window
-    :type master: :class:`tk.Tk` root window instance
+    :var ViewApplication.master: master Tkinter window
+    :type ViewApplication.master: :class:`tk.Tk` root window instance
     :var ViewApplication.controller: controller object providing windows data
     :type ViewApplication.controller: type(:class:`BaseController`) instance (platform specific)
     """
@@ -55,8 +55,8 @@ class ViewApplication(tk.Frame):
     def __init__(self, master=None, controller=None):
         """Sets master and controller attributes from provided arguments
 
-        after super __init__ is called. Then sets the packer and
-        calls :func:`setup_widgets` method.
+        after super __init__ is called. Then calls :func:`setup_widgets
+        and :func:`setup_bindings` methods.
         """
         super().__init__(master)
         self.master = master
@@ -65,7 +65,7 @@ class ViewApplication(tk.Frame):
         self.setup_bindings()
 
     def setup_widgets(self):
-        """Creates and packs all the frame's variables and widgets."""
+        """Calls all the frame's widgets creation and placement methods."""
         self.setup_title()
         self.setup_name()
         self.setup_icon()
@@ -88,7 +88,7 @@ class ViewApplication(tk.Frame):
 
         NOTE master is None check exists solely because unit tests
 
-        `bind_all` method is used so events can be catch in label widget too.
+        `bind_all` method is used if possible so events can be catch in label widget.
         """
         self.bind("<Button-1>", self.controller.on_mouse_left_down)
         if self.master is not None:
@@ -106,7 +106,7 @@ class ViewApplication(tk.Frame):
         self.unbind_all("<Key>")
 
     def setup_title(self):
-        """Sets `title` variable and corresponding Label widget."""
+        """Sets and places title label widget."""
         self.title = tk.StringVar()
         self.title_label = tk.Label(
             self,
@@ -131,7 +131,7 @@ class ViewApplication(tk.Frame):
         )
 
     def setup_icon(self):
-        """Sets `icon` Label widget."""
+        """Sets and places icon label widget."""
         self.icon = tk.Label(
             self,
             bitmap="hourglass",
@@ -147,7 +147,7 @@ class ViewApplication(tk.Frame):
         )
 
     def setup_name(self):
-        """Sets `name` variable and corresponding Label widget."""
+        """Sets and places name label widget."""
         self.name = tk.StringVar()
         self.name_label = tk.Label(
             self,
@@ -166,7 +166,7 @@ class ViewApplication(tk.Frame):
         )
 
     def setup_workspaces(self):
-        """Creates `workspaces` widget and sets corresponding variable."""
+        """Creates and places `workspaces` widget and sets corresponding variable."""
         self.workspaces = WorkspacesCollection(self)
         self.workspaces.place(
             rely=constants.NAME_LABEL_RELHEIGHT,
@@ -176,7 +176,7 @@ class ViewApplication(tk.Frame):
         )
 
     def setup_windows(self):
-        """Creates `windows` widget and sets corresponding variable."""
+        """Creates and places `windows` widget and sets corresponding variable."""
         self.windows = WindowsList(self)
         self.windows.place(
             rely=constants.TITLE_LABEL_RELHEIGHT,
@@ -218,8 +218,8 @@ class ViewApplication(tk.Frame):
 class WorkspacesCollection(tk.Frame):
     """Tkinter frame holding all the available workspaces widgets.
 
-    :var master: master widget
-    :type master: :class:`.tk.Frame`
+    :var WorkspacesCollection.master: master widget
+    :type WorkspacesCollection.master: :class:`.tk.Frame`
     :var active: currently active workspace number
     :type active: int
     :var capacity: number of children workspaces
@@ -230,7 +230,7 @@ class WorkspacesCollection(tk.Frame):
     active = None
 
     def __init__(self, master=None):
-        """Sets master attribute from provided argument and sets the packer
+        """Sets master attribute from provided argument
 
         after super __init__ is called.
         """
@@ -277,7 +277,7 @@ class WorkspacesCollection(tk.Frame):
         :param number: number of workspace to select
         :type number: int
         :var workspace: child widget
-        :type number: :class:`Workspace`
+        :type workspace: :class:`Workspace`
         :var color: Tkinter color name
         :type color: str
         :var cursor: Tkinter cursor name
@@ -307,7 +307,7 @@ class WorkspacesCollection(tk.Frame):
     def on_workspace_label_button_down(self, event):
         """Activates workspace by number carried with provided event.
 
-        :var event: catched event
+        :param event: catched event
         :type event: Tkinter event
         """
         self.master.controller.workspace_activated(event.widget.master.number)
@@ -317,14 +317,14 @@ class WorkspacesCollection(tk.Frame):
 class WindowsList(tk.Frame):
     """Tkinter frame holding titles and small icons of the windows in queue.
 
-    :var master: master widget
-    :type master: :class:`.tk.Frame`
+    :var WindowsList.master: master widget
+    :type WindowsList.master: :class:`.tk.Frame`
     """
 
     master = None
 
     def __init__(self, master=None):
-        """Sets master attribute from provided argument and sets the packer
+        """Sets master attribute from provided argument
 
         after super __init__ is called.
         """
@@ -372,7 +372,7 @@ class WindowsList(tk.Frame):
     def on_window_label_button_down(self, event):
         """Activates window by wid carried with provided event.
 
-        :var event: catched event
+        :param event: catched event
         :type event: Tkinter event
         """
         self.master.controller.listed_window_activated(event.widget.master.wid)
@@ -382,12 +382,12 @@ class WindowsList(tk.Frame):
 class Workspace(tk.Frame):
     """Tkinter frame holding individual workspace widget.
 
-    :var master: master widget
-    :type master: :class:`.tk.Frame`
-    :var number: workspace number
-    :type number: int
-    :var name: workspace name
-    :type name: str
+    :var Workspace.master: master widget
+    :type Workspace.master: :class:`.tk.Frame`
+    :var Workspace.number: workspace number
+    :type Workspace.number: int
+    :var Workspace.name: workspace name
+    :type Workspace.name: str
     """
 
     master = None
@@ -395,9 +395,10 @@ class Workspace(tk.Frame):
     name = ""
 
     def __init__(self, master=None, number=0, name=""):
-        """Sets attributes from provided arguments and sets the packer
+        """Sets attributes from provided arguments
 
-        after super __init__ is called.
+        after super __init__ is called. Then calls :func:`setup_widgets
+        and :func:`setup_bindings` methods.
         """
         super().__init__(master)
         self.master = master
@@ -411,13 +412,13 @@ class Workspace(tk.Frame):
 
         as systems count workspaces from 0, but users expect to be from 1.
 
-        :var number: workspace number
+        :param number: workspace number
         :type number: int
         """
         return str(number % 1000 + 1)
 
     def setup_widgets(self):
-        """Creates and packs all the frame's variables and widgets.
+        """Creates and places all the frame's variables and widgets.
 
         As systems counts workspace from 0, we increase number by 1.
         """
@@ -491,14 +492,14 @@ class Workspace(tk.Frame):
 class ListedWindow(tk.Frame):
     """Tkinter frame holding window title and smaller icon.
 
-    :var master: master widget
-    :type master: :class:`.tk.Frame`
-    :var wid: window id
-    :type wid: int
-    :var title: window title
-    :type title: str
-    :var icon: window's application icon
-    :type icon: Image.Image
+    :var ListedWindow.master: master widget
+    :type ListedWindow.master: :class:`.tk.Frame`
+    :var ListedWindow.wid: window id
+    :type ListedWindow.wid: int
+    :var ListedWindow.title: window title
+    :type ListedWindow.title: str
+    :var ListedWindow.icon: window's application icon
+    :type ListedWindow.icon: Image.Image
     """
 
     master = None
@@ -507,9 +508,10 @@ class ListedWindow(tk.Frame):
     icon = constants.BLANK_ICON
 
     def __init__(self, master=None, wid=0, title="", icon=constants.BLANK_ICON):
-        """Sets attributes from provided arguments and sets the packer
+        """Sets attributes from provided arguments
 
-        after super __init__ is called.
+        after super __init__ is called. Also converts and references provided icon,
+        then calls :func:`setup_widgets and :func:`setup_bindings` methods.
         """
         super().__init__(master, cursor=constants.SELECT_CURSOR)
         self.master = master
@@ -522,7 +524,7 @@ class ListedWindow(tk.Frame):
     def get_icon_image(self, icon):
         """Returns provided icon resized and converted to format suitable for Tkinter.
 
-        :var icon: window's application icon
+        :param icon: window's application icon
         :type icon: :class:`PIL.Image.Image`
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
@@ -532,7 +534,7 @@ class ListedWindow(tk.Frame):
         )
 
     def setup_widgets(self):
-        """Creates and packs all the frame's variables and widgets."""
+        """Creates and places all the frame's variables and widgets."""
         self.title_label = tk.Label(
             self,
             text=self.title,
@@ -587,3 +589,4 @@ class ListedWindow(tk.Frame):
         """Resets widget foreground color."""
         self.title_label.config(foreground=constants.LISTED_WINDOW_LABEL_FG)
         return "break"
+
