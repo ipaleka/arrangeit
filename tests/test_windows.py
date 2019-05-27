@@ -20,10 +20,10 @@ class TestWindowsApp(object):
     def test_WindowsApp_user_data_path(self, mocker):
         mocker.patch(
             "os.path.expanduser",
-            side_effect=lambda e: "C:/Users/tempuser/{}".format(e).replace("~/", ""),
+            side_effect=lambda e: "C:\\Users\\tempuser{}".format(e).replace("~", "")
         )
         app = App()
-        assert app.user_data_path() == "C:/Users/tempuser/arrangeit"
+        assert app.user_data_path() == "C:\\Users\\tempuser\\arrangeit"
 
 
 class TestWindowsController(object):
@@ -96,8 +96,8 @@ class TestWindowsCollector(object):
     @pytest.mark.parametrize(
         "rgstate,expected",
         [
-            ((STATE_SYSTEM_INVISIBLE,), STATE_SYSTEM_INVISIBLE),
-            ((STATE_SYSTEM_INVISIBLE - 1,), 0),
+            ((STATE_SYSTEM_INVISIBLE,), True),
+            ((STATE_SYSTEM_INVISIBLE - 1,), False),
         ],
     )
     def test_WindowsCollector__is_tray_window_return(self, mocker, rgstate, expected):
@@ -189,7 +189,7 @@ class TestWindowsCollector(object):
 
     @pytest.mark.parametrize(
         "dwExStyle,expected",
-        [(WS_EX_NOACTIVATE, WS_EX_NOACTIVATE), (WS_EX_NOACTIVATE - 1, 0)],
+        [(WS_EX_NOACTIVATE, False), (WS_EX_NOACTIVATE - 1, True)],
     )
     def test_WindowsCollector__is_activable_return(self, mocker, dwExStyle, expected):
         mocked = mocker.patch("arrangeit.windows.collector.WINDOWINFO")
@@ -228,7 +228,7 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
 
     @pytest.mark.parametrize(
-        "value,expected", [(WS_THICKFRAME, WS_THICKFRAME), (WS_THICKFRAME - 1, 0)]
+        "value,expected", [(WS_THICKFRAME, True), (WS_THICKFRAME - 1, False)]
     )
     def test_WindowsCollector_is_resizable_return(self, mocker, value, expected):
         mocker.patch("arrangeit.windows.collector.GetWindowLong", return_value=value)
@@ -355,6 +355,8 @@ class TestWindowsCollector(object):
             "is_resizable",
             "_get_window_title",
             "_get_class_name",
+            "_get_application_icon",
+            "get_workspace_number_for_window",
         ],
     )
     def test_WindowsCollector_add_window_calls_methods(self, mocker, method):
@@ -364,6 +366,7 @@ class TestWindowsCollector(object):
         mocked = mocker.patch("arrangeit.windows.collector.Collector.{}".format(method))
         Collector().add_window(SAMPLE_HWND)
         mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND)
 
     ## WindowsCollector.run
     @pytest.mark.parametrize(

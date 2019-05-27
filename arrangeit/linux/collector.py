@@ -253,27 +253,3 @@ class Collector(BaseCollector):
         :returns: flag
         """
         return self._check_mask_part(model, list(MOVE_RESIZE_MASKS.keys()))
-
-
-# print(int(value))
-# if model.changed_x == model.rect[0]:
-#     value &= ~Wnck.WindowMoveResizeMask.X
-# print(int(value))
-# if model.changed_y == model.rect[1]:
-#     value &= ~Wnck.WindowMoveResizeMask.Y
-# print(int(value))
-# if model.changed_w == model.rect[2]:
-#     value &= ~Wnck.WindowMoveResizeMask.WIDTH
-# print(int(value))
-# if model.changed_h == model.rect[3]:
-#     value &= ~Wnck.WindowMoveResizeMask.HEIGHT
-# print(int(value))
-# return value
-
-# # return (
-# #     Wnck.WindowMoveResizeMask.X
-# #     | Wnck.WindowMoveResizeMask.Y
-# #     | Wnck.WindowMoveResizeMask.WIDTH
-# #     | Wnck.WindowMoveResizeMask.HEIGHT
-# # )
-

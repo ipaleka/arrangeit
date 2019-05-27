@@ -21,6 +21,7 @@ from win32gui import (
     IsWindowVisible,
 )
 
+from arrangeit import constants
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
 from arrangeit.utils import append_to_collection
@@ -215,6 +216,15 @@ class Collector(BaseCollector):
         """
         return GetClassName(hwnd)
 
+    def _get_application_icon(self, hwnd):
+        """
+
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: str
+        """
+        return constants.BLANK_ICON
+
     def add_window(self, hwnd):
         """Creates WindowModel instance from provided hwnd and adds it to collection.
 
@@ -228,5 +238,25 @@ class Collector(BaseCollector):
                 resizable=self.is_resizable(hwnd),
                 title=self._get_window_title(hwnd),
                 name=self._get_class_name(hwnd),
+                icon=self._get_application_icon(hwnd),
+                workspace=self.get_workspace_number_for_window(hwnd),
             )
         )
+
+    def get_workspace_number_for_window(self, hwnd):
+        """TODO implement
+
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: str
+        """
+        return 0
+
+    def get_available_workspaces(self):
+        """TODO implement
+
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: str
+        """
+        return [(0, "")]

@@ -16,6 +16,7 @@ def get_tkinter_root():
     """
     return tk.Tk()
 
+
 def get_screenshot_widget(root):
     """Returns Label widget that will hold screenshot image in background.
 
@@ -678,4 +679,5 @@ class Toolbar(tk.Frame):
 
     def on_options_click(self):
         from tkinter import messagebox
+
         messagebox.showinfo("arrangeit", _("Not implemented yet!"))

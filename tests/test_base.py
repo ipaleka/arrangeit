@@ -2,7 +2,7 @@ import pytest
 
 from arrangeit import base, data, utils
 
-from .test_basecontroller import mock_main_loop
+from .test_basecontroller import mock_main_loop, mocked_viewapp
 
 
 class TestBaseApp(object):
@@ -15,16 +15,19 @@ class TestBaseApp(object):
 
     ## BaseApp.__init__.controller
     def test_BaseApp_initialization_calls_setup_controller(self, mocker):
+        mocked_viewapp(mocker)
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_controller")
         base.BaseApp()
         mocked.assert_called_once()
 
     def test_BaseApp_initialization_instantiates_controller(self, mocker):
+        mocked_viewapp(mocker)
         mainapp = base.BaseApp()
         assert getattr(mainapp, "controller", None) is not None
         assert isinstance(getattr(mainapp, "controller"), base.BaseController)
 
     def test_BaseApp_initialization_instantiates_controller_with_app(self, mocker):
+        mocked_viewapp(mocker)
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
@@ -34,11 +37,13 @@ class TestBaseApp(object):
 
     ## BaseApp.__init__.collector
     def test_BaseApp_initialization_calls_setup_collector(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         base.BaseApp()
         mocked.assert_called_once()
 
     def test_BaseApp_initialization_instantiates_collector(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mainapp = base.BaseApp()
         assert getattr(mainapp, "collector", None) is not None
         assert isinstance(getattr(mainapp, "collector"), base.BaseCollector)
@@ -47,6 +52,7 @@ class TestBaseApp(object):
     def test_BaseApp_setup_controller_calls_get_component_class_Controller(
         self, mocker
     ):
+        mocked_viewapp(mocker)
         mocked = mocker.patch("arrangeit.base.get_component_class")
         base.BaseApp().setup_controller()
         mocked.assert_called()
@@ -54,6 +60,7 @@ class TestBaseApp(object):
 
     ## BaseApp.setup_collector
     def test_BaseApp_setup_collector_calls_get_component_class_Collector(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.get_component_class")
         base.BaseApp().setup_collector()
         mocked.assert_called()
@@ -61,7 +68,7 @@ class TestBaseApp(object):
 
     ## BaseApp.run
     def test_BaseApp_run_calls_collector_run(self, mocker):
-        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch(
             "arrangeit.{}.collector.Collector".format(utils.platform_path())
         )
@@ -69,13 +76,13 @@ class TestBaseApp(object):
         assert mocked.return_value.run.call_count == 1
 
     def test_BaseApp_run_calls_WindowsCollection_generator(self, mocker):
-        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.WindowsCollection")
         base.BaseApp().run()
         assert mocked.return_value.generator.call_count == 1
 
     def test_BaseApp_run_calls_controller_run(self, mocker):
-        mock_main_loop(mocker)
+        mocked_viewapp(mocker)
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
@@ -83,7 +90,7 @@ class TestBaseApp(object):
         assert mocked.return_value.run.call_count == 1
 
     def test_BaseApp_run_calls_controller_run_with_valid_argument(self, mocker):
-        mock_main_loop(mocker)
+        mocked_viewapp(mocker)
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
@@ -103,48 +110,52 @@ class TestBaseApp(object):
         ],
     )
     def test_BaseApp_run_task_calls_related_methods(self, mocker, task, args):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.get_tkinter_root")
         mocked = mocker.patch("arrangeit.base.BaseApp.{}".format(task))
         base.BaseApp().run_task(task, *args)
         mocked.assert_called_with(*args)
 
     ## BaseApp.user_data_path
-    def test_BaseApp_user_data_path_raises_NotImplementedError(self):
+    def test_BaseApp_user_data_path_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().user_data_path()
 
     ## BaseApp.grab_window_screen
-    def test_BaseApp_grab_window_screen_raises_NotImplementedError(self):
+    def test_BaseApp_grab_window_screen_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().grab_window_screen(None)
 
     ## BaseApp.move_and_resize
-    def test_BaseApp_move_and_resize_raises_NotImplementedError(self):
+    def test_BaseApp_move_and_resize_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move_and_resize()
 
     ## BaseApp.move
-    def test_BaseApp_move_raises_NotImplementedError(self):
+    def test_BaseApp_move_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move()
 
     ## BaseApp.move_to_workspace
-    def test_BaseApp_move_to_workspace_raises_NotImplementedError(self):
+    def test_BaseApp_move_to_workspace_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move_to_workspace()
 
-    ## BaseApp.rerun_from_window
-    def test_BaseApp_rerun_from_window_raises_NotImplementedError(self):
-        with pytest.raises(NotImplementedError):
-            base.BaseApp().rerun_from_window()
-
     ## BaseApp.save_default
     def test_BaseApp_save_default_calls_user_data_path(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.os")
         mocked = mocker.patch("arrangeit.base.BaseApp.user_data_path")
         base.BaseApp().save_default()
         mocked.assert_called_once()
 
     def test_BaseApp_save_default_checks_if_directory_exists(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.BaseApp.user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
@@ -153,6 +164,7 @@ class TestBaseApp(object):
         mocked.assert_called_once()
 
     def test_BaseApp_save_default_creates_directory(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         path = mocker.patch("arrangeit.base.BaseApp.user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
@@ -163,6 +175,7 @@ class TestBaseApp(object):
         mocked.assert_called_once_with(path.return_value)
 
     def test_BaseApp_save_default_calls_collection_export(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.os")
         mocker.patch("arrangeit.base.BaseApp.user_data_path")
         mocker.patch("arrangeit.base.json")
@@ -171,6 +184,7 @@ class TestBaseApp(object):
         mocked.assert_called_once()
 
     def test_BaseApp_save_default_calls_json_dump(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.os")
         mocker.patch("arrangeit.base.BaseApp.user_data_path")
         mocked = mocker.patch("arrangeit.base.json.dump")
@@ -237,7 +251,7 @@ class TestBaseCollector(object):
     ## BaseCollector.get_available_workspaces
     def test_BaseCollector_get_available_workspaces_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
-            base.BaseCollector().get_available_workspaces(None)
+            base.BaseCollector().get_available_workspaces()
 
     ## BaseCollector.run
     def test_BaseCollector_run_calls_get_windows(self, mocker):

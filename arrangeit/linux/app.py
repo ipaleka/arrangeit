@@ -60,6 +60,7 @@ class App(BaseApp):
         :type mask: :class:`Wnck.WindowMoveResizeMask` flag
         :var win: window instance
         :type win: :class:`Wnck.Window` object
+        :returns: Boolean
         """
         model = self.collector.collection.get_model_by_wid(wid)
         if model.is_ws_changed:
@@ -138,13 +139,3 @@ class App(BaseApp):
         :type number: int
         """
         return self._move_window_to_workspace(wid + 1, number)
-
-    def rerun_from_window(self, wid, remove_before):
-        """Restart positioning routine from the window with provided wid
-
-        without already positioned/skipped windows.
-
-        :param wid: windows identifier
-        :type wid: int
-        """
-        self.collector.collection.repopulate_for_wid(wid, remove_before)

@@ -73,9 +73,15 @@ class BaseApp(object):
         """Method must be overridden."""
         raise NotImplementedError
 
-    def rerun_from_window(self, *args):
-        """Method must be overridden."""
-        raise NotImplementedError
+    def rerun_from_window(self, wid, remove_before):
+        """Restart positioning routine from the window with provided wid
+
+        without already positioned/skipped windows.
+
+        :param wid: windows identifier
+        :type wid: int
+        """
+        self.collector.collection.repopulate_for_wid(wid, remove_before)
 
     def save_default(self, *args):
         """Saves collection to default filename in user's directory.
@@ -582,7 +588,7 @@ class BaseCollector(object):
         """Method must be overridden."""
         raise NotImplementedError
 
-    def get_available_workspaces(self, win):
+    def get_available_workspaces(self):
         """Method must be overridden."""
         raise NotImplementedError
 

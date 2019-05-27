@@ -1,7 +1,7 @@
 import pytest
 
 from arrangeit import __main__, base
-from arrangeit.utils import get_component_class
+from arrangeit.utils import get_component_class, platform_path
 
 
 class TestStructure(object):
@@ -30,16 +30,12 @@ class TestSetup(object):
         mocked.assert_called_once()
         mocked.assert_called_with("App")
 
-    @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
-    def test_main_initializes_platform_specific_App(self, mocker, platform):
-        mocker.patch("arrangeit.utils.platform_path", return_value=platform)
-        mocked = mocker.patch("arrangeit.{}.app.App".format(platform))
+    def test_main_initializes_platform_specific_App(self, mocker):
+        mocked = mocker.patch("arrangeit.{}.app.App".format(platform_path()))
         __main__.main()
         mocked.assert_called()
 
-    @pytest.mark.parametrize("platform", ["darwin", "linux", "windows"])
-    def test_main_calls_App_run(self, mocker, platform):
-        mocker.patch("arrangeit.utils.platform_path", return_value=platform)
-        mocked = mocker.patch("arrangeit.{}.app.App".format(platform))
+    def test_main_calls_App_run(self, mocker):
+        mocked = mocker.patch("arrangeit.{}.app.App".format(platform_path()))
         __main__.main()
         assert mocked.return_value.run.call_count == 1
