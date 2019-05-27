@@ -1,5 +1,6 @@
 import os
 import json
+from gettext import gettext as _
 
 from arrangeit import constants
 from arrangeit.data import WindowModel, WindowsCollection
@@ -77,7 +78,11 @@ class BaseApp(object):
         raise NotImplementedError
 
     def save_default(self, *args):
-        print("finished: save_default with args ", args)
+        """Saves collection to default filename in user's directory.
+
+        Creates application's user data directory if it not exists.
+        """
+        print(_("Finished: saving to default file"))
         directory = self.user_data_path()
         if not os.path.exists(directory):
             os.mkdir(directory)
@@ -129,6 +134,7 @@ class BaseController(object):
     def setup(self):
         """Initializes Tkinter ViewApplication with root window and self as arguments.
 
+        Creates and place screenshot widget below view frame, used to hold window image.
         Sets view attribute to newly created Tkinter application.
         Prevents root window to show by calling its `withdraw` method.
         Tkinter root window from now may be accessed by `[self].view.master` attribute.
@@ -208,6 +214,7 @@ class BaseController(object):
 
         and populates view widgets with new model data.
         Also changes and moves cursor and root window to model's window position.
+        Grabs and sets screenshot image of the model's window.
         If there are no values left in collection then saves and exits app.
         Switches workspace if it's changed.
 
@@ -241,13 +248,9 @@ class BaseController(object):
         return False
 
     def update(self, x, y):
-        """Updates model with provided cursor position in regard to state
+        """Calls corresponding state related update method.
 
-        and takes action in regard to state and model type.
-        As we call `click_left` under `run`, so this method is called upon start
-        when state has value of None - we set it to constants.LOCATE right here.
-
-        NOTE this method probably needs refactoring
+        Sets state to LOCATE if this is the very first call to this method.
 
         :param x: current horizontal axis mouse position in pixels
         :type x: int
@@ -258,21 +261,75 @@ class BaseController(object):
             self.state = constants.LOCATE
 
         elif self.state == constants.LOCATE:
-            self.model.set_changed(x=x, y=y)
-            if not self.model.resizable:
-                if self.model.changed or self.model.is_ws_changed:
-                    self.app.run_task("move", self.model.wid)
-                self.next()
-            else:
-                self.state = constants.RESIZE
-                self.place_on_right_bottom()
+            return self.update_positioning(x, y)
 
         elif self.state == constants.RESIZE:
-            w, h = self.model.wh_from_ending_xy(x, y)
-            self.model.set_changed(w=w, h=h)
+            return self.update_resizing(x, y)
+
+    def update_positioning(self, x, y):
+        """Updates model with provided cursor position in LOCATE state
+
+        and takes action in regard to model type.
+
+        :param x: current horizontal axis mouse position in pixels
+        :type x: int
+        :param y: current vertical axis mouse position in pixels
+        :type y: int
+        """
+        self.model.set_changed(x=x, y=y)
+        if not self.model.resizable:
             if self.model.changed or self.model.is_ws_changed:
-                self.app.run_task("move_and_resize", self.model.wid)
+                self.app.run_task("move", self.model.wid)
             self.next()
+        else:
+            self.state = constants.RESIZE
+            self.place_on_right_bottom()
+
+    def update_resizing(self, x, y):
+        """Updates model with provided cursor position in RESIZE state
+
+        and calls move and resize task if window has changed.
+        Switches to next model anyway.
+
+        :param x: current horizontal axis mouse position in pixels
+        :type x: int
+        :param y: current vertical axis mouse position in pixels
+        :type y: int
+        """
+        w, h = self.model.wh_from_ending_xy(x, y)
+        self.model.set_changed(w=w, h=h)
+        if self.model.changed or self.model.is_ws_changed:
+            self.app.run_task("move_and_resize", self.model.wid)
+        self.next()
+
+    def listed_window_activated(self, wid):
+        """Calls task that restarts positioning routine from provided window id
+
+        not including windows prior to current model.
+
+        :param wid: windows identifier
+        :type wid: int
+        """
+        self.app.run_task("rerun_from_window", wid, self.model.wid)
+        self.view.windows.clear_list()
+        self.view.windows.add_windows(
+            self.app.collector.collection.get_windows_list()[1:]
+        )
+        if self.state == constants.OTHER:
+            self.recapture_mouse()
+        self.generator = self.app.collector.collection.generator()
+        self.next(first_time=True)
+
+    def workspace_activated(self, number):
+        """Activates workspace with number equal to provided number.
+
+        :param number: our custom workspace number (screen*1000 + workspace)
+        :type number: int
+        """
+        self.app.run_task("move_to_workspace", self.view.master.winfo_id(), number)
+        self.model.set_changed(ws=number)
+        if self.state == constants.OTHER:
+            self.recapture_mouse()
 
     ## COMMANDS
     def change_position(self, x, y):
@@ -318,24 +375,6 @@ class BaseController(object):
         windows = self.view.windows.winfo_children()
         if len(windows) >= number:
             self.listed_window_activated(windows[number - 1].wid)
-
-    def listed_window_activated(self, wid):
-        """Calls task that restarts positioning routine from provided window id
-
-        not including windows prior to current model.
-
-        :param wid: windows identifier
-        :type wid: int
-        """
-        self.app.run_task("rerun_from_window", wid, self.model.wid)
-        self.view.windows.clear_list()
-        self.view.windows.add_windows(
-            self.app.collector.collection.get_windows_list()[1:]
-        )
-        if self.state == constants.OTHER:
-            self.recapture_mouse()
-        self.generator = self.app.collector.collection.generator()
-        self.next(first_time=True)
 
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
@@ -415,17 +454,6 @@ class BaseController(object):
         workspaces = self.view.workspaces.winfo_children()
         if len(workspaces) >= number:
             self.workspace_activated(workspaces[number - 1].number)
-
-    def workspace_activated(self, number):
-        """Activates workspace with number equal to provided number.
-
-        :param number: our custom workspace number (screen*1000 + workspace)
-        :type number: int
-        """
-        self.app.run_task("move_to_workspace", self.view.master.winfo_id(), number)
-        self.model.set_changed(ws=number)
-        if self.state == constants.OTHER:
-            self.recapture_mouse()
 
     ## EVENTS CALLBACKS
     def on_key_pressed(self, event):

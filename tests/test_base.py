@@ -170,6 +170,14 @@ class TestBaseApp(object):
         base.BaseApp().save_default()
         mocked.assert_called_once()
 
+    def test_BaseApp_save_default_calls_json_dump(self, mocker):
+        mocker.patch("arrangeit.base.os")
+        mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocked = mocker.patch("arrangeit.base.json.dump")
+        mocker.patch("arrangeit.data.WindowsCollection.export")
+        base.BaseApp().save_default()
+        mocked.assert_called_once()
+
 
 class TestBaseCollector(object):
     """Testing class for base Collector class."""

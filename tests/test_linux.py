@@ -12,7 +12,7 @@ import pytest
 import arrangeit
 from arrangeit.data import WindowModel
 from arrangeit.linux.app import App
-from arrangeit.linux.collector import Collector
+from arrangeit.linux.collector import Collector, MOVE_RESIZE_MASKS
 from arrangeit.linux.controller import Controller
 
 
@@ -77,17 +77,6 @@ class TestLinuxApp(object):
             app.move_and_resize(100)
         mocked.assert_not_called()
 
-    def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
-            return_value=False
-        )
-        app = App()
-        app.move_and_resize(100)
-        mocked.assert_called()
-
     def test_LinuxApp_move_and_resize_calls_get_window_move_resize_mask(self, mocker):
         mocked = mocker.patch(
             "arrangeit.linux.collector.Collector.get_window_move_resize_mask"
@@ -101,6 +90,28 @@ class TestLinuxApp(object):
             app.move_and_resize(100)
         mocked.assert_called()
 
+    def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_and_resize_not_calling_get_window_by_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        app.move_and_resize(100)
+        assert mocked.return_value.set_geometry.call_count == 0
+
     def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocker):
         mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
         mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
@@ -111,12 +122,32 @@ class TestLinuxApp(object):
 
     def test_LinuxApp_move_and_resize_not_calling_WnckWindow_set_geometry(self, mocker):
         mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        type(mocked_model.return_value).changed = mocker.PropertyMock(return_value=())
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         app = App()
         app.move_and_resize(100)
         assert mocked.return_value.set_geometry.call_count == 0
+
+
+    def test_LinuxApp_move_and_resize_returns_False(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        assert app.move_and_resize(100) is False
+
+    def test_LinuxApp_move_and_resize_returns_True(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        assert app.move_and_resize(100) is True
 
     ## LinuxApp.move
     def test_LinuxApp_move_calls_move_and_resize(self, mocker):
@@ -628,16 +659,53 @@ class TestLinuxCollector(object):
         collector.get_window_by_wid(100)
         assert mocked.get.call_count == 1
 
-    ## LinuxCollector.get_window_move_resize_mask
-    @pytest.mark.skip("debugging in process...")
-    def test_LinuxCollector_get_window_move_resize_mask_all(self):
+    ## LinuxCollector._check_mask_part
+    @pytest.mark.parametrize(
+        "rect,changed,expected",
+        [
+            ((100, 200, 300, 400), (100, 200, 300, 400), False),
+            ((100, 200, 300, 400), (101, 200, 300, 400), MOVE_RESIZE_MASKS["x"]),
+            ((100, 200, 300, 400), (100, 201, 300, 400), MOVE_RESIZE_MASKS["y"]),
+            ((100, 200, 300, 400), (100, 200, 301, 400), MOVE_RESIZE_MASKS["w"]),
+            ((100, 200, 300, 400), (100, 200, 300, 401), MOVE_RESIZE_MASKS["h"]),
+            (
+                (100, 200, 300, 400),
+                (101, 201, 300, 400),
+                MOVE_RESIZE_MASKS["x"] | MOVE_RESIZE_MASKS["y"],
+            ),
+            (
+                (100, 200, 300, 400),
+                (101, 201, 301, 400),
+                MOVE_RESIZE_MASKS["x"]
+                | MOVE_RESIZE_MASKS["y"]
+                | MOVE_RESIZE_MASKS["w"],
+            ),
+            (
+                (100, 200, 300, 400),
+                (101, 201, 301, 401),
+                MOVE_RESIZE_MASKS["x"]
+                | MOVE_RESIZE_MASKS["y"]
+                | MOVE_RESIZE_MASKS["w"]
+                | MOVE_RESIZE_MASKS["h"],
+            ),
+        ],
+    )
+    def test_LinuxCollector__check_mask_part_functionality(
+        self, rect, changed, expected
+    ):
         collector = Collector()
-        returned = collector.get_window_move_resize_mask(
-            WindowModel(rect=(100, 100, 100, 100))
-        )
-        assert returned == (
-            Wnck.WindowMoveResizeMask.X
-            | Wnck.WindowMoveResizeMask.Y
-            | Wnck.WindowMoveResizeMask.WIDTH
-            | Wnck.WindowMoveResizeMask.HEIGHT
-        )
+        model = WindowModel(rect=rect)
+        model.set_changed(rect=changed)
+        returned = collector._check_mask_part(model, list(MOVE_RESIZE_MASKS.keys()))
+        assert returned == expected
+
+    ## LinuxCollector.get_window_move_resize_mask
+    def test_LinuxCollector_get_window_move_resize_mask_calls__check_mask_part(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector._check_mask_part")
+        collector = Collector()
+        model = mocker.MagicMock()
+        collector.get_window_move_resize_mask(model)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(model, list(MOVE_RESIZE_MASKS.keys()))

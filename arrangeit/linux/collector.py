@@ -7,6 +7,13 @@ from gi.repository import Wnck
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
 
+MOVE_RESIZE_MASKS = {
+    "x": Wnck.WindowMoveResizeMask.X,
+    "y": Wnck.WindowMoveResizeMask.Y,
+    "w": Wnck.WindowMoveResizeMask.WIDTH,
+    "h": Wnck.WindowMoveResizeMask.HEIGHT,
+}
+
 
 class Collector(BaseCollector):
     """Collecting windows class with GNU/Linux specific code."""
@@ -213,41 +220,60 @@ class Collector(BaseCollector):
         """
         return Wnck.Window.get(wid)
 
-    def get_window_move_resize_mask(self, model):
-        """Returns flag indicating what is changed when we move/resize window.
-
-        Returned flag is combination of the X, Y, WIDTH and HEIGHT bits.
-
-        NOTE we just return all for now
+    def _check_mask_part(self, model, parts, value=False):
+        """Returns call to itself if parts are not exhausted or value if they are.
 
         :param model: model holding window data
         :type model: :class:`WindowModel` instance
-        :returns: int flag
+        :param parts: rect elements names
+        :type parts: list
+        :param value: current value of bit flags
+        :type value: :class:`Wnck.WindowMoveResizeMask` bits combination
+        :var part: rect element name
+        :type part: str
+        :returns: flag
         """
-        value = (
-            Wnck.WindowMoveResizeMask.X
-            | Wnck.WindowMoveResizeMask.Y
-            | Wnck.WindowMoveResizeMask.WIDTH
-            | Wnck.WindowMoveResizeMask.HEIGHT
-        )
-        print(int(value))
-        if model.changed_x == model.rect[0]:
-            value &= ~Wnck.WindowMoveResizeMask.X
-        print(int(value))
-        if model.changed_y == model.rect[1]:
-            value &= ~Wnck.WindowMoveResizeMask.Y
-        print(int(value))
-        if model.changed_w == model.rect[2]:
-            value &= ~Wnck.WindowMoveResizeMask.WIDTH
-        print(int(value))
-        if model.changed_h == model.rect[3]:
-            value &= ~Wnck.WindowMoveResizeMask.HEIGHT
-        print(int(value))
+        part = parts.pop()
+        if getattr(model, part) != getattr(model, "changed_{}".format(part)):
+            value = (
+                value | MOVE_RESIZE_MASKS[part] if value else MOVE_RESIZE_MASKS[part]
+            )
+        if parts:
+            return self._check_mask_part(model, parts, value)
         return value
 
-        # return (
-        #     Wnck.WindowMoveResizeMask.X
-        #     | Wnck.WindowMoveResizeMask.Y
-        #     | Wnck.WindowMoveResizeMask.WIDTH
-        #     | Wnck.WindowMoveResizeMask.HEIGHT
-        # )
+    def get_window_move_resize_mask(self, model):
+        """Returns flag indicating what is changed when we move/resize window.
+
+        Calls recursive method traversing all rect parts.
+        Returned flag is combination of the X, Y, WIDTH and HEIGHT bits.
+
+        :param model: model holding window data
+        :type model: :class:`WindowModel` instance
+        :returns: flag
+        """
+        return self._check_mask_part(model, list(MOVE_RESIZE_MASKS.keys()))
+
+
+# print(int(value))
+# if model.changed_x == model.rect[0]:
+#     value &= ~Wnck.WindowMoveResizeMask.X
+# print(int(value))
+# if model.changed_y == model.rect[1]:
+#     value &= ~Wnck.WindowMoveResizeMask.Y
+# print(int(value))
+# if model.changed_w == model.rect[2]:
+#     value &= ~Wnck.WindowMoveResizeMask.WIDTH
+# print(int(value))
+# if model.changed_h == model.rect[3]:
+#     value &= ~Wnck.WindowMoveResizeMask.HEIGHT
+# print(int(value))
+# return value
+
+# # return (
+# #     Wnck.WindowMoveResizeMask.X
+# #     | Wnck.WindowMoveResizeMask.Y
+# #     | Wnck.WindowMoveResizeMask.WIDTH
+# #     | Wnck.WindowMoveResizeMask.HEIGHT
+# # )
+

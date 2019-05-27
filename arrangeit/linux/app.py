@@ -8,7 +8,6 @@ from PIL import Image, ImageTk
 from Xlib import display, X
 
 import arrangeit
-from arrangeit import constants
 from arrangeit.base import BaseApp
 
 
@@ -51,6 +50,8 @@ class App(BaseApp):
         Gravity stays the same (Wnck.WindowGravity.CURRENT) and the other arguments
         are calculated/retrieved from model where `changed` attribute holds needed data.
 
+        If returned `mask` is False then wee don't need to do anything more.
+
         :param wid: windows id
         :type wid: int
         :var model: window data
@@ -64,10 +65,11 @@ class App(BaseApp):
         if model.is_ws_changed:
             self._move_window_to_workspace(wid, model.changed_ws)
         mask = self.collector.get_window_move_resize_mask(model)
-        win = self.collector.get_window_by_wid(wid)
-        if model.changed:
+        if mask:
+            win = self.collector.get_window_by_wid(wid)
             win.set_geometry(Wnck.WindowGravity.CURRENT, mask, *model.changed)
-        return False
+            return False
+        return True
 
     def move(self, wid):
         """Just calls `move_and_resize` as the same method moves and resizes
