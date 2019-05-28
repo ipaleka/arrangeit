@@ -76,10 +76,10 @@
   :show-inheritance:
 
 
-:mod:`tests.test_constants` -- Unit tests for constants
--------------------------------------------------------
+:mod:`tests.test_settings` -- Unit tests for programs settings
+--------------------------------------------------------------
 
-.. automodule:: tests.test_constants
+.. automodule:: tests.test_settings
   :members:
   :undoc-members:
   :show-inheritance:

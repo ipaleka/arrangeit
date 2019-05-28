@@ -17,7 +17,7 @@ from arrangeit.view import (
     Toolbar,
     Options,
 )
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
 
 
@@ -114,7 +114,7 @@ class TestWorkspacesCollection(object):
         master = mocker.MagicMock()
         WorkspacesCollection(master)
         assert mocked.call_count == 1
-        calls = [mocker.call(background=constants.WORKSPACE_NUMBER_LABEL_BG)]
+        calls = [mocker.call(background=Settings.WORKSPACE_NUMBER_LABEL_BG)]
         mocked.assert_has_calls(calls, any_order=True)
 
     ## WorkspacesCollection.add_workspaces
@@ -193,13 +193,13 @@ class TestWorkspacesCollection(object):
             return_value=[widget0, widget1, widget2],
         )
         workspaces.select_active(1001)
-        calls = [mocker.call(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)]
+        calls = [mocker.call(foreground=Settings.WORKSPACE_NUMBER_LABEL_FG)]
         widget0.number_label.config.assert_has_calls(calls, any_order=True)
         widget2.number_label.config.assert_has_calls(calls, any_order=True)
-        calls = [mocker.call(foreground=constants.WORKSPACE_NAME_LABEL_FG)]
+        calls = [mocker.call(foreground=Settings.WORKSPACE_NAME_LABEL_FG)]
         widget0.name_label.config.assert_has_calls(calls, any_order=True)
         widget2.name_label.config.assert_has_calls(calls, any_order=True)
-        calls = [mocker.call(foreground=constants.SELECTED_COLOR)]
+        calls = [mocker.call(foreground=Settings.SELECTED_COLOR)]
         widget1.number_label.config.assert_has_calls(calls, any_order=True)
         widget1.name_label.config.assert_has_calls(calls, any_order=True)
 
@@ -216,10 +216,10 @@ class TestWorkspacesCollection(object):
             return_value=[widget0, widget1, widget2],
         )
         workspaces.select_active(1001)
-        calls = [mocker.call(cursor=constants.SELECT_CURSOR)]
+        calls = [mocker.call(cursor=Settings.SELECT_CURSOR)]
         widget0.config.assert_has_calls(calls, any_order=True)
         widget2.config.assert_has_calls(calls, any_order=True)
-        calls = [mocker.call(cursor=constants.DEFAULT_CURSOR)]
+        calls = [mocker.call(cursor=Settings.DEFAULT_CURSOR)]
         widget1.config.assert_has_calls(calls, any_order=True)
 
     def test_WorkspacesCollection_select_active_sets_active_attr(self, mocker):
@@ -277,39 +277,39 @@ class TestWindowsList(object):
         mocked = mocker.patch("arrangeit.view.ListedWindow")
         windows = WindowsList(master=master)
         windows_list = [
-            (100, "foo", constants.BLANK_ICON),
-            (200, "bar", constants.BLANK_ICON),
+            (100, "foo", Settings.BLANK_ICON),
+            (200, "bar", Settings.BLANK_ICON),
         ]
         windows.add_windows(windows_list)
         assert mocked.call_count == 2
         calls = [
-            mocker.call(windows, wid=100, title="foo", icon=constants.BLANK_ICON),
-            mocker.call(windows, wid=200, title="bar", icon=constants.BLANK_ICON),
+            mocker.call(windows, wid=100, title="foo", icon=Settings.BLANK_ICON),
+            mocker.call(windows, wid=200, title="bar", icon=Settings.BLANK_ICON),
         ]
         mocked.assert_has_calls(calls, any_order=True)
 
     @pytest.mark.parametrize(
         "args",
         [
-            [(0, "foo", constants.BLANK_ICON)],
-            [(0, "foo", constants.BLANK_ICON), (1, "bar", constants.BLANK_ICON)],
+            [(0, "foo", Settings.BLANK_ICON)],
+            [(0, "foo", Settings.BLANK_ICON), (1, "bar", Settings.BLANK_ICON)],
             [
-                (0, "foo", constants.BLANK_ICON),
-                (1, "bar", constants.BLANK_ICON),
-                (2, "foobar", constants.BLANK_ICON),
+                (0, "foo", Settings.BLANK_ICON),
+                (1, "bar", Settings.BLANK_ICON),
+                (2, "foobar", Settings.BLANK_ICON),
             ],
             [
-                (0, "foo", constants.BLANK_ICON),
-                (1, "bar", constants.BLANK_ICON),
-                (2, "foobar", constants.BLANK_ICON),
-                (3, "barfoo", constants.BLANK_ICON),
+                (0, "foo", Settings.BLANK_ICON),
+                (1, "bar", Settings.BLANK_ICON),
+                (2, "foobar", Settings.BLANK_ICON),
+                (3, "barfoo", Settings.BLANK_ICON),
             ],
             [
-                (0, "foo", constants.BLANK_ICON),
-                (1, "bar", constants.BLANK_ICON),
-                (2, "foobar", constants.BLANK_ICON),
-                (3, "barfoo", constants.BLANK_ICON),
-                (4, "", constants.BLANK_ICON),
+                (0, "foo", Settings.BLANK_ICON),
+                (1, "bar", Settings.BLANK_ICON),
+                (2, "foobar", Settings.BLANK_ICON),
+                (3, "barfoo", Settings.BLANK_ICON),
+                (4, "", Settings.BLANK_ICON),
             ],
         ],
     )
@@ -354,7 +354,7 @@ class TestWindowsList(object):
         windows.place_widget_on_position(mocked, 0)
         calls = [
             mocker.call(
-                relheight=constants.LISTED_WINDOW_RELHEIGHT,
+                relheight=Settings.LISTED_WINDOW_RELHEIGHT,
                 relwidth=1.0,
                 relx=0.0,
                 rely=0,
@@ -364,10 +364,10 @@ class TestWindowsList(object):
         windows.place_widget_on_position(mocked, 4)
         calls = [
             mocker.call(
-                relheight=constants.LISTED_WINDOW_RELHEIGHT,
+                relheight=Settings.LISTED_WINDOW_RELHEIGHT,
                 relwidth=1.0,
                 relx=0.0,
-                rely=4 * constants.LISTED_WINDOW_RELHEIGHT,
+                rely=4 * Settings.LISTED_WINDOW_RELHEIGHT,
             )
         ]
         mocked.place.assert_has_calls(calls, any_order=True)
@@ -487,14 +487,14 @@ class TestWorkspace(object):
                     "TkDefaultFont",
                     increased_by_fraction(
                         nametofont("TkDefaultFont")["size"],
-                        constants.WORKSPACE_NUMBER_FONT_INCREASE,
+                        Settings.WORKSPACE_NUMBER_FONT_INCREASE,
                     ),
                 ),
-                foreground=constants.WORKSPACE_NUMBER_LABEL_FG,
-                background=constants.WORKSPACE_NUMBER_LABEL_BG,
-                anchor=constants.WORKSPACE_NUMBER_LABEL_ANCHOR,
-                padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
-                pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
+                foreground=Settings.WORKSPACE_NUMBER_LABEL_FG,
+                background=Settings.WORKSPACE_NUMBER_LABEL_BG,
+                anchor=Settings.WORKSPACE_NUMBER_LABEL_ANCHOR,
+                padx=Settings.WORKSPACE_NUMBER_LABEL_PADX,
+                pady=Settings.WORKSPACE_NUMBER_LABEL_PADY,
             )
         ]
         mocked.assert_has_calls(calls, any_order=True)
@@ -511,15 +511,15 @@ class TestWorkspace(object):
                     "TkDefaultFont",
                     increased_by_fraction(
                         nametofont("TkDefaultFont")["size"],
-                        constants.WORKSPACE_NAME_FONT_INCREASE,
+                        Settings.WORKSPACE_NAME_FONT_INCREASE,
                     ),
                 ),
-                height=constants.WORKSPACE_NAME_LABEL_HEIGHT,
-                foreground=constants.WORKSPACE_NAME_LABEL_FG,
-                background=constants.WORKSPACE_NAME_LABEL_BG,
-                anchor=constants.WORKSPACE_NAME_LABEL_ANCHOR,
-                padx=constants.WORKSPACE_NAME_LABEL_PADX,
-                pady=constants.WORKSPACE_NAME_LABEL_PADY,
+                height=Settings.WORKSPACE_NAME_LABEL_HEIGHT,
+                foreground=Settings.WORKSPACE_NAME_LABEL_FG,
+                background=Settings.WORKSPACE_NAME_LABEL_BG,
+                anchor=Settings.WORKSPACE_NAME_LABEL_ANCHOR,
+                padx=Settings.WORKSPACE_NAME_LABEL_PADX,
+                pady=Settings.WORKSPACE_NAME_LABEL_PADY,
             )
         ]
         mocked.assert_has_calls(calls, any_order=True)
@@ -535,13 +535,13 @@ class TestWorkspace(object):
         assert mocked.call_count == 2
         calls = [
             mocker.call(
-                relheight=constants.WORKSPACE_NUMBER_RELHEIGHT,
-                relwidth=constants.WORKSPACE_NUMBER_RELWIDTH,
+                relheight=Settings.WORKSPACE_NUMBER_RELHEIGHT,
+                relwidth=Settings.WORKSPACE_NUMBER_RELWIDTH,
             ),
             mocker.call(
-                rely=constants.WORKSPACE_NUMBER_RELHEIGHT,
-                relheight=constants.WORKSPACE_NAME_RELHEIGHT,
-                relwidth=constants.WORKSPACE_NAME_RELWIDTH,
+                rely=Settings.WORKSPACE_NUMBER_RELHEIGHT,
+                relheight=Settings.WORKSPACE_NAME_RELHEIGHT,
+                relwidth=Settings.WORKSPACE_NAME_RELWIDTH,
             ),
         ]
         mocked.assert_has_calls(calls, any_order=True)
@@ -585,7 +585,7 @@ class TestWorkspace(object):
         workspace = Workspace(mocker.MagicMock())
         workspace.on_widget_enter(mocker.MagicMock())
         assert mocked.call_count == 2
-        calls = [mocker.call(foreground=constants.HIGHLIGHTED_COLOR)] * 2
+        calls = [mocker.call(foreground=Settings.HIGHLIGHTED_COLOR)] * 2
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Workspace_on_widget_enter_not_setting_foreground_for_active(self, mocker):
@@ -614,7 +614,7 @@ class TestWorkspace(object):
         workspace = Workspace(mocker.MagicMock())
         workspace.on_widget_leave(mocker.MagicMock())
         assert mocked.call_count == 2
-        calls = [mocker.call(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)] * 2
+        calls = [mocker.call(foreground=Settings.WORKSPACE_NUMBER_LABEL_FG)] * 2
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Workspace_on_widget_leave_not_setting_foreground_for_active(self, mocker):
@@ -645,7 +645,7 @@ class TestListedWindow(object):
 
     @pytest.mark.parametrize(
         "attr,value",
-        [("master", None), ("wid", 0), ("title", ""), ("icon", constants.BLANK_ICON)],
+        [("master", None), ("wid", 0), ("title", ""), ("icon", Settings.BLANK_ICON)],
     )
     def test_ListedWindow_inits_attr_as_empty(self, attr, value):
         assert getattr(ListedWindow, attr) == value
@@ -656,7 +656,7 @@ class TestListedWindow(object):
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         with pytest.raises(AttributeError):
             ListedWindow(master=master)
-        mocked.assert_called_with(master, cursor=constants.SELECT_CURSOR)
+        mocked.assert_called_with(master, cursor=Settings.SELECT_CURSOR)
 
     @pytest.mark.parametrize("attr", ["master", "wid", "title"])
     def test_ListedWindow_init_sets_attributes(self, mocker, attr):
@@ -694,7 +694,7 @@ class TestListedWindow(object):
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         window = ListedWindow(master=master)
         mocked.call_count = 0
-        window.get_icon_image(constants.BLANK_ICON)
+        window.get_icon_image(Settings.BLANK_ICON)
         mocked.assert_called_once()
 
     ## ListedWindow.setup_widgets
@@ -710,14 +710,14 @@ class TestListedWindow(object):
                     "TkDefaultFont",
                     increased_by_fraction(
                         nametofont("TkDefaultFont")["size"],
-                        constants.LISTED_WINDOW_NAME_FONT_INCREASE,
+                        Settings.LISTED_WINDOW_NAME_FONT_INCREASE,
                     ),
                 ),
-                foreground=constants.LISTED_WINDOW_LABEL_FG,
-                background=constants.LISTED_WINDOW_LABEL_BG,
-                anchor=constants.LISTED_WINDOW_LABEL_ANCHOR,
-                padx=constants.LISTED_WINDOW_LABEL_PADX,
-                pady=constants.LISTED_WINDOW_LABEL_PADY,
+                foreground=Settings.LISTED_WINDOW_LABEL_FG,
+                background=Settings.LISTED_WINDOW_LABEL_BG,
+                anchor=Settings.LISTED_WINDOW_LABEL_ANCHOR,
+                padx=Settings.LISTED_WINDOW_LABEL_PADX,
+                pady=Settings.LISTED_WINDOW_LABEL_PADY,
             )
         ]
         mocked.assert_has_calls(calls, any_order=True)
@@ -727,16 +727,16 @@ class TestListedWindow(object):
         mocker.patch("arrangeit.view.increased_by_fraction")
         mocked_icon = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Label")
-        window = ListedWindow(mocker.MagicMock(), icon=constants.BLANK_ICON)
+        window = ListedWindow(mocker.MagicMock(), icon=Settings.BLANK_ICON)
         window.setup_widgets()
         calls = [
             mocker.call(
                 window,
                 image=mocked_icon.return_value,
-                background=constants.LISTED_ICON_LABEL_BG,
-                anchor=constants.LISTED_ICON_LABEL_ANCHOR,
-                padx=constants.LISTED_ICON_LABEL_PADX,
-                pady=constants.LISTED_ICON_LABEL_PADY,
+                background=Settings.LISTED_ICON_LABEL_BG,
+                anchor=Settings.LISTED_ICON_LABEL_ANCHOR,
+                padx=Settings.LISTED_ICON_LABEL_PADX,
+                pady=Settings.LISTED_ICON_LABEL_PADY,
             )
         ]
         mocked.assert_has_calls(calls, any_order=True)
@@ -753,15 +753,15 @@ class TestListedWindow(object):
         assert mocked.call_count == 2
         calls = [
             mocker.call(
-                x=constants.ICON_WIDTH / 2 + constants.LISTED_ICON_LABEL_PADX,
+                x=Settings.ICON_WIDTH / 2 + Settings.LISTED_ICON_LABEL_PADX,
                 relheight=1.0,
-                relwidth=constants.LISTED_WINDOW_RELWIDTH,
+                relwidth=Settings.LISTED_WINDOW_RELWIDTH,
             ),
             mocker.call(
-                x=constants.LISTED_ICON_LABEL_PADX / 2,
+                x=Settings.LISTED_ICON_LABEL_PADX / 2,
                 rely=0.5,
                 relheight=1.0,
-                anchor=constants.LISTED_ICON_LABEL_ANCHOR,
+                anchor=Settings.LISTED_ICON_LABEL_ANCHOR,
             ),
         ]
         mocked.assert_has_calls(calls, any_order=True)
@@ -776,7 +776,7 @@ class TestListedWindow(object):
         mocked.call_count = 0
         window.setup_widgets()
         assert mocked.call_count == 1
-        calls = [mocker.call(background=constants.LISTED_WINDOW_LABEL_BG)]
+        calls = [mocker.call(background=Settings.LISTED_WINDOW_LABEL_BG)]
         mocked.assert_has_calls(calls, any_order=True)
 
     ## ListedWindow.setup_bindings
@@ -821,7 +821,7 @@ class TestListedWindow(object):
         window = ListedWindow(mocker.MagicMock())
         window.on_widget_enter(mocker.MagicMock())
         assert mocked.call_count == 1
-        calls = [mocker.call(foreground=constants.HIGHLIGHTED_COLOR)]
+        calls = [mocker.call(foreground=Settings.HIGHLIGHTED_COLOR)]
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_ListedWindow_on_widget_enter_returns_break(self, mocker):
@@ -841,7 +841,7 @@ class TestListedWindow(object):
         window = ListedWindow(mocker.MagicMock())
         window.on_widget_leave(mocker.MagicMock())
         assert mocked.call_count == 1
-        calls = [mocker.call(foreground=constants.LISTED_WINDOW_LABEL_FG)]
+        calls = [mocker.call(foreground=Settings.LISTED_WINDOW_LABEL_FG)]
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_ListedWindow_on_widget_leave_returns_break(self, mocker):
@@ -899,11 +899,11 @@ class TestToolbar(object):
                     "TkDefaultFont",
                     increased_by_fraction(
                         nametofont("TkDefaultFont")["size"],
-                        constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                        Settings.TOOLBAR_BUTTON_FONT_INCREASE,
                     ),
                 ),
                 text=_("Options"),
-                activeforeground=constants.HIGHLIGHTED_COLOR,
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
                 command=toolbar.on_options_click,
             )
         ]
@@ -921,11 +921,11 @@ class TestToolbar(object):
                     "TkDefaultFont",
                     increased_by_fraction(
                         nametofont("TkDefaultFont")["size"],
-                        constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                        Settings.TOOLBAR_BUTTON_FONT_INCREASE,
                     ),
                 ),
                 text=_("Quit"),
-                activeforeground=constants.HIGHLIGHTED_COLOR,
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
                 command=master.controller.shutdown,
             )
         ]
@@ -939,22 +939,22 @@ class TestToolbar(object):
         assert mocked.call_count == 2
         calls = [
             mocker.call(
-                rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
-                relx=constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
-                relheight=constants.OPTIONS_BUTTON_RELHEIGHT
-                - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
-                relwidth=constants.OPTIONS_BUTTON_RELWIDTH
-                - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
-                anchor=constants.OPTIONS_BUTTON_ANCHOR,
+                rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+                relx=Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+                relheight=Settings.OPTIONS_BUTTON_RELHEIGHT
+                - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+                relwidth=Settings.OPTIONS_BUTTON_RELWIDTH
+                - Settings.TOOLBAR_BUTTON_SHRINK_WIDTH,
+                anchor=Settings.OPTIONS_BUTTON_ANCHOR,
             ),
             mocker.call(
-                rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
-                relx=0.5 + constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
-                relheight=constants.QUIT_BUTTON_RELHEIGHT
-                - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
-                relwidth=constants.QUIT_BUTTON_RELWIDTH
-                - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
-                anchor=constants.QUIT_BUTTON_ANCHOR,
+                rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+                relx=0.5 + Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+                relheight=Settings.QUIT_BUTTON_RELHEIGHT
+                - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+                relwidth=Settings.QUIT_BUTTON_RELWIDTH
+                - Settings.TOOLBAR_BUTTON_SHRINK_WIDTH,
+                anchor=Settings.QUIT_BUTTON_ANCHOR,
             ),
         ]
         mocked.assert_has_calls(calls, any_order=True)

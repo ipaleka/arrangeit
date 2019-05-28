@@ -49,10 +49,10 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.constants` -- Module holding program's constants
-----------------------------------------------------------------
+:mod:`arrangeit.settings` -- Module holding program's constants and settings
+----------------------------------------------------------------------------
 
-.. automodule:: arrangeit.constants
+.. automodule:: arrangeit.settings
   :members:
   :undoc-members:
   :show-inheritance:

@@ -21,7 +21,7 @@ from win32gui import (
     IsWindowVisible,
 )
 
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
 from arrangeit.utils import append_to_collection
@@ -223,7 +223,7 @@ class Collector(BaseCollector):
         :type hwnd: int
         :returns: str
         """
-        return constants.BLANK_ICON
+        return Settings.BLANK_ICON
 
     def add_window(self, hwnd):
         """Creates WindowModel instance from provided hwnd and adds it to collection.

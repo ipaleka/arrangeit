@@ -5,7 +5,7 @@ from gettext import gettext as _
 from PIL import ImageTk, Image
 from pynput import mouse
 
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
 
 
@@ -125,19 +125,19 @@ class ViewApplication(tk.Frame):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.TITLE_LABEL_FONT_INCREASE,
+                    Settings.TITLE_LABEL_FONT_INCREASE,
                 ),
             ),
-            height=constants.TITLE_LABEL_HEIGHT,
-            foreground=constants.TITLE_LABEL_FG,
-            background=constants.TITLE_LABEL_BG,
-            anchor=constants.TITLE_LABEL_ANCHOR,
-            padx=constants.TITLE_LABEL_PADX,
-            pady=constants.TITLE_LABEL_PADY,
+            height=Settings.TITLE_LABEL_HEIGHT,
+            foreground=Settings.TITLE_LABEL_FG,
+            background=Settings.TITLE_LABEL_BG,
+            anchor=Settings.TITLE_LABEL_ANCHOR,
+            padx=Settings.TITLE_LABEL_PADX,
+            pady=Settings.TITLE_LABEL_PADY,
         )
         self.title_label.place(
-            relheight=constants.TITLE_LABEL_RELHEIGHT,
-            relwidth=constants.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.TITLE_LABEL_RELHEIGHT,
+            relwidth=Settings.TITLE_LABEL_RELWIDTH,
         )
 
     def setup_icon(self):
@@ -145,15 +145,15 @@ class ViewApplication(tk.Frame):
         self.icon = tk.Label(
             self,
             bitmap="hourglass",
-            background=constants.ICON_LABEL_BG,
-            anchor=constants.ICON_LABEL_ANCHOR,
-            padx=constants.ICON_LABEL_PADX,
-            pady=constants.ICON_LABEL_PADY,
+            background=Settings.ICON_LABEL_BG,
+            anchor=Settings.ICON_LABEL_ANCHOR,
+            padx=Settings.ICON_LABEL_PADX,
+            pady=Settings.ICON_LABEL_PADY,
         )
         self.icon.place(
-            relx=constants.TITLE_LABEL_RELWIDTH + constants.NAME_LABEL_RELWIDTH / 2,
-            anchor=constants.ICON_LABEL_ANCHOR,
-            y=constants.ICON_LABEL_PADY,
+            relx=Settings.TITLE_LABEL_RELWIDTH + Settings.NAME_LABEL_RELWIDTH / 2,
+            anchor=Settings.ICON_LABEL_ANCHOR,
+            y=Settings.ICON_LABEL_PADY,
         )
 
     def setup_name(self):
@@ -162,46 +162,46 @@ class ViewApplication(tk.Frame):
         self.name_label = tk.Label(
             self,
             textvariable=self.name,
-            height=constants.NAME_LABEL_HEIGHT,
-            foreground=constants.NAME_LABEL_FG,
-            background=constants.NAME_LABEL_BG,
-            anchor=constants.NAME_LABEL_ANCHOR,
-            padx=constants.NAME_LABEL_PADX,
-            pady=constants.NAME_LABEL_PADY,
+            height=Settings.NAME_LABEL_HEIGHT,
+            foreground=Settings.NAME_LABEL_FG,
+            background=Settings.NAME_LABEL_BG,
+            anchor=Settings.NAME_LABEL_ANCHOR,
+            padx=Settings.NAME_LABEL_PADX,
+            pady=Settings.NAME_LABEL_PADY,
         )
         self.name_label.place(
-            relx=constants.TITLE_LABEL_RELWIDTH,
-            relheight=constants.NAME_LABEL_RELHEIGHT,
-            relwidth=constants.NAME_LABEL_RELWIDTH,
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.NAME_LABEL_RELHEIGHT,
+            relwidth=Settings.NAME_LABEL_RELWIDTH,
         )
 
     def setup_workspaces(self):
         """Creates and places `workspaces` widget and sets corresponding variable."""
         self.workspaces = WorkspacesCollection(self)
         self.workspaces.place(
-            rely=constants.NAME_LABEL_RELHEIGHT,
-            relx=constants.TITLE_LABEL_RELWIDTH,
-            relheight=constants.WORKSPACES_FRAME_RELHEIGHT,
-            relwidth=constants.WORKSPACES_FRAME_RELWIDTH,
+            rely=Settings.NAME_LABEL_RELHEIGHT,
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.WORKSPACES_FRAME_RELHEIGHT,
+            relwidth=Settings.WORKSPACES_FRAME_RELWIDTH,
         )
 
     def setup_windows(self):
         """Creates and places `windows` widget and sets corresponding variable."""
         self.windows = WindowsList(self)
         self.windows.place(
-            rely=constants.TITLE_LABEL_RELHEIGHT,
-            relheight=constants.WINDOWS_LIST_RELHEIGHT,
-            relwidth=constants.WINDOWS_LIST_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
+            relheight=Settings.WINDOWS_LIST_RELHEIGHT,
+            relwidth=Settings.WINDOWS_LIST_RELWIDTH,
         )
 
     def setup_toolbar(self):
         """Creates and places `toolbar` widget and sets corresponding variable."""
         self.toolbar = Toolbar(self)
         self.toolbar.place(
-            rely=constants.TITLE_LABEL_RELHEIGHT + constants.WORKSPACES_FRAME_RELHEIGHT,
-            relx=constants.WINDOWS_LIST_RELWIDTH,
-            relheight=constants.TOOLBAR_RELHEIGHT,
-            relwidth=constants.TOOLBAR_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT + Settings.WORKSPACES_FRAME_RELHEIGHT,
+            relx=Settings.WINDOWS_LIST_RELWIDTH,
+            relheight=Settings.TOOLBAR_RELHEIGHT,
+            relwidth=Settings.TOOLBAR_RELWIDTH,
         )
 
     def startup(self):
@@ -213,10 +213,10 @@ class ViewApplication(tk.Frame):
         self.master.deiconify()
         self.place(width=self.master.winfo_width(), height=self.master.winfo_height())
         self.title_label.configure(
-            wraplength=int(self.master.winfo_width() * constants.TITLE_LABEL_RELWIDTH)
+            wraplength=int(self.master.winfo_width() * Settings.TITLE_LABEL_RELWIDTH)
         )
         self.name_label.configure(
-            wraplength=int(self.master.winfo_width() * constants.NAME_LABEL_RELWIDTH)
+            wraplength=int(self.master.winfo_width() * Settings.NAME_LABEL_RELWIDTH)
         )
         self.focus_set()
 
@@ -256,7 +256,7 @@ class WorkspacesCollection(tk.Frame):
         """
         super().__init__(master)
         self.master = master
-        self.config(background=constants.WORKSPACE_NUMBER_LABEL_BG)
+        self.config(background=Settings.WORKSPACE_NUMBER_LABEL_BG)
 
     def add_workspaces(self, workspaces):
         """Creates children workspaces widgets from provided list of workspaces
@@ -309,16 +309,16 @@ class WorkspacesCollection(tk.Frame):
 
         for workspace in workspaces:
             color = (
-                constants.SELECTED_COLOR
+                Settings.SELECTED_COLOR
                 if workspace.number == number
-                else constants.WORKSPACE_NUMBER_LABEL_FG
+                else Settings.WORKSPACE_NUMBER_LABEL_FG
             )
             workspace.number_label.config(foreground=color)
             workspace.name_label.config(foreground=color)
             cursor = (
-                constants.DEFAULT_CURSOR
+                Settings.DEFAULT_CURSOR
                 if workspace.number == number
-                else constants.SELECT_CURSOR
+                else Settings.SELECT_CURSOR
             )
             workspace.config(cursor=cursor)
 
@@ -375,10 +375,10 @@ class WindowsList(tk.Frame):
         :type position: int
         """
         widget.place(
-            relheight=constants.LISTED_WINDOW_RELHEIGHT,
+            relheight=Settings.LISTED_WINDOW_RELHEIGHT,
             relwidth=1.0,
             relx=0.0,
-            rely=position * constants.LISTED_WINDOW_RELHEIGHT,
+            rely=position * Settings.LISTED_WINDOW_RELHEIGHT,
         )
 
     def place_children(self):
@@ -450,18 +450,18 @@ class Workspace(tk.Frame):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.WORKSPACE_NUMBER_FONT_INCREASE,
+                    Settings.WORKSPACE_NUMBER_FONT_INCREASE,
                 ),
             ),
-            foreground=constants.WORKSPACE_NUMBER_LABEL_FG,
-            background=constants.WORKSPACE_NUMBER_LABEL_BG,
-            anchor=constants.WORKSPACE_NUMBER_LABEL_ANCHOR,
-            padx=constants.WORKSPACE_NUMBER_LABEL_PADX,
-            pady=constants.WORKSPACE_NUMBER_LABEL_PADY,
+            foreground=Settings.WORKSPACE_NUMBER_LABEL_FG,
+            background=Settings.WORKSPACE_NUMBER_LABEL_BG,
+            anchor=Settings.WORKSPACE_NUMBER_LABEL_ANCHOR,
+            padx=Settings.WORKSPACE_NUMBER_LABEL_PADX,
+            pady=Settings.WORKSPACE_NUMBER_LABEL_PADY,
         )
         self.number_label.place(
-            relheight=constants.WORKSPACE_NUMBER_RELHEIGHT,
-            relwidth=constants.WORKSPACE_NUMBER_RELWIDTH,
+            relheight=Settings.WORKSPACE_NUMBER_RELHEIGHT,
+            relwidth=Settings.WORKSPACE_NUMBER_RELWIDTH,
         )
 
         self.name_label = tk.Label(
@@ -471,20 +471,20 @@ class Workspace(tk.Frame):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.WORKSPACE_NAME_FONT_INCREASE,
+                    Settings.WORKSPACE_NAME_FONT_INCREASE,
                 ),
             ),
-            height=constants.WORKSPACE_NAME_LABEL_HEIGHT,
-            foreground=constants.WORKSPACE_NAME_LABEL_FG,
-            background=constants.WORKSPACE_NAME_LABEL_BG,
-            anchor=constants.WORKSPACE_NAME_LABEL_ANCHOR,
-            padx=constants.WORKSPACE_NAME_LABEL_PADX,
-            pady=constants.WORKSPACE_NAME_LABEL_PADY,
+            height=Settings.WORKSPACE_NAME_LABEL_HEIGHT,
+            foreground=Settings.WORKSPACE_NAME_LABEL_FG,
+            background=Settings.WORKSPACE_NAME_LABEL_BG,
+            anchor=Settings.WORKSPACE_NAME_LABEL_ANCHOR,
+            padx=Settings.WORKSPACE_NAME_LABEL_PADX,
+            pady=Settings.WORKSPACE_NAME_LABEL_PADY,
         )
         self.name_label.place(
-            rely=constants.WORKSPACE_NUMBER_RELHEIGHT,
-            relheight=constants.WORKSPACE_NAME_RELHEIGHT,
-            relwidth=constants.WORKSPACE_NAME_RELWIDTH,
+            rely=Settings.WORKSPACE_NUMBER_RELHEIGHT,
+            relheight=Settings.WORKSPACE_NAME_RELHEIGHT,
+            relwidth=Settings.WORKSPACE_NAME_RELWIDTH,
         )
 
     def setup_bindings(self):
@@ -497,15 +497,15 @@ class Workspace(tk.Frame):
     def on_widget_enter(self, event):
         """Highlights widget by changing foreground color."""
         if self.number != self.master.active:
-            self.number_label.config(foreground=constants.HIGHLIGHTED_COLOR)
-            self.name_label.config(foreground=constants.HIGHLIGHTED_COLOR)
+            self.number_label.config(foreground=Settings.HIGHLIGHTED_COLOR)
+            self.name_label.config(foreground=Settings.HIGHLIGHTED_COLOR)
         return "break"
 
     def on_widget_leave(self, event):
         """Resets widget foreground color."""
         if self.number != self.master.active:
-            self.number_label.config(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)
-            self.name_label.config(foreground=constants.WORKSPACE_NUMBER_LABEL_FG)
+            self.number_label.config(foreground=Settings.WORKSPACE_NUMBER_LABEL_FG)
+            self.name_label.config(foreground=Settings.WORKSPACE_NUMBER_LABEL_FG)
         return "break"
 
 
@@ -525,15 +525,15 @@ class ListedWindow(tk.Frame):
     master = None
     wid = 0
     title = ""
-    icon = constants.BLANK_ICON
+    icon = Settings.BLANK_ICON
 
-    def __init__(self, master=None, wid=0, title="", icon=constants.BLANK_ICON):
+    def __init__(self, master=None, wid=0, title="", icon=Settings.BLANK_ICON):
         """Sets attributes from provided arguments
 
         after super __init__ is called. Also converts and references provided icon,
         then calls :func:`setup_widgets and :func:`setup_bindings` methods.
         """
-        super().__init__(master, cursor=constants.SELECT_CURSOR)
+        super().__init__(master, cursor=Settings.SELECT_CURSOR)
         self.master = master
         self.wid = wid
         self.title = title
@@ -549,7 +549,7 @@ class ListedWindow(tk.Frame):
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
         return ImageTk.PhotoImage(
-            icon.resize((int(constants.ICON_WIDTH / 2), int(constants.ICON_WIDTH / 2))),
+            icon.resize((int(Settings.ICON_WIDTH / 2), int(Settings.ICON_WIDTH / 2))),
             Image.ANTIALIAS,
         )
 
@@ -562,36 +562,36 @@ class ListedWindow(tk.Frame):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.LISTED_WINDOW_NAME_FONT_INCREASE,
+                    Settings.LISTED_WINDOW_NAME_FONT_INCREASE,
                 ),
             ),
-            foreground=constants.LISTED_WINDOW_LABEL_FG,
-            background=constants.LISTED_WINDOW_LABEL_BG,
-            anchor=constants.LISTED_WINDOW_LABEL_ANCHOR,
-            padx=constants.LISTED_WINDOW_LABEL_PADX,
-            pady=constants.LISTED_WINDOW_LABEL_PADY,
+            foreground=Settings.LISTED_WINDOW_LABEL_FG,
+            background=Settings.LISTED_WINDOW_LABEL_BG,
+            anchor=Settings.LISTED_WINDOW_LABEL_ANCHOR,
+            padx=Settings.LISTED_WINDOW_LABEL_PADX,
+            pady=Settings.LISTED_WINDOW_LABEL_PADY,
         )
         self.title_label.place(
-            x=constants.ICON_WIDTH / 2 + constants.LISTED_ICON_LABEL_PADX,
+            x=Settings.ICON_WIDTH / 2 + Settings.LISTED_ICON_LABEL_PADX,
             relheight=1.0,
-            relwidth=constants.LISTED_WINDOW_RELWIDTH,
+            relwidth=Settings.LISTED_WINDOW_RELWIDTH,
         )
 
         self.icon_label = tk.Label(
             self,
             image=self.icon,
-            background=constants.LISTED_ICON_LABEL_BG,
-            anchor=constants.LISTED_ICON_LABEL_ANCHOR,
-            padx=constants.LISTED_ICON_LABEL_PADX,
-            pady=constants.LISTED_ICON_LABEL_PADY,
+            background=Settings.LISTED_ICON_LABEL_BG,
+            anchor=Settings.LISTED_ICON_LABEL_ANCHOR,
+            padx=Settings.LISTED_ICON_LABEL_PADX,
+            pady=Settings.LISTED_ICON_LABEL_PADY,
         )
         self.icon_label.place(
-            x=constants.LISTED_ICON_LABEL_PADX / 2,
+            x=Settings.LISTED_ICON_LABEL_PADX / 2,
             rely=0.5,
             relheight=1.0,
-            anchor=constants.LISTED_ICON_LABEL_ANCHOR,
+            anchor=Settings.LISTED_ICON_LABEL_ANCHOR,
         )
-        self.config(background=constants.LISTED_WINDOW_LABEL_BG)
+        self.config(background=Settings.LISTED_WINDOW_LABEL_BG)
 
     def setup_bindings(self):
         """Binds relevant events to related callback."""
@@ -602,12 +602,12 @@ class ListedWindow(tk.Frame):
 
     def on_widget_enter(self, event):
         """Highlights widget by changing foreground color."""
-        self.title_label.config(foreground=constants.HIGHLIGHTED_COLOR)
+        self.title_label.config(foreground=Settings.HIGHLIGHTED_COLOR)
         return "break"
 
     def on_widget_leave(self, event):
         """Resets widget foreground color."""
-        self.title_label.config(foreground=constants.LISTED_WINDOW_LABEL_FG)
+        self.title_label.config(foreground=Settings.LISTED_WINDOW_LABEL_FG)
         return "break"
 
 
@@ -637,21 +637,21 @@ class Toolbar(tk.Frame):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                    Settings.TOOLBAR_BUTTON_FONT_INCREASE,
                 ),
             ),
             text=_("Options"),
-            activeforeground=constants.HIGHLIGHTED_COLOR,
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.on_options_click,
         )
         options_button.place(
-            rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
-            relx=constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
-            relheight=constants.OPTIONS_BUTTON_RELHEIGHT
-            - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
-            relwidth=constants.OPTIONS_BUTTON_RELWIDTH
-            - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
-            anchor=constants.OPTIONS_BUTTON_ANCHOR,
+            rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+            relx=Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+            relheight=Settings.OPTIONS_BUTTON_RELHEIGHT
+            - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+            relwidth=Settings.OPTIONS_BUTTON_RELWIDTH
+            - Settings.TOOLBAR_BUTTON_SHRINK_WIDTH,
+            anchor=Settings.OPTIONS_BUTTON_ANCHOR,
         )
 
         quit_button = tk.Button(
@@ -660,21 +660,21 @@ class Toolbar(tk.Frame):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.TOOLBAR_BUTTON_FONT_INCREASE,
+                    Settings.TOOLBAR_BUTTON_FONT_INCREASE,
                 ),
             ),
             text=_("Quit"),
-            activeforeground=constants.HIGHLIGHTED_COLOR,
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.master.controller.shutdown,
         )
         quit_button.place(
-            rely=constants.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
-            relx=0.5 + constants.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
-            relheight=constants.QUIT_BUTTON_RELHEIGHT
-            - constants.TOOLBAR_BUTTON_SHRINK_HEIGHT,
-            relwidth=constants.QUIT_BUTTON_RELWIDTH
-            - constants.TOOLBAR_BUTTON_SHRINK_WIDTH,
-            anchor=constants.QUIT_BUTTON_ANCHOR,
+            rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
+            relx=0.5 + Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
+            relheight=Settings.QUIT_BUTTON_RELHEIGHT
+            - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,
+            relwidth=Settings.QUIT_BUTTON_RELWIDTH
+            - Settings.TOOLBAR_BUTTON_SHRINK_WIDTH,
+            anchor=Settings.QUIT_BUTTON_ANCHOR,
         )
 
     def on_options_click(self):

@@ -10,7 +10,7 @@ from arrangeit.view import (
     WindowsList,
     Toolbar,
 )
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
 
 
@@ -68,15 +68,15 @@ class TestViewApplication(object):
                 "TkDefaultFont",
                 increased_by_fraction(
                     nametofont("TkDefaultFont")["size"],
-                    constants.TITLE_LABEL_FONT_INCREASE,
+                    Settings.TITLE_LABEL_FONT_INCREASE,
                 ),
             ),
-            height=constants.TITLE_LABEL_HEIGHT,
-            foreground=constants.TITLE_LABEL_FG,
-            background=constants.TITLE_LABEL_BG,
-            anchor=constants.TITLE_LABEL_ANCHOR,
-            padx=constants.TITLE_LABEL_PADX,
-            pady=constants.TITLE_LABEL_PADY,
+            height=Settings.TITLE_LABEL_HEIGHT,
+            foreground=Settings.TITLE_LABEL_FG,
+            background=Settings.TITLE_LABEL_BG,
+            anchor=Settings.TITLE_LABEL_ANCHOR,
+            padx=Settings.TITLE_LABEL_PADX,
+            pady=Settings.TITLE_LABEL_PADY,
         )
 
     def test_ViewApplication_setup_title_calls_label_place(self, mocker):
@@ -86,8 +86,8 @@ class TestViewApplication(object):
         view.setup_title()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
-            relheight=constants.TITLE_LABEL_RELHEIGHT,
-            relwidth=constants.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.TITLE_LABEL_RELHEIGHT,
+            relwidth=Settings.TITLE_LABEL_RELWIDTH,
         )
 
     ## ViewApplication.setup_icon
@@ -98,10 +98,10 @@ class TestViewApplication(object):
         mocked.assert_called_with(
             view,
             bitmap="hourglass",
-            background=constants.ICON_LABEL_BG,
-            anchor=constants.ICON_LABEL_ANCHOR,
-            padx=constants.ICON_LABEL_PADX,
-            pady=constants.ICON_LABEL_PADY,
+            background=Settings.ICON_LABEL_BG,
+            anchor=Settings.ICON_LABEL_ANCHOR,
+            padx=Settings.ICON_LABEL_PADX,
+            pady=Settings.ICON_LABEL_PADY,
         )
 
     def test_ViewApplication_setup_icon_calls_label_place(self, mocker):
@@ -111,9 +111,9 @@ class TestViewApplication(object):
         view.setup_icon()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
-            relx=constants.TITLE_LABEL_RELWIDTH + constants.NAME_LABEL_RELWIDTH / 2,
-            anchor=constants.ICON_LABEL_ANCHOR,
-            y=constants.ICON_LABEL_PADY,
+            relx=Settings.TITLE_LABEL_RELWIDTH + Settings.NAME_LABEL_RELWIDTH / 2,
+            anchor=Settings.ICON_LABEL_ANCHOR,
+            y=Settings.ICON_LABEL_PADY,
         )
 
     ## ViewApplication.setup_name
@@ -130,12 +130,12 @@ class TestViewApplication(object):
         mocked.assert_called_with(
             view,
             textvariable=view.name,
-            height=constants.NAME_LABEL_HEIGHT,
-            foreground=constants.NAME_LABEL_FG,
-            background=constants.NAME_LABEL_BG,
-            anchor=constants.NAME_LABEL_ANCHOR,
-            padx=constants.NAME_LABEL_PADX,
-            pady=constants.NAME_LABEL_PADY,
+            height=Settings.NAME_LABEL_HEIGHT,
+            foreground=Settings.NAME_LABEL_FG,
+            background=Settings.NAME_LABEL_BG,
+            anchor=Settings.NAME_LABEL_ANCHOR,
+            padx=Settings.NAME_LABEL_PADX,
+            pady=Settings.NAME_LABEL_PADY,
         )
 
     def test_ViewApplication_setup_name_calls_label_place(self, mocker):
@@ -145,9 +145,9 @@ class TestViewApplication(object):
         view.setup_name()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
-            relx=constants.TITLE_LABEL_RELWIDTH,
-            relheight=constants.NAME_LABEL_RELHEIGHT,
-            relwidth=constants.NAME_LABEL_RELWIDTH,
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.NAME_LABEL_RELHEIGHT,
+            relwidth=Settings.NAME_LABEL_RELWIDTH,
         )
 
     ## ViewApplication.setup_workspaces
@@ -173,10 +173,10 @@ class TestViewApplication(object):
         view.setup_workspaces()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
-            rely=constants.NAME_LABEL_RELHEIGHT,
-            relx=constants.TITLE_LABEL_RELWIDTH,
-            relheight=constants.WORKSPACES_FRAME_RELHEIGHT,
-            relwidth=constants.WORKSPACES_FRAME_RELWIDTH,
+            rely=Settings.NAME_LABEL_RELHEIGHT,
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.WORKSPACES_FRAME_RELHEIGHT,
+            relwidth=Settings.WORKSPACES_FRAME_RELWIDTH,
         )
 
     ## ViewApplication.setup_windows
@@ -198,9 +198,9 @@ class TestViewApplication(object):
         view.setup_windows()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
-            rely=constants.TITLE_LABEL_RELHEIGHT,
-            relheight=constants.WINDOWS_LIST_RELHEIGHT,
-            relwidth=constants.WINDOWS_LIST_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
+            relheight=Settings.WINDOWS_LIST_RELHEIGHT,
+            relwidth=Settings.WINDOWS_LIST_RELWIDTH,
         )
 
     def test_ViewApplication_setup_widgets_calls_setup_title(self, mocker):
@@ -265,10 +265,10 @@ class TestViewApplication(object):
         view.setup_toolbar()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
-            rely=constants.TITLE_LABEL_RELHEIGHT + constants.WORKSPACES_FRAME_RELHEIGHT,
-            relx=constants.WINDOWS_LIST_RELWIDTH,
-            relheight=constants.TOOLBAR_RELHEIGHT,
-            relwidth=constants.TOOLBAR_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT + Settings.WORKSPACES_FRAME_RELHEIGHT,
+            relx=Settings.WINDOWS_LIST_RELWIDTH,
+            relheight=Settings.TOOLBAR_RELHEIGHT,
+            relwidth=Settings.TOOLBAR_RELWIDTH,
         )
 
     ## ViewApplication.setup_bindings
@@ -385,8 +385,8 @@ class TestViewApplication(object):
         ViewApplication(master, mocker.MagicMock()).startup()
         assert mocked.call_count == 2
         calls = [
-            mocker.call(wraplength=int(100 * constants.TITLE_LABEL_RELWIDTH)),
-            mocker.call(wraplength=int(100 * constants.NAME_LABEL_RELWIDTH)),
+            mocker.call(wraplength=int(100 * Settings.TITLE_LABEL_RELWIDTH)),
+            mocker.call(wraplength=int(100 * Settings.NAME_LABEL_RELWIDTH)),
         ]
         mocked.assert_has_calls(calls, any_order=True)
 
@@ -396,7 +396,7 @@ class TestViewApplication(object):
     )
     def test_ViewApplication_update_widgets_sets_attr(self, mocker, attr, val, typ):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(**{attr: val}, icon=constants.BLANK_ICON)
+        model = WindowModel(**{attr: val}, icon=Settings.BLANK_ICON)
         view.update_widgets(model)
         instance = getattr(view, attr)
         assert instance.get() == getattr(model, attr)
@@ -404,7 +404,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_calls_ImageTk_PhotoImage(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(icon=constants.BLANK_ICON)
+        model = WindowModel(icon=Settings.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.configure")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         view.update_widgets(model)
@@ -413,7 +413,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_sets_icon_image(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(icon=constants.BLANK_ICON)
+        model = WindowModel(icon=Settings.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.configure")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         view.update_widgets(model)
@@ -421,7 +421,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_sets_icon(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
-        model = WindowModel(icon=constants.BLANK_ICON)
+        model = WindowModel(icon=Settings.BLANK_ICON)
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view.update_widgets(model)
         mocked.return_value.configure.call_count == 1

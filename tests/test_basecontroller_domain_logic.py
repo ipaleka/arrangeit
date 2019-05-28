@@ -1,6 +1,7 @@
 import pytest
 
-from arrangeit import base, constants, data
+from arrangeit import base, data
+from arrangeit.settings import Settings
 
 from .test_basecontroller import (
     mock_main_loop,
@@ -99,7 +100,7 @@ class TestBaseControllerDomainLogic(object):
         controller.run(generator)
         controller.state = 5
         controller.next()
-        assert controller.state == constants.LOCATE
+        assert controller.state == Settings.LOCATE
 
     def test_BaseController_next_calls_switch_workspace(self, mocker):
         mock_main_loop(mocker)
@@ -275,13 +276,13 @@ class TestBaseControllerDomainLogic(object):
         controller = base.BaseController(base.BaseApp())
         controller.state = None
         controller.update(100, 100)
-        assert controller.state == constants.LOCATE
+        assert controller.state == Settings.LOCATE
 
     def test_BaseController_update_calls_update_positioning_for_LOCATE(self, mocker):
         mocked_next(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.update_positioning")
         controller = base.BaseController(base.BaseApp())
-        controller.state = constants.LOCATE
+        controller.state = Settings.LOCATE
         controller.update(100, 100)
         assert mocked.call_count == 1
         mocked.assert_called_with(100, 100)
@@ -290,12 +291,12 @@ class TestBaseControllerDomainLogic(object):
         mocked_next(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.update_resizing")
         controller = base.BaseController(base.BaseApp())
-        controller.state = constants.RESIZE
+        controller.state = Settings.RESIZE
         controller.update(100, 100)
         assert mocked.call_count == 1
         mocked.assert_called_with(100, 100)
 
-    @pytest.mark.parametrize("state", [(constants.OTHER, 100, 5000)])
+    @pytest.mark.parametrize("state", [(Settings.OTHER, 100, 5000)])
     def test_BaseController_update_not_calling_update_methods_for_other_states(
         self, mocker, state
     ):
@@ -380,9 +381,9 @@ class TestBaseControllerDomainLogic(object):
         mocked_next = mocker.patch("arrangeit.base.BaseController.next")
         mocked_move = mocker.patch("arrangeit.base.BaseApp.run_task")
         controller = base.BaseController(base.BaseApp())
-        controller.state = constants.LOCATE
+        controller.state = Settings.LOCATE
         controller.update_positioning(101, 202)
-        assert controller.state == constants.RESIZE
+        assert controller.state == Settings.RESIZE
         mocked_next.assert_not_called()
         mocked_move.assert_not_called()
 
@@ -530,11 +531,11 @@ class TestBaseControllerDomainLogic(object):
         generator = collection.generator()
         controller = base.BaseController(base.BaseApp())
         controller.run(generator)
-        controller.state = constants.OTHER
+        controller.state = Settings.OTHER
         controller.listed_window_activated(90103)
         mocked.assert_called_once()
 
-    @pytest.mark.parametrize("state", [constants.LOCATE, constants.RESIZE])
+    @pytest.mark.parametrize("state", [Settings.LOCATE, Settings.RESIZE])
     def test_BaseController_listed_window_activated_not_calling_recapture_not_OTHER(
         self, mocker, state
     ):
@@ -627,11 +628,11 @@ class TestBaseControllerDomainLogic(object):
         generator = collection.generator()
         controller = base.BaseController(base.BaseApp())
         controller.run(generator)
-        controller.state = constants.OTHER
+        controller.state = Settings.OTHER
         controller.workspace_activated(1502)
         mocked.assert_called_once()
 
-    @pytest.mark.parametrize("state", [constants.LOCATE, constants.RESIZE])
+    @pytest.mark.parametrize("state", [Settings.LOCATE, Settings.RESIZE])
     def test_BaseController_workspace_activated_not_calling_recapture_mouse_not_OTHER(
         self, mocker, state
     ):

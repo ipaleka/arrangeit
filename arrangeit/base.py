@@ -2,7 +2,7 @@ import os
 import json
 from gettext import gettext as _
 
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.utils import get_component_class, quarter_by_smaller
 from arrangeit.view import (
@@ -157,7 +157,7 @@ class BaseController(object):
         :param root: root tkinter window
         :type root: :class:`tkinter.Tk` instance
         """
-        root.wm_attributes("-alpha", constants.ROOT_ALPHA)
+        root.wm_attributes("-alpha", Settings.ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
 
     def set_default_geometry(self, root):
@@ -239,7 +239,7 @@ class BaseController(object):
             return True
 
         if not first_time:
-            self.state = constants.LOCATE  # we need state to be None during startup
+            self.state = Settings.LOCATE  # we need state to be None during startup
             self.remove_listed_window(self.model.wid)
             if self.model.workspace != old_workspace:
                 self.switch_workspace()
@@ -264,12 +264,12 @@ class BaseController(object):
         :type y: int
         """
         if self.state is None:
-            self.state = constants.LOCATE
+            self.state = Settings.LOCATE
 
-        elif self.state == constants.LOCATE:
+        elif self.state == Settings.LOCATE:
             return self.update_positioning(x, y)
 
-        elif self.state == constants.RESIZE:
+        elif self.state == Settings.RESIZE:
             return self.update_resizing(x, y)
 
     def update_positioning(self, x, y):
@@ -288,7 +288,7 @@ class BaseController(object):
                 self.app.run_task("move", self.model.wid)
             self.next()
         else:
-            self.state = constants.RESIZE
+            self.state = Settings.RESIZE
             self.place_on_right_bottom()
 
     def update_resizing(self, x, y):
@@ -321,7 +321,7 @@ class BaseController(object):
         self.view.windows.add_windows(
             self.app.collector.collection.get_windows_list()[1:]
         )
-        if self.state == constants.OTHER:
+        if self.state == Settings.OTHER:
             self.recapture_mouse()
         self.generator = self.app.collector.collection.generator()
         self.next(first_time=True)
@@ -334,7 +334,7 @@ class BaseController(object):
         """
         self.app.run_task("move_to_workspace", self.view.master.winfo_id(), number)
         self.model.set_changed(ws=number)
-        if self.state == constants.OTHER:
+        if self.state == Settings.OTHER:
             self.recapture_mouse()
 
     ## COMMANDS
@@ -359,18 +359,18 @@ class BaseController(object):
         :type y: int
         """
         if (
-            x > self.model.changed_x + constants.WINDOW_MIN_WIDTH
-            and y > self.model.changed_y + constants.WINDOW_MIN_HEIGHT
+            x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH
+            and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT
         ):
             self.view.master.geometry(
                 "{}x{}".format(
-                    x - self.model.changed_x + constants.WINDOW_SHIFT_PIXELS,
-                    y - self.model.changed_y + constants.WINDOW_SHIFT_PIXELS,
+                    x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
+                    y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
                 )
             )
         else:
             self.view.master.geometry(
-                "{}x{}".format(constants.WINDOW_MIN_WIDTH, constants.WINDOW_MIN_HEIGHT)
+                "{}x{}".format(Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT)
             )
 
     def listed_window_activated_by_digit(self, number):
@@ -425,14 +425,14 @@ class BaseController(object):
         """Stops positioning/resizing routine and releases mouse."""
         self.view.unbind_events()
         self.view.master.config(cursor="left_ptr")
-        self.state = constants.OTHER
+        self.state = Settings.OTHER
         self.listener.stop()
 
     def recapture_mouse(self):
         """Creates and starts mouse listener and starts positioning/resizing routine."""
         self.view.setup_bindings()
         self.view.master.config(cursor="ul_angle")
-        self.state = constants.LOCATE
+        self.state = Settings.LOCATE
         move_cursor(self.view.master.winfo_x(), self.view.master.winfo_y())
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()
@@ -499,17 +499,17 @@ class BaseController(object):
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
 
-        Adds negative constants.WINDOW_SHIFT_PIXELS to mouse position for better presentation.
+        Adds negative Settings.WINDOW_SHIFT_PIXELS to mouse position for better presentation.
 
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        if self.state in (None, constants.LOCATE):
+        if self.state in (None, Settings.LOCATE):
             self.change_position(x, y)
 
-        elif self.state == constants.RESIZE:
+        elif self.state == Settings.RESIZE:
             self.change_size(x, y)
 
     def on_mouse_left_down(self, event):

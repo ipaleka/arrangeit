@@ -1,6 +1,7 @@
 import pytest
 
-from arrangeit import base, constants, data
+from arrangeit import base, data
+from arrangeit.settings import Settings
 
 
 def mock_main_loop(mocker):
@@ -138,7 +139,7 @@ class TestBaseController(object):
         base.BaseController(mocker.MagicMock()).setup_root_window(root)
         assert root.wm_attributes.call_count == 2
         calls = [
-            mocker.call("-alpha", constants.ROOT_ALPHA),
+            mocker.call("-alpha", Settings.ROOT_ALPHA),
             mocker.call("-topmost", True),
         ]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
@@ -216,8 +217,8 @@ class TestBaseController(object):
         assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with(
             "{}x{}".format(
-                x - 100 + constants.WINDOW_SHIFT_PIXELS,
-                y - 200 + constants.WINDOW_SHIFT_PIXELS,
+                x - 100 + Settings.WINDOW_SHIFT_PIXELS,
+                y - 200 + Settings.WINDOW_SHIFT_PIXELS,
             )
         )
 
@@ -243,7 +244,7 @@ class TestBaseController(object):
         controller.change_size(x, y)
         assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with(
-            "{}x{}".format(constants.WINDOW_MIN_WIDTH, constants.WINDOW_MIN_HEIGHT)
+            "{}x{}".format(Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT)
         )
 
     ## BaseController.listed_window_activated_by_digit
@@ -424,7 +425,7 @@ class TestBaseController(object):
         controller.run(mocker.MagicMock())
         controller.state = 5
         controller.release_mouse()
-        assert controller.state == constants.OTHER
+        assert controller.state == Settings.OTHER
 
     def test_BaseController_release_mouse_stops_listener(self, mocker):
         mock_main_loop(mocker)
@@ -456,7 +457,7 @@ class TestBaseController(object):
         controller = base.BaseController(mocker.MagicMock())
         controller.state = 5
         controller.recapture_mouse()
-        assert controller.state == constants.LOCATE
+        assert controller.state == Settings.LOCATE
 
     def test_BaseController_recapture_mouse_calls_move_cursor(self, mocker):
         mock_main_loop(mocker)
@@ -706,7 +707,7 @@ class TestBaseController(object):
         mocked = mocker.patch("arrangeit.base.BaseController.change_position")
         x, y = 100, 200
         controller = base.BaseController(mocker.MagicMock())
-        controller.state = constants.LOCATE
+        controller.state = Settings.LOCATE
         controller.on_mouse_move(x, y)
         mocked.assert_called_with(x, y)
 
@@ -715,7 +716,7 @@ class TestBaseController(object):
         mocked = mocker.patch("arrangeit.base.BaseController.change_size")
         x, y = 100, 200
         controller = base.BaseController(mocker.MagicMock())
-        controller.state = constants.RESIZE
+        controller.state = Settings.RESIZE
         controller.on_mouse_move(x, y)
         mocked.assert_called_with(x, y)
 

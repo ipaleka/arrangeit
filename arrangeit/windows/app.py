@@ -3,7 +3,7 @@ import os
 from PIL import ImageTk
 
 import arrangeit
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.base import BaseApp
 
 
@@ -24,7 +24,7 @@ class App(BaseApp):
         :type model: :class:`WindowModel`
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
-        return ImageTk.PhotoImage(constants.BLANK_ICON)
+        return ImageTk.PhotoImage(Settings.BLANK_ICON)
 
     def move_and_resize(self, wid):
         """TODO implement

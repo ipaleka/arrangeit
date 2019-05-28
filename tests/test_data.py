@@ -2,7 +2,7 @@ from types import GeneratorType
 
 import pytest
 
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.data import WindowModel, WindowsCollection
 
 
@@ -14,7 +14,7 @@ SAMPLE_MODEL_VALUES = [
     {"resizable": True},
     {"title": "foo"},
     {"name": "bar"},
-    {"icon": constants.BLANK_ICON},
+    {"icon": Settings.BLANK_ICON},
     {"workspace": 2001},
     {
         "wid": 502,
@@ -22,7 +22,7 @@ SAMPLE_MODEL_VALUES = [
         "resizable": True,
         "title": "bar",
         "name": "foo",
-        "icon": constants.BLANK_ICON,
+        "icon": Settings.BLANK_ICON,
         "workspace": 1002,
     },
 ]
@@ -84,7 +84,7 @@ class TestWindowModel(object):
             {"resizable": True},
             {"title": "some title"},
             {"name": "name foo"},
-            {"icon": constants.BLANK_ICON},
+            {"icon": Settings.BLANK_ICON},
             {"workspace": 1002},
         ],
     )
@@ -123,7 +123,7 @@ class TestWindowModel(object):
             "resizable": True,
             "title": "some title",
             "name": "name foo",
-            "icon": constants.BLANK_ICON,
+            "icon": Settings.BLANK_ICON,
             "workspace": 1002,
         }
         wm = WindowModel(**good)
@@ -187,7 +187,7 @@ class TestWindowModel(object):
             elif elem == "rect":
                 new = value[:]
             else:
-                new[constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
+                new[Settings.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
         assert model.changed == tuple(new)
         assert model.changed_ws == new_ws
 
@@ -207,7 +207,7 @@ class TestWindowModel(object):
         model.set_changed(**values)
         new = list(model.rect)
         for elem, value in values.items():
-            new[constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
+            new[Settings.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
         assert model.changed == tuple(new)
 
     @pytest.mark.parametrize(
@@ -228,7 +228,7 @@ class TestWindowModel(object):
         model.set_changed(**values)
         new = list(model.rect)
         for elem, value in values.items():
-            new[constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
+            new[Settings.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
         new[3] = 444
         assert model.changed == tuple(new)
 
@@ -433,14 +433,14 @@ class TestWindowsCollection(object):
 
     def test_WindowsCollection_get_windows_list_returns_list_of_windows(self):
         collection = WindowsCollection()
-        instance1 = WindowModel(wid=100, title="foo", icon=constants.BLANK_ICON)
-        instance2 = WindowModel(wid=200, title="bar", icon=constants.BLANK_ICON)
+        instance1 = WindowModel(wid=100, title="foo", icon=Settings.BLANK_ICON)
+        instance2 = WindowModel(wid=200, title="bar", icon=Settings.BLANK_ICON)
         collection.add(instance1)
         collection.add(instance2)
         windows = collection.get_windows_list()
         assert windows == [
-            (100, "foo", constants.BLANK_ICON),
-            (200, "bar", constants.BLANK_ICON),
+            (100, "foo", Settings.BLANK_ICON),
+            (200, "bar", Settings.BLANK_ICON),
         ]
 
     ## WindowsCollection.add
@@ -525,7 +525,7 @@ class TestWindowsCollection(object):
                         "resizable": True,
                         "title": "bar",
                         "name": "foo",
-                        "icon": constants.BLANK_ICON,
+                        "icon": Settings.BLANK_ICON,
                         "workspace": 1002,
                     },
                     (45, 55, 250, 425),
@@ -538,7 +538,7 @@ class TestWindowsCollection(object):
                         "resizable": True,
                         "title": "bar",
                         "name": "foobar",
-                        "icon": constants.BLANK_ICON,
+                        "icon": Settings.BLANK_ICON,
                         "workspace": 1004,
                     },
                     (400, 550, 300, 400),
@@ -553,7 +553,7 @@ class TestWindowsCollection(object):
                         "resizable": True,
                         "title": "bar",
                         "name": "foobar",
-                        "icon": constants.BLANK_ICON,
+                        "icon": Settings.BLANK_ICON,
                         "workspace": 1004,
                     },
                     (400, 550, 300, 400),
@@ -568,7 +568,7 @@ class TestWindowsCollection(object):
                         "resizable": True,
                         "title": "bar",
                         "name": "foo",
-                        "icon": constants.BLANK_ICON,
+                        "icon": Settings.BLANK_ICON,
                         "workspace": 1002,
                     },
                     (),
@@ -583,7 +583,7 @@ class TestWindowsCollection(object):
                         "resizable": True,
                         "title": "bar",
                         "name": "foo",
-                        "icon": constants.BLANK_ICON,
+                        "icon": Settings.BLANK_ICON,
                         "workspace": 1002,
                     },
                     (),

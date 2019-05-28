@@ -1,6 +1,6 @@
 from operator import attrgetter
 
-from arrangeit import constants
+from arrangeit.settings import Settings
 from arrangeit.utils import get_value_if_valid_type
 
 
@@ -46,13 +46,13 @@ class WindowModel(object):
 
         or sets the value to None/() if attribute isn't provided.
         """
-        for attr, typ in constants.WINDOW_MODEL_TYPES.items():
+        for attr, typ in Settings.WINDOW_MODEL_TYPES.items():
             setattr(self, attr, get_value_if_valid_type(kwargs.get(attr), typ))
 
     def wh_from_ending_xy(self, x, y):
         """Returns (width, height) for model rect from provided x and y
 
-        if provided point is greater than changed x and y (set during constants.LOCATE phase),
+        if provided point is greater than changed x and y (set during Settings.LOCATE phase),
         otherwise returns two-tuple of None.
 
         :returns: (int, int) or (None, None)
@@ -65,11 +65,11 @@ class WindowModel(object):
         """Creates `changed` attribute from provided arguments.
 
         Accepts "rect" argument, individual rect element(s) as defined by
-        constants.WINDOW_MODEL_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
+        Settings.WINDOW_MODEL_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
         then `changed`, respectively `rect` is used for valid changes or rect elements.
 
         Resets to () if any of provided rect arguments is invalid in regard to
-        constants.WINDOW_MODEL_TYPES for "rect". changed_ws is reset to None in such a case.
+        Settings.WINDOW_MODEL_TYPES for "rect". changed_ws is reset to None in such a case.
 
         NOTE this method needs refactoring
 
@@ -82,7 +82,7 @@ class WindowModel(object):
         """
         if "ws" in kwargs:
             self.changed_ws = get_value_if_valid_type(
-                kwargs["ws"], constants.WINDOW_MODEL_TYPES["workspace"]
+                kwargs["ws"], Settings.WINDOW_MODEL_TYPES["workspace"]
             )
             del kwargs["ws"]
             if not kwargs:
@@ -91,7 +91,7 @@ class WindowModel(object):
         previous = list(self.changed) if self.changed != () else list(self.rect)
         if "rect" in kwargs:
             changed = get_value_if_valid_type(
-                kwargs["rect"], constants.WINDOW_MODEL_TYPES["rect"]
+                kwargs["rect"], Settings.WINDOW_MODEL_TYPES["rect"]
             )
             if changed != tuple(previous):
                 self.changed = changed
@@ -99,12 +99,12 @@ class WindowModel(object):
 
         changed = []
         for elem, value in kwargs.items():
-            if elem not in constants.WINDOW_MODEL_RECT_ELEMENTS:
+            if elem not in Settings.WINDOW_MODEL_RECT_ELEMENTS:
                 changed = []
                 break
-            index = constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)
+            index = Settings.WINDOW_MODEL_RECT_ELEMENTS.index(elem)
             new_value = get_value_if_valid_type(
-                value, constants.WINDOW_MODEL_TYPES["rect"][index]
+                value, Settings.WINDOW_MODEL_TYPES["rect"][index]
             )
             if new_value is None:
                 changed = []
