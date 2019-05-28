@@ -363,7 +363,10 @@ class BaseController(object):
             and y > self.model.changed_y + constants.WINDOW_MIN_HEIGHT
         ):
             self.view.master.geometry(
-                "{}x{}".format(x - self.model.changed_x, y - self.model.changed_y)
+                "{}x{}".format(
+                    x - self.model.changed_x + constants.WINDOW_SHIFT_PIXELS,
+                    y - self.model.changed_y + constants.WINDOW_SHIFT_PIXELS,
+                )
             )
         else:
             self.view.master.geometry(

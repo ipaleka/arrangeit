@@ -198,7 +198,6 @@ class TestBaseController(object):
         assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with(
             "+{}+{}".format(
-                # x - constants.WINDOW_SHIFT_PIXELS, y - constants.WINDOW_SHIFT_PIXELS
                 x,
                 y,
             )
@@ -217,10 +216,8 @@ class TestBaseController(object):
         assert mocked.return_value.master.geometry.call_count == 1
         mocked.return_value.master.geometry.assert_called_with(
             "{}x{}".format(
-                x - 100,
-                y - 200,
-                # x - 100 + constants.WINDOW_SHIFT_PIXELS * 2,
-                # y - 200 + constants.WINDOW_SHIFT_PIXELS * 2,
+                x - 100 + constants.WINDOW_SHIFT_PIXELS,
+                y - 200 + constants.WINDOW_SHIFT_PIXELS,
             )
         )
 
