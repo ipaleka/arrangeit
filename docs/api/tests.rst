@@ -22,8 +22,17 @@
   :show-inheritance:
 
 
-:mod:`tests.test_basecontroller` -- Unit tests for BaseController class
------------------------------------------------------------------------
+:mod:`tests.test_basecontroller_domain_logic` -- Unit tests for domain logic part of the BaseController class
+-------------------------------------------------------------------------------------------------------------
+
+.. automodule:: tests.test_basecontroller_domain_logic
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.test_basecontroller` -- Unit tests for BaseController class (not including domain logic)
+----------------------------------------------------------------------------------------------------
 
 .. automodule:: tests.test_basecontroller
   :members:
@@ -31,8 +40,8 @@
   :show-inheritance:
 
 
-:mod:`tests.test_data` -- Unit tests for window model
------------------------------------------------------
+:mod:`tests.test_data` -- Unit tests for window model and collection
+--------------------------------------------------------------------
 
 .. automodule:: tests.test_data
   :members:
@@ -40,10 +49,19 @@
   :show-inheritance:
 
 
-:mod:`tests.test_view` -- Unit tests for view classes and functions
--------------------------------------------------------------------
+:mod:`tests.test_view` -- Unit tests for view classes and functions (without ViewApplication)
+---------------------------------------------------------------------------------------------
 
 .. automodule:: tests.test_view
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.test_viewapplication` -- Unit tests for ViewApplication class
+-------------------------------------------------------------------------
+
+.. automodule:: tests.test_viewapplication
   :members:
   :undoc-members:
   :show-inheritance:

@@ -68,7 +68,7 @@ class App(BaseApp):
         mask = self.collector.get_window_move_resize_mask(model)
         if mask:
             win = self.collector.get_window_by_wid(wid)
-            win.set_geometry(Wnck.WindowGravity.CURRENT, mask, *model.changed)
+            win.set_geometry(Wnck.WindowGravity.STATIC, mask, *model.changed)
             return False
         return True
 
@@ -113,10 +113,6 @@ class App(BaseApp):
         :type win: :class:`Wnck.Window`
         :returns: Boolean
         """
-        import warnings
-
-        warnings.filterwarnings("ignore")
-
         Wnck.shutdown()
         workspace = self._activate_workspace(number)
         if workspace:

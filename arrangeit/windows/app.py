@@ -28,7 +28,7 @@ class App(BaseApp):
 
     def move_and_resize(self, wid):
         """TODO implement
-        
+
         :param wid: root id got from Tkinter
         :type wid: int
         :returns: Boolean
@@ -37,7 +37,7 @@ class App(BaseApp):
 
     def move(self, wid):
         """TODO implement
-        
+
         :param wid: root id got from Tkinter
         :type wid: int
         """
@@ -45,7 +45,7 @@ class App(BaseApp):
 
     def move_to_workspace(self, hwnd, number):
         """TODO implement
-        
+
         :param wid: root id got from Tkinter
         :type wid: int
         :param number: our custom workspace number

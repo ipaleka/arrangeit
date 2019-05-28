@@ -16,7 +16,7 @@ with open('LICENSE') as f:
 setup(
     name='arrangeit',
     version=__version__,
-    description='Cross-platform utility for easy placement of the visible windows on desktop',
+    description='Cross-platform desktop utility for visible windows easy placement',
     long_description=readme,
     packages=['arrangeit'],
     python_requires='~=3.5',

@@ -104,15 +104,6 @@ class Collector(BaseCollector):
         :param win: window to create WindowModel from it
         :type win: :class:`Wnck.Window` object
         """
-        print(
-            "x {} y {} w {} h {}  {}".format(
-                win.get_geometry()[0] - win.get_client_window_geometry()[0],
-                win.get_geometry()[1] - win.get_client_window_geometry()[1],
-                win.get_geometry()[2] - win.get_client_window_geometry()[2],
-                win.get_geometry()[3] - win.get_client_window_geometry()[3],
-                win.get_name(),
-            )
-        )
         self.collection.add(
             WindowModel(
                 wid=win.get_xid(),
