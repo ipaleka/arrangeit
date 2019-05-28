@@ -65,7 +65,7 @@ class WindowModel(object):
         """Creates `changed` attribute from provided arguments.
 
         Accepts "rect" argument, individual rect element(s) as defined by
-        constants.WINDOW_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
+        constants.WINDOW_MODEL_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
         then `changed`, respectively `rect` is used for valid changes or rect elements.
 
         Resets to () if any of provided rect arguments is invalid in regard to
@@ -99,10 +99,10 @@ class WindowModel(object):
 
         changed = []
         for elem, value in kwargs.items():
-            if elem not in constants.WINDOW_RECT_ELEMENTS:
+            if elem not in constants.WINDOW_MODEL_RECT_ELEMENTS:
                 changed = []
                 break
-            index = constants.WINDOW_RECT_ELEMENTS.index(elem)
+            index = constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)
             new_value = get_value_if_valid_type(
                 value, constants.WINDOW_MODEL_TYPES["rect"][index]
             )

@@ -15,6 +15,7 @@ from arrangeit.view import (
     Workspace,
     ListedWindow,
     Toolbar,
+    Options,
 )
 from arrangeit import constants
 from arrangeit.utils import increased_by_fraction
@@ -859,7 +860,7 @@ class TestToolbar(object):
     def test_Toolbar_issubclass_of_Frame(self):
         assert issubclass(Toolbar, tk.Frame)
 
-    @pytest.mark.parametrize("attr,value", [("master", None), ])
+    @pytest.mark.parametrize("attr,value", [("master", None)])
     def test_Toolbar_inits_attributtes(self, attr, value):
         assert getattr(Toolbar, attr) == value
 
@@ -957,3 +958,34 @@ class TestToolbar(object):
             ),
         ]
         mocked.assert_has_calls(calls, any_order=True)
+
+
+class TestOptions(object):
+    """Unit testing class for :class:`Options` class."""
+
+    ## Options
+    def test_Options_issubclass_of_Toplevel(self):
+        assert issubclass(Options, tk.Toplevel)
+
+    @pytest.mark.parametrize("attr,value", [("master", None),])
+    def test_Options_inits_attributtes(self, attr, value):
+        assert getattr(Options, attr) == value
+
+    ## Options.__init__
+    def test_Options_init_calls_super_with_master_arg(self, mocker):
+        master = tk.Frame()
+        mocked = mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        # with pytest.raises(AttributeError):
+        Options(master=master)
+        mocked.assert_called_with(master)
+
+    def test_Options_init_sets_master_attribute(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        master = tk.Frame()
+        assert Options(master).master == master
+
+    def test_Options_init_calls_setup_widgets(self, mocker):
+        master = tk.Frame()
+        mocked = mocker.patch("arrangeit.view.Options.setup_widgets")
+        Options(master=master)
+        mocked.assert_called_once()

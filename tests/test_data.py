@@ -187,7 +187,7 @@ class TestWindowModel(object):
             elif elem == "rect":
                 new = value[:]
             else:
-                new[constants.WINDOW_RECT_ELEMENTS.index(elem)] = value
+                new[constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
         assert model.changed == tuple(new)
         assert model.changed_ws == new_ws
 
@@ -207,7 +207,7 @@ class TestWindowModel(object):
         model.set_changed(**values)
         new = list(model.rect)
         for elem, value in values.items():
-            new[constants.WINDOW_RECT_ELEMENTS.index(elem)] = value
+            new[constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
         assert model.changed == tuple(new)
 
     @pytest.mark.parametrize(
@@ -228,7 +228,7 @@ class TestWindowModel(object):
         model.set_changed(**values)
         new = list(model.rect)
         for elem, value in values.items():
-            new[constants.WINDOW_RECT_ELEMENTS.index(elem)] = value
+            new[constants.WINDOW_MODEL_RECT_ELEMENTS.index(elem)] = value
         new[3] = 444
         assert model.changed == tuple(new)
 

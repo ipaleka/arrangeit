@@ -681,3 +681,27 @@ class Toolbar(tk.Frame):
         from tkinter import messagebox
 
         messagebox.showinfo("arrangeit", _("Not implemented yet!"))
+
+
+class Options(tk.Toplevel):
+    """Tkinter dialog window for manipulating of user configuration data.
+
+    :var Options.master: master widget
+    :type Options.master: :class:`.tk.Tk`
+    """
+
+    master = None
+
+    def __init__(self, master=None):
+        """Sets master attribute from provided argument
+
+        after super __init__ is called.
+        """
+        super().__init__(master)
+        self.master = master
+        self.setup_widgets()
+
+    def setup_widgets(self):
+        """Creates and places all the options' widgets."""
+        pass
+        # self.setup_name()

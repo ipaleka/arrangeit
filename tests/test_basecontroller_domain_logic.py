@@ -10,8 +10,8 @@ from .test_basecontroller import (
 )
 
 
-class TestBaseControllerBusinessLogic(object):
-    """Testing class for base Controller class' business logic methods."""
+class TestBaseControllerDomainLogic(object):
+    """Testing class for base Controller class' domain logic methods."""
 
     ## BaseController.run
     def test_BaseController_run_calls_prepare_view(self, mocker):

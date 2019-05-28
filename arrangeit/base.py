@@ -190,7 +190,7 @@ class BaseController(object):
             self.app.collector.collection.get_windows_list()[1:]
         )
 
-    ## BUSINESS LOGIC
+    ## DOMAIN LOGIC
     def run(self, generator):
         """Prepares view, syncs data, starts listener and enters main loop.
 
