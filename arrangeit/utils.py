@@ -9,6 +9,12 @@ def platform_path():
     return system().lower()
 
 
+def platform_user_data_path():
+    """Retrieves platform specific user data directory path."""
+    module = import_module("arrangeit.{}.utils".format(platform_path()))
+    return getattr(module, "user_data_path")()
+
+
 def get_class(name, platform):
     """Helper method for retrieving platform specific class instance
 

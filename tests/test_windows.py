@@ -9,21 +9,21 @@ import pytest
 from arrangeit.windows.app import App
 from arrangeit.windows.collector import TITLEBARINFO, WINDOWINFO, Collector
 from arrangeit.windows.controller import Controller
+from arrangeit.linux.utils import user_data_path
 
 SAMPLE_HWND = 1001
 
 
+class TestWindowsUtils(object):
+    """Testing class for `arrangeit.windows.utils` module."""
 
-class TestWindowsApp(object):
-
-    ## WindowsApp.user_data_path
-    def test_WindowsApp_user_data_path(self, mocker):
+    ## WindowsUtils.user_data_path
+    def test_windows_utils_module_user_data_path(self, mocker):
         mocker.patch(
             "os.path.expanduser",
-            side_effect=lambda e: "C:\\Users\\tempuser{}".format(e).replace("~", "")
+            side_effect=lambda e: "C:\\Users\\tempuser{}".format(e).replace("~", ""),
         )
-        app = App()
-        assert app.user_data_path() == "C:\\Users\\tempuser\\arrangeit"
+        assert user_data_path() == "C:\\Users\\tempuser\\arrangeit"
 
 
 class TestWindowsController(object):
@@ -95,10 +95,7 @@ class TestWindowsCollector(object):
 
     @pytest.mark.parametrize(
         "rgstate,expected",
-        [
-            ((STATE_SYSTEM_INVISIBLE,), True),
-            ((STATE_SYSTEM_INVISIBLE - 1,), False),
-        ],
+        [((STATE_SYSTEM_INVISIBLE,), True), ((STATE_SYSTEM_INVISIBLE - 1,), False)],
     )
     def test_WindowsCollector__is_tray_window_return(self, mocker, rgstate, expected):
         mocked = mocker.patch("arrangeit.windows.collector.TITLEBARINFO")
@@ -188,8 +185,7 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
 
     @pytest.mark.parametrize(
-        "dwExStyle,expected",
-        [(WS_EX_NOACTIVATE, False), (WS_EX_NOACTIVATE - 1, True)],
+        "dwExStyle,expected", [(WS_EX_NOACTIVATE, False), (WS_EX_NOACTIVATE - 1, True)]
     )
     def test_WindowsCollector__is_activable_return(self, mocker, dwExStyle, expected):
         mocked = mocker.patch("arrangeit.windows.collector.WINDOWINFO")

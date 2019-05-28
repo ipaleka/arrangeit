@@ -1,5 +1,3 @@
-import os
-
 import gi
 
 gi.require_version("Wnck", "3.0")
@@ -7,7 +5,6 @@ from gi.repository import Wnck
 from PIL import Image, ImageTk
 from Xlib import display, X
 
-import arrangeit
 from arrangeit.base import BaseApp
 
 
@@ -16,21 +13,6 @@ class App(BaseApp):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    def user_data_path(self):
-        """Returns GNU/Linux platform specific path for saving user's data.
-
-        It first try with .local/share in user home directory, and if there's
-        no such directory returns .arrangeit directory in user home directory.
-
-        :returns: str path
-        """
-        local = os.path.join("~", ".local", "share")
-        if os.path.exists(os.path.expanduser(local)):
-            return os.path.expanduser(os.path.join(local, arrangeit.__appname__))
-        return os.path.expanduser(
-            os.path.join("~", ".{}".format(arrangeit.__appname__))
-        )
 
     def grab_window_screen(self, model):
         """Grabs and returns screenshot of the window from provided model.

@@ -4,7 +4,11 @@ from gettext import gettext as _
 
 from arrangeit.settings import Settings
 from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.utils import get_component_class, quarter_by_smaller
+from arrangeit.utils import (
+    get_component_class,
+    quarter_by_smaller,
+    platform_user_data_path,
+)
 from arrangeit.view import (
     click_left,
     get_mouse_listener,
@@ -53,10 +57,6 @@ class BaseApp(object):
         """
         return getattr(self, task)(*args)
 
-    def user_data_path(self):
-        """Method must be overridden."""
-        raise NotImplementedError
-
     def grab_window_screen(self, model):
         """Method must be overridden."""
         raise NotImplementedError
@@ -89,7 +89,7 @@ class BaseApp(object):
         Creates application's user data directory if it not exists.
         """
         print(_("Finished: saving to default file"))
-        directory = self.user_data_path()
+        directory = platform_user_data_path()
         if not os.path.exists(directory):
             os.mkdir(directory)
 

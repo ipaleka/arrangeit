@@ -116,12 +116,6 @@ class TestBaseApp(object):
         base.BaseApp().run_task(task, *args)
         mocked.assert_called_with(*args)
 
-    ## BaseApp.user_data_path
-    def test_BaseApp_user_data_path_raises_NotImplementedError(self, mocker):
-        mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        with pytest.raises(NotImplementedError):
-            base.BaseApp().user_data_path()
-
     ## BaseApp.grab_window_screen
     def test_BaseApp_grab_window_screen_raises_NotImplementedError(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
@@ -147,16 +141,16 @@ class TestBaseApp(object):
             base.BaseApp().move_to_workspace()
 
     ## BaseApp.save_default
-    def test_BaseApp_save_default_calls_user_data_path(self, mocker):
+    def test_BaseApp_save_default_calls_platform_user_data_path(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.os")
-        mocked = mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocked = mocker.patch("arrangeit.base.platform_user_data_path")
         base.BaseApp().save_default()
         mocked.assert_called_once()
 
     def test_BaseApp_save_default_checks_if_directory_exists(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
         mocked = mocker.patch("arrangeit.base.os.path.exists")
@@ -165,7 +159,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_save_default_creates_directory(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        path = mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        path = mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
         mocker.patch("arrangeit.base.os.path.exists", return_value=False)
@@ -177,7 +171,7 @@ class TestBaseApp(object):
     def test_BaseApp_save_default_calls_collection_export(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.os")
-        mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocked = mocker.patch("arrangeit.data.WindowsCollection.export")
         base.BaseApp().save_default()
@@ -186,7 +180,7 @@ class TestBaseApp(object):
     def test_BaseApp_save_default_calls_json_dump(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.os")
-        mocker.patch("arrangeit.base.BaseApp.user_data_path")
+        mocker.patch("arrangeit.base.platform_user_data_path")
         mocked = mocker.patch("arrangeit.base.json.dump")
         mocker.patch("arrangeit.data.WindowsCollection.export")
         base.BaseApp().save_default()

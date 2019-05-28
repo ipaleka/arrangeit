@@ -14,33 +14,35 @@ from arrangeit.data import WindowModel
 from arrangeit.linux.app import App
 from arrangeit.linux.collector import Collector, MOVE_RESIZE_MASKS
 from arrangeit.linux.controller import Controller
+from arrangeit.linux.utils import user_data_path
 
 
-class TestLinuxApp(object):
+class TestLinuxUtils(object):
+    """Testing class for `arrangeit.linux.utils` module."""
 
-    ## LinuxApp.user_data_path
-    def test_LinuxApp_user_data_path_checks_local_share_first(self, mocker):
+    ## LinuxUtils.user_data_path
+    def test_linux_utils_module_user_data_path_checks_local_share_first(self, mocker):
         mocked_expand = mocker.patch(
             "os.path.expanduser",
             side_effect=lambda e: "/home/tempuser/{}".format(e).replace("~/", ""),
         )
         mocked_exists = mocker.patch("arrangeit.base.os.path.exists")
-        app = App()
-        app.user_data_path()
+        user_data_path()
         calls = [mocker.call("/home/tempuser/.local/share")]
         mocked_exists.assert_has_calls(calls, any_order=True)
         calls = [mocker.call("~/.local/share/arrangeit")]
         mocked_expand.assert_has_calls(calls, any_order=True)
 
-    ## LinuxApp.user_data_path
-    def test_LinuxApp_user_data_path_for_local_share_not_exists(self, mocker):
+    def test_linux_utils_module__user_data_path_for_local_share_not_exists(self, mocker):
         mocker.patch(
             "os.path.expanduser",
             side_effect=lambda e: "/home/tempuser/{}".format(e).replace("~/", ""),
         )
         mocker.patch("arrangeit.base.os.path.exists", return_value=False)
-        app = App()
-        assert app.user_data_path() == "/home/tempuser/.arrangeit"
+        assert user_data_path() == "/home/tempuser/.arrangeit"
+
+
+class TestLinuxApp(object):
 
     ## LinuxApp.move_and_resize
     def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocker):
@@ -130,7 +132,6 @@ class TestLinuxApp(object):
         app = App()
         app.move_and_resize(100)
         assert mocked.return_value.set_geometry.call_count == 0
-
 
     def test_LinuxApp_move_and_resize_returns_False(self, mocker):
         mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
@@ -423,7 +424,6 @@ class TestLinuxCollector(object):
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 
-    @pytest.mark.skip("debugging in process...")
     @pytest.mark.parametrize(
         "method",
         [
@@ -441,6 +441,13 @@ class TestLinuxCollector(object):
         mocked = mocker.patch("arrangeit.linux.collector.Wnck.Window.{}".format(method))
         Collector().add_window(mocked_ww)
         mocked.assert_called_once()
+
+    def test_LinuxCollector_rect_is_converted_to_tuple(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")
+        mocked_ww = mocker.patch("arrangeit.linux.collector.Wnck.Window")
+        collector = Collector()
+        collector.add_window(mocked_ww)
+        assert isinstance(collector.collection._members[0].rect, tuple)
 
     def test_LinuxCollector_add_window_calls_is_resizable(self, mocker):
         mocker.patch("arrangeit.linux.collector.Collector._get_tk_image_from_pixbuf")

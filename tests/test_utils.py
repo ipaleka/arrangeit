@@ -12,6 +12,18 @@ class TestUtils(object):
         mocker.patch("arrangeit.utils.system", return_value=name)
         assert utils.platform_path() == name.lower()
 
+    ## platform_user_data_path
+    def test_platform_user_data_path_calls_import_module(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.import_module")
+        utils.platform_user_data_path()
+        mocked.assert_called_once()
+        mocked.assert_called_with("arrangeit.{}.utils".format(utils.platform_path()))
+
+    def test_platform_user_data_path_calls_user_data_path(self, mocker):
+        mocked = mocker.patch("arrangeit.{}.utils.user_data_path".format(utils.platform_path()))
+        utils.platform_user_data_path()
+        mocked.assert_called_once()
+
     ## get_class
     @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
     def test_get_class_involves_default_val_for_no_arg(self, mocker, name):

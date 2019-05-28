@@ -1,8 +1,5 @@
-import os
-
 from PIL import ImageTk
 
-import arrangeit
 from arrangeit.settings import Settings
 from arrangeit.base import BaseApp
 
@@ -12,10 +9,6 @@ class App(BaseApp):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    def user_data_path(self):
-        """Returns MS Windows specific path for saving user's data."""
-        return os.path.expanduser(os.path.join("~", arrangeit.__appname__))
 
     def grab_window_screen(self, model):
         """TODO implement

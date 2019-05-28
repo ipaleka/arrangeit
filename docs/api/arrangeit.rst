@@ -94,6 +94,15 @@
   :show-inheritance:
 
 
+:mod:`arrangeit.darwin.utils` -- Mac OS specific utility functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: arrangeit.darwin.utils
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`arrangeit.linux` -- Subpackage holding code specific to GNU/Linux platform
 --------------------------------------------------------------------------------
 
@@ -121,10 +130,19 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.darwin.controller` -- Module responsible for connecting data and view (GNU/Linux platform specific code)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`arrangeit.linux.controller` -- Module responsible for connecting data and view (GNU/Linux platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: arrangeit.linux.controller
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`arrangeit.linux.utils` -- GNU/Linux specific utility functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: arrangeit.linux.utils
   :members:
   :undoc-members:
   :show-inheritance:
@@ -157,10 +175,19 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.darwin.controller` -- Module responsible for connecting data and view (MS Windows platform specific code)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`arrangeit.windows.controller` -- Module responsible for connecting data and view (MS Windows platform specific code)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: arrangeit.windows.controller
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`arrangeit.windows.utils` -- MS Windows specific utility functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: arrangeit.windows.utils
   :members:
   :undoc-members:
   :show-inheritance:
