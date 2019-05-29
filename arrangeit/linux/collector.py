@@ -111,27 +111,34 @@ class Collector(BaseCollector):
                 resizable=self.is_resizable(win.get_window_type()),
                 title=win.get_name(),
                 name=win.get_class_group_name(),
-                icon=self._get_tk_image_from_pixbuf(win.get_icon()),
+                icon=self.get_image_from_pixbuf(win.get_icon()),
                 workspace=self.get_workspace_number_for_window(win),
             )
         )
 
-    def _get_tk_image_from_pixbuf(self, pixbuf):
+    def get_image_from_pixbuf(self, pixbuf):
         """Returns PIL image converted from provided pixbuf.
 
         https://gist.github.com/mozbugbox/10cd35b2872628246140
 
         :returns: :class:`PIL.Image` instance
         """
-        data = pixbuf.get_pixels()
-        w = pixbuf.props.width
-        h = pixbuf.props.height
-        stride = pixbuf.props.rowstride
-        mode = "RGB"
-        if pixbuf.props.has_alpha == True:
-            mode = "RGBA"
-        image = Image.frombytes(mode, (w, h), data, "raw", mode, stride)
-        return image
+        # data = pixbuf.get_pixels()
+        # w = pixbuf.props.width
+        # h = pixbuf.props.height
+        # stride = pixbuf.props.rowstride
+        # mode = "RGBA" if pixbuf.props.has_alpha else "RGB"
+        # image = Image.frombytes(mode, (w, h), data, "raw", mode, stride)
+        # return image
+        mode = "RGBA" if pixbuf.props.has_alpha else "RGB"
+        return Image.frombytes(
+            mode,
+            (pixbuf.props.width, pixbuf.props.height),
+            pixbuf.get_pixels(),
+            "raw",
+            mode,
+            pixbuf.props.rowstride,
+        )
 
     def get_workspace_number(self, workspace):
         """Returns integer containing screen and workspace numbers of the workspace.

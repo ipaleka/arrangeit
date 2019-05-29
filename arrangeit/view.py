@@ -25,7 +25,7 @@ def get_screenshot_widget(root):
     :returns: :class:`tk.Label`
     """
     label = tk.Label(root)
-    label.place(x=-1, y=-1)
+    label.place(x=Settings.SCREENSHOT_SHIFT_PIXELS, y=Settings.SCREENSHOT_SHIFT_PIXELS)
     return label
 
 

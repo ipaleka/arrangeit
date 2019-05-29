@@ -190,6 +190,22 @@ class BaseController(object):
             self.app.collector.collection.get_windows_list()[1:]
         )
 
+    def set_screenshot(self):
+        """Creates and places screenshot of model window as background image.
+
+        If we can't include window decoration in image then offset is returned
+        and we place image shifted by offset amount of pixels to related axis.
+
+        :var offset: offset (x, y)
+        :type offset: (int, int)
+        """
+        self.screenshot, offset = self.app.grab_window_screen(self.model)
+        self.screenshot_widget.configure(image=self.screenshot)
+        self.screenshot_widget.place(
+            x=offset[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
+            y=offset[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
+        )
+
     ## DOMAIN LOGIC
     def run(self, generator):
         """Prepares view, syncs data, starts listener and enters main loop.
@@ -244,8 +260,7 @@ class BaseController(object):
             if self.model.workspace != old_workspace:
                 self.switch_workspace()
 
-        self.screenshot = self.app.grab_window_screen(self.model)
-        self.screenshot_widget.configure(image=self.screenshot)
+        self.set_screenshot()
         self.set_default_geometry(self.view.master)
         self.place_on_top_left()
 

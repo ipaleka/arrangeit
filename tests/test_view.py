@@ -34,7 +34,7 @@ class TestViewFunctions(object):
         mocked = mocker.patch("arrangeit.view.tk.Tk")
         assert get_tkinter_root() == mocked.return_value
 
-    ## get_tkinter_root
+    ## get_screenshot_widget
     def test_get_screenshot_widget_initializes_Label(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         get_screenshot_widget(mocker.MagicMock())
@@ -44,6 +44,9 @@ class TestViewFunctions(object):
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
         get_screenshot_widget(mocker.MagicMock())
         mocked.assert_called()
+        mocked.assert_called_with(
+            x=Settings.SCREENSHOT_SHIFT_PIXELS, y=Settings.SCREENSHOT_SHIFT_PIXELS
+        )
 
     def test_get_screenshot_widget_returns_label_instance(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
@@ -967,7 +970,7 @@ class TestOptions(object):
     def test_Options_issubclass_of_Toplevel(self):
         assert issubclass(Options, tk.Toplevel)
 
-    @pytest.mark.parametrize("attr,value", [("master", None),])
+    @pytest.mark.parametrize("attr,value", [("master", None)])
     def test_Options_inits_attributtes(self, attr, value):
         assert getattr(Options, attr) == value
 

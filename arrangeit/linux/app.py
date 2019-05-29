@@ -1,11 +1,13 @@
 import gi
 
 gi.require_version("Wnck", "3.0")
-from gi.repository import Wnck
+gi.require_version("Gdk", "3.0")
+from gi.repository import Wnck, Gdk
 from PIL import Image, ImageTk
 from Xlib import display, X
 
 from arrangeit.base import BaseApp
+from arrangeit.settings import Settings
 
 
 class App(BaseApp):
@@ -17,14 +19,37 @@ class App(BaseApp):
     def grab_window_screen(self, model):
         """Grabs and returns screenshot of the window from provided model.
 
+        We can't include window decoration in image so offset in pixels
+        for both axes is returned.
+
         :param model: model of the window we want screenshot form
         :type model: :class:`WindowModel`
-        :returns: :class:`PIL.ImageTk.PhotoImage`
+        :param window: model window instance
+        :type window: :class:`Gdk.Window`
+        :param pixbuf: X11 pixbuf image
+        :type pixbuf: binary data
+        :param width: window width in pixels without window manager decoration
+        :type width: int
+        :param height: window height in pixels without window manager decoration
+        :type height: int
+        :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
         """
-        root = display.Display().screen().root
-        raw = root.get_image(model.x, model.y, model.w, model.h, X.ZPixmap, 0xFFFFFFFF)
-        image = Image.frombytes("RGB", (model.w, model.h), raw.data, "raw", "BGRX")
-        return ImageTk.PhotoImage(image)
+        window = next(
+            (
+                win
+                for win in Gdk.Screen.get_default().get_window_stack()
+                if win.get_xid() == model.wid
+            ),
+            None,
+        )
+        if window is not None:
+            width, height = window.get_width(), window.get_height()
+            pixbuf = Gdk.pixbuf_get_from_window(window, 0, 0, width, height)
+            return (
+                ImageTk.PhotoImage(self.collector.get_image_from_pixbuf(pixbuf)),
+                (model.changed_w - width, model.changed_h - height),
+            )
+        return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)
 
     def move_and_resize(self, wid):
         """Moves and resizes window having provided wid.

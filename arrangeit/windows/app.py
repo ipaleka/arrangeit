@@ -17,7 +17,7 @@ class App(BaseApp):
         :type model: :class:`WindowModel`
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
-        return ImageTk.PhotoImage(Settings.BLANK_ICON)
+        return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)
 
     def move_and_resize(self, wid):
         """TODO implement
