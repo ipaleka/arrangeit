@@ -158,4 +158,3 @@ class Settings(metaclass=SettingsMetaclass):
     """Class holding all the program's constants and settings."""
 
     user_settings = validate_user_settings()
-

@@ -1,7 +1,8 @@
 import sys
-from gettext import gettext as _
 from platform import system
+from gettext import gettext as _
 from importlib import import_module
+from itertools import islice, chain, product
 
 
 def platform_path():
@@ -120,8 +121,8 @@ def increased_by_fraction(value, fraction):
     return round(value * (1.0 + fraction))
 
 
-def get_snapping_rects_for_rect(rect, snap):
-    """Returns four snapping rectangles created from provided rect.
+def get_snapping_sources_for_rect(rect, snap):
+    """Returns four snapping rectangles from provided rect formated as (x0,y0,x0,y0).
 
     Snapping rectangle is created around window connected edge points pair with
     height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
@@ -130,13 +131,83 @@ def get_snapping_rects_for_rect(rect, snap):
     :type rect: (int, int, int, int)
     :param snap: snapping distance in pixels
     :type snap: int
-    :returns: four-tuple of (x, y, width, height)
+    :returns: four-tuple of (x0, y0, x1, y1)
     """
-    x, y, w, h = rect
     return (
-        (x - snap, y - snap, w + 2 * snap, 2 * snap),
-        (x + w - snap, y - snap, 2 * snap, h + 2 * snap),
-        (x - snap, y + h - snap, w + 2 * snap, 2 * snap),
-        (x - snap, y - snap, 2 * snap, h + 2 * snap),
+        (rect[0] - snap, rect[1] - snap, rect[0] + rect[2] + snap, rect[1] + snap),
+        (
+            rect[0] + rect[2] - snap,
+            rect[1] - snap,
+            rect[0] + rect[2] + snap,
+            rect[1] + rect[3] + snap,
+        ),
+        (
+            rect[0] - snap,
+            rect[1] + rect[3] - snap,
+            rect[0] + rect[2] + snap,
+            rect[1] + rect[3] + snap,
+        ),
+        (rect[0] - snap, rect[1] - snap, rect[0] + snap, rect[1] + rect[3] + snap),
     )
 
+
+def intersects(source, target):
+    """Checks does provided rectangle source intersect with provided target rectangle.
+
+    Provided rectangles **don't** intersect if at least one of following statements
+    is true:
+
+    - bottom side of source is above top side of target
+    - bottom side of target is above top side of source
+    - left side of source is placed on the right side of the target right edge
+    - left side of target is placed on the right side of the source right edge
+
+    :param source: rectangle (x0, y0, x1, y1)
+    :type source: (int, int, int, int)
+    :param target: rectangle (x0, y0, x1, y1)
+    :type target: (int, int, int, int)
+    :returns: Boolean
+    """
+    return not (
+        source[3] < target[1]
+        or target[3] < source[1]
+        or source[0] > target[2]
+        or target[0] > source[2]
+    )
+
+
+def check_intersection(sources, targets):
+    """Returns first pair that intersects by checking sources four-tuple and targets
+
+    list of four-tuples.
+
+    We are interested in intersection of odd or even pairs of sources and targets.
+    It means that sources[0] or sources[2] should intersect with
+    targets[n][0] or targets[n][2], respectively sources[1] or sources[3]
+    should intersect with targets[n][1] or targets[n][3].
+
+    So we create iterator that first cycle through all even elements pairs and
+    then through all odd elements pairs. Stops iteration when first intersected pair
+    is found and returns that pair.
+
+    :param sources: four-tuple of (x0, y0, x1, y1)
+    :type sources: tuple
+    :param targets: collection of four-tuples (x0, y0, x1, y1)
+    :type targets: list of four-tuples
+    :returns: two-tuple ((x0,y0,x1,y1),(x0,y0,x1,y1)) or False
+    """
+    return next(
+        (
+            pair
+            for pair in chain(
+                product(
+                    islice(sources, 0, None, 2), islice(chain(*targets), 0, None, 2)
+                ),
+                product(
+                    islice(sources, 1, None, 2), islice(chain(*targets), 1, None, 2)
+                ),
+            )
+            if intersects(*pair)
+        ),
+        False,
+    )

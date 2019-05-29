@@ -630,19 +630,19 @@ class TestWindowsCollection(object):
             for i, elem in enumerate(data)
         )
 
-    ## WindowsCollection.snapping_rects
-    def test_WindowsCollection_snapping_rects_calls_utils_get_snapping_rects_for_rect(
+    ## WindowsCollection.get_snapping_sources
+    def test_WindowsCollection_get_snapping_sources_calls_utils_get_snapping_sources_for_rect(
         self, mocker
     ):
-        mocked = mocker.patch("arrangeit.data.get_snapping_rects_for_rect")
+        mocked = mocker.patch("arrangeit.data.get_snapping_sources_for_rect")
         collection = WindowsCollection()
         collection.add(WindowModel(rect=SAMPLE_RECT))
-        collection.snapping_rects()
+        collection.get_snapping_sources()
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_RECT, Settings.SNAP_PIXELS)
 
-    def test_WindowsCollection_snapping_rects_returns_dict(self):
-        rects = WindowsCollection().snapping_rects()
+    def test_WindowsCollection_get_snapping_sources_returns_dict(self):
+        rects = WindowsCollection().get_snapping_sources()
         assert isinstance(rects, dict)
         assert rects == {}
 
@@ -658,26 +658,26 @@ class TestWindowsCollection(object):
                     {
                         1001: [
                             (
-                                (0, 10, 520, 20),
-                                (500, 10, 20, 420),
-                                (0, 410, 520, 20),
-                                (0, 10, 20, 420),
-                            ),
+                                (0, 10, 520, 30),
+                                (500, 10, 520, 430),
+                                (0, 410, 520, 430),
+                                (0, 10, 20, 430),
+                            )
                         ],
                         1002: [
                             (
-                                (90, 190, 560, 20),
-                                (630, 190, 20, 220),
-                                (90, 390, 560, 20),
-                                (90, 190, 20, 220),
-                            ),
+                                (90, 190, 650, 210),
+                                (630, 190, 650, 410),
+                                (90, 390, 650, 410),
+                                (90, 190, 110, 410),
+                            )
                         ],
                     }
                 ),
             )
         ],
     )
-    def test_WindowsCollection_snapping_rects_uses_changed_values_if_available(
+    def test_WindowsCollection_get_snapping_sources_uses_changed_values_if_available(
         self, mocker, windows, expected
     ):
         collection = WindowsCollection()
@@ -687,7 +687,7 @@ class TestWindowsCollection(object):
             collection.add(model)
         mocked = mocker.patch("arrangeit.data.Settings")
         type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
-        rects = collection.snapping_rects()
+        rects = collection.get_snapping_sources()
         for ws, snaps in rects.items():
             assert snaps == expected[ws]
 
@@ -704,32 +704,32 @@ class TestWindowsCollection(object):
                     {
                         1001: [
                             (
-                                (0, 10, 520, 20),
-                                (500, 10, 20, 420),
-                                (0, 410, 520, 20),
-                                (0, 10, 20, 420),
+                                (0, 10, 520, 30),
+                                (500, 10, 520, 430),
+                                (0, 410, 520, 430),
+                                (0, 10, 20, 430),
                             ),
                             (
-                                (70, 190, 320, 20),
-                                (370, 190, 20, 220),
-                                (70, 390, 320, 20),
-                                (70, 190, 20, 220),
+                                (70, 190, 390, 210),
+                                (370, 190, 390, 410),
+                                (70, 390, 390, 410),
+                                (70, 190, 90, 410),
                             ),
                         ],
                         1002: [
                             (
-                                (90, 190, 560, 20),
-                                (630, 190, 20, 220),
-                                (90, 390, 560, 20),
-                                (90, 190, 20, 220),
-                            ),
+                                (90, 190, 650, 210),
+                                (630, 190, 650, 410),
+                                (90, 390, 650, 410),
+                                (90, 190, 110, 410),
+                            )
                         ],
                     }
                 ),
             )
         ],
     )
-    def test_WindowsCollection_snapping_rects_functionality(
+    def test_WindowsCollection_get_snapping_sources_functionality(
         self, mocker, windows, expected
     ):
         collection = WindowsCollection()
@@ -739,6 +739,6 @@ class TestWindowsCollection(object):
             collection.add(model)
         mocked = mocker.patch("arrangeit.data.Settings")
         type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
-        rects = collection.snapping_rects()
+        rects = collection.get_snapping_sources()
         for ws, snaps in rects.items():
             assert snaps == expected[ws]

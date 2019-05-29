@@ -8,6 +8,8 @@ from arrangeit.utils import (
     get_component_class,
     quarter_by_smaller,
     platform_user_data_path,
+    get_snapping_sources_for_rect,
+    check_intersection,
 )
 from arrangeit.view import (
     click_left,
@@ -116,6 +118,8 @@ class BaseController(object):
     :type screenshot_widget: :class:`tk.Label`
     :var screenshot: screenshot image of the window model
     :type screenshot: :class:`tk.PhotoImage`
+    :var snapping_rects: dictionary of snapping rectangles grouped by workspace number
+    :type snapping_rects: dict
     """
 
     app = None
@@ -126,6 +130,7 @@ class BaseController(object):
     state = None
     screenshot_widget = None
     screenshot = None
+    snapping_rects = None
 
     def __init__(self, app):
         """Sets app attribute to provided argument, model attribute to new empty model
@@ -261,10 +266,10 @@ class BaseController(object):
                 self.switch_workspace()
 
         self.set_screenshot()
+        self.snapping_rects = self.app.collector.collection.get_snapping_sources()
         self.set_default_geometry(self.view.master)
-        self.place_on_top_left()
-
         self.view.update_widgets(self.model)
+        self.place_on_top_left()
 
         return False
 
@@ -353,14 +358,44 @@ class BaseController(object):
             self.recapture_mouse()
 
     ## COMMANDS
+    def check_positioning_snapping(self, x, y):
+        """Returns (x, y) offset if root window intersects with a collection window
+
+        snapping rects in current workspace or empty tuple if it doesn't.
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        :var root_rects: four-tuple snapping rects of the root window
+        :type root_rects: tuple
+        :var intersection_pair: two-tuple ((x,y,w,h),(x,y,w,h))
+        :type intersection_pair: tuple
+        :returns: (int, int)
+        """
+        root_rects = get_snapping_sources_for_rect(
+            (x, y, self.view.master.winfo_width(), self.view.master.winfo_height()),
+            Settings.SNAP_PIXELS,
+        )
+        intersection_pair = check_intersection(
+            root_rects, self.snapping_rects[self.view.workspaces.active]
+        )
+        print(intersection_pair)
+        return ()
+
     def change_position(self, x, y):
-        """Changes root window position to provided x and y.
+        """Changes root window position to provided x and y or calls move_cursor
+
+        by returned offset if snapping criteria is satisfied.
 
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
+        offset = self.check_positioning_snapping(x, y)
+        if offset:
+            return move_cursor(x + offset[0], y + offset[1])
         self.view.master.geometry("+{}+{}".format(x, y))
 
     def change_size(self, x, y):

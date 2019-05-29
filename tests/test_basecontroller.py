@@ -69,6 +69,7 @@ class TestBaseController(object):
             "state",
             "screenshot_widget",
             "screenshot",
+            "snapping_rects",
         ],
     )
     def test_BaseController_inits_attr_as_None(self, attr):
@@ -274,15 +275,94 @@ class TestBaseController(object):
         ]
         mocked.assert_has_calls(calls, any_order=True)
 
+    ## BaseController.check_positioning_snapping
+    def test_BaseController_check_positioning_snapping_calls_get_snapping_sources_for(
+        self, mocker
+    ):
+        mocked_viewapp(mocker)
+        mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        x, y, w, h = 100, 200, 300, 400
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = h
+        view.return_value.workspaces.active = 1001
+        controller = get_controller_with_mocked_app(mocker)
+        controller.snapping_rects = {1001: ["foo"]}
+        controller.check_positioning_snapping(x, y)
+        mocked.assert_called_once()
+        mocked.assert_called_with((x, y, w, h), Settings.SNAP_PIXELS)
+
+    def test_BaseController_check_positioning_snapping_calls_check_intersection(
+        self, mocker
+    ):
+        mocked_viewapp(mocker)
+        root_rects = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        mocked = mocker.patch("arrangeit.base.check_intersection")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        view.return_value.workspaces.active = 1001
+        controller = get_controller_with_mocked_app(mocker)
+        controller.snapping_rects = {1001: ["foo"]}
+        controller.check_positioning_snapping(100, 100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(root_rects.return_value, ["foo"])
+
     ## BaseController.change_position
-    def test_BaseController_change_position(self, mocker):
+    def test_BaseController_change_position_calls_check_positioning_snapping(
+        self, mocker
+    ):
         mock_main_loop(mocker)
+        mocked = mocker.patch(
+            "arrangeit.base.BaseController.check_positioning_snapping"
+        )
+        x, y = 100, 200
+        controller = get_controller_with_mocked_app(mocker)
+        controller.change_position(x, y)
+        mocked.assert_called_once()
+        mocked.assert_called_with(x, y)
+
+    def test_BaseController_change_position_calls_move_cursor(self, mocker):
+        mock_main_loop(mocker)
+        offset = (10, 12)
+        mocker.patch(
+            "arrangeit.base.BaseController.check_positioning_snapping",
+            return_value=offset,
+        )
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        x, y = 100, 200
+        controller = get_controller_with_mocked_app(mocker)
+        controller.change_position(x, y)
+        mocked.assert_called_once()
+        mocked.assert_called_with(x + offset[0], y + offset[1])
+
+    def test_BaseController_change_position_not_calling_set_geometry(self, mocker):
+        mock_main_loop(mocker)
+        offset = (10, 12)
+        mocker.patch(
+            "arrangeit.base.BaseController.check_positioning_snapping",
+            return_value=offset,
+        )
+        mocker.patch("arrangeit.base.move_cursor")
         mocked = mocker.patch("arrangeit.base.ViewApplication")
         x, y = 100, 200
         controller = get_controller_with_mocked_app(mocker)
         controller.change_position(x, y)
-        assert mocked.return_value.master.geometry.call_count == 1
-        mocked.return_value.master.geometry.assert_called_with("+{}+{}".format(x, y))
+        mocked.return_value.master.geometry.assert_not_called()
+
+    def test_BaseController_change_position_not_calling_move_cursor(self, mocker):
+        mock_main_loop(mocker)
+        offset = ()
+        mocker.patch(
+            "arrangeit.base.BaseController.check_positioning_snapping",
+            return_value=offset,
+        )
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        x, y = 100, 200
+        controller = get_controller_with_mocked_app(mocker)
+        controller.change_position(x, y)
+        mocked.assert_not_called()
+        assert view.return_value.master.geometry.call_count == 1
+        view.return_value.master.geometry.assert_called_with("+{}+{}".format(x, y))
 
     ## BaseController.change_size
     def test_BaseController_change_size_valid_x_and_y(self, mocker):
@@ -850,7 +930,6 @@ class TestBaseController(object):
             mocker.MagicMock()
         )
         assert returned == "break"
-
 
     ## BaseController.on_continue
     def test_BaseController_on_continue_calls_recapture_mouse(self, mocker):
