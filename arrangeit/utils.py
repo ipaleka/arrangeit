@@ -118,3 +118,25 @@ def increased_by_fraction(value, fraction):
     :returns: int
     """
     return round(value * (1.0 + fraction))
+
+
+def get_snapping_rects_for_rect(rect, snap):
+    """Returns four snapping rectangles created from provided rect.
+
+    Snapping rectangle is created around window connected edge points pair with
+    height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
+
+    :param rect: window rectangle (x, y, width, height)
+    :type rect: (int, int, int, int)
+    :param snap: snapping distance in pixels
+    :type snap: int
+    :returns: four-tuple of (x, y, width, height)
+    """
+    x, y, w, h = rect
+    return (
+        (x - snap, y - snap, w + 2 * snap, 2 * snap),
+        (x + w - snap, y - snap, 2 * snap, h + 2 * snap),
+        (x - snap, y + h - snap, w + 2 * snap, 2 * snap),
+        (x - snap, y - snap, 2 * snap, h + 2 * snap),
+    )
+

@@ -288,6 +288,21 @@ class TestWindowModel(object):
         model.set_changed(**values)
         assert model.changed == ()
 
+    ## WindowModel.clear_changed
+    def test_WindowModel_clear_changed_sets_changed_to_empty_tuple(self, mocker):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(rect=(200, 200, 200, 200))
+        assert model.changed == (200, 200, 200, 200)
+        model.clear_changed()
+        assert model.changed == ()
+
+    def test_WindowModel_clear_changed_sets_changed_ws_to_None(self, mocker):
+        model = WindowModel(rect=SAMPLE_RECT)
+        model.set_changed(ws=1002)
+        assert model.changed_ws == 1002
+        model.clear_changed()
+        assert model.changed_ws == None
+
     ## WindowModel.is_ws_changed
     @pytest.mark.parametrize(
         "changed_ws,ws,expected",
@@ -615,3 +630,115 @@ class TestWindowsCollection(object):
             for i, elem in enumerate(data)
         )
 
+    ## WindowsCollection.snapping_rects
+    def test_WindowsCollection_snapping_rects_calls_utils_get_snapping_rects_for_rect(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.data.get_snapping_rects_for_rect")
+        collection = WindowsCollection()
+        collection.add(WindowModel(rect=SAMPLE_RECT))
+        collection.snapping_rects()
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_RECT, Settings.SNAP_PIXELS)
+
+    def test_WindowsCollection_snapping_rects_returns_dict(self):
+        rects = WindowsCollection().snapping_rects()
+        assert isinstance(rects, dict)
+        assert rects == {}
+
+    @pytest.mark.parametrize(
+        "windows,expected",
+        [
+            (
+                (
+                    (1001, (10, 20, 500, 400), ()),
+                    (1002, (10, 20, 30, 40), (100, 200, 540, 200)),
+                ),
+                (
+                    {
+                        1001: [
+                            (
+                                (0, 10, 520, 20),
+                                (500, 10, 20, 420),
+                                (0, 410, 520, 20),
+                                (0, 10, 20, 420),
+                            ),
+                        ],
+                        1002: [
+                            (
+                                (90, 190, 560, 20),
+                                (630, 190, 20, 220),
+                                (90, 390, 560, 20),
+                                (90, 190, 20, 220),
+                            ),
+                        ],
+                    }
+                ),
+            )
+        ],
+    )
+    def test_WindowsCollection_snapping_rects_uses_changed_values_if_available(
+        self, mocker, windows, expected
+    ):
+        collection = WindowsCollection()
+        for window in windows:
+            model = WindowModel(rect=window[1], workspace=1008)
+            model.set_changed(rect=window[2], ws=window[0])
+            collection.add(model)
+        mocked = mocker.patch("arrangeit.data.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        rects = collection.snapping_rects()
+        for ws, snaps in rects.items():
+            assert snaps == expected[ws]
+
+    @pytest.mark.parametrize(
+        "windows,expected",
+        [
+            (
+                (
+                    (1001, 10, 20, 500, 400),
+                    (1001, 80, 200, 300, 200),
+                    (1002, 100, 200, 540, 200),
+                ),
+                (
+                    {
+                        1001: [
+                            (
+                                (0, 10, 520, 20),
+                                (500, 10, 20, 420),
+                                (0, 410, 520, 20),
+                                (0, 10, 20, 420),
+                            ),
+                            (
+                                (70, 190, 320, 20),
+                                (370, 190, 20, 220),
+                                (70, 390, 320, 20),
+                                (70, 190, 20, 220),
+                            ),
+                        ],
+                        1002: [
+                            (
+                                (90, 190, 560, 20),
+                                (630, 190, 20, 220),
+                                (90, 390, 560, 20),
+                                (90, 190, 20, 220),
+                            ),
+                        ],
+                    }
+                ),
+            )
+        ],
+    )
+    def test_WindowsCollection_snapping_rects_functionality(
+        self, mocker, windows, expected
+    ):
+        collection = WindowsCollection()
+        for window in windows:
+            model = WindowModel(rect=SAMPLE_RECT, workspace=1005)
+            model.set_changed(ws=window[0], rect=window[1:])
+            collection.add(model)
+        mocked = mocker.patch("arrangeit.data.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        rects = collection.snapping_rects()
+        for ws, snaps in rects.items():
+            assert snaps == expected[ws]

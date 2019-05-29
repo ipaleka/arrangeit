@@ -20,7 +20,9 @@ class TestUtils(object):
         mocked.assert_called_with("arrangeit.{}.utils".format(utils.platform_path()))
 
     def test_platform_user_data_path_calls_user_data_path(self, mocker):
-        mocked = mocker.patch("arrangeit.{}.utils.user_data_path".format(utils.platform_path()))
+        mocked = mocker.patch(
+            "arrangeit.{}.utils.user_data_path".format(utils.platform_path())
+        )
         utils.platform_user_data_path()
         mocked.assert_called_once()
 
@@ -163,3 +165,31 @@ class TestUtils(object):
     )
     def test_increased_by_fraction(self, value, fraction, expected):
         assert utils.increased_by_fraction(value, fraction) == expected
+
+    ## get_snapping_rects_for_rect
+    @pytest.mark.parametrize(
+        "rect,expected",
+        [
+            (
+                (10, 10, 100, 100),
+                (
+                    (0, 0, 120, 20),
+                    (100, 00, 20, 120),
+                    (0, 100, 120, 20),
+                    (0, 0, 20, 120),
+                ),
+            ),
+            (
+                (100, 10, 200, 300),
+                (
+                    (90, 0, 220, 20),
+                    (290, 0, 20, 320),
+                    (90, 300, 220, 20),
+                    (90, 0, 20, 320),
+                ),
+            ),
+        ],
+    )
+    def test_get_snapping_rects_for_rect(self, rect, expected):
+        assert utils.get_snapping_rects_for_rect(rect, 10) == expected
+

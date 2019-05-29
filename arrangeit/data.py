@@ -1,7 +1,7 @@
 from operator import attrgetter
 
 from arrangeit.settings import Settings
-from arrangeit.utils import get_value_if_valid_type
+from arrangeit.utils import get_value_if_valid_type, get_snapping_rects_for_rect
 
 
 class WindowModel(object):
@@ -115,6 +115,11 @@ class WindowModel(object):
 
         self.changed = tuple(changed)
 
+    def clear_changed(self):
+        """Resets changing related attributes to initial empty values."""
+        self.changed = ()
+        self.changed_ws = None
+
     @property
     def is_ws_changed(self):
         """Checks if workspace has been changed.
@@ -173,6 +178,7 @@ class WindowModel(object):
 
     @property
     def ws(self):
+        """Shorter alias for workspace attribute."""
         return self.workspace
 
 
@@ -280,7 +286,7 @@ class WindowsCollection(object):
         )
 
     def export(self):
-        """Prepares useful data from collection for saving."""
+        """Prepares for saving useful data from collection."""
         return [
             (
                 model.changed or model.rect,
@@ -291,3 +297,28 @@ class WindowsCollection(object):
             )
             for model in self._members
         ]
+
+    def snapping_rects(self):
+        """Returns collection of snapping rectangless grouped by workspace.
+
+        Snapping rectangle is created around window connected edge points pair with
+        height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
+
+        :returns: dict (int: list of four-tuples)
+        """
+        rects = {}
+        for model in self._members:
+            ws = model.changed_ws if model.is_ws_changed else model.ws
+            rects.setdefault(ws, [])
+            rects[ws].append(
+                get_snapping_rects_for_rect(
+                    (
+                        model.changed_x,
+                        model.changed_y,
+                        model.changed_w,
+                        model.changed_h,
+                    ),
+                    Settings.SNAP_PIXELS,
+                )
+            )
+        return rects

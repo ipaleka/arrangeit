@@ -597,6 +597,13 @@ class TestBaseController(object):
         assert mocked.return_value.master.destroy.call_count == 1
 
     ## BaseController.skip_current_window
+    def test_BaseController_skip_current_window_calls_model_clear_changed(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.data.WindowModel.clear_changed")
+        base.BaseController(mocker.MagicMock()).skip_current_window()
+        assert mocked.call_count == 1
+
     def test_BaseController_skip_current_window_calls_next(self, mocker):
         mock_main_loop(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.next")

@@ -35,6 +35,7 @@ CONSTANTS = {
     "WINDOW_MIN_WIDTH": (int, 100),
     "WINDOW_MIN_HEIGHT": (int, 40),
     "WINDOW_SHIFT_PIXELS": (int, 2),
+    "SNAP_PIXELS": (int, 5),
     "SCREENSHOT_SHIFT_PIXELS": (int, -1),
     "ROOT_ALPHA": (float, 0.8),
     "DEFAULT_CURSOR": (str, "arrow"),

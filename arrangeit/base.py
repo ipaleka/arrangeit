@@ -460,6 +460,7 @@ class BaseController(object):
 
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""
+        self.model.clear_changed()
         self.next()
 
     def switch_workspace(self):
