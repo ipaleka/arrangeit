@@ -97,10 +97,12 @@ class ViewApplication(tk.Frame):
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
 
-        NOTE master is None check exists solely because unit tests
-
         `bind_all` method is used if possible so events can be catch in label widget.
+        It first unbinds Button-1 events (in case they were bound in `reset_bindings`)
+
+        NOTE master is None check exists solely because unit tests.
         """
+        self.unbind_all("<Button-1>")
         self.bind("<Button-1>", self.controller.on_mouse_left_down)
         if self.master is not None:
             self.master.bind("<Button-1>", self.controller.on_mouse_left_down)
@@ -109,12 +111,17 @@ class ViewApplication(tk.Frame):
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)
         self.bind_all("<Key>", self.controller.on_key_pressed)
 
-    def unbind_events(self):
-        """Unbinds all relevant events"""
+    def reset_bindings(self):
+        """Unbinds all relevant events and binds those for positioning routine."""
         self.unbind_all("<Button-1>")
         self.unbind_all("<Button-2>")
         self.unbind_all("<Button-3>")
         self.unbind_all("<Key>")
+
+        self.title_label.bind("<Button-1>", self.controller.on_continue)
+        self.icon.bind("<Button-1>", self.controller.on_continue)
+        self.windows.bind("<Button-1>", self.controller.on_continue)
+        self.workspaces.bind("<Button-1>", self.controller.on_continue)
 
     def setup_title(self):
         """Sets and places title label widget."""

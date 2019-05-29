@@ -479,13 +479,13 @@ class TestBaseController(object):
         assert view.return_value.windows.place_children.call_count == 1
 
     ## BaseController.release_mouse
-    def test_BaseController_release_mouse_calls_unbind_events(self, mocker):
+    def test_BaseController_release_mouse_calls_reset_bindings(self, mocker):
         mock_main_loop(mocker)
         mocked = mocker.patch("arrangeit.base.ViewApplication")
         controller = get_controller_with_mocked_app(mocker)
         controller.run(mocker.MagicMock())
         controller.release_mouse()
-        assert mocked.return_value.unbind_events.call_count == 1
+        assert mocked.return_value.reset_bindings.call_count == 1
 
     def test_BaseController_release_mouse_calls_cursor_config(self, mocker):
         mock_main_loop(mocker)
@@ -528,6 +528,13 @@ class TestBaseController(object):
         controller.recapture_mouse()
         calls = [mocker.call(cursor="ul_angle")]
         mocked.return_value.master.config.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_recapture_mouse_calls_set_default_geometry(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.set_default_geometry")
+        controller = get_controller_with_mocked_app(mocker)
+        controller.recapture_mouse()
+        mocked.assert_called_once()
 
     def test_BaseController_recapture_mouse_changes_state_to_LOCATE(self, mocker):
         mock_main_loop(mocker)
@@ -833,6 +840,23 @@ class TestBaseController(object):
         mocker.patch("arrangeit.base.BaseController.next")
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         returned = base.BaseController(mocker.MagicMock()).on_mouse_right_down(
+            mocker.MagicMock()
+        )
+        assert returned == "break"
+
+
+    ## BaseController.on_continue
+    def test_BaseController_on_continue_calls_recapture_mouse(self, mocker):
+        mock_main_loop(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        base.BaseController(mocker.MagicMock()).on_continue(mocker.MagicMock())
+        assert mocked.call_count == 1
+
+    def test_BaseController_on_continue_returns_break(self, mocker):
+        mock_main_loop(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.data.WindowModel.set_changed")
+        returned = base.BaseController(mocker.MagicMock()).on_continue(
             mocker.MagicMock()
         )
         assert returned == "break"

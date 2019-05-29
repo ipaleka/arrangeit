@@ -4,12 +4,7 @@ from tkinter.font import nametofont
 import pytest
 
 from arrangeit.data import WindowModel
-from arrangeit.view import (
-    ViewApplication,
-    WorkspacesCollection,
-    WindowsList,
-    Toolbar,
-)
+from arrangeit.view import ViewApplication, WorkspacesCollection, WindowsList, Toolbar
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
 
@@ -272,6 +267,14 @@ class TestViewApplication(object):
         )
 
     ## ViewApplication.setup_bindings
+    def test_ViewApplication_setup_bindings_unbinds_all_button_1(self, mocker):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        mocked = mocker.patch("arrangeit.view.ViewApplication.unbind_all")
+        view.setup_bindings()
+        calls = [mocker.call("<Button-1>")]
+        mocked.assert_has_calls(calls, any_order=True)
+
     @pytest.mark.parametrize(
         "event,method",
         [
@@ -328,16 +331,55 @@ class TestViewApplication(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    ## ViewApplication.unbind_events
+    ## ViewApplication.reset_bindings
     @pytest.mark.parametrize(
         "event", ["<Button-1>", "<Button-2>", "<Button-3>", "<Key>"]
     )
-    def test_ViewApplication_unbind_events(self, mocker, event):
+    def test_ViewApplication_reset_bindings_unbind_all(self, mocker, event):
         controller = mocker.MagicMock()
         view = ViewApplication(None, controller)
         mocked = mocker.patch("arrangeit.view.ViewApplication.unbind_all")
-        view.unbind_events()
+        view.reset_bindings()
         calls = [mocker.call(event)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
+    def test_ViewApplication_reset_bindings_labels_bind_callback(
+        self, mocker, event, method
+    ):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.tk.Label.bind")
+        view.reset_bindings()
+        calls = [mocker.call(event, callback)]
+        assert mocked.call_count == 2
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
+    def test_ViewApplication_reset_bindings_windowslist_bind_callback(
+        self, mocker, event, method
+    ):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.WindowsList.bind")
+        view.reset_bindings()
+        calls = [mocker.call(event, callback)]
+        assert mocked.call_count == 1
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
+    def test_ViewApplication_reset_bindings_workspaces_bind_callback(
+        self, mocker, event, method
+    ):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.WorkspacesCollection.bind")
+        view.reset_bindings()
+        calls = [mocker.call(event, callback)]
+        assert mocked.call_count == 1
         mocked.assert_has_calls(calls, any_order=True)
 
     ## ViewApplication.startup

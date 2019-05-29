@@ -438,7 +438,7 @@ class BaseController(object):
 
     def release_mouse(self):
         """Stops positioning/resizing routine and releases mouse."""
-        self.view.unbind_events()
+        self.view.reset_bindings()
         self.view.master.config(cursor="left_ptr")
         self.state = Settings.OTHER
         self.listener.stop()
@@ -447,6 +447,7 @@ class BaseController(object):
         """Creates and starts mouse listener and starts positioning/resizing routine."""
         self.view.setup_bindings()
         self.view.master.config(cursor="ul_angle")
+        self.set_default_geometry(self.view.master)
         self.state = Settings.LOCATE
         move_cursor(self.view.master.winfo_x(), self.view.master.winfo_y())
         self.listener = get_mouse_listener(self.on_mouse_move)
@@ -554,6 +555,11 @@ class BaseController(object):
         :type event: Tkinter event
         """
         self.skip_current_window()
+        return "break"
+
+    def on_continue(self, event):
+        """Restarts positioning routine."""
+        self.recapture_mouse()
         return "break"
 
     ## MAIN LOOP
