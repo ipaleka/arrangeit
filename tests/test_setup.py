@@ -1,5 +1,3 @@
-import pytest
-
 from arrangeit import __main__, base
 from arrangeit.utils import get_component_class, platform_path
 

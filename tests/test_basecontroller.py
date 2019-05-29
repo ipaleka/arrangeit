@@ -207,7 +207,6 @@ class TestBaseController(object):
     def test_BaseController_set_screenshot_calls_grab_window_screen(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
         collection = data.WindowsCollection()
         model = data.WindowModel()
@@ -223,7 +222,6 @@ class TestBaseController(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
@@ -240,7 +238,6 @@ class TestBaseController(object):
     def test_BaseController_set_screenshot_configures_screenshot_widget(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
         mocked = mocker.patch("arrangeit.view.tk.Label.configure")
         collection = data.WindowsCollection()
@@ -257,7 +254,6 @@ class TestBaseController(object):
     def test_BaseController_set_screenshot_places_screenshot_widget(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
         collection = data.WindowsCollection()
@@ -337,7 +333,6 @@ class TestBaseController(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         windows = mocker.patch("arrangeit.view.WindowsList")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel(wid=80001))
@@ -372,7 +367,6 @@ class TestBaseController(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocked = mocker.patch("arrangeit.base.BaseController.listed_window_activated")
         mocked_children = [mocker.MagicMock(), mocker.MagicMock()]
         mocker.patch(
@@ -606,7 +600,6 @@ class TestBaseController(object):
     def test_BaseController_switch_workspace_calls_winfo_id(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         view = mocker.patch("arrangeit.base.ViewApplication")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel(workspace=1001))
@@ -637,7 +630,6 @@ class TestBaseController(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         workspaces = mocker.patch("arrangeit.view.WorkspacesCollection")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel(workspace=1001))
@@ -671,7 +663,6 @@ class TestBaseController(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocked = mocker.patch("arrangeit.base.BaseController.workspace_activated")
         mocked_children = [mocker.MagicMock(), mocker.MagicMock()]
         mocker.patch(

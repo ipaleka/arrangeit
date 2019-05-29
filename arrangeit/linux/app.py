@@ -3,8 +3,8 @@ import gi
 gi.require_version("Wnck", "3.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import Wnck, Gdk
-from PIL import Image, ImageTk
-from Xlib import display, X
+from PIL import ImageTk
+from Xlib import X
 
 from arrangeit.base import BaseApp
 from arrangeit.settings import Settings
@@ -75,6 +75,8 @@ class App(BaseApp):
         mask = self.collector.get_window_move_resize_mask(model)
         if mask:
             win = self.collector.get_window_by_wid(wid)
+            if win.is_maximized():
+                win.unmaximize()
             win.set_geometry(Wnck.WindowGravity.STATIC, mask, *model.changed)
             return False
         return True

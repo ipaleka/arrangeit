@@ -86,6 +86,7 @@ class ViewApplication(tk.Frame):
         self.setup_windows()
         self.setup_toolbar()
 
+        # self["background"] = "blue"
         # ## TODO delete code from below
         # try:
         #     self.master["background"] = "gray"
@@ -350,6 +351,7 @@ class WindowsList(tk.Frame):
         """
         super().__init__(master)
         self.master = master
+        self.configure(background=Settings.WINDOWS_LIST_BG)
 
     def add_windows(self, windows):
         """Creates children widgets from provided windows list.
@@ -627,6 +629,7 @@ class Toolbar(tk.Frame):
         """
         super().__init__(master)
         self.master = master
+        self.configure(background=Settings.TOOLBAR_BG)
         self.setup_widgets()
 
     def setup_widgets(self):

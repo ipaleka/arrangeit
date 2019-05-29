@@ -264,6 +264,7 @@ class TestWindowsList(object):
 
     ## WindowsList.__init__
     def test_WindowsList_init_calls_super_with_master_arg(self, mocker):
+        mocker.patch("arrangeit.view.tk.Frame.configure")
         master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         WindowsList(master=master)
@@ -273,6 +274,12 @@ class TestWindowsList(object):
         master = mocker.MagicMock()
         windows = WindowsList(master)
         assert windows.master == master
+
+    def test_WindowsList_init_configures_background(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Frame.configure")
+        WindowsList()
+        mocked.assert_called_once()
+        mocked.assert_called_with(background=Settings.WINDOWS_LIST_BG)
 
     ## WindowsList.add_windows
     def test_WindowsList_add_windows_initializes_ListedWindow(self, mocker):
@@ -882,6 +889,13 @@ class TestToolbar(object):
         kwargs = {attr: mocked}
         toolbar = Toolbar(**kwargs)
         assert getattr(toolbar, attr) == mocked
+
+    def test_Toolbar_init_configures_background(self, mocker):
+        mocker.patch("arrangeit.view.Toolbar.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.tk.Frame.configure")
+        Toolbar()
+        mocked.assert_called_once()
+        mocked.assert_called_with(background=Settings.TOOLBAR_BG)
 
     def test_Toolbar_init_calls_setup_widgets(self, mocker):
         master = mocker.MagicMock()

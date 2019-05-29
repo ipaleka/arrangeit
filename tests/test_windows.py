@@ -6,7 +6,6 @@ from win32con import (
 )
 
 import pytest
-from arrangeit.windows.app import App
 from arrangeit.windows.collector import TITLEBARINFO, WINDOWINFO, Collector
 from arrangeit.windows.controller import Controller
 from arrangeit.linux.utils import user_data_path

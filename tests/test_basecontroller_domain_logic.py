@@ -94,7 +94,6 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_next_calls_set_screenshot(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        view = mocker.patch("arrangeit.base.ViewApplication")
         mocked = mocker.patch("arrangeit.base.BaseController.set_screenshot")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
@@ -476,8 +475,6 @@ class TestBaseControllerDomainLogic(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
@@ -495,8 +492,6 @@ class TestBaseControllerDomainLogic(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
@@ -555,8 +550,6 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_workspace_activated_calls_set_changed(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         mocked = mocker.patch("arrangeit.data.WindowModel.set_changed")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
@@ -572,8 +565,6 @@ class TestBaseControllerDomainLogic(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         collection = data.WindowsCollection()
@@ -592,8 +583,6 @@ class TestBaseControllerDomainLogic(object):
     ):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.place_on_top_left")
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.base.BaseApp.run_task")
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         collection = data.WindowsCollection()

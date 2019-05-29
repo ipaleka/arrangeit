@@ -2,7 +2,7 @@ import pytest
 
 from arrangeit import base, data, utils
 
-from .test_basecontroller import mock_main_loop, mocked_viewapp
+from .test_basecontroller import mocked_viewapp
 
 
 class TestBaseApp(object):

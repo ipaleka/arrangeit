@@ -15,7 +15,6 @@ from arrangeit.linux.app import App
 from arrangeit.linux.collector import Collector, MOVE_RESIZE_MASKS
 from arrangeit.linux.controller import Controller
 from arrangeit.linux.utils import user_data_path
-from arrangeit.settings import Settings
 
 
 class TestLinuxUtils(object):
@@ -54,7 +53,7 @@ class TestLinuxApp(object):
         App().grab_window_screen(mocker.MagicMock())
         mocked.return_value.get_window_stack.assert_called_once()
 
-    def test_LinuxApp_grab_window_screen_returns_empty_icon(self, mocker):
+    def test_LinuxApp_grab_window_screen_for_no_window_returns_empty_icon(self, mocker):
         mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
         mocked.return_value.get_window_stack.return_value = [mocker.MagicMock()]
         returned = App().grab_window_screen(mocker.MagicMock())
@@ -91,13 +90,6 @@ class TestLinuxApp(object):
         returned = App().grab_window_screen(mocked_model)
         assert returned[0] == mocked_photo.return_value
         assert returned[1] == (50, 60)
-
-    def test_LinuxApp_grab_window_screen_returns_empty_icon(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
-        mocked.return_value.get_window_stack.return_value = [mocker.MagicMock()]
-        returned = App().grab_window_screen(mocker.MagicMock())
-        assert isinstance(returned[0], ImageTk.PhotoImage)
-        assert returned[1] == (0, 0)
 
     ## LinuxApp.move_and_resize
     def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocker):
@@ -176,6 +168,32 @@ class TestLinuxApp(object):
         app = App()
         app.move_and_resize(100)
         assert mocked.return_value.set_geometry.call_count == 1
+
+    def test_LinuxApp_move_and_resize_checks_maximized(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        app.move_and_resize(100)
+        assert mocked.return_value.is_maximized.call_count == 1
+
+    def test_LinuxApp_move_and_resize_calls_unmaximize(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        mocked.return_value.is_maximized.return_value = True
+        app = App()
+        app.move_and_resize(100)
+        mocked.return_value.unmaximize.assert_called_once()
+
+    def test_LinuxApp_move_and_resize_not_calling_unmaximize(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        mocked.return_value.is_maximized.return_value = False
+        app = App()
+        app.move_and_resize(100)
+        mocked.return_value.unmaximize.assert_not_called()
 
     def test_LinuxApp_move_and_resize_not_calling_WnckWindow_set_geometry(self, mocker):
         mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")

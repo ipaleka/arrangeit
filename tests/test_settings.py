@@ -1,8 +1,5 @@
 from json import JSONDecodeError
 
-import pytest
-from PIL import Image
-
 import arrangeit
 from arrangeit import settings
 from arrangeit.settings import SettingsMetaclass, Settings
@@ -131,8 +128,8 @@ class TestSettingsModule(object):
         self, mocker
     ):
         mocked = mocker.patch("arrangeit.settings.validate_user_settings")
+        mocked.reset_mock()
         _ = Settings.ROOT_ALPHA
-        mocked.call_count = 0
         _ = Settings.HIGHLIGHTED_COLOR
         _ = Settings.WINDOW_MIN_WIDTH
         assert mocked.call_count == 0
