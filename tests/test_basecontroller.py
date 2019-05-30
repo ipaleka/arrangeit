@@ -327,7 +327,7 @@ class TestBaseController(object):
 
     def test_BaseController_change_position_not_calling_move_cursor(self, mocker):
         mock_main_loop(mocker)
-        offset = ()
+        offset = (0, 0)
         mocker.patch(
             "arrangeit.base.BaseController.check_positioning_snapping",
             return_value=offset,

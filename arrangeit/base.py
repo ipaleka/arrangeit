@@ -370,9 +370,8 @@ class BaseController(object):
         :type y: int
         """
         offset = self.check_positioning_snapping(x, y)
-        print(offset)
-        # if offset:
-        #     return move_cursor(x + offset[0], y + offset[1])
+        if offset and offset != (0, 0):
+            return move_cursor(x + offset[0], y + offset[1])
         self.view.master.geometry("+{}+{}".format(x, y))
 
     def change_size(self, x, y):
@@ -559,8 +558,6 @@ class BaseController(object):
 
     def on_mouse_move(self, x, y):
         """Moves root Tkinter window to provided mouse coordinates.
-
-        Adds negative Settings.WINDOW_SHIFT_PIXELS to mouse position for better presentation.
 
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int

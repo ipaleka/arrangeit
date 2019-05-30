@@ -278,7 +278,7 @@ def offset_for_intersecting_pair(rectangles, snap):
     :returns: tuple (x,y)
     """
     if not rectangles:
-        return False
+        return (0, 0)
 
     return (
         (rectangles[1][0] - rectangles[0][0], 0)

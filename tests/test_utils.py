@@ -281,7 +281,7 @@ class TestUtils(object):
 
     ## offset_for_intersecting_pair
     def test_offset_for_intersecting_pair_returns_False(self, mocker):
-        assert not utils.offset_for_intersecting_pair(False, 10)
+        assert utils.offset_for_intersecting_pair(False, 10) == (0, 0)
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
     def test_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
