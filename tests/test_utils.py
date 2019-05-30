@@ -6,6 +6,7 @@ from .fixtures import (
     SAMPLE_SNAPPING_SOURCES_FOR_RECT,
     SAMPLE_CHECK_INTERSECTION,
     INTERSECTS_SAMPLES,
+    OFFSET_INTERSECTING_PAIR_SAMPLES
 )
 
 
@@ -278,3 +279,22 @@ class TestUtils(object):
             utils.check_intersection((sources[2], sources[3]), targets) == expected[4]
         )
 
+    ## offset_for_intersecting_pair
+    def test_offset_for_intersecting_pair_returns_False(self, mocker):
+        assert not utils.offset_for_intersecting_pair(False, 10)
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
+    def test_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
+        assert utils.offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[1])
+    def test_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
+        assert utils.offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[2])
+    def test_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
+        assert utils.offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
+    def test_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
+        assert utils.offset_for_intersecting_pair(pair, 10) == offset

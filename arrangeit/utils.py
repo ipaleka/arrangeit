@@ -262,29 +262,28 @@ def check_intersection(sources, targets):
     )
 
 
-def offset_for_intersecting_rectangles(rectangles, corner=0):
+def offset_for_intersecting_pair(rectangles, snap):
     """Calculates and returns offset (x, y) for provided overlapping pair of rectangles.
 
     Offset is value we should add or substract so rectangles overlapping sides fit.
     The only value checking here is for provided `rectangles` parameter as it could
     be False as the result of call to other function. If it's not we imply that
     provided pair is snapping rectangle with the same width or height.
+    `snap` parameter is provided just for doublechecking reason.
 
     :param rectangles: intersecting pair of rectangles
     :type rectangles: two-tuple ((x0,y0,x1,y1),(x0,y0,x1,y1))
-    :param corner: window corner ordinal from 0 top-left clockwise to 3 bottom-left
-    :type corner: int
+    :param snap: snapping value in pixels
+    :type snap: int
     :returns: tuple (x,y)
     """
     if not rectangles:
         return False
 
-    if rectangles[0][2] - rectangles[0][0] == rectangles[1][2] - rectangles[1][0]:
-        # ((1732, 36, 1742, 316), (1725, 22, 1735, 868))
-        pass
-
-    elif rectangles[0][3] - rectangles[0][1] == rectangles[1][3] - rectangles[1][1]:
-        # ((257, 52, 747, 62), (169, 51, 1123, 61))
-        pass
-
-    return False
+    return (
+        (rectangles[1][0] - rectangles[0][0], 0)
+        if rectangles[0][2] - rectangles[0][0]
+        == rectangles[1][2] - rectangles[1][0]
+        == snap * 2
+        else (0, rectangles[1][1] - rectangles[0][1])
+    )

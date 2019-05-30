@@ -10,7 +10,7 @@ from arrangeit.utils import (
     platform_user_data_path,
     get_snapping_sources_for_rect,
     check_intersection,
-    offset_for_intersecting_rectangles,
+    offset_for_intersecting_pair,
 )
 from arrangeit.view import (
     click_left,
@@ -370,8 +370,9 @@ class BaseController(object):
         :type y: int
         """
         offset = self.check_positioning_snapping(x, y)
-        if offset:
-            return move_cursor(x + offset[0], y + offset[1])
+        print(offset)
+        # if offset:
+        #     return move_cursor(x + offset[0], y + offset[1])
         self.view.master.geometry("+{}+{}".format(x, y))
 
     def change_size(self, x, y):
@@ -406,13 +407,15 @@ class BaseController(object):
         Corner for which snapping could occurs is sent from current `state` that should
         correspond to targeting window corner ordinal (0 to 3).
 
+        One of returned axes is 0.
+
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         :returns: (int, int) or False
         """
-        return offset_for_intersecting_rectangles(
+        return offset_for_intersecting_pair(
             check_intersection(
                 get_snapping_sources_for_rect(
                     (
@@ -426,7 +429,7 @@ class BaseController(object):
                 ),
                 self.snapping_rects[self.view.workspaces.active],
             ),
-            corner=self.state,
+            Settings.SNAP_PIXELS
         )
 
     def listed_window_activated_by_digit(self, number):

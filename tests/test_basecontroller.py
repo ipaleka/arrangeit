@@ -267,13 +267,13 @@ class TestBaseController(object):
         mocked.assert_called_once()
         mocked.assert_called_with(root_rects.return_value, ["foo"])
 
-    def test_BaseController_check_positioning_snapping_c_offset_for_intersecting_rectangles(
+    def test_BaseController_check_positioning_snapping_c_offset_for_intersecting_pair(
         self, mocker
     ):
         mocked_viewapp(mocker)
         mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         mocked_check = mocker.patch("arrangeit.base.check_intersection")
-        mocked = mocker.patch("arrangeit.base.offset_for_intersecting_rectangles")
+        mocked = mocker.patch("arrangeit.base.offset_for_intersecting_pair")
         view = mocker.patch("arrangeit.base.ViewApplication")
         view.return_value.workspaces.active = 1001
         controller = get_controller_with_mocked_app(mocker)
@@ -281,7 +281,7 @@ class TestBaseController(object):
         controller.state = Settings.LOCATE
         controller.check_positioning_snapping(100, 100)
         mocked.assert_called_once()
-        mocked.assert_called_with(mocked_check.return_value, corner=controller.state)
+        mocked.assert_called_with(mocked_check.return_value, Settings.SNAP_PIXELS)
 
     ## BaseController.change_position
     def test_BaseController_change_position_calls_check_positioning_snapping(
