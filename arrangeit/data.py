@@ -269,7 +269,6 @@ class WindowsCollection(object):
         :type wid: int
         :param remove_before: window id (xid, hwnd, ...)
         :type wid: int
-
         :var start_index: index of model that is going to become the first
         :type start_index: int
         :var remove_index: index of first model that is not going to be removed
@@ -298,16 +297,20 @@ class WindowsCollection(object):
             for model in self._members
         ]
 
-    def get_snapping_sources(self):
+    def create_snapping_sources(self, for_model):
         """Returns collection of snapping rectangless grouped by workspace.
 
         Snapping rectangle is created around window connected edge points pair with
         height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
 
+        :param for_model: current model
+        :type for_model: :class:`WindowModel`
         :returns: dict (int: list of four-tuples)
         """
         sources = {}
         for model in self._members:
+            if model == for_model and not Settings.SNAP_INCLUDE_SELF:
+                continue
             ws = model.changed_ws if model.is_ws_changed else model.ws
             sources.setdefault(ws, [])
             sources[ws].append(

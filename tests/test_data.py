@@ -19,6 +19,7 @@ from .fixtures import (
     WINDOWSCOLLECTION_EXPORT,
     WIN_COLLECTION_SNAP_CHANGED,
     WIN_COLLECTION_SNAP_SAMPLES,
+    WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING,
 )
 
 WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name", "icon", "workspace"]
@@ -458,24 +459,24 @@ class TestWindowsCollection(object):
             for i, elem in enumerate(data)
         )
 
-    ## WindowsCollection.get_snapping_sources
-    def test_WindowsCollection_get_snapping_sources_calls_utils_get_snapping_sources_for_rect(
+    ## WindowsCollection.create_snapping_sources
+    def test_WindowsCollection_create_snapping_sources_calls_utils_get_snapping_sources_for_rect(
         self, mocker
     ):
         mocked = mocker.patch("arrangeit.data.get_snapping_sources_for_rect")
         collection = WindowsCollection()
         collection.add(WindowModel(rect=SAMPLE_RECT))
-        collection.get_snapping_sources()
+        collection.create_snapping_sources(WindowModel())
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_RECT, Settings.SNAP_PIXELS)
 
-    def test_WindowsCollection_get_snapping_sources_returns_dict(self):
-        rects = WindowsCollection().get_snapping_sources()
+    def test_WindowsCollection_create_snapping_sources_returns_dict(self):
+        rects = WindowsCollection().create_snapping_sources(WindowModel())
         assert isinstance(rects, dict)
         assert rects == {}
 
     @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_CHANGED)
-    def test_WindowsCollection_get_snapping_sources_uses_changed_values_if_available(
+    def test_WindowsCollection_create_snapping_sources_uses_changed_values_if_available(
         self, mocker, windows, expected
     ):
         collection = WindowsCollection()
@@ -485,12 +486,12 @@ class TestWindowsCollection(object):
             collection.add(model)
         mocked = mocker.patch("arrangeit.data.Settings")
         type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
-        rects = collection.get_snapping_sources()
+        rects = collection.create_snapping_sources(model)
         for ws, snaps in rects.items():
             assert snaps == expected[ws]
 
     @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_SAMPLES)
-    def test_WindowsCollection_get_snapping_sources_functionality(
+    def test_WindowsCollection_create_snapping_sources_functionality(
         self, mocker, windows, expected
     ):
         collection = WindowsCollection()
@@ -500,6 +501,40 @@ class TestWindowsCollection(object):
             collection.add(model)
         mocked = mocker.patch("arrangeit.data.Settings")
         type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
-        rects = collection.get_snapping_sources()
+        rects = collection.create_snapping_sources(WindowModel())
         for ws, snaps in rects.items():
             assert snaps == expected[ws]
+
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING)
+    def test_WindowsCollection_create_snapping_sources_excludes_provided_model(
+        self, mocker, windows, expected
+    ):
+        collection = WindowsCollection()
+        model0 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=5000)
+        model0.set_changed(ws=windows[0][0], rect=windows[0][1:])
+        collection.add(model0)
+        model1 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=9000)
+        model1.set_changed(ws=windows[1][0], rect=windows[1][1:])
+        collection.add(model1)
+        mocked = mocker.patch("arrangeit.data.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        type(mocked).SNAP_INCLUDE_SELF = mocker.PropertyMock(return_value=False)
+        sources = collection.create_snapping_sources(model1)
+        assert sources[1001] == expected[1001][:1]
+
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING)
+    def test_WindowsCollection_create_snapping_sources_includes_provided_model(
+        self, mocker, windows, expected
+    ):
+        collection = WindowsCollection()
+        model0 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=5000)
+        model0.set_changed(ws=windows[0][0], rect=windows[0][1:])
+        collection.add(model0)
+        model1 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=9000)
+        model1.set_changed(ws=windows[1][0], rect=windows[1][1:])
+        collection.add(model1)
+        mocked = mocker.patch("arrangeit.data.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        type(mocked).SNAP_INCLUDE_SELF = mocker.PropertyMock(return_value=True)
+        sources = collection.create_snapping_sources(model1)
+        assert sources[1001] == expected[1001]

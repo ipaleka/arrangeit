@@ -119,8 +119,8 @@ class BaseController(object):
     :type screenshot_widget: :class:`tk.Label`
     :var screenshot: screenshot image of the window model
     :type screenshot: :class:`tk.PhotoImage`
-    :var snapping_rects: dictionary of snapping rectangles grouped by workspace number
-    :type snapping_rects: dict
+    :var snapping_targets: dictionary of snapping rectangles grouped by workspace number
+    :type snapping_targets: dict
     """
 
     app = None
@@ -131,7 +131,7 @@ class BaseController(object):
     state = None
     screenshot_widget = None
     screenshot = None
-    snapping_rects = None
+    snapping_targets = None
 
     def __init__(self, app):
         """Sets app attribute to provided argument, model attribute to new empty model
@@ -267,7 +267,7 @@ class BaseController(object):
                 self.switch_workspace()
 
         self.set_screenshot()
-        self.snapping_rects = self.app.collector.collection.get_snapping_sources()
+        self.snapping_targets = self.app.collector.collection.create_snapping_sources(self.model)
         self.set_default_geometry(self.view.master)
         self.view.update_widgets(self.model)
         self.place_on_top_left()
@@ -426,7 +426,7 @@ class BaseController(object):
                     Settings.SNAP_PIXELS,
                     corner=self.state,
                 ),
-                self.snapping_rects[self.view.workspaces.active],
+                self.snapping_targets[self.view.workspaces.active],
             ),
             Settings.SNAP_PIXELS
         )

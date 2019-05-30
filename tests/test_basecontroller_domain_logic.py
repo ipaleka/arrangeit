@@ -104,24 +104,26 @@ class TestBaseControllerDomainLogic(object):
         controller.next()
         mocked.assert_called()
 
-    def test_BaseController_next_calls_get_snapping_sources(self, mocker):
+    def test_BaseController_next_calls_create_snapping_sources(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        mocked = mocker.patch("arrangeit.data.WindowsCollection.get_snapping_sources")
+        mocked = mocker.patch("arrangeit.data.WindowsCollection.create_snapping_sources")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
-        collection.add(data.WindowModel())
+        model = data.WindowModel()
+        collection.add(model)
         generator = collection.generator()
         controller = base.BaseController(base.BaseApp())
         controller.run(generator)
         controller.next()
         mocked.assert_called()
+        mocked.assert_called_with(model)
 
-    def test_BaseController_next_sets_snapping_rects_attribute(self, mocker):
+    def test_BaseController_next_sets_snapping_targets_attribute(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         mocker.patch(
-            "arrangeit.data.WindowsCollection.get_snapping_sources", return_value={1: []}
+            "arrangeit.data.WindowsCollection.create_snapping_sources", return_value={1: []}
         )
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
@@ -130,7 +132,7 @@ class TestBaseControllerDomainLogic(object):
         controller = base.BaseController(base.BaseApp())
         controller.run(generator)
         controller.next()
-        assert controller.snapping_rects == {1:[]}
+        assert controller.snapping_targets == {1:[]}
 
     def test_BaseController_next_calls_set_default_geometry(self, mocker):
         mock_main_loop(mocker)

@@ -27,7 +27,7 @@ class TestBaseController(object):
             "state",
             "screenshot_widget",
             "screenshot",
-            "snapping_rects",
+            "snapping_targets",
         ],
     )
     def test_BaseController_inits_attr_as_None(self, attr):
@@ -245,7 +245,7 @@ class TestBaseController(object):
         view.return_value.master.winfo_height.return_value = h
         view.return_value.workspaces.active = 1001
         controller = get_controller_with_mocked_app(mocker)
-        controller.snapping_rects = {1001: ["foo"]}
+        controller.snapping_targets = {1001: ["foo"]}
         controller.state = Settings.LOCATE
         controller.check_positioning_snapping(x, y)
         mocked.assert_called_once()
@@ -262,7 +262,7 @@ class TestBaseController(object):
         view = mocker.patch("arrangeit.base.ViewApplication")
         view.return_value.workspaces.active = 1001
         controller = get_controller_with_mocked_app(mocker)
-        controller.snapping_rects = {1001: ["foo"]}
+        controller.snapping_targets = {1001: ["foo"]}
         controller.check_positioning_snapping(100, 100)
         mocked.assert_called_once()
         mocked.assert_called_with(root_rects.return_value, ["foo"])
@@ -277,7 +277,7 @@ class TestBaseController(object):
         view = mocker.patch("arrangeit.base.ViewApplication")
         view.return_value.workspaces.active = 1001
         controller = get_controller_with_mocked_app(mocker)
-        controller.snapping_rects = {1001: ["foo"]}
+        controller.snapping_targets = {1001: ["foo"]}
         controller.state = Settings.LOCATE
         controller.check_positioning_snapping(100, 100)
         mocked.assert_called_once()
