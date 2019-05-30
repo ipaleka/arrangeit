@@ -267,7 +267,9 @@ class BaseController(object):
                 self.switch_workspace()
 
         self.set_screenshot()
-        self.snapping_targets = self.app.collector.collection.create_snapping_sources(self.model)
+        self.snapping_targets = self.app.collector.collection.create_snapping_sources(
+            self.model
+        )
         self.set_default_geometry(self.view.master)
         self.view.update_widgets(self.model)
         self.place_on_top_left()
@@ -369,9 +371,10 @@ class BaseController(object):
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        offset = self.check_positioning_snapping(x, y)
-        if offset and offset != (0, 0):
-            return move_cursor(x + offset[0], y + offset[1])
+        if Settings.SNAPPING_IS_ON:
+            offset = self.check_positioning_snapping(x, y)
+            if offset and offset != (0, 0):
+                return move_cursor(x + offset[0], y + offset[1])
         self.view.master.geometry("+{}+{}".format(x, y))
 
     def change_size(self, x, y):
@@ -428,7 +431,7 @@ class BaseController(object):
                 ),
                 self.snapping_targets[self.view.workspaces.active],
             ),
-            Settings.SNAP_PIXELS
+            Settings.SNAP_PIXELS,
         )
 
     def listed_window_activated_by_digit(self, number):

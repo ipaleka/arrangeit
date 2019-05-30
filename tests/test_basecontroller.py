@@ -288,6 +288,8 @@ class TestBaseController(object):
         self, mocker
     ):
         mock_main_loop(mocker)
+        mocked_snap = mocker.patch("arrangeit.base.Settings")
+        type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
         mocked = mocker.patch(
             "arrangeit.base.BaseController.check_positioning_snapping"
         )
@@ -297,8 +299,26 @@ class TestBaseController(object):
         mocked.assert_called_once()
         mocked.assert_called_with(x, y)
 
+    def test_BaseController_change_position_snapping_is_on_false(self, mocker):
+        mock_main_loop(mocker)
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch(
+            "arrangeit.base.BaseController.check_positioning_snapping"
+        )
+        mocked_move_cursor = mocker.patch("arrangeit.base.move_cursor")
+        x, y = 100, 200
+        controller = get_controller_with_mocked_app(mocker)
+        mocked_snap = mocker.patch("arrangeit.base.Settings")
+        type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
+        controller.change_position(x, y)
+        mocked.assert_not_called()
+        mocked_move_cursor.assert_not_called()
+        view.return_value.master.geometry.assert_called_with("+{}+{}".format(x, y))
+
     def test_BaseController_change_position_calls_move_cursor(self, mocker):
         mock_main_loop(mocker)
+        mocked_snap = mocker.patch("arrangeit.base.Settings")
+        type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
         offset = (10, 12)
         mocker.patch(
             "arrangeit.base.BaseController.check_positioning_snapping",
@@ -313,6 +333,8 @@ class TestBaseController(object):
 
     def test_BaseController_change_position_not_calling_set_geometry(self, mocker):
         mock_main_loop(mocker)
+        mocked_snap = mocker.patch("arrangeit.base.Settings")
+        type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
         offset = (10, 12)
         mocker.patch(
             "arrangeit.base.BaseController.check_positioning_snapping",
@@ -327,6 +349,8 @@ class TestBaseController(object):
 
     def test_BaseController_change_position_not_calling_move_cursor(self, mocker):
         mock_main_loop(mocker)
+        mocked_snap = mocker.patch("arrangeit.base.Settings")
+        type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
         offset = (0, 0)
         mocker.patch(
             "arrangeit.base.BaseController.check_positioning_snapping",
