@@ -13,8 +13,8 @@ user_settings.json file created and located in arrangeit user data directory.
 
 CONSTANTS = {
     "LOCATE": (int, 0),
-    "RESIZE": (int, 1),
-    "OTHER": (int, 2),
+    "RESIZE": (int, 10),
+    "OTHER": (int, 100),
     "BLANK_ICON": (
         Image.Image,
         Image.open(os.path.join(os.path.dirname(__file__), "resources", "blank.png")),

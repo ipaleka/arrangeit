@@ -2,7 +2,11 @@ import pytest
 
 from arrangeit import utils
 
-from .fixtures import SAMPLE_SNAPPING_SOURCES_FOR_RECT, SAMPLE_CHECK_INTERSECTION
+from .fixtures import (
+    SAMPLE_SNAPPING_SOURCES_FOR_RECT,
+    SAMPLE_CHECK_INTERSECTION,
+    INTERSECTS_SAMPLES,
+)
 
 
 class TestUtils(object):
@@ -168,6 +172,12 @@ class TestUtils(object):
     def test_increased_by_fraction(self, value, fraction, expected):
         assert utils.increased_by_fraction(value, fraction) == expected
 
+    ## _get_snapping_source_by_ordinal
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test__get_snapping_source_by_ordinal_ordinal(self, rect, expected):
+        for i in range(4):
+            assert utils._get_snapping_source_by_ordinal(rect, 10, i) == expected[i]
+
     ## get_snapping_sources_for_rect
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
     def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
@@ -203,19 +213,8 @@ class TestUtils(object):
         )
 
     ## intersects
-    @pytest.mark.parametrize(
-        "source,target,expected",
-        [
-            ((90, 0, 310, 20), (0, 10, 520, 30), True),
-            ((90, 300, 310, 320), (0, 10, 520, 30), False),
-            ((90, 0, 310, 20), (500, 10, 520, 440), False),
-            ((290, 0, 310, 320), (500, 10, 520, 430), False),
-            ((90, 300, 310, 320), (500, 10, 520, 430), False),
-            ((0, 10, 520, 30), (370, 190, 390, 410), False),
-            ((50, 50, 570, 70), (300, 60, 400, 80), True),
-        ],
-    )
-    def test_intersects(self, source, target, expected):
+    @pytest.mark.parametrize("source,target,expected", INTERSECTS_SAMPLES)
+    def test_intersects_functionality(self, source, target, expected):
         assert utils.intersects(source, target) == expected
 
     ## check_intersection
@@ -242,21 +241,40 @@ class TestUtils(object):
         assert result == ((40, 10, 260, 30), (290, 90, 510, 110))
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_full_sources(self, sources, targets, expected):
+    def test_check_intersection_functionality_for_full_sources(
+        self, sources, targets, expected
+    ):
         assert utils.check_intersection(sources, targets) == expected[0]
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_0(self, sources, targets, expected):
-        assert utils.check_intersection((sources[0], sources[3]), targets) == expected[1]
+    def test_check_intersection_functionality_for_two_sources_corner_0(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersection((sources[0], sources[3]), targets) == expected[1]
+        )
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_1(self, sources, targets, expected):
-        assert utils.check_intersection((sources[0], sources[1]), targets) == expected[2]
+    def test_check_intersection_functionality_for_two_sources_corner_1(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersection((sources[0], sources[1]), targets) == expected[2]
+        )
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_2(self, sources, targets, expected):
-        assert utils.check_intersection((sources[2], sources[1]), targets) == expected[2]
+    def test_check_intersection_functionality_for_two_sources_corner_2(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersection((sources[2], sources[1]), targets) == expected[3]
+        )
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_3(self, sources, targets, expected):
-        assert utils.check_intersection((sources[2], sources[3]), targets) == expected[3]
+    def test_check_intersection_functionality_for_two_sources_corner_3(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersection((sources[2], sources[3]), targets) == expected[4]
+        )
+

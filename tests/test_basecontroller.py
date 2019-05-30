@@ -246,9 +246,12 @@ class TestBaseController(object):
         view.return_value.workspaces.active = 1001
         controller = get_controller_with_mocked_app(mocker)
         controller.snapping_rects = {1001: ["foo"]}
+        controller.state = Settings.LOCATE
         controller.check_positioning_snapping(x, y)
         mocked.assert_called_once()
-        mocked.assert_called_with((x, y, w, h), Settings.SNAP_PIXELS)
+        mocked.assert_called_with(
+            (x, y, w, h), Settings.SNAP_PIXELS, corner=controller.state
+        )
 
     def test_BaseController_check_positioning_snapping_calls_check_intersection(
         self, mocker
@@ -275,9 +278,10 @@ class TestBaseController(object):
         view.return_value.workspaces.active = 1001
         controller = get_controller_with_mocked_app(mocker)
         controller.snapping_rects = {1001: ["foo"]}
+        controller.state = Settings.LOCATE
         controller.check_positioning_snapping(100, 100)
         mocked.assert_called_once()
-        mocked.assert_called_with(mocked_check.return_value)
+        mocked.assert_called_with(mocked_check.return_value, corner=controller.state)
 
     ## BaseController.change_position
     def test_BaseController_change_position_calls_check_positioning_snapping(

@@ -10,6 +10,7 @@ from arrangeit.utils import (
     platform_user_data_path,
     get_snapping_sources_for_rect,
     check_intersection,
+    offset_for_intersecting_rectangles,
 )
 from arrangeit.view import (
     click_left,
@@ -358,31 +359,6 @@ class BaseController(object):
             self.recapture_mouse()
 
     ## COMMANDS
-    def check_positioning_snapping(self, x, y):
-        """Returns (x, y) offset if root window intersects with a collection window
-
-        snapping rects in current workspace or empty tuple if it doesn't.
-
-        :param x: absolute horizontal axis mouse position in pixels
-        :type x: int
-        :param y: absolute vertical axis mouse position in pixels
-        :type y: int
-        :var root_rects: four-tuple snapping rects of the root window
-        :type root_rects: tuple
-        :var intersection_pair: two-tuple ((x,y,w,h),(x,y,w,h))
-        :type intersection_pair: tuple
-        :returns: (int, int)
-        """
-        root_rects = get_snapping_sources_for_rect(
-            (x, y, self.view.master.winfo_width(), self.view.master.winfo_height()),
-            Settings.SNAP_PIXELS,
-        )
-        intersection_pair = check_intersection(
-            root_rects, self.snapping_rects[self.view.workspaces.active]
-        )
-        print(intersection_pair)
-        return ()
-
     def change_position(self, x, y):
         """Changes root window position to provided x and y or calls move_cursor
 
@@ -422,6 +398,36 @@ class BaseController(object):
             self.view.master.geometry(
                 "{}x{}".format(Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT)
             )
+
+    def check_positioning_snapping(self, x, y):
+        """Returns (x, y) offset if root window intersects with any collection window
+
+        according to snapping rects in current workspace or empty tuple if it doesn't.
+        Corner for which snapping could occurs is sent from current `state` that should
+        correspond to targeting window corner ordinal (0 to 3).
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        :returns: (int, int) or False
+        """
+        return offset_for_intersecting_rectangles(
+            check_intersection(
+                get_snapping_sources_for_rect(
+                    (
+                        x,
+                        y,
+                        self.view.master.winfo_width(),
+                        self.view.master.winfo_height(),
+                    ),
+                    Settings.SNAP_PIXELS,
+                    corner=self.state,
+                ),
+                self.snapping_rects[self.view.workspaces.active],
+            ),
+            corner=self.state,
+        )
 
     def listed_window_activated_by_digit(self, number):
         """Activates listed window by its ordinal in list presented by provided number.

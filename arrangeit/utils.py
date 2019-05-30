@@ -121,34 +121,82 @@ def increased_by_fraction(value, fraction):
     return round(value * (1.0 + fraction))
 
 
-def get_snapping_sources_for_rect(rect, snap):
-    """Returns four snapping rectangles from provided rect formated as (x0,y0,x0,y0).
+def _get_snapping_source_by_ordinal(rect, snap, ordinal=0):
+    """Returns snapping rectangle by ordinal from 0 as horizontal top
+
+    clockwise to vertical left as 3.
+
+    :returns: tuple (x0, y0, x1, y1)
+    """
+    if ordinal == 0:
+        return (
+            rect[0] - snap,
+            rect[1] - snap,
+            rect[0] + rect[2] + snap,
+            rect[1] + snap,
+        )
+    elif ordinal == 1:
+        return (
+            rect[0] + rect[2] - snap,
+            rect[1] - snap,
+            rect[0] + rect[2] + snap,
+            rect[1] + rect[3] + snap,
+        )
+    elif ordinal == 2:
+        return (
+            rect[0] - snap,
+            rect[1] + rect[3] - snap,
+            rect[0] + rect[2] + snap,
+            rect[1] + rect[3] + snap,
+        )
+    elif ordinal == 3:
+        return (
+            rect[0] - snap,
+            rect[1] - snap,
+            rect[0] + snap,
+            rect[1] + rect[3] + snap,
+        )
+
+
+def get_snapping_sources_for_rect(rect, snap, corner=None):
+    """Returns snapping rectangles formated as (x0,y0,x0,y0) from provided rect.
 
     Snapping rectangle is created around window connected edge points pair with
     height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
+
+    All four rectangles are returned for default corner of None.
+    If corner is provided then it returns two adjacent rectangles for related provided
+    corner (horizontal first, vertical second) where ordinal 0 is top-left corner,
+    with clockwise ordering to bottom-left corner which is ordinal 3.
 
     :param rect: window rectangle (x, y, width, height)
     :type rect: (int, int, int, int)
     :param snap: snapping distance in pixels
     :type snap: int
-    :returns: four-tuple of (x0, y0, x1, y1)
+    :returns: four-tuple or two-tuple of (x0, y0, x1, y1)
     """
-    return (
-        (rect[0] - snap, rect[1] - snap, rect[0] + rect[2] + snap, rect[1] + snap),
-        (
-            rect[0] + rect[2] - snap,
-            rect[1] - snap,
-            rect[0] + rect[2] + snap,
-            rect[1] + rect[3] + snap,
-        ),
-        (
-            rect[0] - snap,
-            rect[1] + rect[3] - snap,
-            rect[0] + rect[2] + snap,
-            rect[1] + rect[3] + snap,
-        ),
-        (rect[0] - snap, rect[1] - snap, rect[0] + snap, rect[1] + rect[3] + snap),
-    )
+    if corner == 0:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 0),
+            _get_snapping_source_by_ordinal(rect, snap, 3),
+        )
+    if corner == 1:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 0),
+            _get_snapping_source_by_ordinal(rect, snap, 1),
+        )
+    if corner == 2:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 2),
+            _get_snapping_source_by_ordinal(rect, snap, 1),
+        )
+    if corner == 3:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 2),
+            _get_snapping_source_by_ordinal(rect, snap, 3),
+        )
+    elif corner is None:
+        return tuple((_get_snapping_source_by_ordinal(rect, snap, i) for i in range(4)))
 
 
 def intersects(source, target):
@@ -177,9 +225,10 @@ def intersects(source, target):
 
 
 def check_intersection(sources, targets):
-    """Returns first pair that intersects by checking sources four-tuple and targets
+    """Returns first pair that intersects from sources and targets list of four-tuples.
 
-    list of four-tuples.
+    Sources is either four-tuple representing whole window or two-tuple representing
+    specific corner of the window (from first top-left clockwise to forth bottom-left).
 
     We are interested in intersection of odd or even pairs of sources and targets.
     It means that sources[0] or sources[2] should intersect with
@@ -190,7 +239,7 @@ def check_intersection(sources, targets):
     then through all odd elements pairs. Stops iteration when first intersected pair
     is found and returns that pair.
 
-    :param sources: four-tuple of (x0, y0, x1, y1)
+    :param sources: two-tuple or four-tuple of (x0, y0, x1, y1)
     :type sources: tuple
     :param targets: collection of four-tuples (x0, y0, x1, y1)
     :type targets: list of four-tuples
@@ -211,3 +260,31 @@ def check_intersection(sources, targets):
         ),
         False,
     )
+
+
+def offset_for_intersecting_rectangles(rectangles, corner=0):
+    """Calculates and returns offset (x, y) for provided overlapping pair of rectangles.
+
+    Offset is value we should add or substract so rectangles overlapping sides fit.
+    The only value checking here is for provided `rectangles` parameter as it could
+    be False as the result of call to other function. If it's not we imply that
+    provided pair is snapping rectangle with the same width or height.
+
+    :param rectangles: intersecting pair of rectangles
+    :type rectangles: two-tuple ((x0,y0,x1,y1),(x0,y0,x1,y1))
+    :param corner: window corner ordinal from 0 top-left clockwise to 3 bottom-left
+    :type corner: int
+    :returns: tuple (x,y)
+    """
+    if not rectangles:
+        return False
+
+    if rectangles[0][2] - rectangles[0][0] == rectangles[1][2] - rectangles[1][0]:
+        # ((1732, 36, 1742, 316), (1725, 22, 1735, 868))
+        pass
+
+    elif rectangles[0][3] - rectangles[0][1] == rectangles[1][3] - rectangles[1][1]:
+        # ((257, 52, 747, 62), (169, 51, 1123, 61))
+        pass
+
+    return False
