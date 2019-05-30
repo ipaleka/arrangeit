@@ -3,7 +3,7 @@ import pytest
 from arrangeit import base, data
 from arrangeit.settings import Settings
 
-from .test_basecontroller import (
+from .fixtures import (
     mock_main_loop,
     get_mocked_viewapp,
     mocked_viewapp,

@@ -110,3 +110,12 @@
   :members:
   :undoc-members:
   :show-inheritance:
+
+
+:mod:`tests.fixtures` -- Sample fixtures for unit testing
+---------------------------------------------------------
+
+.. automodule:: tests.fixtures
+  :members:
+  :undoc-members:
+  :show-inheritance:

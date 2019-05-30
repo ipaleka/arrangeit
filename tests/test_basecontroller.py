@@ -3,55 +3,13 @@ import pytest
 from arrangeit import base, data
 from arrangeit.settings import Settings
 
-
-def mock_main_loop(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.ViewApplication")
-    mocker.patch("arrangeit.base.BaseController.mainloop")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("pynput.mouse.Listener")
-    mocker.patch("pynput.mouse.Controller")
-    mocker.patch("arrangeit.base.BaseApp.run_task")
-    mocker.patch(
-        "arrangeit.base.BaseApp.grab_window_screen",
-        return_value=(mocker.MagicMock(), (0, 0)),
-    )
-
-
-def get_mocked_root(mocker):
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("arrangeit.base.ViewApplication")
-    return mocker.patch("arrangeit.base.get_tkinter_root")
-
-
-def get_mocked_viewapp(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    return mocker.patch("arrangeit.base.ViewApplication")
-
-
-def mocked_viewapp(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("arrangeit.base.ViewApplication")
-
-
-def mocked_next(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("arrangeit.base.ViewApplication")
-    mocker.patch("arrangeit.base.BaseController.next")
-
-
-def get_controller_with_mocked_app(mocker):
-    app = mocker.MagicMock()
-    app.grab_window_screen.return_value = (mocker.MagicMock(), (0, 0))
-    return base.BaseController(app)
-
-
-def run_controller_with_mocked_app(mocker):
-    controller = get_controller_with_mocked_app(mocker)
-    controller.run(mocker.MagicMock())
+from .fixtures import (
+    mock_main_loop,
+    get_mocked_root,
+    get_mocked_viewapp,
+    mocked_viewapp,
+    get_controller_with_mocked_app,
+)
 
 
 class TestBaseController(object):
@@ -305,6 +263,21 @@ class TestBaseController(object):
         controller.check_positioning_snapping(100, 100)
         mocked.assert_called_once()
         mocked.assert_called_with(root_rects.return_value, ["foo"])
+
+    def test_BaseController_check_positioning_snapping_c_offset_for_intersecting_rectangles(
+        self, mocker
+    ):
+        mocked_viewapp(mocker)
+        mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        mocked_check = mocker.patch("arrangeit.base.check_intersection")
+        mocked = mocker.patch("arrangeit.base.offset_for_intersecting_rectangles")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        view.return_value.workspaces.active = 1001
+        controller = get_controller_with_mocked_app(mocker)
+        controller.snapping_rects = {1001: ["foo"]}
+        controller.check_positioning_snapping(100, 100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_check.return_value)
 
     ## BaseController.change_position
     def test_BaseController_change_position_calls_check_positioning_snapping(

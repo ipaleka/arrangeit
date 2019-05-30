@@ -2,6 +2,8 @@ import pytest
 
 from arrangeit import utils
 
+from .fixtures import SAMPLE_SNAPPING_SOURCES_FOR_RECT, SAMPLE_CHECK_INTERSECTION
+
 
 class TestUtils(object):
     """Testing class for :py:mod:`arrangeit.utils` module."""
@@ -167,31 +169,38 @@ class TestUtils(object):
         assert utils.increased_by_fraction(value, fraction) == expected
 
     ## get_snapping_sources_for_rect
-    @pytest.mark.parametrize(
-        "rect,expected",
-        [
-            (
-                (10, 10, 100, 100),
-                (
-                    (0, 0, 120, 20),
-                    (100, 0, 120, 120),
-                    (0, 100, 120, 120),
-                    (0, 0, 20, 120),
-                ),
-            ),
-            (
-                (100, 10, 200, 300),
-                (
-                    (90, 0, 310, 20),
-                    (290, 0, 310, 320),
-                    (90, 300, 310, 320),
-                    (90, 0, 110, 320),
-                ),
-            ),
-        ],
-    )
-    def test_get_snapping_sources_for_rect(self, rect, expected):
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
         assert utils.get_snapping_sources_for_rect(rect, 10) == expected
+        assert utils.get_snapping_sources_for_rect(rect, 10, None) == expected
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_0(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 0) == (
+            expected[0],
+            expected[3],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_1(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 1) == (
+            expected[0],
+            expected[1],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_2(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 2) == (
+            expected[2],
+            expected[1],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_3(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 3) == (
+            expected[2],
+            expected[3],
+        )
 
     ## intersects
     @pytest.mark.parametrize(
@@ -210,113 +219,44 @@ class TestUtils(object):
         assert utils.intersects(source, target) == expected
 
     ## check_intersection
-    def test_check_intersection_calls_intersects(self, mocker):
+    def test_check_intersection_calls_intersects_and_returns_False(self, mocker):
         mocked = mocker.patch("arrangeit.utils.intersects", return_value=False)
         sample_sources = utils.get_snapping_sources_for_rect((50, 20, 200, 20), 10)
         sample_targets1 = utils.get_snapping_sources_for_rect((300, 100, 200, 120), 10)
         sample_targets2 = utils.get_snapping_sources_for_rect((520, 400, 850, 420), 10)
-        utils.check_intersection(sample_sources, [sample_targets1, sample_targets2])
+        result = utils.check_intersection(
+            sample_sources, [sample_targets1, sample_targets2]
+        )
         assert mocked.call_count == 16
+        assert result == False
 
-    @pytest.mark.parametrize(
-        "sources,targets,expected",
-        [
-            (
-                (
-                    (90, 0, 310, 20),
-                    (290, 0, 310, 320),
-                    (90, 300, 310, 320),
-                    (90, 0, 110, 320),
-                ),
-                [
-                    (
-                        (0, 10, 520, 30),
-                        (500, 10, 520, 430),
-                        (0, 410, 520, 430),
-                        (0, 10, 20, 430),
-                    ),
-                    (
-                        (70, 190, 390, 210),
-                        (370, 190, 390, 410),
-                        (70, 390, 390, 410),
-                        (70, 190, 90, 410),
-                    ),
-                ],
-                ((90, 0, 310, 20), (0, 10, 520, 30)),
-            ),
-            (
-                (
-                    (
-                        (90, 190, 360, 210),
-                        (340, 190, 360, 410),
-                        (90, 390, 360, 410),
-                        (90, 190, 110, 410),
-                    )
-                ),
-                [
-                    (
-                        (390, 390, 560, 410),
-                        (540, 390, 560, 710),
-                        (390, 690, 560, 710),
-                        (390, 390, 410, 710),
-                    ),
-                    (
-                        (590, 390, 860, 410),
-                        (840, 390, 860, 910),
-                        (590, 890, 860, 910),
-                        (590, 390, 610, 910),
-                    ),
-                    (
-                        (390, 390, 760, 410),
-                        (740, 390, 760, 810),
-                        (390, 790, 760, 810),
-                        (390, 390, 410, 810),
-                    ),
-                ],
-                False,
-            ),
-            (
-                (
-                    (
-                        (
-                            (390, 390, 910, 410),
-                            (890, 390, 910, 910),
-                            (390, 890, 910, 910),
-                            (390, 390, 410, 910),
-                        )
-                    )
-                ),
-                [
-                    (
-                        (
-                            (40, 30, 160, 50),
-                            (140, 30, 160, 150),
-                            (40, 130, 160, 150),
-                            (40, 30, 60, 150),
-                        )
-                    ),
-                    (
-                        (
-                            (990, 1190, 1310, 1210),
-                            (1290, 1190, 1310, 1610),
-                            (990, 1590, 1310, 1610),
-                            (990, 1190, 1010, 1610),
-                        )
-                    ),
-                    (
-                        (
-                            (
-                                (385, 40, 605, 60),
-                                (585, 40, 605, 460),
-                                (385, 440, 605, 460),
-                                (385, 40, 405, 460),
-                            )
-                        )
-                    ),
-                ],
-                ((390, 390, 410, 910), (385, 40, 405, 460)),
-            ),
-        ],
-    )
-    def test_check_intersection_functionality(self, sources, targets, expected):
-        assert utils.check_intersection(sources, targets) == expected
+    def test_check_intersection_calls_intersects_once_and_returns_tuple(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.intersects", return_value=True)
+        sample_sources = utils.get_snapping_sources_for_rect((50, 20, 200, 20), 10)
+        sample_targets1 = utils.get_snapping_sources_for_rect((300, 100, 200, 120), 10)
+        sample_targets2 = utils.get_snapping_sources_for_rect((520, 400, 850, 420), 10)
+        result = utils.check_intersection(
+            sample_sources, [sample_targets1, sample_targets2]
+        )
+        assert mocked.call_count == 1
+        assert result == ((40, 10, 260, 30), (290, 90, 510, 110))
+
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
+    def test_check_intersection_functionality_for_full_sources(self, sources, targets, expected):
+        assert utils.check_intersection(sources, targets) == expected[0]
+
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
+    def test_check_intersection_functionality_for_two_sources_corner_0(self, sources, targets, expected):
+        assert utils.check_intersection((sources[0], sources[3]), targets) == expected[1]
+
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
+    def test_check_intersection_functionality_for_two_sources_corner_1(self, sources, targets, expected):
+        assert utils.check_intersection((sources[0], sources[1]), targets) == expected[2]
+
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
+    def test_check_intersection_functionality_for_two_sources_corner_2(self, sources, targets, expected):
+        assert utils.check_intersection((sources[2], sources[1]), targets) == expected[2]
+
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
+    def test_check_intersection_functionality_for_two_sources_corner_3(self, sources, targets, expected):
+        assert utils.check_intersection((sources[2], sources[3]), targets) == expected[3]

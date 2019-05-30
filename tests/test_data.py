@@ -5,27 +5,23 @@ import pytest
 from arrangeit.settings import Settings
 from arrangeit.data import WindowModel, WindowsCollection
 
+from .fixtures import (
+    SAMPLE_RECT,
+    SAMPLE_MODEL_VALUES,
+    ATTRS_FOR_VALID_TYPE,
+    ATTRS_INVALID_TYPE,
+    VALID_MODEL_ATTRS,
+    INVALID_SINGLE_ATTR,
+    MODEL_SAME_VALUE,
+    MODEL_INVALID_RECT,
+    WINDOWSCOLLECTION_SORT_SAMPLES,
+    REPOPULATE_FOR_WID_SAMPLE,
+    WINDOWSCOLLECTION_EXPORT,
+    WIN_COLLECTION_SNAP_CHANGED,
+    WIN_COLLECTION_SNAP_SAMPLES,
+)
 
 WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name", "icon", "workspace"]
-SAMPLE_RECT = (45, 54, 304, 405)
-SAMPLE_MODEL_VALUES = [
-    {"wid": 101},
-    {"rect": SAMPLE_RECT},
-    {"resizable": True},
-    {"title": "foo"},
-    {"name": "bar"},
-    {"icon": Settings.BLANK_ICON},
-    {"workspace": 2001},
-    {
-        "wid": 502,
-        "rect": (4, 5, 25, 25),
-        "resizable": True,
-        "title": "bar",
-        "name": "foo",
-        "icon": Settings.BLANK_ICON,
-        "workspace": 1002,
-    },
-]
 
 
 class TestWindowModel(object):
@@ -76,57 +72,16 @@ class TestWindowModel(object):
             if key not in values.keys():
                 assert getattr(wm, key) is None
 
-    @pytest.mark.parametrize(
-        "values",
-        [
-            {"wid": 101},
-            {"rect": (55, 55, 100, 200)},
-            {"resizable": True},
-            {"title": "some title"},
-            {"name": "name foo"},
-            {"icon": Settings.BLANK_ICON},
-            {"workspace": 1002},
-        ],
-    )
+    @pytest.mark.parametrize("values", ATTRS_FOR_VALID_TYPE)
     def test_WindowModel_setup_sets_attrs_for_valid_type(self, mocker, values):
         wm = WindowModel()
         wm.setup(**values)
         for key, val in values.items():
             assert getattr(wm, key) == val
 
-    @pytest.mark.parametrize(
-        "values",
-        [
-            {"wid": 101.25},
-            {"wid": "foo"},
-            {"rect": ("a", 55, 100, 200)},
-            {"rect": (55, 100, 200)},
-            {"rect": (55, 100, 200, 500, 100)},
-            {"resizable": "yes"},
-            {"resizable": 0},
-            {"resizable": -1},
-            {"resizable": 1.0},
-            {"title": 22},
-            {"title": 22.5},
-            {"title": 5},
-            {"name": 78.34},
-            {"name": WindowModel()},
-            {"icon": "name"},
-            {"workspace": "name"},
-            {"workspace": 5.0},
-        ],
-    )
+    @pytest.mark.parametrize("values", ATTRS_INVALID_TYPE)
     def test_WindowModel_setup_set_None_or_empty_for_invalid_type(self, mocker, values):
-        good = {
-            "wid": 101,
-            "rect": (55, 55, 100, 200),
-            "resizable": True,
-            "title": "some title",
-            "name": "name foo",
-            "icon": Settings.BLANK_ICON,
-            "workspace": 1002,
-        }
-        wm = WindowModel(**good)
+        wm = WindowModel(**VALID_MODEL_ATTRS)
         wm.setup(**values)
         for key, _ in values.items():
             if key != "rect":
@@ -232,36 +187,13 @@ class TestWindowModel(object):
         new[3] = 444
         assert model.changed == tuple(new)
 
-    @pytest.mark.parametrize(
-        "values",
-        [
-            {"x": SAMPLE_RECT[0]},
-            {"y": SAMPLE_RECT[1]},
-            {"x": SAMPLE_RECT[0], "y": SAMPLE_RECT[1], "w": SAMPLE_RECT[2]},
-            {"w": SAMPLE_RECT[2]},
-            {"w": SAMPLE_RECT[2], "x": SAMPLE_RECT[0]},
-            {"rect": SAMPLE_RECT},
-        ],
-    )
+    @pytest.mark.parametrize("values", MODEL_SAME_VALUE)
     def test_WindowModel_set_changed_not_changing_same_value(self, values):
         model = WindowModel(rect=SAMPLE_RECT)
         model.set_changed(**values)
         assert model.changed == ()
 
-    @pytest.mark.parametrize(
-        "values",
-        [
-            {"x": 100.0},
-            {"y": "a"},
-            {"w": WindowModel},
-            {"h": WindowModel()},
-            {"w": 50.0, "x": 50},
-            {"xy": 100},
-            {"wh": 10},
-            {"xywh": 1000},
-            {"foo": 999},
-        ],
-    )
+    @pytest.mark.parametrize("values", INVALID_SINGLE_ATTR)
     def test_WindowModel_set_changed_creates_empty_tuple_for_invalid(self, values):
         model = WindowModel(rect=SAMPLE_RECT)
         model.set_changed(**values)
@@ -275,14 +207,7 @@ class TestWindowModel(object):
         model.set_changed(**values)
         assert model.changed == values["rect"]
 
-    @pytest.mark.parametrize(
-        "values",
-        [
-            {"rect": ("a", 0, 0, 200)},
-            {"rect": (300, 155, 200)},
-            {"rect": (30.0, 0, 155, 200)},
-        ],
-    )
+    @pytest.mark.parametrize("values", MODEL_INVALID_RECT)
     def test_WindowModel_set_changed_creates_empty_tuple_invalid_rect(self, values):
         model = WindowModel(rect=SAMPLE_RECT)
         model.set_changed(**values)
@@ -419,20 +344,7 @@ class TestWindowsCollection(object):
         assert collection.size == 0
 
     ## WindowsCollection.sort
-    @pytest.mark.parametrize(
-        "ws_wid,expected",
-        [
-            (((1004, 0), (1003, 1), (1004, 2), (1004, 3), (1006, 4)), [0, 2, 3, 4, 1]),
-            (((0, 0), (2, 1), (1, 2), (0, 3), (1, 4)), [0, 3, 2, 4, 1]),
-            (((2, 0), (1, 1), (1, 2), (4, 3), (2, 4)), [0, 4, 3, 1, 2]),
-            (((2, 0), (1, 1), (2, 2), (0, 3), (2, 4)), [0, 2, 4, 3, 1]),
-            (((2, 0), (1, 1), (2, 2)), [0, 2, 1]),
-            (((0, 0), (1, 1), (2, 2)), [0, 1, 2]),
-            (((0, 0),), [0]),
-            (((0, 0), (1, 1)), [0, 1]),
-            (((1, 0), (0, 1), (0, 2)), [0, 1, 2]),  # activates default value for next()
-        ],
-    )
+    @pytest.mark.parametrize("ws_wid,expected", WINDOWSCOLLECTION_SORT_SAMPLES)
     def test_WindowsCollection_sort_functionality(self, ws_wid, expected):
         collection = WindowsCollection()
         for elem in ws_wid:
@@ -510,14 +422,7 @@ class TestWindowsCollection(object):
 
     ## WindowModel.repopulate_for_wid
     @pytest.mark.parametrize(
-        "elements,wid,remove_before,expected",
-        [
-            ((100, 200, 300, 400, 500), 400, 200, [400, 500, 200, 300]),
-            ((100, 200, 300, 400, 500, 600, 700, 800), 800, 700, [800, 700]),
-            ((1, 2, 3, 4, 5, 6, 7, 8), 5, 4, [5, 6, 7, 8, 4]),
-            ((1, 2, 3, 4, 5, 6, 7), 2, 1, [2, 3, 4, 5, 6, 7, 1]),
-            ((1, 2, 3), 3, 1, [3, 1, 2]),
-        ],
+        "elements,wid,remove_before,expected", REPOPULATE_FOR_WID_SAMPLE
     )
     def test_WindowsCollection_repopulate_for_wid_functionality(
         self, elements, wid, remove_before, expected
@@ -529,84 +434,7 @@ class TestWindowsCollection(object):
         assert expected == [model.wid for model in list(collection.generator())]
 
     ## WindowsCollection.export
-    @pytest.mark.parametrize(
-        "elements",
-        [
-            (
-                (
-                    {
-                        "wid": 501,
-                        "rect": (40, 50, 250, 425),
-                        "resizable": True,
-                        "title": "bar",
-                        "name": "foo",
-                        "icon": Settings.BLANK_ICON,
-                        "workspace": 1002,
-                    },
-                    (45, 55, 250, 425),
-                    1005,
-                ),
-                (
-                    {
-                        "wid": 502,
-                        "rect": (400, 500, 200, 300),
-                        "resizable": True,
-                        "title": "bar",
-                        "name": "foobar",
-                        "icon": Settings.BLANK_ICON,
-                        "workspace": 1004,
-                    },
-                    (400, 550, 300, 400),
-                    1004,
-                ),
-            ),
-            (
-                (
-                    {
-                        "wid": 503,
-                        "rect": (400, 500, 200, 300),
-                        "resizable": True,
-                        "title": "bar",
-                        "name": "foobar",
-                        "icon": Settings.BLANK_ICON,
-                        "workspace": 1004,
-                    },
-                    (400, 550, 300, 400),
-                    1004,
-                ),
-            ),
-            (
-                (
-                    {
-                        "wid": 504,
-                        "rect": (354, 50, 250, 425),
-                        "resizable": True,
-                        "title": "bar",
-                        "name": "foo",
-                        "icon": Settings.BLANK_ICON,
-                        "workspace": 1002,
-                    },
-                    (),
-                    1009,
-                ),
-            ),
-            (
-                (
-                    {
-                        "wid": 505,
-                        "rect": (427, 50, 250, 425),
-                        "resizable": True,
-                        "title": "bar",
-                        "name": "foo",
-                        "icon": Settings.BLANK_ICON,
-                        "workspace": 1002,
-                    },
-                    (),
-                    None,
-                ),
-            ),
-        ],
-    )
+    @pytest.mark.parametrize("elements", WINDOWSCOLLECTION_EXPORT)
     def test_WindowsCollection_export(self, elements):
         collection = WindowsCollection()
         for elem in elements:
@@ -646,37 +474,7 @@ class TestWindowsCollection(object):
         assert isinstance(rects, dict)
         assert rects == {}
 
-    @pytest.mark.parametrize(
-        "windows,expected",
-        [
-            (
-                (
-                    (1001, (10, 20, 500, 400), ()),
-                    (1002, (10, 20, 30, 40), (100, 200, 540, 200)),
-                ),
-                (
-                    {
-                        1001: [
-                            (
-                                (0, 10, 520, 30),
-                                (500, 10, 520, 430),
-                                (0, 410, 520, 430),
-                                (0, 10, 20, 430),
-                            )
-                        ],
-                        1002: [
-                            (
-                                (90, 190, 650, 210),
-                                (630, 190, 650, 410),
-                                (90, 390, 650, 410),
-                                (90, 190, 110, 410),
-                            )
-                        ],
-                    }
-                ),
-            )
-        ],
-    )
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_CHANGED)
     def test_WindowsCollection_get_snapping_sources_uses_changed_values_if_available(
         self, mocker, windows, expected
     ):
@@ -691,44 +489,7 @@ class TestWindowsCollection(object):
         for ws, snaps in rects.items():
             assert snaps == expected[ws]
 
-    @pytest.mark.parametrize(
-        "windows,expected",
-        [
-            (
-                (
-                    (1001, 10, 20, 500, 400),
-                    (1001, 80, 200, 300, 200),
-                    (1002, 100, 200, 540, 200),
-                ),
-                (
-                    {
-                        1001: [
-                            (
-                                (0, 10, 520, 30),
-                                (500, 10, 520, 430),
-                                (0, 410, 520, 430),
-                                (0, 10, 20, 430),
-                            ),
-                            (
-                                (70, 190, 390, 210),
-                                (370, 190, 390, 410),
-                                (70, 390, 390, 410),
-                                (70, 190, 90, 410),
-                            ),
-                        ],
-                        1002: [
-                            (
-                                (90, 190, 650, 210),
-                                (630, 190, 650, 410),
-                                (90, 390, 650, 410),
-                                (90, 190, 110, 410),
-                            )
-                        ],
-                    }
-                ),
-            )
-        ],
-    )
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_SAMPLES)
     def test_WindowsCollection_get_snapping_sources_functionality(
         self, mocker, windows, expected
     ):
