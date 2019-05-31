@@ -334,10 +334,10 @@ class BaseController(object):
         if self.state is None:
             self.state = Settings.LOCATE
 
-        elif self.state == Settings.LOCATE:
+        elif self.state < Settings.RESIZE:  # implies LOCATE
             return self.update_positioning(x, y)
 
-        elif self.state == Settings.RESIZE:
+        elif self.state < Settings.OTHER:  # implies RESIZE
             return self.update_resizing(x, y)
 
     def update_positioning(self, x, y):
@@ -612,10 +612,10 @@ class BaseController(object):
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        if self.state in (None, Settings.LOCATE):
+        if self.state is None or self.state < Settings.RESIZE:
             self.change_position(x, y)
 
-        elif self.state == Settings.RESIZE:
+        elif self.state < Settings.OTHER:
             self.change_size(x, y)
 
     def on_mouse_left_down(self, event):

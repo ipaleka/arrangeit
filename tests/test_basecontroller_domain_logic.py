@@ -279,7 +279,7 @@ class TestBaseControllerDomainLogic(object):
         assert mocked.call_count == 1
         mocked.assert_called_with(100, 100)
 
-    @pytest.mark.parametrize("state", [(Settings.OTHER, 100, 5000)])
+    @pytest.mark.parametrize("state", [Settings.OTHER, 150, 5000])
     def test_BaseController_update_not_calling_update_methods_for_other_states(
         self, mocker, state
     ):
