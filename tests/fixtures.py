@@ -1,4 +1,3 @@
-from arrangeit.base import BaseController
 from arrangeit.data import WindowModel
 from arrangeit.settings import Settings
 
@@ -417,53 +416,3 @@ OFFSET_INTERSECTING_PAIR_SAMPLES = {
         (((1505, 938, 2005, 958), (1323, 924, 2959, 944)), (0, -14)),
     ],
 }
-
-## test_base
-def mock_main_loop(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.ViewApplication")
-    mocker.patch("arrangeit.base.BaseController.mainloop")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("pynput.mouse.Listener")
-    mocker.patch("pynput.mouse.Controller")
-    mocker.patch("arrangeit.base.BaseApp.run_task")
-    mocker.patch(
-        "arrangeit.base.BaseApp.grab_window_screen",
-        return_value=(mocker.MagicMock(), (0, 0)),
-    )
-
-
-def get_mocked_root(mocker):
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("arrangeit.base.ViewApplication")
-    return mocker.patch("arrangeit.base.get_tkinter_root")
-
-
-def get_mocked_viewapp(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    return mocker.patch("arrangeit.base.ViewApplication")
-
-
-def mocked_viewapp(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("arrangeit.base.ViewApplication")
-
-
-def mocked_next(mocker):
-    mocker.patch("arrangeit.base.get_tkinter_root")
-    mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-    mocker.patch("arrangeit.base.ViewApplication")
-    mocker.patch("arrangeit.base.BaseController.next")
-
-
-def get_controller_with_mocked_app(mocker):
-    app = mocker.MagicMock()
-    app.grab_window_screen.return_value = (mocker.MagicMock(), (0, 0))
-    return BaseController(app)
-
-
-def run_controller_with_mocked_app(mocker):
-    controller = get_controller_with_mocked_app(mocker)
-    controller.run(mocker.MagicMock())

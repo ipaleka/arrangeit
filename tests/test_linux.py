@@ -771,7 +771,7 @@ class TestLinuxCollector(object):
         ],
     )
     def test_LinuxCollector__check_mask_part_functionality(
-        self, rect, changed, expected
+        self, mocker, rect, changed, expected
     ):
         collector = Collector()
         model = WindowModel(rect=rect)

@@ -2,7 +2,6 @@ import pytest
 
 from arrangeit import base, utils
 from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.settings import Settings
 
 from .fixtures import (
     SAMPLE_RECT,
