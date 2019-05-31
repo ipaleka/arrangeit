@@ -226,6 +226,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_update_positioning_calls_set_changed(self, mocker):
         controller = controller_mocked_next(mocker)
         x, y = 440, 441
+        controller.state = Settings.LOCATE
         controller.update_positioning(x, y)
         controller.model.set_changed.assert_called_with(x=x, y=y)
 
@@ -276,16 +277,17 @@ class TestBaseControllerDomainLogic(object):
         controller.update_positioning(101, 202)
         mocked.assert_called_once()
 
-    def test_BaseController_update_positioning_for_resizable(self, mocker):
+    def test_BaseController_update_positioning_for_resizable_sets_state(self, mocker):
         controller = controller_mocked_next(mocker)
         controller.model.resizable = True
         mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
-        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        mocked_next = mocker.patch("arrangeit.base.BaseController.next")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.LOCATE
+        new_state = controller.resizing_state_counterpart
         controller.update_positioning(101, 202)
-        assert controller.state == Settings.RESIZE
-        mocked.assert_not_called()
+        assert controller.state == new_state
+        mocked_next.assert_not_called()
         controller.app.run_task.assert_not_called()
 
     def test_BaseController_update_positioning_for_resizable_calls_place_on_right(
@@ -295,6 +297,7 @@ class TestBaseControllerDomainLogic(object):
         controller.model.resizable = True
         mocked = mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
         controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.LOCATE
         controller.update_positioning(101, 202)
         mocked.assert_called_once()
 
@@ -368,7 +371,9 @@ class TestBaseControllerDomainLogic(object):
         SAMPLE1, SAMPLE2 = 91405, 90102
         controller.model.wid = SAMPLE2
         controller.listed_window_activated(SAMPLE1)
-        controller.app.run_task.assert_called_with("rerun_from_window", SAMPLE1, SAMPLE2)
+        controller.app.run_task.assert_called_with(
+            "rerun_from_window", SAMPLE1, SAMPLE2
+        )
 
     def test_BaseController_listed_window_activated_calls_windows_clear_list(
         self, mocker
@@ -426,7 +431,10 @@ class TestBaseControllerDomainLogic(object):
         mocker.patch("arrangeit.base.ViewApplication")
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90152)
-        assert controller.generator == controller.app.collector.collection.generator.return_value
+        assert (
+            controller.generator
+            == controller.app.collector.collection.generator.return_value
+        )
 
     def test_BaseController_listed_window_activated_calls_next(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseController.next")

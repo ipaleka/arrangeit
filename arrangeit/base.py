@@ -259,6 +259,12 @@ class BaseController(object):
             y=offset[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
         )
 
+    ## PROPERTIES
+    @property
+    def resizing_state_counterpart(self):
+        """Returns resizing state counterpart of current positioning state."""
+        return 10 + (self.state + 2) % 4
+
     ## DOMAIN LOGIC
     def run(self, generator):
         """Prepares view, syncs data, starts listener and enters main loop.
@@ -356,7 +362,7 @@ class BaseController(object):
                 self.app.run_task("move", self.model.wid)
             self.next()
         else:
-            self.state = Settings.RESIZE
+            self.state = self.resizing_state_counterpart
             self.place_on_right_bottom()
 
     def update_resizing(self, x, y):
@@ -420,7 +426,22 @@ class BaseController(object):
             offset = self.check_positioning_snapping(x, y)
             if offset and offset != (0, 0):
                 return move_cursor(x + offset[0], y + offset[1])
-        self.view.master.geometry("+{}+{}".format(x, y))
+
+        new_x, new_y = x, y
+        if self.state == 0:
+            new_x -= Settings.WINDOW_SHIFT_PIXELS
+            new_y -= Settings.WINDOW_SHIFT_PIXELS
+        elif self.state == 1:
+            new_x -= self.view.master.winfo_width() - Settings.WINDOW_SHIFT_PIXELS
+            new_y -= Settings.WINDOW_SHIFT_PIXELS
+        elif self.state == 2:
+            new_x -= self.view.master.winfo_width() - Settings.WINDOW_SHIFT_PIXELS
+            new_y -= self.view.master.winfo_height() - Settings.WINDOW_SHIFT_PIXELS
+        elif self.state == 3:
+            new_x -= Settings.WINDOW_SHIFT_PIXELS
+            new_y -= self.view.master.winfo_height() - Settings.WINDOW_SHIFT_PIXELS
+
+        self.view.master.geometry("+{}+{}".format(new_x, new_y))
 
     def change_size(self, x, y):
         """Changes root window size in regard to provided bottom left x and y
@@ -480,11 +501,10 @@ class BaseController(object):
         )
 
     def cycle_corners(self):
-        """Cycle through corners by changing state."""
-        # self.state = self.state + 1 if (self.state + 1) % 5 != 0 else self.state - 4
-        # # TODO call self.update_cursor here,
-        # #      create place_on_corner_for_locate instead place_on_top_left
-        # #      create place_on_corner_for_resize instead place_on_bottom_right
+        """Cycle through corners in positioning phase by changing state."""
+        if self.state < Settings.RESIZE:  # implies LOCATE
+            self.state = self.state + 1 if (self.state + 1) % 4 != 0 else 0
+            self.setup_corner()
 
     def listed_window_activated_by_digit(self, number):
         """Activates listed window by its ordinal in list presented by provided number.
@@ -504,7 +524,7 @@ class BaseController(object):
         Cursor is changed to default config. Also calls `on_mouse_move` to force
         moving if the app is just instantiated.
         """
-        self.view.master.config(cursor="ul_angle")
+        self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
         move_cursor(self.model.x, self.model.y)
         self.on_mouse_move(self.model.x, self.model.y)
 
@@ -513,7 +533,7 @@ class BaseController(object):
 
         and so indirectly resizes master. Cursor is changed to resize config.
         """
-        self.view.master.config(cursor="lr_angle")
+        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 4])
         move_cursor(
             self.model.changed_x + self.model.w, self.model.changed_y + self.model.h
         )
@@ -544,9 +564,9 @@ class BaseController(object):
     def recapture_mouse(self):
         """Creates and starts mouse listener and starts positioning/resizing routine."""
         self.view.setup_bindings()
-        self.view.master.config(cursor="ul_angle")
-        self.set_default_geometry(self.view.master)
         self.state = Settings.LOCATE
+        self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
+        self.set_default_geometry(self.view.master)
         move_cursor(self.view.master.winfo_x(), self.view.master.winfo_y())
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()
@@ -555,6 +575,29 @@ class BaseController(object):
         """Stops mouse listener and destroys Tkinter root window."""
         self.listener.stop()
         self.view.master.destroy()
+
+    def setup_corner(self):
+        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state])
+
+        x, y = self.view.master.winfo_x(), self.view.master.winfo_y()
+        w, h = self.view.master.winfo_width(), self.view.master.winfo_height()
+        if self.state == 0:
+            move_cursor(
+                x + Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
+            )
+        elif self.state == 1:
+            move_cursor(
+                x + w - Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
+            )
+        elif self.state == 2:
+            move_cursor(
+                x + w - Settings.WINDOW_SHIFT_PIXELS,
+                y + h - Settings.WINDOW_SHIFT_PIXELS,
+            )
+        elif self.state == 3:
+            move_cursor(
+                x + Settings.WINDOW_SHIFT_PIXELS, y + h - Settings.WINDOW_SHIFT_PIXELS
+            )
 
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""

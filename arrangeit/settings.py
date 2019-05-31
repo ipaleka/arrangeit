@@ -42,6 +42,7 @@ CONSTANTS = {
     "ROOT_ALPHA": (float, 0.8),
     "DEFAULT_CURSOR": (str, "arrow"),
     "SELECT_CURSOR": (str, "hand2"),
+    "CORNER_CURSOR": (tuple, ("ul_angle", "ur_angle", "lr_angle", "ll_angle")),
     "SELECTED_COLOR": (str, "blue"),
     "HIGHLIGHTED_COLOR": (str, "red"),
     "TITLE_LABEL_RELHEIGHT": (float, 0.25),
