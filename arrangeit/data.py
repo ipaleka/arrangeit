@@ -1,7 +1,7 @@
 from operator import attrgetter
 
 from arrangeit.settings import Settings
-from arrangeit.utils import get_value_if_valid_type, get_snapping_sources_for_rect
+from arrangeit.utils import get_value_if_valid_type
 
 
 class WindowModel(object):
@@ -296,32 +296,3 @@ class WindowsCollection(object):
             )
             for model in self._members
         ]
-
-    def create_snapping_sources(self, for_model):
-        """Returns collection of snapping rectangless grouped by workspace.
-
-        Snapping rectangle is created around window connected edge points pair with
-        height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
-
-        :param for_model: current model
-        :type for_model: :class:`WindowModel`
-        :returns: dict (int: list of four-tuples)
-        """
-        sources = {}
-        for model in self._members:
-            if model == for_model and not Settings.SNAP_INCLUDE_SELF:
-                continue
-            ws = model.changed_ws if model.is_ws_changed else model.ws
-            sources.setdefault(ws, [])
-            sources[ws].append(
-                get_snapping_sources_for_rect(
-                    (
-                        model.changed_x,
-                        model.changed_y,
-                        model.changed_w,
-                        model.changed_h,
-                    ),
-                    Settings.SNAP_PIXELS,
-                )
-            )
-        return sources

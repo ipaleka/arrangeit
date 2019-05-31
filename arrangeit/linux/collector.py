@@ -1,8 +1,9 @@
 import gi
 from PIL import Image
 
+gi.require_version("Gdk", "3.0")
 gi.require_version("Wnck", "3.0")
-from gi.repository import Wnck
+from gi.repository import Wnck, Gdk
 
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
@@ -251,3 +252,15 @@ class Collector(BaseCollector):
         :returns: flag
         """
         return self._check_mask_part(model, list(MOVE_RESIZE_MASKS.keys()))
+
+    def get_monitors_rects(self):
+        """Returns list of available monitors position and size rectangles.
+
+        :returns: list [(x,y,w,h)]
+        """
+        display = Gdk.Display.get_default()
+        rects = []
+        for i in range(display.get_n_monitors()):
+            area = display.get_monitor(i).get_workarea()
+            rects.append((area.x, area.y, area.width, area.height))
+        return rects

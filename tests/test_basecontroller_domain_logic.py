@@ -107,7 +107,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_next_calls_create_snapping_sources(self, mocker):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        mocked = mocker.patch("arrangeit.data.WindowsCollection.create_snapping_sources")
+        mocked = mocker.patch("arrangeit.base.BaseApp.create_snapping_sources")
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())
         model = data.WindowModel()
@@ -123,7 +123,7 @@ class TestBaseControllerDomainLogic(object):
         mock_main_loop(mocker)
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         mocker.patch(
-            "arrangeit.data.WindowsCollection.create_snapping_sources", return_value={1: []}
+            "arrangeit.base.BaseApp.create_snapping_sources", return_value={1: []}
         )
         collection = data.WindowsCollection()
         collection.add(data.WindowModel())

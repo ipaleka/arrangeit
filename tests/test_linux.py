@@ -789,3 +789,57 @@ class TestLinuxCollector(object):
         collector.get_window_move_resize_mask(model)
         assert mocked.call_count == 1
         mocked.assert_called_with(model, list(MOVE_RESIZE_MASKS.keys()))
+
+    ## LinuxCollector.get_monitors_rects
+    def test_LinuxCollector_get_monitors_rects_calls_GDK_display_get_default(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_default")
+        collector = Collector()
+        collector.get_monitors_rects()
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_get_monitors_rects_calls_GDK_display_get_n_monitors(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_n_monitors")
+        collector = Collector()
+        collector.get_monitors_rects()
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_get_monitors_rects_calls_GDK_display_get_monitor(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
+        )
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_monitor")
+        collector = Collector()
+        collector.get_monitors_rects()
+        mocked.assert_called_once()
+        mocked.assert_called_with(0)
+
+    def test_LinuxCollector_get_monitors_rects_calls_GDK_monitor_get_workarea(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
+        )
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_monitor")
+        collector = Collector()
+        collector.get_monitors_rects()
+        mocked.return_value.get_workarea.assert_called_once()
+
+    def test_LinuxCollector_get_monitors_rects_returns_list_of_rects(self, mocker):
+        mocker.patch(
+            "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
+        )
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_monitor")
+        type(mocked.return_value.get_workarea.return_value).x = mocker.PropertyMock(return_value=10)
+        type(mocked.return_value.get_workarea.return_value).y = mocker.PropertyMock(return_value=20)
+        type(mocked.return_value.get_workarea.return_value).width = mocker.PropertyMock(return_value=100)
+        type(mocked.return_value.get_workarea.return_value).height = mocker.PropertyMock(return_value=200)
+        collector = Collector()
+        rects = collector.get_monitors_rects()
+        assert isinstance(rects, list)
+        assert rects == [(10, 20, 100, 200)]

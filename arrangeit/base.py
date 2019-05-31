@@ -99,6 +99,53 @@ class BaseApp(object):
         with open(os.path.join(directory, "default.json"), "w") as default:
             json.dump(self.collector.collection.export(), default)
 
+    def _initialize_snapping_sources(self):
+        """Creates and returns dictionary with all workspaces numbers as keys
+
+        and all monitors snapping rects as values.
+
+        :returns: dict
+        """
+        monitors_snapping_rects = [
+            get_snapping_sources_for_rect(rect, Settings.SNAP_PIXELS)
+            for rect in self.collector.get_monitors_rects()
+        ]
+        return {
+            workspace[0]: monitors_snapping_rects
+            for workspace in self.collector.get_available_workspaces()
+        }
+
+    def create_snapping_sources(self, for_model):
+        """Returns collection of snapping rectangless grouped by workspace.
+
+        Snapping rectangle is created around window connected edge points pair with
+        height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
+        Snapping rects for all available monitors are created for each workspace.
+
+        :param for_model: current model
+        :type for_model: :class:`WindowModel`
+        :returns: dict (int: list of four-tuples)
+        """
+        sources = self._initialize_snapping_sources()
+
+        for model in list(self.collector.collection.generator()):
+            if model == for_model and not Settings.SNAP_INCLUDE_SELF:
+                continue
+
+            ws = model.changed_ws if model.is_ws_changed else model.ws
+            sources[ws].append(
+                get_snapping_sources_for_rect(
+                    (
+                        model.changed_x,
+                        model.changed_y,
+                        model.changed_w,
+                        model.changed_h,
+                    ),
+                    Settings.SNAP_PIXELS,
+                )
+            )
+        return sources
+
 
 class BaseController(object):
     """Base Controller class holding common code for all the platforms.
@@ -267,9 +314,7 @@ class BaseController(object):
                 self.switch_workspace()
 
         self.set_screenshot()
-        self.snapping_targets = self.app.collector.collection.create_snapping_sources(
-            self.model
-        )
+        self.snapping_targets = self.app.create_snapping_sources(self.model)
         self.set_default_geometry(self.view.master)
         self.view.update_widgets(self.model)
         self.place_on_top_left()
@@ -658,6 +703,10 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def get_available_workspaces(self):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def get_monitors_rects(self):
         """Method must be overridden."""
         raise NotImplementedError
 

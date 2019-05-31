@@ -1,8 +1,16 @@
 import pytest
 
-from arrangeit import base, data, utils
+from arrangeit import base, utils
+from arrangeit.data import WindowModel, WindowsCollection
+from arrangeit.settings import Settings
 
-from .fixtures import mocked_viewapp
+from .fixtures import (
+    mocked_viewapp,
+    SAMPLE_RECT,
+    WIN_COLLECTION_SNAP_CHANGED,
+    WIN_COLLECTION_SNAP_SAMPLES,
+    WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING,
+)
 
 
 class TestBaseApp(object):
@@ -186,6 +194,202 @@ class TestBaseApp(object):
         base.BaseApp().save_default()
         mocked.assert_called_once()
 
+    ## BaseApp._initialize_snapping_sources
+    def test_BaseApp__initialize_snapping_sources_calls_collector_get_monitors_rects(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
+                utils.platform_path()
+            )
+        )
+        base.BaseApp()._initialize_snapping_sources()
+        assert mocked.call_count == 1
+
+    def test_BaseApp__initialize_snapping_sources_calls_get_snapping_sources_for_rect(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
+                utils.platform_path()
+            ),
+            return_value=[(0, 0, 640, 480), (500, 0, 800, 600)],
+        )
+        mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        base.BaseApp()._initialize_snapping_sources()
+        assert mocked.call_count == 2
+
+    def test_BaseApp__initialize_snapping_sources_calls_get_available_workspaces(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
+                utils.platform_path()
+            ),
+            return_value=[(0, 0, 640, 480), (500, 0, 800, 600)],
+        )
+        mocked = mocker.patch(
+            "arrangeit.{}.collector.Collector.get_available_workspaces".format(
+                utils.platform_path()
+            ),
+            return_value=[(0, ""), (1, ""), (2, "")],
+        )
+        mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        base.BaseApp()._initialize_snapping_sources()
+        assert mocked.call_count == 2
+
+    def test_BaseApp__initialize_snapping_sources_functionality(self, mocker):
+        mocked = mocker.patch(
+            "arrangeit.{}.collector.Collector.get_available_workspaces".format(
+                utils.platform_path()
+            ),
+            return_value=[(0, ""), (1, ""), (2, "")],
+        )
+        mocker.patch(
+            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
+                utils.platform_path()
+            ),
+            return_value=[(0, 0, 640, 480), (500, 0, 800, 600)],
+        )
+        mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        sources = base.BaseApp()._initialize_snapping_sources()
+        assert len(sources) == 3
+        assert sources.get(0) is not None
+        assert sources.get(1) is not None
+        assert sources.get(2) is not None
+
+    ## BaseApp.create_snapping_sources
+    def test_BaseApp_create_snapping_sources_calls__initialize_snapping_sources(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.base.BaseApp._initialize_snapping_sources")
+        base.BaseApp().create_snapping_sources(WindowModel())
+        mocked.assert_called_once()
+
+    def test_BaseApp_create_snapping_sources_calls_collection_generator(self, mocker):
+        mocked = mocker.patch("arrangeit.base.WindowsCollection.generator")
+        base.BaseApp().create_snapping_sources(WindowModel())
+        mocked.assert_called_once()
+
+    def test_BaseApp_create_snapping_sources_calls_utils_get_snapping_sources_for_rect(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        collection = WindowsCollection()
+        collection.add(WindowModel(rect=SAMPLE_RECT, workspace=1))
+        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        base.BaseApp().create_snapping_sources(WindowModel())
+        mocked.assert_called()
+
+    def test_BaseApp_create_snapping_sources_returns_dict(self, mocker):
+        mocker.patch(
+            "arrangeit.base.BaseApp._initialize_snapping_sources",
+            return_value={1001: [], 1002: []},
+        )
+        rects = base.BaseApp().create_snapping_sources(WindowModel())
+        assert isinstance(rects, dict)
+        assert rects == {1001: [], 1002: []}
+
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_CHANGED)
+    def test_BaseApp_create_snapping_sources_uses_changed_values_if_available(
+        self, mocker, windows, expected
+    ):
+        collection = WindowsCollection()
+        for window in windows:
+            model = WindowModel(rect=window[1], workspace=1005)
+            model.set_changed(rect=window[2], ws=window[0])
+            collection.add(model)
+        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch(
+            "arrangeit.base.BaseApp._initialize_snapping_sources",
+            return_value={1001: [], 1002: []},
+        )
+        mocked = mocker.patch("arrangeit.base.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        rects = base.BaseApp().create_snapping_sources(model)
+        for ws, snaps in rects.items():
+            assert snaps == expected[ws]
+
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_SAMPLES)
+    def test_BaseApp_create_snapping_sources_functionality(
+        self, mocker, windows, expected
+    ):
+        collection = WindowsCollection()
+        for window in windows:
+            model = WindowModel(rect=SAMPLE_RECT, workspace=1005)
+            model.set_changed(ws=window[0], rect=window[1:])
+            collection.add(model)
+        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch(
+            "arrangeit.base.BaseApp._initialize_snapping_sources",
+            return_value={1001: [], 1002: []},
+        )
+        mocked = mocker.patch("arrangeit.base.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        rects = base.BaseApp().create_snapping_sources(WindowModel())
+        for ws, snaps in rects.items():
+            assert snaps == expected[ws]
+
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING)
+    def test_BaseApp_create_snapping_sources_excludes_provided_model(
+        self, mocker, windows, expected
+    ):
+        mocker.patch(
+            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
+                utils.platform_path()
+            ),
+            return_value=[],
+        )
+        collection = WindowsCollection()
+        model0 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=5000)
+        model0.set_changed(ws=windows[0][0], rect=windows[0][1:])
+        collection.add(model0)
+        model1 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=9000)
+        model1.set_changed(ws=windows[1][0], rect=windows[1][1:])
+        collection.add(model1)
+        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch(
+            "arrangeit.base.BaseApp._initialize_snapping_sources",
+            return_value={1001: [], 1002: []},
+        )
+        mocked = mocker.patch("arrangeit.base.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        type(mocked).SNAP_INCLUDE_SELF = mocker.PropertyMock(return_value=False)
+        sources = base.BaseApp().create_snapping_sources(model1)
+        assert sources[1001] == expected[1001][:1]
+
+    @pytest.mark.parametrize("windows,expected", WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING)
+    def test_BaseApp_create_snapping_sources_includes_provided_model(
+        self, mocker, windows, expected
+    ):
+        mocker.patch(
+            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
+                utils.platform_path()
+            ),
+            return_value=[],
+        )
+        collection = WindowsCollection()
+        model0 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=5000)
+        model0.set_changed(ws=windows[0][0], rect=windows[0][1:])
+        collection.add(model0)
+        model1 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=9000)
+        model1.set_changed(ws=windows[1][0], rect=windows[1][1:])
+        collection.add(model1)
+        mocker.patch(
+            "arrangeit.base.BaseApp._initialize_snapping_sources",
+            return_value={1001: [], 1002: []},
+        )
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocked = mocker.patch("arrangeit.base.Settings")
+        type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        type(mocked).SNAP_INCLUDE_SELF = mocker.PropertyMock(return_value=True)
+        sources = base.BaseApp().create_snapping_sources(model1)
+        assert sources[1001] == expected[1001]
+
 
 class TestBaseCollector(object):
     """Testing class for base Collector class."""
@@ -198,7 +402,7 @@ class TestBaseCollector(object):
     def test_BaseCollector_initialization_instantiates_WindowsCollection(self, mocker):
         collector = base.BaseCollector()
         assert getattr(collector, "collection", None) is not None
-        assert isinstance(getattr(collector, "collection"), data.WindowsCollection)
+        assert isinstance(getattr(collector, "collection"), WindowsCollection)
 
     ## BaseCollector.is_applicable
     def test_BaseCollector_is_applicable_raises_NotImplementedError(self):
@@ -246,6 +450,11 @@ class TestBaseCollector(object):
     def test_BaseCollector_get_available_workspaces_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().get_available_workspaces()
+
+    ## BaseCollector.get_monitors_rects
+    def test_BaseCollector_get_monitors_rects_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().get_monitors_rects()
 
     ## BaseCollector.run
     def test_BaseCollector_run_calls_get_windows(self, mocker):
