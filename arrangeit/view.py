@@ -53,6 +53,14 @@ def move_cursor(x, y):
     controller.position = (x, y)
 
 
+def cursor_position():
+    """Returns current cursor position.
+
+    :returns: (int, int)
+    """
+    return mouse.Controller().position
+
+
 class ViewApplication(tk.Frame):
     """Tkinter frame showing current window from the data provided through controller.
 

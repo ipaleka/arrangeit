@@ -5,11 +5,12 @@ from gettext import gettext as _
 import pytest
 
 from arrangeit.view import (
-    click_left,
     get_tkinter_root,
     get_screenshot_widget,
     get_mouse_listener,
+    click_left,
     move_cursor,
+    cursor_position,
     WorkspacesCollection,
     WindowsList,
     Workspace,
@@ -86,6 +87,17 @@ class TestViewFunctions(object):
         xy = (101, 202)
         move_cursor(*xy)
         assert mocked.return_value.position == xy
+
+    ## cursor_position
+    def test_cursor_position_initializes_Controller(self, mocker):
+        mocked = mocker.patch("arrangeit.view.mouse.Controller")
+        cursor_position()
+        mocked.assert_called_once()
+
+    def test_cursor_position_returns_position(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        returned = cursor_position()
+        assert returned == mocked.return_value.position
 
 
 class TestWorkspacesCollection(object):

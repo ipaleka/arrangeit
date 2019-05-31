@@ -13,11 +13,12 @@ from arrangeit.utils import (
     offset_for_intersecting_pair,
 )
 from arrangeit.view import (
-    click_left,
     get_mouse_listener,
+    click_left,
+    cursor_position,
+    move_cursor,
     get_tkinter_root,
     get_screenshot_widget,
-    move_cursor,
     ViewApplication,
 )
 
@@ -356,7 +357,9 @@ class BaseController(object):
         :param y: current vertical axis mouse position in pixels
         :type y: int
         """
-        self.model.set_changed(x=x, y=y)
+        self.model.set_changed(
+            x=x - Settings.WINDOW_SHIFT_PIXELS, y=y - Settings.WINDOW_SHIFT_PIXELS
+        )
         if not self.model.resizable:
             if self.model.changed or self.model.is_ws_changed:
                 self.app.run_task("move", self.model.wid)
@@ -377,7 +380,9 @@ class BaseController(object):
         :type y: int
         """
         w, h = self.model.wh_from_ending_xy(x, y)
-        self.model.set_changed(w=w, h=h)
+        self.model.set_changed(
+            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+        )
         if self.model.changed or self.model.is_ws_changed:
             self.app.run_task("move_and_resize", self.model.wid)
         self.next()
@@ -428,7 +433,7 @@ class BaseController(object):
                 return move_cursor(x + offset[0], y + offset[1])
 
         new_x, new_y = x, y
-        if self.state == 0:
+        if self.state == 0 or self.state is None:
             new_x -= Settings.WINDOW_SHIFT_PIXELS
             new_y -= Settings.WINDOW_SHIFT_PIXELS
         elif self.state == 1:
@@ -525,17 +530,24 @@ class BaseController(object):
         moving if the app is just instantiated.
         """
         self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
-        move_cursor(self.model.x, self.model.y)
-        self.on_mouse_move(self.model.x, self.model.y)
+        move_cursor(
+            self.model.x + Settings.WINDOW_SHIFT_PIXELS,
+            self.model.y + Settings.WINDOW_SHIFT_PIXELS,
+        )
+        self.on_mouse_move(
+            self.model.x + Settings.WINDOW_SHIFT_PIXELS,
+            self.model.y + Settings.WINDOW_SHIFT_PIXELS,
+        )
 
     def place_on_right_bottom(self):
         """Changes and moves cursor to model's bottom right position
 
         and so indirectly resizes master. Cursor is changed to resize config.
         """
-        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 4])
+        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
         move_cursor(
-            self.model.changed_x + self.model.w, self.model.changed_y + self.model.h
+            self.model.changed_x + self.model.w - Settings.WINDOW_SHIFT_PIXELS,
+            self.model.changed_y + self.model.h - Settings.WINDOW_SHIFT_PIXELS,
         )
 
     def remove_listed_window(self, wid):
@@ -633,9 +645,7 @@ class BaseController(object):
             self.shutdown()
 
         elif event.keysym in ("Return", "KP_Enter"):
-            self.update(
-                self.view.master.winfo_pointerx(), self.view.master.winfo_pointery()
-            )
+            self.update(*cursor_position())
 
         elif event.keysym in ("Space", "Tab"):
             self.skip_current_window()
@@ -677,9 +687,7 @@ class BaseController(object):
         :param event: catched event
         :type event: Tkinter event
         """
-        self.update(
-            self.view.master.winfo_pointerx(), self.view.master.winfo_pointery()
-        )
+        self.update(*cursor_position())
         return "break"
 
     def on_mouse_middle_down(self, event):

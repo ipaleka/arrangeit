@@ -223,7 +223,9 @@ class TestBaseController(object):
         controller.check_positioning_snapping(x, y)
         mocked.assert_called_once()
         mocked.assert_called_with(
-            (x, y, w, h), Settings.SNAP_PIXELS, corner=controller.state
+            (x - Settings.WINDOW_SHIFT_PIXELS, y - Settings.WINDOW_SHIFT_PIXELS, w, h),
+            Settings.SNAP_PIXELS,
+            corner=controller.state,
         )
 
     def test_BaseController_check_positioning_snapping_calls_check_intersection(
@@ -552,7 +554,7 @@ class TestBaseController(object):
         controller = controller_mocked_app(mocker)
         controller.state = Settings.RESIZE
         controller.place_on_right_bottom()
-        calls = [mocker.call(cursor=Settings.CORNER_CURSOR[controller.state % 4])]
+        calls = [mocker.call(cursor=Settings.CORNER_CURSOR[controller.state % 10])]
         view.return_value.master.config.assert_has_calls(calls, any_order=True)
 
     def test_BaseController_place_on_right_bottom_calls_move_cursor(self, mocker):
@@ -876,6 +878,7 @@ class TestBaseController(object):
         x, y = 204, 205
         view.return_value.master.winfo_pointerx.return_value = x
         view.return_value.master.winfo_pointery.return_value = y
+        mocker.patch("arrangeit.base.cursor_position", return_value=(x, y))
         mocked = mocker.patch("arrangeit.base.BaseController.update")
         controller_mocked_key_press(mocker, key)
         mocked.assert_called_with(x, y)
@@ -979,6 +982,7 @@ class TestBaseController(object):
         x, y = 507, 508
         view.return_value.master.winfo_pointerx.return_value = x
         view.return_value.master.winfo_pointery.return_value = y
+        mocker.patch("arrangeit.base.cursor_position", return_value=(x, y))
         mocked = mocker.patch("arrangeit.base.BaseController.update")
         base.BaseController(mocker.MagicMock()).on_mouse_left_down(mocker.MagicMock())
         mocked.assert_called_with(x, y)

@@ -228,7 +228,9 @@ class TestBaseControllerDomainLogic(object):
         x, y = 440, 441
         controller.state = Settings.LOCATE
         controller.update_positioning(x, y)
-        controller.model.set_changed.assert_called_with(x=x, y=y)
+        controller.model.set_changed.assert_called_with(
+            x=x - Settings.WINDOW_SHIFT_PIXELS, y=y - Settings.WINDOW_SHIFT_PIXELS
+        )
 
     def test_BaseController_update_positioning_calls_run_task_move_window_not_resizable(
         self, mocker
