@@ -479,6 +479,13 @@ class BaseController(object):
             Settings.SNAP_PIXELS,
         )
 
+    def cycle_corners(self):
+        """Cycle through corners by changing state."""
+        # self.state = self.state + 1 if (self.state + 1) % 5 != 0 else self.state - 4
+        # # TODO call self.update_cursor here,
+        # #      create place_on_corner_for_locate instead place_on_top_left
+        # #      create place_on_corner_for_resize instead place_on_bottom_right
+
     def listed_window_activated_by_digit(self, number):
         """Activates listed window by its ordinal in list presented by provided number.
 
@@ -592,6 +599,9 @@ class BaseController(object):
 
         elif event.keysym in ("Control_L",):
             self.release_mouse()
+
+        elif event.keysym in ("Alt_L",):
+            self.cycle_corners()
 
         elif event.keysym in [str(i) for i in range(1, 10)]:
             self.workspace_activated_by_digit(int(event.keysym))

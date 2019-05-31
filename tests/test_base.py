@@ -5,12 +5,13 @@ from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.settings import Settings
 
 from .fixtures import (
-    mocked_viewapp,
     SAMPLE_RECT,
     WIN_COLLECTION_SNAP_CHANGED,
     WIN_COLLECTION_SNAP_SAMPLES,
     WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING,
 )
+
+from .mock_helpers import mocked_setup
 
 
 class TestBaseApp(object):
@@ -23,19 +24,18 @@ class TestBaseApp(object):
 
     ## BaseApp.__init__.controller
     def test_BaseApp_initialization_calls_setup_controller(self, mocker):
-        mocked_viewapp(mocker)
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_controller")
         base.BaseApp()
         mocked.assert_called_once()
 
     def test_BaseApp_initialization_instantiates_controller(self, mocker):
-        mocked_viewapp(mocker)
+        mocked_setup(mocker)
         mainapp = base.BaseApp()
         assert getattr(mainapp, "controller", None) is not None
         assert isinstance(getattr(mainapp, "controller"), base.BaseController)
 
     def test_BaseApp_initialization_instantiates_controller_with_app(self, mocker):
-        mocked_viewapp(mocker)
+        mocked_setup(mocker)
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
@@ -60,7 +60,7 @@ class TestBaseApp(object):
     def test_BaseApp_setup_controller_calls_get_component_class_Controller(
         self, mocker
     ):
-        mocked_viewapp(mocker)
+        mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.get_component_class")
         base.BaseApp().setup_controller()
         mocked.assert_called()
@@ -90,7 +90,7 @@ class TestBaseApp(object):
         assert mocked.return_value.generator.call_count == 1
 
     def test_BaseApp_run_calls_controller_run(self, mocker):
-        mocked_viewapp(mocker)
+        mocked_setup(mocker)
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
@@ -98,7 +98,7 @@ class TestBaseApp(object):
         assert mocked.return_value.run.call_count == 1
 
     def test_BaseApp_run_calls_controller_run_with_valid_argument(self, mocker):
-        mocked_viewapp(mocker)
+        mocked_setup(mocker)
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
@@ -119,7 +119,6 @@ class TestBaseApp(object):
     )
     def test_BaseApp_run_task_calls_related_methods(self, mocker, task, args):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.base.get_tkinter_root")
         mocked = mocker.patch("arrangeit.base.BaseApp.{}".format(task))
         base.BaseApp().run_task(task, *args)
         mocked.assert_called_with(*args)
@@ -198,6 +197,7 @@ class TestBaseApp(object):
     def test_BaseApp__initialize_snapping_sources_calls_collector_get_monitors_rects(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch(
             "arrangeit.{}.collector.Collector.get_monitors_rects".format(
                 utils.platform_path()
@@ -209,6 +209,7 @@ class TestBaseApp(object):
     def test_BaseApp__initialize_snapping_sources_calls_get_snapping_sources_for_rect(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.{}.collector.Collector.get_monitors_rects".format(
                 utils.platform_path()
@@ -222,6 +223,7 @@ class TestBaseApp(object):
     def test_BaseApp__initialize_snapping_sources_calls_get_available_workspaces(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.{}.collector.Collector.get_monitors_rects".format(
                 utils.platform_path()
@@ -239,7 +241,8 @@ class TestBaseApp(object):
         assert mocked.call_count == 2
 
     def test_BaseApp__initialize_snapping_sources_functionality(self, mocker):
-        mocked = mocker.patch(
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch(
             "arrangeit.{}.collector.Collector.get_available_workspaces".format(
                 utils.platform_path()
             ),
@@ -262,11 +265,13 @@ class TestBaseApp(object):
     def test_BaseApp_create_snapping_sources_calls__initialize_snapping_sources(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp._initialize_snapping_sources")
         base.BaseApp().create_snapping_sources(WindowModel())
         mocked.assert_called_once()
 
     def test_BaseApp_create_snapping_sources_calls_collection_generator(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.WindowsCollection.generator")
         base.BaseApp().create_snapping_sources(WindowModel())
         mocked.assert_called_once()
@@ -274,6 +279,7 @@ class TestBaseApp(object):
     def test_BaseApp_create_snapping_sources_calls_utils_get_snapping_sources_for_rect(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         collection = WindowsCollection()
         collection.add(WindowModel(rect=SAMPLE_RECT, workspace=1))
@@ -282,6 +288,7 @@ class TestBaseApp(object):
         mocked.assert_called()
 
     def test_BaseApp_create_snapping_sources_returns_dict(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.base.BaseApp._initialize_snapping_sources",
             return_value={1001: [], 1002: []},
@@ -294,6 +301,7 @@ class TestBaseApp(object):
     def test_BaseApp_create_snapping_sources_uses_changed_values_if_available(
         self, mocker, windows, expected
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         collection = WindowsCollection()
         for window in windows:
             model = WindowModel(rect=window[1], workspace=1005)
@@ -315,6 +323,7 @@ class TestBaseApp(object):
     def test_BaseApp_create_snapping_sources_functionality(
         self, mocker, windows, expected
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         collection = WindowsCollection()
         for window in windows:
             model = WindowModel(rect=SAMPLE_RECT, workspace=1005)
@@ -336,6 +345,7 @@ class TestBaseApp(object):
     def test_BaseApp_create_snapping_sources_excludes_provided_model(
         self, mocker, windows, expected
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.{}.collector.Collector.get_monitors_rects".format(
                 utils.platform_path()
@@ -365,6 +375,7 @@ class TestBaseApp(object):
     def test_BaseApp_create_snapping_sources_includes_provided_model(
         self, mocker, windows, expected
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.{}.collector.Collector.get_monitors_rects".format(
                 utils.platform_path()
