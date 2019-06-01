@@ -56,12 +56,15 @@ class TestViewFunctions(object):
     ## get_mouse_listener
     def test_get_mouse_listener_initializes_Listener(self, mocker):
         mocked = mocker.patch("arrangeit.view.mouse.Listener")
-        get_mouse_listener(mocker.MagicMock())
-        mocked.assert_called()
+        mocked_on_move = mocker.MagicMock()
+        mocked_on_scroll = mocker.MagicMock()
+        get_mouse_listener(mocked_on_move, mocked_on_scroll)
+        mocked.assert_called_once()
+        mocked.assert_called_with(on_move=mocked_on_move, on_scroll=mocked_on_scroll)
 
     def test_get_mouse_listener_returns_listener_instance(self, mocker):
         mocked = mocker.patch("pynput.mouse.Listener")
-        returned = get_mouse_listener(mocker.MagicMock())
+        returned = get_mouse_listener(mocker.MagicMock(), mocker.MagicMock())
         assert returned == mocked.return_value
 
     ## click_left

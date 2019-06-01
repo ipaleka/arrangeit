@@ -509,12 +509,23 @@ class TestBaseController(object):
     @pytest.mark.parametrize(
         "state,expected", [(0, 1), (1, 2), (3, 0), (14, 14), (11, 11), (104, 104)]
     )
-    def test_BaseController_cycle_corners_functionality(self, mocker, state, expected):
+    def test_BaseController_cycle_corners_counter_false_functionality(self, mocker, state, expected):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.setup_corner")
         controller = controller_mocked_app(mocker)
         controller.state = state
-        controller.cycle_corners()
+        controller.cycle_corners(counter=False)
+        assert controller.state == expected
+
+    @pytest.mark.parametrize(
+        "state,expected", [(0, 3), (1, 0), (3, 2), (14, 14), (11, 11), (104, 104)]
+    )
+    def test_BaseController_cycle_corners_counter_true_functionality(self, mocker, state, expected):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.setup_corner")
+        controller = controller_mocked_app(mocker)
+        controller.state = state
+        controller.cycle_corners(counter=True)
         assert controller.state == expected
 
     ## BaseController.listed_window_activated_by_digit
@@ -799,7 +810,9 @@ class TestBaseController(object):
         controller = controller_mocked_app(mocker)
         controller.recapture_mouse()
         mocked.assert_called_once()
-        mocked.assert_called_with(controller.on_mouse_move)
+        mocked.assert_called_with(
+            controller.on_mouse_move, controller.on_mouse_scroll
+        )
 
     def test_BaseController_recapture_mouse_sets_listener_attribute(self, mocker):
         mocked_setup(mocker)
@@ -1009,6 +1022,7 @@ class TestBaseController(object):
         mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")
         controller_mocked_key_press(mocker, key)
         assert mocked.call_count == 1
+        mocked.assert_called_with()
 
     @pytest.mark.parametrize("key", ["KP_1", "KP_4", "KP_9", "1", "5", "9"])
     def test_BaseController_on_key_pressed_for_digit_calls_workspace_activated_by_digit(
@@ -1131,6 +1145,29 @@ class TestBaseController(object):
         )
         assert returned == "break"
 
+    ## BaseController.on_mouse_scroll
+    def test_BaseController_on_mouse_scroll_calls_counter_true_cycle_corners(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")
+        base.BaseController(mocker.MagicMock()).on_mouse_scroll(0, 0, 0, 1)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(counter=True)
+
+    def test_BaseController_on_mouse_scroll_calls_counter_false_cycle_corners(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")
+        base.BaseController(mocker.MagicMock()).on_mouse_scroll(0, 0, 0, -1)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(counter=False)
+
+    def test_BaseController_on_mouse_scroll_returns_break(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.cycle_corners")
+        returned = base.BaseController(mocker.MagicMock()).on_mouse_scroll(
+            0,0,0,1
+        )
+        assert returned == "break"
+
     ## BaseController.on_continue
     def test_BaseController_on_continue_calls_recapture_mouse(self, mocker):
         mocked_setup(mocker)
@@ -1168,7 +1205,6 @@ class TestBaseController(object):
         app = mocker.MagicMock()
         returned = base.BaseController(app).on_focus(mocker.MagicMock())
         assert returned == "break"
-
 
     def test_BaseController_on_focus_not_calling_run_task(self, mocker):
         view = mocked_setup_view(mocker)

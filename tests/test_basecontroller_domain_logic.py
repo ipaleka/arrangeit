@@ -39,7 +39,9 @@ class TestBaseControllerDomainLogic(object):
         mocked = mocker.patch("arrangeit.base.get_mouse_listener")
         controller.run(mocker.MagicMock())
         mocked.assert_called_once()
-        mocked.assert_called_with(controller.on_mouse_move)
+        mocked.assert_called_with(
+            controller.on_mouse_move, controller.on_mouse_scroll
+        )
 
     def test_BaseController_run_sets_listener_attribute(self, mocker):
         controller = controller_mocked_for_run(mocker)

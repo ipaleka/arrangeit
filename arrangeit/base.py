@@ -286,7 +286,7 @@ class BaseController(object):
         self.generator = generator
         self.next(first_time=True)
 
-        self.listener = get_mouse_listener(self.on_mouse_move)
+        self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
         self.listener.start()
 
         self.view.startup()
@@ -510,10 +510,13 @@ class BaseController(object):
             Settings.SNAP_PIXELS,
         )
 
-    def cycle_corners(self):
+    def cycle_corners(self, counter=False):
         """Cycle through corners in positioning phase by changing state."""
         if self.state < Settings.RESIZE:  # implies LOCATE
-            self.state = self.state + 1 if (self.state + 1) % 4 != 0 else 0
+            if not counter:
+                self.state = self.state + 1 if (self.state + 1) % 4 != 0 else 0
+            else:
+                self.state = self.state - 1 if self.state > 0 else 3
             self.setup_corner()
 
     def listed_window_activated_by_digit(self, number):
@@ -597,7 +600,7 @@ class BaseController(object):
             self.view.master.winfo_x() + Settings.WINDOW_SHIFT_PIXELS,
             self.view.master.winfo_y() + Settings.WINDOW_SHIFT_PIXELS,
         )
-        self.listener = get_mouse_listener(self.on_mouse_move)
+        self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
         self.listener.start()
 
     def shutdown(self):
@@ -723,6 +726,24 @@ class BaseController(object):
         :type event: Tkinter event
         """
         self.skip_current_window()
+        return "break"
+
+    def on_mouse_scroll(self, x, y, dx, dy):
+        """Cycles through window corners in both directions.
+
+        We are interested only in in dy that holds either +1 or -1 value, so we
+        converted that to Boolean value.
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        :param dx: scroll vector on x axis
+        :type dx: int
+        :param dy: scroll vector on y axis
+        :type dy: int
+        """
+        self.cycle_corners(counter=dy > 0)
         return "break"
 
     def on_continue(self, event):
