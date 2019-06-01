@@ -610,8 +610,8 @@ class TestBaseController(object):
         controller.place_on_top_left()
         mocked.assert_not_called()
 
-    ## BaseController.place_on_right_bottom
-    def test_BaseController_place_on_right_bottom_calls_cursor_config(self, mocker):
+    ## BaseController.place_on_opposite_corner
+    def test_BaseController_place_on_opposite_corner_calls_cursor_config(self, mocker):
         view = mocked_setup_view(mocker)
         view.return_value.master.winfo_screenwidth.return_value = 2000
         view.return_value.master.winfo_screenheight.return_value = 2000
@@ -620,11 +620,11 @@ class TestBaseController(object):
         controller = controller_mocked_app(mocker)
         controller.model = base.WindowModel(rect=(50, 50, 100, 100))
         controller.state = Settings.RESIZE
-        controller.place_on_right_bottom()
+        controller.place_on_opposite_corner()
         calls = [mocker.call(cursor=Settings.CORNER_CURSOR[controller.state % 10])]
         view.return_value.master.config.assert_has_calls(calls, any_order=True)
 
-    def test_BaseController_place_on_right_bottom_greater_screen_calls_move_cursor(
+    def test_BaseController_place_on_opposite_corner_greater_screen_calls_move_cursor(
         self, mocker
     ):
         view = mocked_setup_view(mocker)
@@ -645,10 +645,10 @@ class TestBaseController(object):
         )
         controller = controller_mocked_app(mocker)
         controller.state = Settings.RESIZE
-        controller.place_on_right_bottom()
+        controller.place_on_opposite_corner()
         mocked.assert_called_with(x + w - SHIFT, y + h - SHIFT)
 
-    def test_BaseController_place_on_right_bottom_calls_move_cursor_with_min(
+    def test_BaseController_place_on_opposite_corner_calls_move_cursor_with_min(
         self, mocker
     ):
         view = mocked_setup_view(mocker)
@@ -669,7 +669,7 @@ class TestBaseController(object):
         )
         controller = controller_mocked_app(mocker)
         controller.state = Settings.RESIZE
-        controller.place_on_right_bottom()
+        controller.place_on_opposite_corner()
         mocked.assert_called_with(screen_w - SHIFT, screen_h - SHIFT)
 
     ## BaseController.remove_listed_window
@@ -996,14 +996,14 @@ class TestBaseController(object):
         controller_mocked_key_press(mocker, key)
         assert mocked.call_count == 1
 
-    @pytest.mark.parametrize("key", ["Control_L"])
+    @pytest.mark.parametrize("key", ["Alt_L", "Alt_R", "Shift_L", "Shift_R"])
     def test_BaseController_on_key_pressed_calls_release_mouse(self, mocker, key):
         mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.release_mouse")
         controller_mocked_key_press(mocker, key)
         assert mocked.call_count == 1
 
-    @pytest.mark.parametrize("key", ["Alt_L"])
+    @pytest.mark.parametrize("key", ["Control_L", "Control_R"])
     def test_BaseController_on_key_pressed_calls_cycle_corners(self, mocker, key):
         mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")

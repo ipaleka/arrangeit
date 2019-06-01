@@ -370,7 +370,7 @@ class BaseController(object):
             self.next()
         else:
             self.state = self.resizing_state_counterpart
-            self.place_on_right_bottom()
+            self.place_on_opposite_corner()
 
     def update_resizing(self, x, y):
         """Updates model with provided cursor position in RESIZE state
@@ -545,7 +545,7 @@ class BaseController(object):
                 self.model.y + Settings.WINDOW_SHIFT_PIXELS,
             )
 
-    def place_on_right_bottom(self):
+    def place_on_opposite_corner(self):
         """Changes and moves cursor to model's bottom right position
 
         and so indirectly resizes master. Cursor is changed to resize config.
@@ -667,10 +667,10 @@ class BaseController(object):
         elif event.keysym in ("Space", "Tab"):
             self.skip_current_window()
 
-        elif event.keysym in ("Control_L",):
+        elif event.keysym in ("Alt_L", "Alt_R", "Shift_L", "Shift_R"):
             self.release_mouse()
 
-        elif event.keysym in ("Alt_L",):
+        elif event.keysym in ("Control_L", "Control_R"):
             self.cycle_corners()
 
         elif event.keysym in [str(i) for i in range(1, 10)]:

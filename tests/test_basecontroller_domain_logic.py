@@ -225,7 +225,7 @@ class TestBaseControllerDomainLogic(object):
     ## BaseController.update_positioning
     def test_BaseController_update_positioning_calls_set_changed(self, mocker):
         controller = controller_mocked_next(mocker)
-        mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
+        mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
         x, y = 440, 441
         controller.state = Settings.LOCATE
         mocked_setting = mocker.patch("arrangeit.base.Settings")
@@ -286,7 +286,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_update_positioning_for_resizable_sets_state(self, mocker):
         controller = controller_mocked_next(mocker)
         controller.model.resizable = True
-        mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
+        mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
         mocked_next = mocker.patch("arrangeit.base.BaseController.next")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.LOCATE
@@ -301,7 +301,7 @@ class TestBaseControllerDomainLogic(object):
     ):
         controller = controller_mocked_next(mocker)
         controller.model.resizable = True
-        mocked = mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
+        mocked = mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.LOCATE
         controller.update_positioning(101, 202)
