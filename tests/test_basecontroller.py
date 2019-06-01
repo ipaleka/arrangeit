@@ -419,6 +419,9 @@ class TestBaseController(object):
     def test_BaseController_change_size_valid_x_and_y(self, mocker):
         view = mocked_setup_view(mocker)
         mocked_settings = mocker.patch("arrangeit.base.Settings")
+        screen_w, screen_h = 2000, 2000
+        view.return_value.master.winfo_screenwidth.return_value = screen_w
+        view.return_value.master.winfo_screenheight.return_value = screen_h
         SHIFT = 10
         type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
             return_value=SHIFT
@@ -434,6 +437,29 @@ class TestBaseController(object):
         assert view.return_value.master.geometry.call_count == 1
         view.return_value.master.geometry.assert_called_with(
             "{}x{}".format(x - changed_x + SHIFT, y - changed_y + SHIFT)
+        )
+
+    def test_BaseController_change_size_valid_x_and_y_with_min(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        screen_w, screen_h = 1000, 1000
+        view.return_value.master.winfo_screenwidth.return_value = screen_w
+        view.return_value.master.winfo_screenheight.return_value = screen_h
+        SHIFT = 10
+        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=SHIFT
+        )
+        type(mocked_settings).WINDOW_MIN_WIDTH = mocker.PropertyMock(return_value=100)
+        type(mocked_settings).WINDOW_MIN_HEIGHT = mocker.PropertyMock(return_value=100)
+        x, y = 1200, 1200
+        changed_x, changed_y = 240, 250
+        controller = controller_mocked_app(mocker)
+        controller.model = base.WindowModel(rect=(x, y, 800, 800))
+        controller.model.set_changed(x=changed_x, y=changed_y)
+        controller.change_size(x, y)
+        assert view.return_value.master.geometry.call_count == 1
+        view.return_value.master.geometry.assert_called_with(
+            "{}x{}".format(screen_w - changed_x, screen_h - changed_y)
         )
 
     @pytest.mark.parametrize(

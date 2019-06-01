@@ -464,12 +464,15 @@ class BaseController(object):
             x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH
             and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT
         ):
-            self.view.master.geometry(
-                "{}x{}".format(
-                    x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
-                    y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
-                )
+            w = min(
+                x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
+                self.view.master.winfo_screenwidth() - self.model.changed_x,
             )
+            h = min(
+                y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
+                self.view.master.winfo_screenheight() - self.model.changed_y,
+            )
+            self.view.master.geometry("{}x{}".format(w, h))
         else:
             self.view.master.geometry(
                 "{}x{}".format(Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT)
