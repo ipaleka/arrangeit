@@ -237,9 +237,9 @@ class TestBaseControllerDomainLogic(object):
     ):
         controller = controller_mocked_next(mocker)
         SAMPLE = 2002
-        type(controller.model).resizable = mocker.PropertyMock(return_value=False)
-        type(controller.model).wid = mocker.PropertyMock(return_value=SAMPLE)
-        type(controller.model).changed = mocker.PropertyMock(return_value=(200, 200))
+        controller.model.resizable = False
+        controller.model.wid = SAMPLE
+        controller.model.changed = (200, 200)
         controller = base.BaseController(mocker.MagicMock())
         controller.update_positioning(101, 202)
         controller.app.run_task.assert_called_with("move", SAMPLE)
