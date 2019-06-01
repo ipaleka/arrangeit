@@ -294,7 +294,9 @@ class TestViewApplication(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_mouse_left_down")])
+    @pytest.mark.parametrize(
+        "event,method", [("<Button-1>", "on_mouse_left_down"), ("<Enter>", "on_focus")]
+    )
     def test_ViewApplication_setup_bindings_bind_callbacks(self, mocker, event, method):
         controller = mocker.MagicMock()
         view = ViewApplication(None, controller)

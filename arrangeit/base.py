@@ -77,6 +77,10 @@ class BaseApp(object):
         """Method must be overridden."""
         raise NotImplementedError
 
+    def activate_root(self, *args):
+        """Method must be overridden."""
+        raise NotImplementedError
+
     def rerun_from_window(self, wid, remove_before):
         """Restart positioning routine from the window with provided wid
 
@@ -532,10 +536,11 @@ class BaseController(object):
             self.model.x + Settings.WINDOW_SHIFT_PIXELS,
             self.model.y + Settings.WINDOW_SHIFT_PIXELS,
         )
-        self.on_mouse_move(
-            self.model.x + Settings.WINDOW_SHIFT_PIXELS,
-            self.model.y + Settings.WINDOW_SHIFT_PIXELS,
-        )
+        if self.state is None:
+            self.on_mouse_move(
+                self.model.x + Settings.WINDOW_SHIFT_PIXELS,
+                self.model.y + Settings.WINDOW_SHIFT_PIXELS,
+            )
 
     def place_on_right_bottom(self):
         """Changes and moves cursor to model's bottom right position
@@ -721,6 +726,12 @@ class BaseController(object):
         """Restarts positioning routine."""
         self.recapture_mouse()
         return "break"
+
+    def on_focus(self, event):
+        """Calls task top activate root if Tkinter has lost focus."""
+        if self.view.focus_get() is None:
+            self.app.run_task("activate_root", self.view.master.winfo_id())
+            return "break"
 
     ## MAIN LOOP
     def mainloop(self):

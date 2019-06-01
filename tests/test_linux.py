@@ -329,7 +329,33 @@ class TestLinuxApp(object):
         assert returned is True
 
     ## LinuxApp.move_to_workspace
-    def test_LinuxApp_move_to_workspace_calls__move_window_to_workspace(self, mocker):
+    def test_LinuxApp_activate_root_calls_get_window_stack(self, mocker):
+        mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
+        App().activate_root(100)
+        mocked.return_value.get_window_stack.assert_called_once()
+
+    def test_LinuxApp_activate_root_calls_window_focus(self, mocker):
+        mocked_screen = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
+        SAMPLE = 100
+        window = mocker.MagicMock()
+        window.get_xid.return_value = SAMPLE + 1
+        mocked_screen.return_value.get_window_stack.return_value = [window, ]
+        App().activate_root(SAMPLE)
+        window.focus.assert_called_once()
+        window.focus.assert_called_with(X.CurrentTime)
+
+    def test_LinuxApp_activate_root_not_calling_window_focus(self, mocker):
+        mocked_screen = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
+        SAMPLE = 100
+        window = mocker.MagicMock()
+        window.get_xid.return_value = 8000
+        mocked_screen.return_value.get_window_stack.return_value = [window, ]
+        App().activate_root(SAMPLE)
+        window.focus.assert_not_called()
+
+
+    ## LinuxApp.activate_root
+    def test_LinuxApp_activate_root_calls__move_window_to_workspace(self, mocker):
         mocked = mocker.patch("arrangeit.linux.app.App._move_window_to_workspace")
         app = App()
         app.move_to_workspace(100, 1001)

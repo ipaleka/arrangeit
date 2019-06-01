@@ -136,6 +136,7 @@ class App(BaseApp):
         """Moves root window to provided custom workspace number.
 
         Calls `_move_window_to_workspace` with wid increased by 1.
+
         FIXME possible nasty hack wid+1
 
         :param wid: root id got from Tkinter
@@ -144,3 +145,19 @@ class App(BaseApp):
         :type number: int
         """
         return self._move_window_to_workspace(wid + 1, number)
+
+    def activate_root(self, wid):
+        """Activates/focuses root window.
+
+        FIXME possible nasty hack wid+1
+        """
+        window = next(
+            (
+                win
+                for win in Gdk.Screen.get_default().get_window_stack()
+                if win.get_xid() == wid + 1
+            ),
+            None,
+        )
+        if window is not None:
+            window.focus(X.CurrentTime)

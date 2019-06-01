@@ -112,6 +112,7 @@ class TestBaseApp(object):
             ("move", (50,)),
             ("move_and_resize", (100,)),
             ("move_to_workspace", (50001, 1001)),
+            ("activate_root", (100,)),
             ("rerun_from_window", (20001,)),
             ("save_default", ()),
         ],
@@ -145,6 +146,12 @@ class TestBaseApp(object):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move_to_workspace()
+
+    ## BaseApp.activate_root
+    def test_BaseApp_activate_root_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().activate_root()
 
     ## BaseApp.save_default
     def test_BaseApp_save_default_calls_platform_user_data_path(self, mocker):

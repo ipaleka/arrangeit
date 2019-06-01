@@ -29,7 +29,7 @@ def get_screenshot_widget(root):
     return label
 
 
-# NOTE following 3 functions probably should be moved somewhere else
+# NOTE following 4 functions probably should be moved somewhere else
 
 
 def get_mouse_listener(callback):
@@ -118,6 +118,7 @@ class ViewApplication(tk.Frame):
         self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)
         self.bind_all("<Key>", self.controller.on_key_pressed)
+        self.bind("<Enter>", self.controller.on_focus)
 
     def reset_bindings(self):
         """Unbinds all relevant events and binds those for positioning routine."""
