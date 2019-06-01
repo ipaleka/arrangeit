@@ -432,19 +432,17 @@ class BaseController(object):
             if offset and offset != (0, 0):
                 return move_cursor(x + offset[0], y + offset[1])
 
-        new_x, new_y = x, y
-        if self.state == 0 or self.state is None:
-            new_x -= Settings.WINDOW_SHIFT_PIXELS
-            new_y -= Settings.WINDOW_SHIFT_PIXELS
-        elif self.state == 1:
-            new_x -= self.view.master.winfo_width() - Settings.WINDOW_SHIFT_PIXELS
-            new_y -= Settings.WINDOW_SHIFT_PIXELS
+        new_x, new_y = (
+            x - Settings.WINDOW_SHIFT_PIXELS,
+            y - Settings.WINDOW_SHIFT_PIXELS,
+        )
+        if self.state == 1:
+            new_x -= self.view.master.winfo_width() - 2 * Settings.WINDOW_SHIFT_PIXELS
         elif self.state == 2:
-            new_x -= self.view.master.winfo_width() - Settings.WINDOW_SHIFT_PIXELS
-            new_y -= self.view.master.winfo_height() - Settings.WINDOW_SHIFT_PIXELS
+            new_x -= self.view.master.winfo_width() - 2 * Settings.WINDOW_SHIFT_PIXELS
+            new_y -= self.view.master.winfo_height() - 2 * Settings.WINDOW_SHIFT_PIXELS
         elif self.state == 3:
-            new_x -= Settings.WINDOW_SHIFT_PIXELS
-            new_y -= self.view.master.winfo_height() - Settings.WINDOW_SHIFT_PIXELS
+            new_y -= self.view.master.winfo_height() - 2 * Settings.WINDOW_SHIFT_PIXELS
 
         self.view.master.geometry("+{}+{}".format(new_x, new_y))
 
@@ -546,8 +544,16 @@ class BaseController(object):
         """
         self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
         move_cursor(
-            self.model.changed_x + self.model.w - Settings.WINDOW_SHIFT_PIXELS,
-            self.model.changed_y + self.model.h - Settings.WINDOW_SHIFT_PIXELS,
+            min(
+                self.model.changed_x + self.model.w,
+                self.view.master.winfo_screenwidth(),
+            )
+            - Settings.WINDOW_SHIFT_PIXELS,
+            min(
+                self.model.changed_y + self.model.h,
+                self.view.master.winfo_screenheight(),
+            )
+            - Settings.WINDOW_SHIFT_PIXELS,
         )
 
     def remove_listed_window(self, wid):
@@ -579,7 +585,10 @@ class BaseController(object):
         self.state = Settings.LOCATE
         self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
         self.set_default_geometry(self.view.master)
-        move_cursor(self.view.master.winfo_x(), self.view.master.winfo_y())
+        move_cursor(
+            self.view.master.winfo_x() + Settings.WINDOW_SHIFT_PIXELS,
+            self.view.master.winfo_y() + Settings.WINDOW_SHIFT_PIXELS,
+        )
         self.listener = get_mouse_listener(self.on_mouse_move)
         self.listener.start()
 

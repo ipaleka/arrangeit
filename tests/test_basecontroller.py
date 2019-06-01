@@ -418,7 +418,7 @@ class TestBaseController(object):
         changed_x, changed_y = 100, 200
         controller = controller_mocked_app(mocker)
         controller.model = base.WindowModel(rect=(x, y, 400, 400))
-        controller.model.set_changed(x=changed_x,y=changed_y)
+        controller.model.set_changed(x=changed_x, y=changed_y)
         controller.change_size(x, y)
         assert view.return_value.master.geometry.call_count == 1
         view.return_value.master.geometry.assert_called_with(
@@ -552,16 +552,24 @@ class TestBaseController(object):
     ## BaseController.place_on_right_bottom
     def test_BaseController_place_on_right_bottom_calls_cursor_config(self, mocker):
         view = mocked_setup_view(mocker)
+        view.return_value.master.winfo_screenwidth.return_value = 2000
+        view.return_value.master.winfo_screenheight.return_value = 2000
         mocker.patch("arrangeit.base.move_cursor")
-        mocker.patch("arrangeit.base.WindowModel")
+        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         controller = controller_mocked_app(mocker)
+        controller.model = base.WindowModel(rect=(50, 50, 100, 100))
         controller.state = Settings.RESIZE
         controller.place_on_right_bottom()
         calls = [mocker.call(cursor=Settings.CORNER_CURSOR[controller.state % 10])]
         view.return_value.master.config.assert_has_calls(calls, any_order=True)
 
-    def test_BaseController_place_on_right_bottom_calls_move_cursor(self, mocker):
-        mocked_setup(mocker)
+    def test_BaseController_place_on_right_bottom_greater_screen_calls_move_cursor(
+        self, mocker
+    ):
+        view = mocked_setup_view(mocker)
+        screen_w, screen_h = 2000, 2000
+        view.return_value.master.winfo_screenwidth.return_value = screen_w
+        view.return_value.master.winfo_screenheight.return_value = screen_h
         mocked = mocker.patch("arrangeit.base.move_cursor")
         x, y, w, h = 201, 202, 203, 204
         model = mocker.patch("arrangeit.base.WindowModel")
@@ -570,11 +578,36 @@ class TestBaseController(object):
         type(model.return_value).w = mocker.PropertyMock(return_value=w)
         type(model.return_value).h = mocker.PropertyMock(return_value=h)
         mocked_setting = mocker.patch("arrangeit.base.Settings")
-        type(mocked_setting).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(return_value=0)
+        SHIFT = 10
+        type(mocked_setting).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(return_value=SHIFT)
         controller = controller_mocked_app(mocker)
         controller.state = Settings.RESIZE
         controller.place_on_right_bottom()
-        mocked.assert_called_with(x + w, y + h)
+        mocked.assert_called_with(
+            x + w - SHIFT, y + h - SHIFT
+        )
+
+    def test_BaseController_place_on_right_bottom_calls_move_cursor_with_min(
+        self, mocker
+    ):
+        view = mocked_setup_view(mocker)
+        screen_w, screen_h = 1000, 1000
+        view.return_value.master.winfo_screenwidth.return_value = screen_w
+        view.return_value.master.winfo_screenheight.return_value = screen_h
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        x, y, w, h = 201, 202, 1400, 1500
+        model = mocker.patch("arrangeit.base.WindowModel")
+        type(model.return_value).changed_x = mocker.PropertyMock(return_value=x)
+        type(model.return_value).changed_y = mocker.PropertyMock(return_value=y)
+        type(model.return_value).w = mocker.PropertyMock(return_value=w)
+        type(model.return_value).h = mocker.PropertyMock(return_value=h)
+        mocked_setting = mocker.patch("arrangeit.base.Settings")
+        SHIFT = 10
+        type(mocked_setting).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(return_value=SHIFT)
+        controller = controller_mocked_app(mocker)
+        controller.state = Settings.RESIZE
+        controller.place_on_right_bottom()
+        mocked.assert_called_with(screen_w - SHIFT, screen_h - SHIFT)
 
     ## BaseController.remove_listed_window
     def test_BaseController_remove_listed_window_calls_widget_destroy(self, mocker):
@@ -682,12 +715,17 @@ class TestBaseController(object):
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
         mocker.patch("arrangeit.base.get_mouse_listener")
         mocked = mocker.patch("arrangeit.base.move_cursor")
+        mocked_setting = mocker.patch("arrangeit.base.Settings")
+        SHIFT = 10
+        type(mocked_setting).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=SHIFT
+        )
         controller = controller_mocked_app(mocker)
         controller.recapture_mouse()
         mocked.assert_called_once()
         mocked.assert_called_with(
-            view.return_value.master.winfo_x.return_value,
-            view.return_value.master.winfo_y.return_value,
+            view.return_value.master.winfo_x.return_value + SHIFT,
+            view.return_value.master.winfo_y.return_value + SHIFT,
         )
 
     def test_BaseController_recapture_mouse_calls_get_mouse_listener(self, mocker):

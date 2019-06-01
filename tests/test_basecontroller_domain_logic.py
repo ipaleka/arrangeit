@@ -225,12 +225,16 @@ class TestBaseControllerDomainLogic(object):
     ## BaseController.update_positioning
     def test_BaseController_update_positioning_calls_set_changed(self, mocker):
         controller = controller_mocked_next(mocker)
+        mocker.patch("arrangeit.base.BaseController.place_on_right_bottom")
         x, y = 440, 441
         controller.state = Settings.LOCATE
-        controller.update_positioning(x, y)
-        controller.model.set_changed.assert_called_with(
-            x=x - Settings.WINDOW_SHIFT_PIXELS, y=y - Settings.WINDOW_SHIFT_PIXELS
+        mocked_setting = mocker.patch("arrangeit.base.Settings")
+        SHIFT = 10
+        type(mocked_setting).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=SHIFT
         )
+        controller.update_positioning(x, y)
+        controller.model.set_changed.assert_called_with(x=x - SHIFT, y=y - SHIFT)
 
     def test_BaseController_update_positioning_calls_run_task_move_window_not_resizable(
         self, mocker
