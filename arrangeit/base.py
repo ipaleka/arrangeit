@@ -404,9 +404,9 @@ class BaseController(object):
                 h=self.view.master.winfo_height(),
             )
         elif self.state == Settings.RESIZE + 2:
-            w, h = self.model.wh_from_ending_xy(x, y)  # TODO delete this method
             self.model.set_changed(
-                w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+                w=self.view.master.winfo_width(),
+                h=self.view.master.winfo_height(),
             )
         elif self.state == Settings.RESIZE + 3:
             self.model.set_changed(
@@ -467,9 +467,9 @@ class BaseController(object):
             x - Settings.WINDOW_SHIFT_PIXELS,
             y - Settings.WINDOW_SHIFT_PIXELS,
         )
-        if self.state % 3:
+        if self.state % 3:  # 1 and 2 have different new_x
             new_x -= self.view.master.winfo_width() - 2 * Settings.WINDOW_SHIFT_PIXELS
-        if self.state // 2:
+        if self.state // 2:  # 2 and 3 have different new_y
             new_y -= self.view.master.winfo_height() - 2 * Settings.WINDOW_SHIFT_PIXELS
 
         self.view.master.geometry("+{}+{}".format(new_x, new_y))
@@ -536,11 +536,7 @@ class BaseController(object):
                     )
                 )
             else:
-                self.view.master.geometry(
-                    "{}x{}".format(
-                        Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT
-                    )
-                )
+                self.set_minimum_size()
 
         elif self.state == Settings.RESIZE + 3:
             w = min(
@@ -692,20 +688,6 @@ class BaseController(object):
                 )
                 - Settings.WINDOW_SHIFT_PIXELS,
             )
-            # print(self.default_size[0], self.default_size[1])
-
-            # print(
-            #     "moved_x, ch_x, mod_w: ",
-            #     self.model.changed_x - self.model.w,
-            #     self.model.changed_x,
-            #     self.model.w,
-            # )
-            # print(
-            #     "moved_y, ch_y, mod_h: ",
-            #     self.model.changed_y + self.model.h,
-            #     self.model.changed_y,
-            #     self.model.h,
-            # )
 
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.
@@ -747,6 +729,17 @@ class BaseController(object):
         """Stops mouse listener and destroys Tkinter root window."""
         self.listener.stop()
         self.view.master.destroy()
+
+    def set_minimum_size(self):
+        """Sets root window size to minimum size defined in settings."""
+        self.view.master.geometry(
+            "{}x{}+{}+{}".format(
+                Settings.WINDOW_MIN_WIDTH,
+                Settings.WINDOW_MIN_HEIGHT,
+                self.model.changed_x,
+                self.model.changed_y,
+            )
+        )
 
     def setup_corner(self):
         self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state])

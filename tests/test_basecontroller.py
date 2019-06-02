@@ -521,15 +521,16 @@ class TestBaseController(object):
 
     # TODO corners 0, 1 and 3
     @pytest.mark.parametrize(
-        "x,y,changed",
+        "corner,x,y,changed",
         [
-            (100, 200, (120, 120, 120, 120)),
-            (200, 100, (120, 120, 120, 120)),
-            (100, 100, (120, 120, 120, 120)),
+            (2, 100, 200, (120, 120, 120, 120)),
+            (2, 200, 100, (120, 120, 120, 120)),
+            (2, 100, 100, (120, 120, 120, 120)),
         ],
     )
-    def test_BaseController_change_size_invalid_xy(self, mocker, x, y, changed):
+    def test_BaseController_change_size_invalid_xy_calls_set_minimum_size(self, mocker, corner, x, y, changed):
         view = mocked_setup_view(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.set_minimum_size")
         model = mocker.patch("arrangeit.base.WindowModel")
         type(model.return_value).changed_x = mocker.PropertyMock(
             return_value=changed[0]
@@ -537,13 +538,24 @@ class TestBaseController(object):
         type(model.return_value).changed_y = mocker.PropertyMock(
             return_value=changed[1]
         )
-        controller = controller_mocked_app(mocker)
-        controller.state = Settings.RESIZE + 2
-        controller.change_size(x, y)
-        assert view.return_value.master.geometry.call_count == 1
-        view.return_value.master.geometry.assert_called_with(
-            "{}x{}".format(Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        MIN_W, MIN_H = 100, 40
+        type(mocked_settings).WINDOW_MIN_WIDTH = mocker.PropertyMock(
+            return_value=MIN_W
         )
+        type(mocked_settings).WINDOW_MIN_HEIGHT = mocker.PropertyMock(
+            return_value=MIN_H
+        )
+        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=10
+        )
+        type(mocked_settings).RESIZE = mocker.PropertyMock(
+            return_value=10
+        )
+        controller = controller_mocked_app(mocker)
+        controller.state = Settings.RESIZE + corner
+        controller.change_size(x, y)
+        mocked.assert_called_once()
 
     ## BaseController.cycle_corners
     def test_BaseController_cycle_corners_calls_setup_corner(self, mocker):
@@ -701,7 +713,7 @@ class TestBaseController(object):
         "state,x,y,w,h,expected_x,expected_y",
         [
             (Settings.RESIZE, 201, 202, 1400, 1500, 10, 10),
-            # (Settings.RESIZE + 1, 201, 202, 1400, 1500, 990, 1000),
+            (Settings.RESIZE + 1, 201, 202, 1400, 1500, 990, 10),
             (Settings.RESIZE + 2, 201, 202, 1400, 1500, 990, 1000),
             (Settings.RESIZE + 3, 201, 202, 1400, 1500, 10, 1000),
         ],
@@ -892,6 +904,32 @@ class TestBaseController(object):
         controller.listener = mocker.MagicMock()
         controller.shutdown()
         assert view.return_value.master.destroy.call_count == 1
+
+    ## BaseController.set_minimum_size
+    def test_BaseController_set_minimum_size_functionality(self, mocker):
+        view = mocked_setup_view(mocker)
+        model = mocker.patch("arrangeit.base.WindowModel")
+        changed_x, changed_y = 401, 402
+        type(model.return_value).changed_x = mocker.PropertyMock(
+            return_value=changed_x
+        )
+        type(model.return_value).changed_y = mocker.PropertyMock(
+            return_value=changed_y
+        )
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        MIN_W, MIN_H = 100, 40
+        type(mocked_settings).WINDOW_MIN_WIDTH = mocker.PropertyMock(
+            return_value=MIN_W
+        )
+        type(mocked_settings).WINDOW_MIN_HEIGHT = mocker.PropertyMock(
+            return_value=MIN_H
+        )
+        controller = controller_mocked_app(mocker)
+        controller.set_minimum_size()
+        assert view.return_value.master.geometry.call_count == 1
+        view.return_value.master.geometry.assert_called_with(
+            "{}x{}+{}+{}".format(MIN_W, MIN_H, changed_x, changed_y)
+        )
 
     ## BaseController.setup_corner
     @pytest.mark.parametrize("state", [0, 1, 2, 3])

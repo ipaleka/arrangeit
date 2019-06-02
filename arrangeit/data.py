@@ -49,18 +49,6 @@ class WindowModel(object):
         for attr, typ in Settings.WINDOW_MODEL_TYPES.items():
             setattr(self, attr, get_value_if_valid_type(kwargs.get(attr), typ))
 
-    def wh_from_ending_xy(self, x, y):
-        """Returns (width, height) for model rect from provided x and y
-
-        if provided point is greater than changed x and y (set during Settings.LOCATE phase),
-        otherwise returns two-tuple of None.
-
-        :returns: (int, int) or (None, None)
-        """
-        if x > self.changed_x and y > self.changed_y:
-            return (x - self.changed_x, y - self.changed_y)
-        return (None, None)
-
     def set_changed(self, **kwargs):
         """Creates `changed` attribute from provided arguments.
 

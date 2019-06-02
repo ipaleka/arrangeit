@@ -87,27 +87,6 @@ class TestWindowModel(object):
             else:
                 assert getattr(wm, key) == ()
 
-    ## WindowModel.wh_from_ending_xy
-    @pytest.mark.parametrize(
-        "x,y,old_x,old_y",
-        [(200, 300, 100, 200), (100, 100, 50, 50), (1500, 200, 1400, 100)],
-    )
-    def test_WindowModel_wh_from_ending_xy_for_greater_xy(self, x, y, old_x, old_y):
-        model = WindowModel(rect=SAMPLE_RECT)
-        model.set_changed(x=old_x, y=old_y)
-        wh = model.wh_from_ending_xy(x, y)
-        assert wh == (x - old_x, y - old_y)
-
-    @pytest.mark.parametrize(
-        "x,y,old_x,old_y",
-        [(200, 300, 201, 200), (100, 100, 50, 500), (1500, 200, 1600, 300)],
-    )
-    def test_WindowModel_wh_from_ending_xy_for_invalid_xy(self, x, y, old_x, old_y):
-        model = WindowModel(rect=SAMPLE_RECT)
-        model.set_changed(x=old_x, y=old_y)
-        wh = model.wh_from_ending_xy(x, y)
-        assert wh == (None, None)
-
     ## WindowModel.set_changed
     @pytest.mark.parametrize("ws", [1000, 0, 2002, 1])
     def test_WindowModel_set_changed_sets_changed_ws_for_provided_ws(self, ws):

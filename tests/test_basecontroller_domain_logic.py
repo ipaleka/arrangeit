@@ -187,9 +187,13 @@ class TestBaseControllerDomainLogic(object):
         mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         controller.next(True)
         mocked.assert_called_once()
-        mocked.assert_called_with(x + Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS)
+        mocked.assert_called_with(
+            x + Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
+        )
 
-    def test_BaseController_next_not_calling_on_mouse_move_for_first_time_False(self, mocker):
+    def test_BaseController_next_not_calling_on_mouse_move_for_first_time_False(
+        self, mocker
+    ):
         controller = controller_mocked_for_next(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         controller.next(False)
@@ -319,34 +323,6 @@ class TestBaseControllerDomainLogic(object):
         controller.update_positioning(101, 202)
         mocked.assert_called_once()
 
-    ## BaseController.update_resizing
-    @pytest.mark.parametrize("state", [Settings.RESIZE + 2])
-    def test_BaseController_update_resizing_calls_wh_from_ending_xy(
-        self, mocker, state
-    ):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.next")
-        mocked = mocker.patch("arrangeit.base.WindowModel")
-        mocked.return_value.wh_from_ending_xy.return_value = (100, 100)
-        controller = base.BaseController(mocker.MagicMock())
-        controller.state = state
-        x, y = 304, 406
-        controller.update_resizing(x, y)
-        mocked.return_value.wh_from_ending_xy.assert_called_with(x, y)
-
-    @pytest.mark.parametrize("state", [Settings.RESIZE + 3])
-    def test_BaseController_update_resizing_not_calling_wh_from_ending_xy(
-        self, mocker, state
-    ):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.next")
-        mocked = mocker.patch("arrangeit.base.WindowModel")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.state = state
-        x, y = 304, 406
-        controller.update_resizing(x, y)
-        mocked.return_value.wh_from_ending_xy.assert_not_called()
-
     def test_BaseController_update_resizing_corner_0_calls_set_changed(self, mocker):
         view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
@@ -379,17 +355,16 @@ class TestBaseControllerDomainLogic(object):
         )
 
     def test_BaseController_update_resizing_corner_2_calls_set_changed(self, mocker):
-        mocked_setup(mocker)
+        view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
         mocked = mocker.patch("arrangeit.base.WindowModel")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.RESIZE + 2
-        w, h = 400, 505
-        mocked.return_value.wh_from_ending_xy.return_value = (w, h)
-        controller.update_resizing(101, 202)
-        mocked.return_value.set_changed.assert_called_with(
-            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
-        )
+        x, y, w, h = 158, 159, 310, 380
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = h
+        controller.update_resizing(x, y)
+        mocked.return_value.set_changed.assert_called_with(w=w, h=h)
 
     def test_BaseController_update_resizing_corner_3_calls_set_changed(self, mocker):
         view = mocked_setup_view(mocker)
@@ -411,7 +386,6 @@ class TestBaseControllerDomainLogic(object):
         controller = controller_mocked_next(mocker)
         SAMPLE = 5005
         controller.model.wid = SAMPLE
-        controller.model.wh_from_ending_xy.return_value = (10, 10)
         controller.model.changed = (200, 200)
         controller = base.BaseController(mocker.MagicMock())
         controller.update_resizing(101, 202)
@@ -423,7 +397,6 @@ class TestBaseControllerDomainLogic(object):
         controller = controller_mocked_next(mocker)
         SAMPLE = 5005
         controller.model.wid = SAMPLE
-        controller.model.wh_from_ending_xy.return_value = (10, 10)
         controller.model.changed = ()
         controller.model.is_ws_changed = True
         controller = base.BaseController(mocker.MagicMock())
@@ -435,7 +408,6 @@ class TestBaseControllerDomainLogic(object):
     ):
         controller = controller_mocked_next(mocker)
         controller.model.wid = 5412
-        controller.model.wh_from_ending_xy.return_value = (10, 10)
         controller.model.changed = ()
         controller.model.is_ws_changed = False
         controller = base.BaseController(mocker.MagicMock())
@@ -444,7 +416,6 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_update_resizing_calls_next(self, mocker):
         controller = controller_mocked_next(mocker)
-        controller.model.wh_from_ending_xy.return_value = (100, 100)
         mocked = mocker.patch("arrangeit.base.BaseController.next")
         controller = base.BaseController(mocker.MagicMock())
         controller.update_resizing(100, 100)
