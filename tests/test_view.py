@@ -8,7 +8,6 @@ from arrangeit.view import (
     get_tkinter_root,
     get_screenshot_widget,
     get_mouse_listener,
-    click_left,
     move_cursor,
     cursor_position,
     WorkspacesCollection,
@@ -66,18 +65,6 @@ class TestViewFunctions(object):
         mocked = mocker.patch("pynput.mouse.Listener")
         returned = get_mouse_listener(mocker.MagicMock(), mocker.MagicMock())
         assert returned == mocked.return_value
-
-    ## click_left
-    def test_click_left_initializes_Controller(self, mocker):
-        mocked = mocker.patch("arrangeit.view.mouse.Controller")
-        click_left()
-        mocked.assert_called()
-
-    def test_click_left_calls_press_and_release(self, mocker):
-        mocked = mocker.patch("pynput.mouse.Controller")
-        click_left()
-        mocked.return_value.press.assert_called_once()
-        mocked.return_value.release.assert_called_once()
 
     ## move_cursor
     def test_move_cursor_initializes_Controller(self, mocker):

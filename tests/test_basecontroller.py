@@ -1267,7 +1267,7 @@ class TestBaseController(object):
         base.BaseController(mocker.MagicMock()).on_focus(mocker.MagicMock())
         assert view.return_value.focus_get.call_count == 1
 
-    def test_BaseController_on_focus_calls_run_task(self, mocker):
+    def test_BaseController_on_focus_calls_run_task_activate_root(self, mocker):
         view = mocked_setup_view(mocker)
         view.return_value.focus_get.return_value = None
         app = mocker.MagicMock()

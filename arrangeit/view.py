@@ -29,7 +29,7 @@ def get_screenshot_widget(root):
     return label
 
 
-# NOTE following 4 functions probably should be moved somewhere else
+# NOTE following 2 functions probably should be moved somewhere else
 
 def get_mouse_listener(on_move_callback, on_scroll_callback):
     """Initializes mouse listener by binding it to provided callbacks and returns it.
@@ -37,13 +37,6 @@ def get_mouse_listener(on_move_callback, on_scroll_callback):
     :returns: :class:`mouse.Listener` instance
     """
     return mouse.Listener(on_move=on_move_callback, on_scroll=on_scroll_callback)
-
-
-def click_left():
-    """Makes a left button mouse click in the current cursor position."""
-    controller = mouse.Controller()
-    controller.press(mouse.Button.left)
-    controller.release(mouse.Button.left)
 
 
 def move_cursor(x, y):

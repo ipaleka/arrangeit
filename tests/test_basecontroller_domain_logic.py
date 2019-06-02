@@ -54,11 +54,13 @@ class TestBaseControllerDomainLogic(object):
         controller.run(mocker.MagicMock())
         assert controller.listener.start.call_count == 1
 
-    def test_BaseController_run_calls_click_left(self, mocker):
+    def test_BaseController_run_calls_activate_root_task(self, mocker):
         controller = controller_mocked_for_run(mocker)
-        mocked = mocker.patch("arrangeit.base.click_left")
         controller.run(mocker.MagicMock())
-        mocked.assert_called_once()
+        controller.app.run_task.assert_called_once()
+        controller.app.run_task.assert_called_with(
+            "activate_root", controller.view.master.winfo_id.return_value
+        )
 
     def test_BaseController_run_calls_mainloop(self, mocker):
         controller = controller_mocked_for_run(mocker)

@@ -34,7 +34,6 @@ def controller_mocked_for_run(mocker):
     mocker.patch("arrangeit.base.BaseController.prepare_view")
     mocker.patch("arrangeit.base.BaseController.next")
     mocker.patch("arrangeit.base.get_mouse_listener")
-    mocker.patch("arrangeit.base.click_left")
     return base.BaseController(mocker.MagicMock())
 
 

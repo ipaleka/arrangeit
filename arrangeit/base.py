@@ -14,7 +14,6 @@ from arrangeit.utils import (
 )
 from arrangeit.view import (
     get_mouse_listener,
-    click_left,
     cursor_position,
     move_cursor,
     get_tkinter_root,
@@ -284,7 +283,7 @@ class BaseController(object):
         by calling :func:`BaseController.next` for the first time.
         Calls view application startup routine to show root and calculate
         visible parameters.
-        Calls `click_left` and so activates Tkinter root window.
+        Also brings global focus to root window.
         """
         self.prepare_view()
 
@@ -296,7 +295,7 @@ class BaseController(object):
 
         self.view.startup()
 
-        click_left()  # TODO try with Wnck.Window.activate on GNU/Linux instead
+        self.app.run_task("activate_root", self.view.master.winfo_id())
 
         self.mainloop()
 
