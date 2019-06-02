@@ -164,7 +164,7 @@ class BaseController(object):
     :type BaseController.view: :class:`ViewApplication` instance
     :var listener: Tkinter application showing main window
     :type listener: :class:`ViewApplication` instance
-    :var state: controller's state (LOCATE, RESIZE or OTHER)
+    :var state: controller's state (LOCATE+0..3, RESIZE+0..3 or OTHER)
     :type state: int
     :var default_size: available screen size (width, height)
     :type default_size: (int, int)
@@ -272,7 +272,7 @@ class BaseController(object):
     @property
     def resizing_state_counterpart(self):
         """Returns resizing state counterpart of current positioning state."""
-        return 10 + (self.state + 2) % 4
+        return Settings.RESIZE + (self.state + 2) % 4
 
     ## DOMAIN LOGIC
     def run(self, generator):
@@ -303,6 +303,8 @@ class BaseController(object):
         """Sets controller ``model`` attribute from the value yielded from ``generator``
 
         and populates view widgets with new model data.
+
+        Sets program to be in positioning phase by setting LOCATE state.
         Also changes and moves cursor and root window to model's window position.
         Grabs and sets screenshot image of the model's window.
         If there are no values left in collection then saves and exits app.
@@ -314,6 +316,8 @@ class BaseController(object):
         :type first_time: Boolean
         :returns: Boolean
         """
+        self.state = Settings.LOCATE
+
         old_workspace = self.model.changed_ws or self.model.workspace
         try:
             self.model = next(self.generator)
@@ -323,7 +327,6 @@ class BaseController(object):
             return True
 
         if not first_time:
-            self.state = Settings.LOCATE  # we need state to be None during startup
             self.remove_listed_window(self.model.wid)
             if self.model.workspace != old_workspace:
                 self.switch_workspace()
@@ -333,23 +336,23 @@ class BaseController(object):
         self.set_default_geometry(self.view.master)
         self.view.update_widgets(self.model)
         self.place_on_top_left()
+        if first_time:
+            self.on_mouse_move(
+                self.model.x + Settings.WINDOW_SHIFT_PIXELS,
+                self.model.y + Settings.WINDOW_SHIFT_PIXELS,
+            )
 
         return False
 
     def update(self, x, y):
         """Calls corresponding state related update method.
 
-        Sets state to LOCATE if this is the very first call to this method.
-
         :param x: current horizontal axis mouse position in pixels
         :type x: int
         :param y: current vertical axis mouse position in pixels
         :type y: int
         """
-        if self.state is None:
-            self.state = Settings.LOCATE
-
-        elif self.state < Settings.RESIZE:  # implies LOCATE
+        if self.state < Settings.RESIZE:  # implies LOCATE
             return self.update_positioning(x, y)
 
         elif self.state < Settings.OTHER:  # implies RESIZE
@@ -464,12 +467,9 @@ class BaseController(object):
             x - Settings.WINDOW_SHIFT_PIXELS,
             y - Settings.WINDOW_SHIFT_PIXELS,
         )
-        if self.state == 1:
+        if self.state % 3:
             new_x -= self.view.master.winfo_width() - 2 * Settings.WINDOW_SHIFT_PIXELS
-        elif self.state == 2:
-            new_x -= self.view.master.winfo_width() - 2 * Settings.WINDOW_SHIFT_PIXELS
-            new_y -= self.view.master.winfo_height() - 2 * Settings.WINDOW_SHIFT_PIXELS
-        elif self.state == 3:
+        if self.state // 2:
             new_y -= self.view.master.winfo_height() - 2 * Settings.WINDOW_SHIFT_PIXELS
 
         self.view.master.geometry("+{}+{}".format(new_x, new_y))
@@ -621,11 +621,6 @@ class BaseController(object):
             self.model.x + Settings.WINDOW_SHIFT_PIXELS,
             self.model.y + Settings.WINDOW_SHIFT_PIXELS,
         )
-        if self.state is None:
-            self.on_mouse_move(
-                self.model.x + Settings.WINDOW_SHIFT_PIXELS,
-                self.model.y + Settings.WINDOW_SHIFT_PIXELS,
-            )
 
     def place_on_opposite_corner(self):
         """Changes and moves cursor to model's bottom right position
@@ -758,20 +753,20 @@ class BaseController(object):
 
         x, y = self.view.master.winfo_x(), self.view.master.winfo_y()
         w, h = self.view.master.winfo_width(), self.view.master.winfo_height()
-        if self.state == 0:
+        if self.state == Settings.LOCATE:
             move_cursor(
                 x + Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
             )
-        elif self.state == 1:
+        elif self.state == Settings.LOCATE + 1:
             move_cursor(
                 x + w - Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
             )
-        elif self.state == 2:
+        elif self.state == Settings.LOCATE + 2:
             move_cursor(
                 x + w - Settings.WINDOW_SHIFT_PIXELS,
                 y + h - Settings.WINDOW_SHIFT_PIXELS,
             )
-        elif self.state == 3:
+        elif self.state == Settings.LOCATE + 3:
             move_cursor(
                 x + Settings.WINDOW_SHIFT_PIXELS, y + h - Settings.WINDOW_SHIFT_PIXELS
             )
@@ -840,7 +835,7 @@ class BaseController(object):
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        if self.state is None or self.state < Settings.RESIZE:
+        if self.state < Settings.RESIZE:
             self.change_position(x, y)
 
         elif self.state < Settings.OTHER:

@@ -69,6 +69,12 @@ class TestBaseControllerDomainLogic(object):
         mocked.assert_called_once()
 
     ## BaseController.next
+    def test_BaseController_next_sets_state_attr_to_positioning_corner_0(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        controller.state == None
+        controller.next()
+        assert controller.state == Settings.LOCATE
+
     def test_BaseController_next_runs_generator(self, mocker):
         controller = controller_mocked_for_next(mocker)
         controller.next(True)
@@ -97,12 +103,6 @@ class TestBaseControllerDomainLogic(object):
         mocker.patch("arrangeit.base.BaseController.shutdown")
         returned = controller.next()
         assert returned
-
-    def test_BaseController_next_sets_state_to_LOCATE(self, mocker):
-        controller = controller_mocked_for_next(mocker)
-        controller.state = 5
-        controller.next()
-        assert controller.state == Settings.LOCATE
 
     def test_BaseController_next_calls_remove_listed_window(self, mocker):
         controller = controller_mocked_for_next(mocker)
@@ -178,20 +178,29 @@ class TestBaseControllerDomainLogic(object):
         controller.next(True)
         mocked.assert_called_once()
 
+    def test_BaseController_next_calls_on_mouse_move_for_first_time_True(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        x, y = 120, 130
+        controller.generator.__next__.return_value = base.WindowModel(
+            rect=(x, y, 100, 100)
+        )
+        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        controller.next(True)
+        mocked.assert_called_once()
+        mocked.assert_called_with(x + Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS)
+
+    def test_BaseController_next_not_calling_on_mouse_move_for_first_time_False(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        controller.next(False)
+        mocked.assert_not_called()
+
     def test_BaseController_next_returns_False(self, mocker):
         controller = controller_mocked_for_next(mocker)
         returned = controller.next(True)
         assert not returned
 
     ## BaseController.update
-    def test_BaseController_update_sets_state_to_LOCATE_for_None(self, mocker):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.update_positioning")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.state = None
-        controller.update(100, 100)
-        assert controller.state == Settings.LOCATE
-
     def test_BaseController_update_calls_update_positioning_for_LOCATE(self, mocker):
         mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.update_positioning")
@@ -366,9 +375,7 @@ class TestBaseControllerDomainLogic(object):
         view.return_value.master.winfo_height.return_value = h
         controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            y=y - Settings.WINDOW_SHIFT_PIXELS,
-            w=w,
-            h=h,
+            y=y - Settings.WINDOW_SHIFT_PIXELS, w=w, h=h
         )
 
     def test_BaseController_update_resizing_corner_2_calls_set_changed(self, mocker):

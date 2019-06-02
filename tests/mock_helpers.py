@@ -1,4 +1,5 @@
 from arrangeit import base
+from arrangeit.settings import Settings
 
 
 def mocked_setup(mocker):
@@ -45,6 +46,7 @@ def controller_mocked_for_next(mocker):
     controller = base.BaseController(mocker.MagicMock())
     controller.model = base.WindowModel(workspace=1)
     controller.generator = mocker.MagicMock(side_effect=[0, 1, 2])
+    controller.state = Settings.LOCATE
     return controller
 
 

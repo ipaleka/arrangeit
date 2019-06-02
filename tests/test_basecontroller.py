@@ -318,6 +318,7 @@ class TestBaseController(object):
         mocked_move_cursor = mocker.patch("arrangeit.base.move_cursor")
         x, y = 100, 200
         controller = controller_mocked_app(mocker)
+        controller.state = Settings.LOCATE
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
         type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(return_value=0)
@@ -368,6 +369,7 @@ class TestBaseController(object):
         mocked = mocker.patch("arrangeit.base.move_cursor")
         x, y = 105, 108
         controller = controller_mocked_app(mocker)
+        controller.state = Settings.LOCATE
         controller.change_position(x, y)
         mocked.assert_not_called()
 
@@ -648,39 +650,6 @@ class TestBaseController(object):
         controller.model = data.WindowModel(rect=(x, y, 100, 100))
         controller.place_on_top_left()
         mocked.assert_called_with(x + SHIFT, y + SHIFT)
-
-    def test_BaseController_place_on_top_left_calls_on_mouse_move_for_None(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.move_cursor")
-        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        x, y = 101, 202
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        SHIFT = 10
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
-            return_value=SHIFT
-        )
-        controller = controller_mocked_app(mocker)
-        controller.model = data.WindowModel(rect=(x, y, 100, 100))
-        controller.state = None
-        controller.place_on_top_left()
-        mocked.assert_called_with(x + SHIFT, y + SHIFT)
-
-    def test_BaseController_place_on_top_left_calls_not_calling_on_mouse_move(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.move_cursor")
-        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        # x, y = 101, 202
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(return_value=0)
-        controller = controller_mocked_app(mocker)
-        controller.model = data.WindowModel(rect=(10, 10, 100, 100))
-        controller.state = Settings.LOCATE
-        controller.place_on_top_left()
-        mocked.assert_not_called()
 
     ## BaseController.place_on_opposite_corner
     def test_BaseController_place_on_opposite_corner_calls_cursor_config(self, mocker):
@@ -1143,15 +1112,6 @@ class TestBaseController(object):
         assert returned == "break"
 
     ## BaseController.on_mouse_move
-    def test_BaseController_on_mouse_move_calls_change_position_for_None(self, mocker):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.change_position")
-        x, y = 100, 200
-        controller = controller_mocked_app(mocker)
-        controller.state = None
-        controller.on_mouse_move(x, y)
-        mocked.assert_called_with(x, y)
-
     def test_BaseController_on_mouse_move_calls_change_position_for_LOCATE(
         self, mocker
     ):
