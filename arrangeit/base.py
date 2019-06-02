@@ -167,6 +167,8 @@ class BaseController(object):
     :type listener: :class:`ViewApplication` instance
     :var state: controller's state (LOCATE, RESIZE or OTHER)
     :type state: int
+    :var default_size: available screen size (width, height)
+    :type default_size: (int, int)
     :var screenshot_widget: widget holding background image
     :type screenshot_widget: :class:`tk.Label`
     :var screenshot: screenshot image of the window model
@@ -181,6 +183,7 @@ class BaseController(object):
     view = None
     listener = None
     state = None
+    default_size = None
     screenshot_widget = None
     screenshot = None
     snapping_targets = None
@@ -231,10 +234,12 @@ class BaseController(object):
         :var height: root height in pixels
         :type height: int
         """
-        width, height = quarter_by_smaller(
-            root.winfo_screenwidth(), root.winfo_screenheight()
-        )
-        root.geometry("{}x{}".format(width, height))
+        if self.default_size is None:
+            width, height = quarter_by_smaller(
+                root.winfo_screenwidth(), root.winfo_screenheight()
+            )
+            self.default_size = (width, height)
+        root.geometry("{}x{}".format(*self.default_size))
 
     def prepare_view(self):
         """Populates view's workspaces and windows list widgets.
@@ -383,10 +388,17 @@ class BaseController(object):
         :param y: current vertical axis mouse position in pixels
         :type y: int
         """
-        w, h = self.model.wh_from_ending_xy(x, y)
-        self.model.set_changed(
-            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
-        )
+        if self.state == Settings.RESIZE + 2:
+            w, h = self.model.wh_from_ending_xy(x, y)
+            self.model.set_changed(
+                w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+            )
+        elif self.state == Settings.RESIZE + 3:
+            self.model.set_changed(
+                x=x - Settings.WINDOW_SHIFT_PIXELS,
+                w=self.view.master.winfo_width(),
+                h=self.view.master.winfo_height(),
+            )
         if self.model.changed or self.model.is_ws_changed:
             self.app.run_task("move_and_resize", self.model.wid)
         self.next()
@@ -460,23 +472,57 @@ class BaseController(object):
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        if (
-            x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH
-            and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT
-        ):
+        if self.state == Settings.RESIZE + 2:
+            if (
+                x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH
+                and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT
+            ):
+                w = min(
+                    x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
+                    self.view.master.winfo_screenwidth() - self.model.changed_x,
+                )
+                h = min(
+                    y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
+                    self.view.master.winfo_screenheight() - self.model.changed_y,
+                )
+                self.view.master.geometry("{}x{}".format(w, h))
+            else:
+                self.view.master.geometry(
+                    "{}x{}".format(
+                        Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT
+                    )
+                )
+        elif self.state == Settings.RESIZE + 3:
             w = min(
-                x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
-                self.view.master.winfo_screenwidth() - self.model.changed_x,
+                self.model.changed_x - x + 3 * Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_x + 2 * Settings.WINDOW_SHIFT_PIXELS
             )
             h = min(
                 y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
                 self.view.master.winfo_screenheight() - self.model.changed_y,
             )
-            self.view.master.geometry("{}x{}".format(w, h))
-        else:
             self.view.master.geometry(
-                "{}x{}".format(Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT)
+                "{}x{}+{}+{}".format(
+                    w, h, x - Settings.WINDOW_SHIFT_PIXELS, self.model.changed_y
+                )
             )
+
+            # w = self.model.changed_x - x +  3 * Settings.WINDOW_SHIFT_PIXELS
+            # h = y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS
+            # print("x, y, w, h: ", x, y, w, h)
+            # print("change size = ch_x, mod_w: ", self.model.changed_x, self.model.w)
+            # print("change size = ch_y, mod_h: ", self.model.changed_y, self.model.h)
+            # self.view.master.geometry(
+            #     "{}x{}+{}+{}".format(
+            #         w, h, x - Settings.WINDOW_SHIFT_PIXELS, self.model.changed_y
+            #     )
+            # )
+            # else:
+            #     self.view.master.geometry(
+            #         "{}x{}".format(
+            #             Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT
+            #         )
+            #     )
 
     def check_positioning_snapping(self, x, y):
         """Returns (x, y) offset if root window intersects with any collection window
@@ -554,18 +600,48 @@ class BaseController(object):
         and so indirectly resizes master. Cursor is changed to resize config.
         """
         self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
-        move_cursor(
-            min(
-                self.model.changed_x + self.model.w,
-                self.view.master.winfo_screenwidth(),
+        if self.state == Settings.RESIZE + 2:
+            move_cursor(
+                min(
+                    self.model.changed_x + self.model.w,
+                    self.view.master.winfo_screenwidth(),
+                )
+                - Settings.WINDOW_SHIFT_PIXELS,
+                min(
+                    self.model.changed_y + self.model.h,
+                    self.view.master.winfo_screenheight(),
+                )
+                - Settings.WINDOW_SHIFT_PIXELS,
             )
-            - Settings.WINDOW_SHIFT_PIXELS,
-            min(
-                self.model.changed_y + self.model.h,
-                self.view.master.winfo_screenheight(),
+        elif self.state == Settings.RESIZE + 3:
+            move_cursor(
+                max(
+                    self.model.changed_x
+                    - self.model.w
+                    + 2 * Settings.WINDOW_SHIFT_PIXELS,
+                    0,
+                )
+                + Settings.WINDOW_SHIFT_PIXELS,
+                min(
+                    self.model.changed_y + self.model.h,
+                    self.view.master.winfo_screenheight(),
+                )
+                - Settings.WINDOW_SHIFT_PIXELS,
             )
-            - Settings.WINDOW_SHIFT_PIXELS,
-        )
+            # print(self.default_size[0], self.default_size[1])
+
+            # print(
+            #     "moved_x, ch_x, mod_w: ",
+            #     self.model.changed_x - self.model.w,
+            #     self.model.changed_x,
+            #     self.model.w,
+            # )
+            # print(
+            #     "moved_y, ch_y, mod_h: ",
+            #     self.model.changed_y + self.model.h,
+            #     self.model.changed_y,
+            #     self.model.h,
+            # )
 
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.

@@ -7,6 +7,7 @@ from .mock_helpers import (
     controller_mocked_for_run,
     controller_mocked_for_next,
     mocked_setup,
+    mocked_setup_view,
     controller_mocked_next,
 )
 
@@ -39,9 +40,7 @@ class TestBaseControllerDomainLogic(object):
         mocked = mocker.patch("arrangeit.base.get_mouse_listener")
         controller.run(mocker.MagicMock())
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            controller.on_mouse_move, controller.on_mouse_scroll
-        )
+        mocked.assert_called_with(controller.on_mouse_move, controller.on_mouse_scroll)
 
     def test_BaseController_run_sets_listener_attribute(self, mocker):
         controller = controller_mocked_for_run(mocker)
@@ -310,21 +309,87 @@ class TestBaseControllerDomainLogic(object):
         mocked.assert_called_once()
 
     ## BaseController.update_resizing
-    def test_BaseController_update_resizing_calls_wh_from_ending_xy(self, mocker):
-        controller = controller_mocked_next(mocker)
+    @pytest.mark.parametrize("state", [Settings.RESIZE + 2])
+    def test_BaseController_update_resizing_calls_wh_from_ending_xy(
+        self, mocker, state
+    ):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.WindowModel")
+        mocked.return_value.wh_from_ending_xy.return_value = (100, 100)
         controller = base.BaseController(mocker.MagicMock())
+        controller.state = state
         x, y = 304, 406
-        controller.model.wh_from_ending_xy.return_value = (100, 100)
         controller.update_resizing(x, y)
-        controller.model.wh_from_ending_xy.assert_called_with(x, y)
+        mocked.return_value.wh_from_ending_xy.assert_called_with(x, y)
 
-    def test_BaseController_update_resizing_calls_set_changed(self, mocker):
-        controller = controller_mocked_next(mocker)
-        w, h = 400, 505
-        controller.model.wh_from_ending_xy.return_value = (w, h)
+    @pytest.mark.parametrize("state", [Settings.RESIZE + 3])
+    def test_BaseController_update_resizing_not_calling_wh_from_ending_xy(
+        self, mocker, state
+    ):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.WindowModel")
         controller = base.BaseController(mocker.MagicMock())
+        controller.state = state
+        x, y = 304, 406
+        controller.update_resizing(x, y)
+        mocked.return_value.wh_from_ending_xy.assert_not_called()
+
+    @pytest.mark.skip("not implemented yet")
+    def test_BaseController_update_resizing_corner_0_calls_set_changed(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.WindowModel")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.RESIZE
+        w, h = 400, 505
+        mocked.return_value.wh_from_ending_xy.return_value = (w, h)
         controller.update_resizing(101, 202)
-        controller.model.wh_from_ending_xy.set_changed(w=w, h=h)
+        mocked.return_value.set_changed.assert_called_with(
+            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+        )
+
+    @pytest.mark.skip("not implemented yet")
+    def test_BaseController_update_resizing_corner_1_calls_set_changed(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.WindowModel")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.RESIZE + 1
+        w, h = 400, 505
+        mocked.return_value.wh_from_ending_xy.return_value = (w, h)
+        controller.update_resizing(101, 202)
+        mocked.return_value.set_changed.assert_called_with(
+            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+        )
+
+    def test_BaseController_update_resizing_corner_2_calls_set_changed(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.WindowModel")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.RESIZE + 2
+        w, h = 400, 505
+        mocked.return_value.wh_from_ending_xy.return_value = (w, h)
+        controller.update_resizing(101, 202)
+        mocked.return_value.set_changed.assert_called_with(
+            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+        )
+
+    def test_BaseController_update_resizing_corner_3_calls_set_changed(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.WindowModel")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.RESIZE + 3
+        x, y, w, h = 108, 109, 320, 410
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = h
+        controller.update_resizing(x, y)
+        mocked.return_value.set_changed.assert_called_with(
+            x=x- Settings.WINDOW_SHIFT_PIXELS, w=w, h=h
+        )
 
     def test_BaseController_update_resizing_calls_run_task_move_and_resize_window(
         self, mocker
