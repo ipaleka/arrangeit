@@ -8,7 +8,7 @@ pynput==1.4.2
 # Pillow
 Pillow==6.0.0
 ## pytest
-pytest==4.5.0
+pytest==4.6.0
 pytest-cov==2.7.1
 pytest-mock==1.10.4
 ## black

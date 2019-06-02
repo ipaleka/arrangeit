@@ -336,32 +336,37 @@ class TestBaseControllerDomainLogic(object):
         controller.update_resizing(x, y)
         mocked.return_value.wh_from_ending_xy.assert_not_called()
 
-    @pytest.mark.skip("not implemented yet")
     def test_BaseController_update_resizing_corner_0_calls_set_changed(self, mocker):
-        mocked_setup(mocker)
+        view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
         mocked = mocker.patch("arrangeit.base.WindowModel")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.RESIZE
-        w, h = 400, 505
-        mocked.return_value.wh_from_ending_xy.return_value = (w, h)
-        controller.update_resizing(101, 202)
+        x, y, w, h = 111, 112, 328, 423
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = h
+        controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+            x=x - Settings.WINDOW_SHIFT_PIXELS,
+            y=y - Settings.WINDOW_SHIFT_PIXELS,
+            w=w,
+            h=h,
         )
 
-    @pytest.mark.skip("not implemented yet")
     def test_BaseController_update_resizing_corner_1_calls_set_changed(self, mocker):
-        mocked_setup(mocker)
+        view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
         mocked = mocker.patch("arrangeit.base.WindowModel")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.RESIZE + 1
-        w, h = 400, 505
-        mocked.return_value.wh_from_ending_xy.return_value = (w, h)
-        controller.update_resizing(101, 202)
+        x, y, w, h = 111, 112, 328, 423
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = h
+        controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            w=w + Settings.WINDOW_SHIFT_PIXELS, h=h + Settings.WINDOW_SHIFT_PIXELS
+            y=y - Settings.WINDOW_SHIFT_PIXELS,
+            w=w,
+            h=h,
         )
 
     def test_BaseController_update_resizing_corner_2_calls_set_changed(self, mocker):
@@ -388,7 +393,7 @@ class TestBaseControllerDomainLogic(object):
         view.return_value.master.winfo_height.return_value = h
         controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            x=x- Settings.WINDOW_SHIFT_PIXELS, w=w, h=h
+            x=x - Settings.WINDOW_SHIFT_PIXELS, w=w, h=h
         )
 
     def test_BaseController_update_resizing_calls_run_task_move_and_resize_window(

@@ -33,6 +33,11 @@ class TestViewApplication(object):
         assert view.master == master
         assert view.controller == controller
 
+    def test_ViewApplication_init_configures_background(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Frame.config")
+        ViewApplication(None, mocker.MagicMock())
+        mocked.assert_called_with(background=Settings.MAIN_BG)
+
     def test_ViewApplication_inits_calls_setup_bindings(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
         ViewApplication(None, mocker.MagicMock())
@@ -423,7 +428,7 @@ class TestViewApplication(object):
         mocker.patch("arrangeit.view.tk.StringVar")
         mocker.patch("arrangeit.view.nametofont")
         mocker.patch("arrangeit.view.increased_by_fraction")
-        mocked = mocker.patch("arrangeit.view.tk.Label.configure")
+        mocked = mocker.patch("arrangeit.view.tk.Label.config")
         master = mocker.MagicMock()
         master.winfo_width.return_value = 100
         ViewApplication(master, mocker.MagicMock()).startup()
@@ -449,7 +454,7 @@ class TestViewApplication(object):
     def test_ViewApplication_update_widgets_calls_ImageTk_PhotoImage(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
-        mocker.patch("arrangeit.view.tk.Label.configure")
+        mocker.patch("arrangeit.view.tk.Label.config")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         view.update_widgets(model)
         mocked.call_count == 1
@@ -458,7 +463,7 @@ class TestViewApplication(object):
     def test_ViewApplication_update_widgets_sets_icon_image(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
-        mocker.patch("arrangeit.view.tk.Label.configure")
+        mocker.patch("arrangeit.view.tk.Label.config")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         view.update_widgets(model)
         assert view.icon_image == mocked.return_value
@@ -468,12 +473,12 @@ class TestViewApplication(object):
         model = WindowModel(icon=Settings.BLANK_ICON)
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view.update_widgets(model)
-        mocked.return_value.configure.call_count == 1
+        mocked.return_value.config.call_count == 1
 
     def test_ViewApplication_update_widgets_calls_workspaces_select_active(
         self, mocker
     ):
-        mocker.patch("arrangeit.view.tk.Label.configure")
+        mocker.patch("arrangeit.view.tk.Label.config")
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
         view = ViewApplication(None, mocker.MagicMock())

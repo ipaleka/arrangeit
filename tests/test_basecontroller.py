@@ -123,7 +123,7 @@ class TestBaseController(object):
     def test_BaseController_set_default_geometry_sets_default_size(self, mocker):
         root = mocker.MagicMock()
         SAMPLE = (244, 145)
-        mocked = mocker.patch("arrangeit.base.quarter_by_smaller", return_value=SAMPLE)
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=SAMPLE)
         w, h = 1001, 1002
         root.winfo_screenwidth.return_value = w
         root.winfo_screenheight.return_value = h
@@ -217,7 +217,7 @@ class TestBaseController(object):
         controller = base.BaseController(app)
         controller.set_screenshot()
         calls = [mocker.call(image=SAMPLE)]
-        mocked.return_value.configure.assert_has_calls(calls, any_order=True)
+        mocked.return_value.config.assert_has_calls(calls, any_order=True)
 
     def test_BaseController_set_screenshot_places_screenshot_widget(self, mocker):
         mocked_setup(mocker)
@@ -371,7 +371,7 @@ class TestBaseController(object):
         controller.change_position(x, y)
         mocked.assert_not_called()
 
-    def test_BaseController_change_position_calls_set_geometry_state_0(self, mocker):
+    def test_BaseController_change_position_corner_0_calls_set_geometry(self, mocker):
         view = mocked_setup_view(mocker)
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
@@ -390,7 +390,7 @@ class TestBaseController(object):
             "+{}+{}".format(new_x, new_y)
         )
 
-    def test_BaseController_change_position_calls_set_geometry_state_1(self, mocker):
+    def test_BaseController_change_position_corner_1_calls_set_geometry(self, mocker):
         view = mocked_setup_view(mocker)
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
@@ -410,7 +410,7 @@ class TestBaseController(object):
             "+{}+{}".format(new_x, new_y)
         )
 
-    def test_BaseController_change_position_calls_set_geometry_state_2(self, mocker):
+    def test_BaseController_change_position_corner_2_calls_set_geometry(self, mocker):
         view = mocked_setup_view(mocker)
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
@@ -431,7 +431,7 @@ class TestBaseController(object):
             "+{}+{}".format(new_x, new_y)
         )
 
-    def test_BaseController_change_position_calls_set_geometry_state_3(self, mocker):
+    def test_BaseController_change_position_corner_3_calls_set_geometry(self, mocker):
         view = mocked_setup_view(mocker)
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
@@ -451,44 +451,13 @@ class TestBaseController(object):
             "+{}+{}".format(new_x, new_y)
         )
 
-    ## BaseController.change_size
     @pytest.mark.parametrize(
         "state,x,y,changed_x,changed_y,expected",
         [
-            # (Settings.RESIZE, 300, 400, 100, 200, 210, 210),
-            # (Settings.RESIZE + 1, 300, 400, 100, 200, 210, 210),
-            (Settings.RESIZE + 2, 300, 400, 100, 200, "210x210")
-        ],
-    )
-    def test_BaseController_change_size_valid_x_and_y(
-        self, mocker, state, x, y, changed_x, changed_y, expected
-    ):
-        view = mocked_setup_view(mocker)
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        screen_w, screen_h = 2000, 2000
-        view.return_value.master.winfo_screenwidth.return_value = screen_w
-        view.return_value.master.winfo_screenheight.return_value = screen_h
-        SHIFT = 10
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
-            return_value=SHIFT
-        )
-        type(mocked_settings).WINDOW_MIN_WIDTH = mocker.PropertyMock(return_value=100)
-        type(mocked_settings).WINDOW_MIN_HEIGHT = mocker.PropertyMock(return_value=100)
-        type(mocked_settings).RESIZE = mocker.PropertyMock(return_value=10)
-        controller = controller_mocked_app(mocker)
-        controller.state = state
-        controller.model = base.WindowModel(rect=(x, y, 400, 400))
-        controller.model.set_changed(x=changed_x, y=changed_y)
-        controller.change_size(x, y)
-        assert view.return_value.master.geometry.call_count == 1
-        view.return_value.master.geometry.assert_called_with(expected)
-
-    @pytest.mark.parametrize(
-        "state,x,y,changed_x,changed_y,expected",
-        [
-            # (Settings.RESIZE, 300, 400, 100, 200, 210, 210),
-            # (Settings.RESIZE + 1, 300, 400, 100, 200, 210, 210),
-            (Settings.RESIZE + 3, 300, 400, 500, 200, "230x210+290+200")
+            (Settings.RESIZE, 300, 400, 700, 600, "430x230+290+390"),
+            (Settings.RESIZE + 1, 300, 400, 100, 700, "210x330+100+390"),
+            (Settings.RESIZE + 2, 300, 400, 100, 200, "210x210+100+200"),
+            (Settings.RESIZE + 3, 300, 400, 500, 200, "230x210+290+200"),
         ],
     )
     def test_BaseController_change_size_and_position_valid_x_and_y(
@@ -508,7 +477,8 @@ class TestBaseController(object):
         type(mocked_settings).RESIZE = mocker.PropertyMock(return_value=10)
         controller = controller_mocked_app(mocker)
         controller.state = state
-        controller.model = base.WindowModel(rect=(x, y, 400, 400))
+        w, h = 400, 400
+        controller.model = base.WindowModel(rect=(x, y, w, h))
         controller.model.set_changed(x=changed_x, y=changed_y)
         controller.change_size(x, y)
         assert view.return_value.master.geometry.call_count == 1
@@ -517,40 +487,10 @@ class TestBaseController(object):
     @pytest.mark.parametrize(
         "state,x,y,changed_x,changed_y,expected",
         [
-            # (Settings.RESIZE , 1200, 1200, 240, 250, 760, 750),
-            # (Settings.RESIZE + 1, 1200, 1200, 240, 250, 760, 750),
-            (Settings.RESIZE + 2, 1200, 1200, 240, 250, "760x750"),
-        ],
-    )
-    def test_BaseController_change_size_with_min_valid_x_and_y(
-        self, mocker, state, x, y, changed_x, changed_y, expected
-    ):
-        view = mocked_setup_view(mocker)
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        screen_w, screen_h = 1000, 1000
-        view.return_value.master.winfo_screenwidth.return_value = screen_w
-        view.return_value.master.winfo_screenheight.return_value = screen_h
-        SHIFT = 10
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
-            return_value=SHIFT
-        )
-        type(mocked_settings).WINDOW_MIN_WIDTH = mocker.PropertyMock(return_value=100)
-        type(mocked_settings).WINDOW_MIN_HEIGHT = mocker.PropertyMock(return_value=100)
-        type(mocked_settings).RESIZE = mocker.PropertyMock(return_value=10)
-        controller = controller_mocked_app(mocker)
-        controller.state = state
-        controller.model = base.WindowModel(rect=(x, y, 800, 800))
-        controller.model.set_changed(x=changed_x, y=changed_y)
-        controller.change_size(x, y)
-        assert view.return_value.master.geometry.call_count == 1
-        view.return_value.master.geometry.assert_called_with(expected)
-
-    @pytest.mark.parametrize(
-        "state,x,y,changed_x,changed_y,expected",
-        [
-            # (Settings.RESIZE , 1200, 1200, 240, 250, 760, 750),
-            # (Settings.RESIZE + 1, 1200, 1200, 240, 250, 760, 750),
-            (Settings.RESIZE + 3, 10, 1200, 240, 250, "260x750+0+250")
+            (Settings.RESIZE, 10, 10, 420, 450, "440x470+0+0"),
+            (Settings.RESIZE + 1, 1200, 10, 240, 250, "760x270+240+0"),
+            (Settings.RESIZE + 2, 1200, 1200, 240, 250, "760x750+240+250"),
+            (Settings.RESIZE + 3, 10, 1200, 240, 250, "260x750+0+250"),
         ],
     )
     def test_BaseController_change_size_and_position_with_min_valid_x_and_y(
@@ -570,7 +510,8 @@ class TestBaseController(object):
         type(mocked_settings).RESIZE = mocker.PropertyMock(return_value=10)
         controller = controller_mocked_app(mocker)
         controller.state = state
-        controller.model = base.WindowModel(rect=(x, y, 800, 800))
+        w, h = 800, 800
+        controller.model = base.WindowModel(rect=(x, y, w, h))
         controller.model.set_changed(x=changed_x, y=changed_y)
         controller.change_size(x, y)
         assert view.return_value.master.geometry.call_count == 1
@@ -757,8 +698,8 @@ class TestBaseController(object):
     @pytest.mark.parametrize(
         "state,x,y,w,h,expected_x,expected_y",
         [
-            # (Settings.RESIZE, 201, 202, 203, 204, 394, 396),
-            # (Settings.RESIZE + 1, 201, 202, 203, 204, 394, 396),
+            (Settings.RESIZE, 700, 550, 400, 300, 330, 280),
+            (Settings.RESIZE + 1, 202, 580, 208, 300, 400, 310),
             (Settings.RESIZE + 2, 201, 202, 203, 204, 394, 396),
             (Settings.RESIZE + 3, 700, 300, 400, 500, 330, 790),
         ],
@@ -766,7 +707,6 @@ class TestBaseController(object):
     def test_BaseController_place_on_opposite_corner_calls_move_cursor(
         self, mocker, state, x, y, w, h, expected_x, expected_y
     ):
-        # self.model.changed_x - self.model.w + 2 * Settings.WINDOW_SHIFT_PIXELS
         view = mocked_setup_view(mocker)
         screen_w, screen_h = 2000, 2000
         view.return_value.master.winfo_screenwidth.return_value = screen_w
@@ -791,7 +731,7 @@ class TestBaseController(object):
     @pytest.mark.parametrize(
         "state,x,y,w,h,expected_x,expected_y",
         [
-            # (Settings.RESIZE, 201, 202, 1400, 1500, 990, 1000),
+            (Settings.RESIZE, 201, 202, 1400, 1500, 10, 10),
             # (Settings.RESIZE + 1, 201, 202, 1400, 1500, 990, 1000),
             (Settings.RESIZE + 2, 201, 202, 1400, 1500, 990, 1000),
             (Settings.RESIZE + 3, 201, 202, 1400, 1500, 10, 1000),

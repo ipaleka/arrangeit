@@ -81,6 +81,7 @@ class ViewApplication(tk.Frame):
         super().__init__(master)
         self.master = master
         self.controller = controller
+        self.config(background=Settings.MAIN_BG)
         self.setup_widgets()
         self.setup_bindings()
 
@@ -92,14 +93,6 @@ class ViewApplication(tk.Frame):
         self.setup_workspaces()
         self.setup_windows()
         self.setup_toolbar()
-
-        # self["background"] = "blue"
-        # ## TODO delete code from below
-        # try:
-        #     self.master["background"] = "gray"
-        #     self["background"] = "blue"
-        # except TypeError:
-        #     pass
 
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
@@ -228,10 +221,10 @@ class ViewApplication(tk.Frame):
         self.master.update()
         self.master.deiconify()
         self.place(width=self.master.winfo_width(), height=self.master.winfo_height())
-        self.title_label.configure(
+        self.title_label.config(
             wraplength=int(self.master.winfo_width() * Settings.TITLE_LABEL_RELWIDTH)
         )
-        self.name_label.configure(
+        self.name_label.config(
             wraplength=int(self.master.winfo_width() * Settings.NAME_LABEL_RELWIDTH)
         )
         self.focus_set()
@@ -246,7 +239,7 @@ class ViewApplication(tk.Frame):
         """
         self.title.set(model.title)
         self.icon_image = ImageTk.PhotoImage(model.icon)
-        self.icon.configure(image=self.icon_image)
+        self.icon.config(image=self.icon_image)
         self.name.set(model.name)
         self.workspaces.select_active(model.workspace)
 
@@ -366,7 +359,7 @@ class WindowsList(tk.Frame):
         """
         super().__init__(master)
         self.master = master
-        self.configure(background=Settings.WINDOWS_LIST_BG)
+        self.config(background=Settings.WINDOWS_LIST_BG)
 
     def add_windows(self, windows):
         """Creates children widgets from provided windows list.
@@ -384,7 +377,7 @@ class WindowsList(tk.Frame):
             widget.destroy()
 
     def place_widget_on_position(self, widget, position):
-        """Configure placement and place provided widget at provided vertical position.
+        """Configures placement and place provided widget at provided vertical position.
 
         :param widget: Tkinter Frame widget
         :type widget: :class:`ListedWindow`
@@ -644,7 +637,7 @@ class Toolbar(tk.Frame):
         """
         super().__init__(master)
         self.master = master
-        self.configure(background=Settings.TOOLBAR_BG)
+        self.config(background=Settings.TOOLBAR_BG)
         self.setup_widgets()
 
     def setup_widgets(self):
