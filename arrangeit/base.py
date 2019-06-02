@@ -369,7 +369,8 @@ class BaseController(object):
         :type y: int
         """
         self.model.set_changed(
-            x=x - Settings.WINDOW_SHIFT_PIXELS, y=y - Settings.WINDOW_SHIFT_PIXELS
+            x=x + (1 if self.state % 3 else -1) * Settings.WINDOW_SHIFT_PIXELS,
+            y=y + (1 if self.state // 2 else -1) * Settings.WINDOW_SHIFT_PIXELS,
         )
         if not self.model.resizable:
             if self.model.changed or self.model.is_ws_changed:
@@ -405,8 +406,7 @@ class BaseController(object):
             )
         elif self.state == Settings.RESIZE + 2:
             self.model.set_changed(
-                w=self.view.master.winfo_width(),
-                h=self.view.master.winfo_height(),
+                w=self.view.master.winfo_width(), h=self.view.master.winfo_height()
             )
         elif self.state == Settings.RESIZE + 3:
             self.model.set_changed(
@@ -477,30 +477,40 @@ class BaseController(object):
     def change_size(self, x, y):
         """Changes root window size in regard to provided current x and y
 
-        related to model.changed's x and y.
+        related to model's changed x and y.
+
+        It first checks would calculated size be smaller than minimum.
 
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
+        :var position: eventual position of minimum sized root
+        :type position: tuple (int, int)
+        :var w: root window calculated width
+        :type w: int
+        :var h: root window calculated height
+        :type h: int
+        :var pos_x: root window calculated position on x-axis
+        :type pos_x: int
+        :var pos_y: root window calculated position on y-axis
+        :type pos_y: int
         """
+        position = self.check_current_size(x, y)
+        if position:
+            return self.set_minimum_size(*position)
+
         if self.state == Settings.RESIZE:
             w = min(
-                self.model.changed_x - x + 3 * Settings.WINDOW_SHIFT_PIXELS,
-                self.model.changed_x + 2 * Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_x - x + Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_x,
             )
             h = min(
-                self.model.changed_y - y + 3 * Settings.WINDOW_SHIFT_PIXELS,
-                self.model.changed_y + 2 * Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_y - y + Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_y,
             )
-            self.view.master.geometry(
-                "{}x{}+{}+{}".format(
-                    w,
-                    h,
-                    x - Settings.WINDOW_SHIFT_PIXELS,
-                    y - Settings.WINDOW_SHIFT_PIXELS,
-                )
-            )
+            pos_x = x - Settings.WINDOW_SHIFT_PIXELS
+            pos_y = y - Settings.WINDOW_SHIFT_PIXELS
 
         elif self.state == Settings.RESIZE + 1:
             w = min(
@@ -508,49 +518,91 @@ class BaseController(object):
                 self.view.master.winfo_screenwidth() - self.model.changed_x,
             )
             h = min(
-                self.model.changed_y - y + 3 * Settings.WINDOW_SHIFT_PIXELS,
-                self.model.changed_y + 2 * Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_y - y + Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_y,
             )
-            self.view.master.geometry(
-                "{}x{}+{}+{}".format(
-                    w, h, self.model.changed_x, y - Settings.WINDOW_SHIFT_PIXELS
-                )
-            )
+            pos_x = self.model.changed_x
+            pos_y = y - Settings.WINDOW_SHIFT_PIXELS
 
         elif self.state == Settings.RESIZE + 2:
-            if (
-                x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH
-                and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT
-            ):
-                w = min(
-                    x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
-                    self.view.master.winfo_screenwidth() - self.model.changed_x,
-                )
-                h = min(
-                    y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
-                    self.view.master.winfo_screenheight() - self.model.changed_y,
-                )
-                self.view.master.geometry(
-                    "{}x{}+{}+{}".format(
-                        w, h, self.model.changed_x, self.model.changed_y
-                    )
-                )
-            else:
-                self.set_minimum_size()
-
-        elif self.state == Settings.RESIZE + 3:
             w = min(
-                self.model.changed_x - x + 3 * Settings.WINDOW_SHIFT_PIXELS,
-                self.model.changed_x + 2 * Settings.WINDOW_SHIFT_PIXELS,
+                x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
+                self.view.master.winfo_screenwidth() - self.model.changed_x,
             )
             h = min(
                 y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
                 self.view.master.winfo_screenheight() - self.model.changed_y,
             )
-            self.view.master.geometry(
-                "{}x{}+{}+{}".format(
-                    w, h, x - Settings.WINDOW_SHIFT_PIXELS, self.model.changed_y
+            pos_x = self.model.changed_x
+            pos_y = self.model.changed_y
+
+        elif self.state == Settings.RESIZE + 3:
+            w = min(
+                self.model.changed_x - x + Settings.WINDOW_SHIFT_PIXELS,
+                self.model.changed_x,
+            )
+            h = min(
+                y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
+                self.view.master.winfo_screenheight() - self.model.changed_y,
+            )
+            pos_x = x - Settings.WINDOW_SHIFT_PIXELS
+            pos_y = self.model.changed_y
+
+        self.view.master.geometry("{}x{}+{}+{}".format(w, h, pos_x, pos_y))
+
+    def check_current_size(self, x, y):
+        """Returns True if current size in resizing phase is greater than minimum size
+
+        defined in settings.
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        :returns: tuple position (int, int) or False
+        """
+        if self.state == Settings.RESIZE:
+            return (
+                False
+                if (
+                    x < self.model.changed_x - Settings.WINDOW_MIN_WIDTH + Settings.WINDOW_SHIFT_PIXELS
+                    and y < self.model.changed_y - Settings.WINDOW_MIN_HEIGHT + Settings.WINDOW_SHIFT_PIXELS
                 )
+                else (
+                    self.model.changed_x - Settings.WINDOW_MIN_WIDTH,
+                    self.model.changed_y - Settings.WINDOW_MIN_HEIGHT,
+                )
+            )
+
+        elif self.state == Settings.RESIZE + 1:
+            return (
+                False
+                if (
+                    x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH - Settings.WINDOW_SHIFT_PIXELS
+                    and y < self.model.changed_y - Settings.WINDOW_MIN_HEIGHT + Settings.WINDOW_SHIFT_PIXELS
+                )
+                else (self.model.changed_x, self.model.changed_y - Settings.WINDOW_MIN_HEIGHT)
+            )
+
+
+        elif self.state == Settings.RESIZE + 2:
+            return (
+                False
+                if (
+                    x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH - Settings.WINDOW_SHIFT_PIXELS
+                    and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT  - Settings.WINDOW_SHIFT_PIXELS
+                )
+                else (self.model.changed_x, self.model.changed_y)
+            )
+
+        elif self.state == Settings.RESIZE + 3:
+            return (
+                False
+                if (
+                    x < self.model.changed_x - Settings.WINDOW_MIN_WIDTH + Settings.WINDOW_SHIFT_PIXELS
+                    and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT  - Settings.WINDOW_SHIFT_PIXELS
+                )
+                else (self.model.changed_x - Settings.WINDOW_MIN_WIDTH, self.model.changed_y)
             )
 
     def check_positioning_snapping(self, x, y):
@@ -627,19 +679,9 @@ class BaseController(object):
 
         if self.state == Settings.RESIZE:
             move_cursor(
-                max(
-                    self.model.changed_x
-                    - self.model.w
-                    + 2 * Settings.WINDOW_SHIFT_PIXELS,
-                    0,
-                )
+                max(self.model.changed_x - self.model.w, 0)
                 + Settings.WINDOW_SHIFT_PIXELS,
-                max(
-                    self.model.changed_y
-                    - self.model.h
-                    + 2 * Settings.WINDOW_SHIFT_PIXELS,
-                    0,
-                )
+                max(self.model.changed_y - self.model.h, 0)
                 + Settings.WINDOW_SHIFT_PIXELS,
             )
 
@@ -650,12 +692,7 @@ class BaseController(object):
                     self.view.master.winfo_screenwidth(),
                 )
                 - Settings.WINDOW_SHIFT_PIXELS,
-                max(
-                    self.model.changed_y
-                    - self.model.h
-                    + 2 * Settings.WINDOW_SHIFT_PIXELS,
-                    0,
-                )
+                max(self.model.changed_y - self.model.h, 0)
                 + Settings.WINDOW_SHIFT_PIXELS,
             )
 
@@ -675,12 +712,7 @@ class BaseController(object):
 
         elif self.state == Settings.RESIZE + 3:
             move_cursor(
-                max(
-                    self.model.changed_x
-                    - self.model.w
-                    + 2 * Settings.WINDOW_SHIFT_PIXELS,
-                    0,
-                )
+                max(self.model.changed_x - self.model.w, 0)
                 + Settings.WINDOW_SHIFT_PIXELS,
                 min(
                     self.model.changed_y + self.model.h,
@@ -730,14 +762,19 @@ class BaseController(object):
         self.listener.stop()
         self.view.master.destroy()
 
-    def set_minimum_size(self):
-        """Sets root window size to minimum size defined in settings."""
+    def set_minimum_size(self, x, y):
+        """Sets root window size to minimum size defined in settings
+
+        and places root's top left position to (x, y).
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
         self.view.master.geometry(
             "{}x{}+{}+{}".format(
-                Settings.WINDOW_MIN_WIDTH,
-                Settings.WINDOW_MIN_HEIGHT,
-                self.model.changed_x,
-                self.model.changed_y,
+                Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT, x, y
             )
         )
 

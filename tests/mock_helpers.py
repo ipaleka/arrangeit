@@ -57,4 +57,5 @@ def controller_mocked_next(mocker):
     mocker.patch("arrangeit.base.move_cursor")
     controller = base.BaseController(mocker.MagicMock())
     controller.model = base.WindowModel(rect=(50, 50, 100, 100), workspace=1)
+    controller.state = Settings.LOCATE
     return controller
