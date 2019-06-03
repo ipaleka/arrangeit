@@ -276,29 +276,58 @@ class BaseController(object):
         return Settings.RESIZE + (self.state + 2) % 4
 
     ## DOMAIN LOGIC
-    def run(self, generator):
-        """Prepares view, syncs data, starts listener and enters main loop.
+    def check_snapping(self, x, y):
+        """Snaps root window and returns True if root window intersects
 
-        Calls `prepare_view` to create workspaces and windows list widgets.
-        Sets generator attribute to provided generator and sets window data
-        by calling :func:`BaseController.next` for the first time.
-        Calls view application startup routine to show root and calculate
-        visible parameters.
-        Also brings global focus to root window.
+        with any collection window according to snapping rects in current workspace
+        or returns False if no snapping has occurred.
+
+        Corner for which snapping could occurs is sent from current `state` that should
+        correspond to targeting window corner ordinal (0 to 3).
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        :returns: (int, int) or False
         """
-        self.prepare_view()
+        if Settings.SNAPPING_IS_ON:
 
-        self.generator = generator
+            offset = offset_for_intersections(
+                check_intersections(
+                    get_snapping_sources_for_rect(
+                        self.get_root_rect(x, y),
+                        Settings.SNAP_PIXELS,
+                        corner=self.state % 10,
+                    ),
+                    self.snapping_targets[self.view.workspaces.active],
+                ),
+                Settings.SNAP_PIXELS,
+            )
+
+            if offset and offset != (0, 0):
+                move_cursor(x + offset[0], y + offset[1])
+                return True
+
+        return False
+
+    def listed_window_activated(self, wid):
+        """Calls task that restarts positioning routine from provided window id
+
+        not including windows prior to current model.
+
+        :param wid: windows identifier
+        :type wid: int
+        """
+        self.app.run_task("rerun_from_window", wid, self.model.wid)
+        self.view.windows.clear_list()
+        self.view.windows.add_windows(
+            self.app.collector.collection.get_windows_list()[1:]
+        )
+        if self.state == Settings.OTHER:
+            self.recapture_mouse()
+        self.generator = self.app.collector.collection.generator()
         self.next(first_time=True)
-
-        self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
-        self.listener.start()
-
-        self.view.startup()
-
-        self.app.run_task("activate_root", self.view.master.winfo_id())
-
-        self.mainloop()
 
     def next(self, first_time=False):
         """Sets controller ``model`` attribute from the value yielded from ``generator``
@@ -344,6 +373,30 @@ class BaseController(object):
             )
 
         return False
+
+    def run(self, generator):
+        """Prepares view, syncs data, starts listener and enters main loop.
+
+        Calls `prepare_view` to create workspaces and windows list widgets.
+        Sets generator attribute to provided generator and sets window data
+        by calling :func:`BaseController.next` for the first time.
+        Calls view application startup routine to show root and calculate
+        visible parameters.
+        Also brings global focus to root window.
+        """
+        self.prepare_view()
+
+        self.generator = generator
+        self.next(first_time=True)
+
+        self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
+        self.listener.start()
+
+        self.view.startup()
+
+        self.app.run_task("activate_root", self.view.master.winfo_id())
+
+        self.mainloop()
 
     def update(self, x, y):
         """Calls corresponding state related update method.
@@ -413,24 +466,6 @@ class BaseController(object):
             self.app.run_task("move_and_resize", self.model.wid)
         self.next()
 
-    def listed_window_activated(self, wid):
-        """Calls task that restarts positioning routine from provided window id
-
-        not including windows prior to current model.
-
-        :param wid: windows identifier
-        :type wid: int
-        """
-        self.app.run_task("rerun_from_window", wid, self.model.wid)
-        self.view.windows.clear_list()
-        self.view.windows.add_windows(
-            self.app.collector.collection.get_windows_list()[1:]
-        )
-        if self.state == Settings.OTHER:
-            self.recapture_mouse()
-        self.generator = self.app.collector.collection.generator()
-        self.next(first_time=True)
-
     def workspace_activated(self, number):
         """Activates workspace with number equal to provided number.
 
@@ -444,28 +479,25 @@ class BaseController(object):
 
     ## COMMANDS
     def change_position(self, x, y):
-        """Changes root window position to provided x and y or calls move_cursor
+        """Changes root window position to provided x and y
 
-        by returned offset if snapping criteria is satisfied.
+        if snapping criteria is not satisfied.
 
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        if Settings.SNAPPING_IS_ON:
-            offset = self.check_positioning_snapping(x, y)
-            if offset and offset != (0, 0):
-                return move_cursor(x + offset[0], y + offset[1])
+        if self.check_snapping(x, y):
+            return True
 
         self.view.master.geometry("+{}+{}".format(*self.get_root_rect(x, y)[:2]))
 
     def change_size(self, x, y):
         """Changes root window size in regard to provided current x and y
 
-        related to model's changed x and y.
-
-        It first checks will calculated size be smaller than minimum.
+        related to model's changed x and y if calculated size won't be smaller
+        than minimum and if snapping criteria isn't satisfied.
 
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
@@ -485,6 +517,9 @@ class BaseController(object):
         position = self.check_current_size(x, y)
         if position:
             return self.set_minimum_size(*position)
+
+        if self.check_snapping(x, y):
+            return True
 
         width = min(
             self.model.changed_x - x + Settings.SHIFT_CURSOR, self.model.changed_x
@@ -540,33 +575,6 @@ class BaseController(object):
             top = self.model.changed_y
 
         return False if check_x and check_y else (left, top)
-
-    def check_positioning_snapping(self, x, y):
-        """Returns (x, y) offset if root window intersects with any collection window
-
-        according to snapping rects in current workspace or empty tuple if it doesn't.
-        Corner for which snapping could occurs is sent from current `state` that should
-        correspond to targeting window corner ordinal (0 to 3).
-
-        One of returned axes is 0.
-
-        :param x: absolute horizontal axis mouse position in pixels
-        :type x: int
-        :param y: absolute vertical axis mouse position in pixels
-        :type y: int
-        :returns: (int, int) or False
-        """
-        return offset_for_intersections(
-            check_intersections(
-                get_snapping_sources_for_rect(
-                    self.get_root_rect(x, y),
-                    Settings.SNAP_PIXELS,
-                    corner=self.state % 10,
-                ),
-                self.snapping_targets[self.view.workspaces.active],
-            ),
-            Settings.SNAP_PIXELS,
-        )
 
     def cycle_corners(self, counter=False):
         """Cycle through corners in positioning phase by changing state."""

@@ -8,6 +8,7 @@ from .mock_helpers import (
     controller_mocked_for_next,
     mocked_setup,
     mocked_setup_view,
+    controller_mocked_app,
     controller_mocked_next,
 )
 
@@ -15,58 +16,218 @@ from .mock_helpers import (
 class TestBaseControllerDomainLogic(object):
     """Testing class for base Controller class' domain logic methods."""
 
-    ## BaseController.run
-    def test_BaseController_run_calls_prepare_view(self, mocker):
-        controller = controller_mocked_for_run(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.prepare_view")
-        controller.run(mocker.MagicMock())
+    ## BaseController.check_snapping
+    def test_BaseController_check_snapping_snapping_is_on_false(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocked = mocker.patch("arrangeit.base.offset_for_intersections")
+        controller = controller_mocked_app(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
+        returned = controller.check_snapping(100, 100)
+        mocked.assert_not_called()
+        assert returned is False
+
+    def test_BaseController_check_snapping_calls_get_root_rect(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.move_cursor")
+        mocker.patch("arrangeit.base.check_intersections")
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
+        type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
+        type(mocked_settings).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
+        mocked = mocker.patch("arrangeit.base.BaseController.get_root_rect")
+        x, y = 100, 200
+        controller = controller_mocked_app(mocker)
+        view.return_value.workspaces.active = 1001
+        controller.snapping_targets = {1001: ["foo"]}
+        controller.state = Settings.LOCATE
+        controller.check_snapping(x, y)
         mocked.assert_called_once()
+        mocked.assert_called_with(x, y)
 
-    def test_BaseController_run_sets_generator_attr_from_provided_attr(self, mocker):
-        generator = mocker.MagicMock()
-        controller = controller_mocked_for_run(mocker)
-        controller.run(generator)
-        assert controller.generator == generator
-
-    def test_BaseController_run_calls_next(self, mocker):
-        controller = controller_mocked_for_run(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.next")
-        controller.run(mocker.MagicMock())
+    def test_BaseController_check_snapping_calls_get_snapping_sources_for(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.move_cursor")
+        mocker.patch("arrangeit.base.check_intersections")
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
+        type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
+        SNAP = 4
+        type(mocked_settings).SNAP_PIXELS = mocker.PropertyMock(return_value=SNAP)
+        mocked_rect = mocker.patch("arrangeit.base.BaseController.get_root_rect")
+        mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        x, y = 100, 200
+        controller = controller_mocked_app(mocker)
+        view.return_value.workspaces.active = 1001
+        controller.snapping_targets = {1001: ["foo"]}
+        controller.state = Settings.LOCATE
+        controller.check_snapping(x, y)
         mocked.assert_called_once()
-        mocked.assert_called_with(first_time=True)
-
-    def test_BaseController_run_calls_get_mouse_listener(self, mocker):
-        controller = controller_mocked_for_run(mocker)
-        mocked = mocker.patch("arrangeit.base.get_mouse_listener")
-        controller.run(mocker.MagicMock())
-        mocked.assert_called_once()
-        mocked.assert_called_with(controller.on_mouse_move, controller.on_mouse_scroll)
-
-    def test_BaseController_run_sets_listener_attribute(self, mocker):
-        controller = controller_mocked_for_run(mocker)
-        listener = mocker.MagicMock()
-        mocker.patch("arrangeit.base.get_mouse_listener", return_value=listener)
-        controller.run(mocker.MagicMock())
-        assert controller.listener == listener
-
-    def test_BaseController_run_starts_listener(self, mocker):
-        controller = controller_mocked_for_run(mocker)
-        controller.run(mocker.MagicMock())
-        assert controller.listener.start.call_count == 1
-
-    def test_BaseController_run_calls_activate_root_task(self, mocker):
-        controller = controller_mocked_for_run(mocker)
-        controller.run(mocker.MagicMock())
-        controller.app.run_task.assert_called_once()
-        controller.app.run_task.assert_called_with(
-            "activate_root", controller.view.master.winfo_id.return_value
+        mocked.assert_called_with(
+            mocked_rect.return_value, SNAP, corner=controller.state
         )
 
-    def test_BaseController_run_calls_mainloop(self, mocker):
-        controller = controller_mocked_for_run(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.mainloop")
-        controller.run(mocker.MagicMock())
+    def test_BaseController_check_snapping_calls_check_intersection(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.move_cursor")
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
+        type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
+        SNAP = 4
+        type(mocked_settings).SNAP_PIXELS = mocker.PropertyMock(return_value=SNAP)
+        root_rects = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
+        mocked = mocker.patch("arrangeit.base.check_intersections")
+        view.return_value.workspaces.active = 1001
+        controller = controller_mocked_app(mocker)
+        SAMPLE = ["foo"]
+        controller.snapping_targets = {1001: SAMPLE}
+        controller.state = Settings.LOCATE
+        controller.check_snapping(100, 100)
         mocked.assert_called_once()
+        mocked.assert_called_with(root_rects.return_value, SAMPLE)
+
+    def test_BaseController_check_snapping_calls_offset_for_intersections(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.move_cursor")
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
+        type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
+        SNAP = 4
+        type(mocked_settings).SNAP_PIXELS = mocker.PropertyMock(return_value=SNAP)
+        mocked_check = mocker.patch("arrangeit.base.check_intersections")
+        mocked = mocker.patch("arrangeit.base.offset_for_intersections")
+        view.return_value.workspaces.active = 1001
+        controller = controller_mocked_app(mocker)
+        SAMPLE = ["foo"]
+        controller.snapping_targets = {1001: SAMPLE}
+        controller.state = Settings.LOCATE
+        controller.check_snapping(100, 100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_check.return_value, SNAP)
+
+    def test_BaseController_check_snapping_calls_move_cursor(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
+        type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
+        SNAP = 4
+        type(mocked_settings).SNAP_PIXELS = mocker.PropertyMock(return_value=SNAP)
+        mocker.patch("arrangeit.base.check_intersections")
+        offset = (10, 12)
+        mocker.patch("arrangeit.base.offset_for_intersections", return_value=offset)
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        view.return_value.workspaces.active = 1001
+        controller = controller_mocked_app(mocker)
+        SAMPLE = ["foo"]
+        controller.snapping_targets = {1001: SAMPLE}
+        controller.state = Settings.LOCATE
+        x, y = 204, 207
+        returned = controller.check_snapping(x, y)
+        mocked.assert_called_once()
+        mocked.assert_called_with(x + offset[0], y + offset[1])
+        assert returned is True
+
+    def test_BaseController_check_snapping_not_calling_move_cursor(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
+        type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
+        SNAP = 4
+        type(mocked_settings).SNAP_PIXELS = mocker.PropertyMock(return_value=SNAP)
+        mocker.patch("arrangeit.base.check_intersections")
+        offset = (0, 0)
+        mocker.patch("arrangeit.base.offset_for_intersections", return_value=offset)
+        mocked = mocker.patch("arrangeit.base.move_cursor")
+        view.return_value.workspaces.active = 1001
+        controller = controller_mocked_app(mocker)
+        SAMPLE = ["foo"]
+        controller.snapping_targets = {1001: SAMPLE}
+        controller.state = Settings.LOCATE
+        x, y = 204, 207
+        returned = controller.check_snapping(x, y)
+        mocked.assert_not_called()
+        assert returned is False
+
+    ## BaseController.listed_window_activated
+    def test_BaseController_listed_window_activated_calls_task_rerun_from_window(
+        self, mocker
+    ):
+        controller = controller_mocked_next(mocker)
+        SAMPLE1, SAMPLE2 = 91405, 90102
+        controller.model.wid = SAMPLE2
+        controller.listed_window_activated(SAMPLE1)
+        controller.app.run_task.assert_called_with(
+            "rerun_from_window", SAMPLE1, SAMPLE2
+        )
+
+    def test_BaseController_listed_window_activated_calls_windows_clear_list(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseController.next")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.listed_window_activated(90192)
+        assert view.return_value.windows.clear_list.call_count == 1
+
+    def test_BaseController_listed_window_activated_calls_windowslist_add_windows(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseController.next")
+        view = mocker.patch("arrangeit.base.ViewApplication")
+        windows_list = [0, 1, 2]
+        controller = base.BaseController(mocker.MagicMock())
+        controller.app.collector.collection.get_windows_list.return_value = windows_list
+        controller.listed_window_activated(90108)
+        view.return_value.windows.add_windows.assert_called_once()
+        view.return_value.windows.add_windows.assert_called_with(windows_list[1:])
+
+    def test_BaseController_listed_window_activated_calls_recapture_mouse_for_OTHER(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.OTHER
+        controller.listed_window_activated(90103)
+        mocked.assert_called_once()
+
+    @pytest.mark.parametrize("state", [Settings.LOCATE, Settings.RESIZE])
+    def test_BaseController_listed_window_activated_not_calling_recapture_not_OTHER(
+        self, mocker, state
+    ):
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = state
+        controller.listed_window_activated(90104)
+        mocked.assert_not_called()
+
+    def test_BaseController_listed_window_activated_initializes_generator(self, mocker):
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.listed_window_activated(90147)
+        controller.app.collector.collection.generator.assert_called()
+
+    def test_BaseController_listed_window_activated_sets_generator_attr(self, mocker):
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.listed_window_activated(90152)
+        assert (
+            controller.generator
+            == controller.app.collector.collection.generator.return_value
+        )
+
+    def test_BaseController_listed_window_activated_calls_next(self, mocker):
+        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        mocker.patch("arrangeit.base.ViewApplication")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.listed_window_activated(90423)
+        mocked.assert_called_once()
+        mocked.assert_called_with(first_time=True)
 
     ## BaseController.next
     def test_BaseController_next_sets_state_attr_to_positioning_corner_0(self, mocker):
@@ -188,9 +349,7 @@ class TestBaseControllerDomainLogic(object):
         mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         controller.next(True)
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            x + Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR
-        )
+        mocked.assert_called_with(x + Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR)
 
     def test_BaseController_next_not_calling_on_mouse_move_for_first_time_False(
         self, mocker
@@ -204,6 +363,59 @@ class TestBaseControllerDomainLogic(object):
         controller = controller_mocked_for_next(mocker)
         returned = controller.next(True)
         assert not returned
+
+    ## BaseController.run
+    def test_BaseController_run_calls_prepare_view(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.prepare_view")
+        controller.run(mocker.MagicMock())
+        mocked.assert_called_once()
+
+    def test_BaseController_run_sets_generator_attr_from_provided_attr(self, mocker):
+        generator = mocker.MagicMock()
+        controller = controller_mocked_for_run(mocker)
+        controller.run(generator)
+        assert controller.generator == generator
+
+    def test_BaseController_run_calls_next(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.next")
+        controller.run(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(first_time=True)
+
+    def test_BaseController_run_calls_get_mouse_listener(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        mocked = mocker.patch("arrangeit.base.get_mouse_listener")
+        controller.run(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(controller.on_mouse_move, controller.on_mouse_scroll)
+
+    def test_BaseController_run_sets_listener_attribute(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        listener = mocker.MagicMock()
+        mocker.patch("arrangeit.base.get_mouse_listener", return_value=listener)
+        controller.run(mocker.MagicMock())
+        assert controller.listener == listener
+
+    def test_BaseController_run_starts_listener(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        controller.run(mocker.MagicMock())
+        assert controller.listener.start.call_count == 1
+
+    def test_BaseController_run_calls_activate_root_task(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        controller.run(mocker.MagicMock())
+        controller.app.run_task.assert_called_once()
+        controller.app.run_task.assert_called_with(
+            "activate_root", controller.view.master.winfo_id.return_value
+        )
+
+    def test_BaseController_run_calls_mainloop(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.mainloop")
+        controller.run(mocker.MagicMock())
+        mocked.assert_called_once()
 
     ## BaseController.update
     def test_BaseController_update_calls_update_positioning_for_LOCATE(self, mocker):
@@ -252,9 +464,7 @@ class TestBaseControllerDomainLogic(object):
         controller.state = state
         mocked_setting = mocker.patch("arrangeit.base.Settings")
         SHIFT = 10
-        type(mocked_setting).SHIFT_CURSOR = mocker.PropertyMock(
-            return_value=SHIFT
-        )
+        type(mocked_setting).SHIFT_CURSOR = mocker.PropertyMock(return_value=SHIFT)
         controller.update_positioning(x, y)
         controller.model.set_changed.assert_called_with(
             x=x + sign_x * SHIFT, y=y + sign_y * SHIFT
@@ -334,10 +544,7 @@ class TestBaseControllerDomainLogic(object):
         view.return_value.master.winfo_height.return_value = h
         controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            x=x - Settings.SHIFT_CURSOR,
-            y=y - Settings.SHIFT_CURSOR,
-            w=w,
-            h=h,
+            x=x - Settings.SHIFT_CURSOR, y=y - Settings.SHIFT_CURSOR, w=w, h=h
         )
 
     def test_BaseController_update_resizing_corner_1_calls_set_changed(self, mocker):
@@ -416,87 +623,6 @@ class TestBaseControllerDomainLogic(object):
         mocked = mocker.patch("arrangeit.base.BaseController.next")
         controller.update_resizing(100, 100)
         mocked.assert_called_once()
-
-    ## BaseController.listed_window_activated
-    def test_BaseController_listed_window_activated_calls_task_rerun_from_window(
-        self, mocker
-    ):
-        controller = controller_mocked_next(mocker)
-        SAMPLE1, SAMPLE2 = 91405, 90102
-        controller.model.wid = SAMPLE2
-        controller.listed_window_activated(SAMPLE1)
-        controller.app.run_task.assert_called_with(
-            "rerun_from_window", SAMPLE1, SAMPLE2
-        )
-
-    def test_BaseController_listed_window_activated_calls_windows_clear_list(
-        self, mocker
-    ):
-        mocker.patch("arrangeit.base.BaseController.next")
-        view = mocker.patch("arrangeit.base.ViewApplication")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.listed_window_activated(90192)
-        assert view.return_value.windows.clear_list.call_count == 1
-
-    def test_BaseController_listed_window_activated_calls_windowslist_add_windows(
-        self, mocker
-    ):
-        mocker.patch("arrangeit.base.BaseController.next")
-        view = mocker.patch("arrangeit.base.ViewApplication")
-        windows_list = [0, 1, 2]
-        controller = base.BaseController(mocker.MagicMock())
-        controller.app.collector.collection.get_windows_list.return_value = windows_list
-        controller.listed_window_activated(90108)
-        view.return_value.windows.add_windows.assert_called_once()
-        view.return_value.windows.add_windows.assert_called_with(windows_list[1:])
-
-    def test_BaseController_listed_window_activated_calls_recapture_mouse_for_OTHER(
-        self, mocker
-    ):
-        mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.state = Settings.OTHER
-        controller.listed_window_activated(90103)
-        mocked.assert_called_once()
-
-    @pytest.mark.parametrize("state", [Settings.LOCATE, Settings.RESIZE])
-    def test_BaseController_listed_window_activated_not_calling_recapture_not_OTHER(
-        self, mocker, state
-    ):
-        mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.state = state
-        controller.listed_window_activated(90104)
-        mocked.assert_not_called()
-
-    def test_BaseController_listed_window_activated_initializes_generator(self, mocker):
-        mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.listed_window_activated(90147)
-        controller.app.collector.collection.generator.assert_called()
-
-    def test_BaseController_listed_window_activated_sets_generator_attr(self, mocker):
-        mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.listed_window_activated(90152)
-        assert (
-            controller.generator
-            == controller.app.collector.collection.generator.return_value
-        )
-
-    def test_BaseController_listed_window_activated_calls_next(self, mocker):
-        mocked = mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
-        controller = base.BaseController(mocker.MagicMock())
-        controller.listed_window_activated(90423)
-        mocked.assert_called_once()
-        mocked.assert_called_with(first_time=True)
 
     ## BaseController.workspace_activated
     def test_BaseController_workspace_activated_calls_task_move_to_workspace(
