@@ -36,7 +36,7 @@ CONSTANTS = {
     "WINDOW_MIN_HEIGHT": (int, 40),
     "WINDOW_SHIFT_PIXELS": (int, 10),
     "SNAP_PIXELS": (int, 2),
-    "SNAPPING_IS_ON": (bool, False),
+    "SNAPPING_IS_ON": (bool, True),
     "SNAP_INCLUDE_SELF": (bool, False),
     "SCREENSHOT_SHIFT_PIXELS": (int, -1),
     "SCREENSHOT_BLUR_PIXELS": (int, 2),

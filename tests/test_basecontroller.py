@@ -250,10 +250,27 @@ class TestBaseController(object):
         assert controller.resizing_state_counterpart == expected
 
     ## BaseController.check_positioning_snapping
+    def test_BaseController_check_positioning_snapping_calls_get_root_rect(
+        self, mocker
+    ):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.check_intersection")
+        mocked = mocker.patch("arrangeit.base.BaseController.get_root_rect")
+        x, y, w, h = 100, 200, 300, 400
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = h
+        view.return_value.workspaces.active = 1001
+        controller = controller_mocked_app(mocker)
+        controller.snapping_targets = {1001: ["foo"]}
+        controller.check_positioning_snapping(x, y)
+        mocked.assert_called_once()
+        mocked.assert_called_with(x, y)
+
     def test_BaseController_check_positioning_snapping_calls_get_snapping_sources_for(
         self, mocker
     ):
         view = mocked_setup_view(mocker)
+        mocked_rect = mocker.patch("arrangeit.base.BaseController.get_root_rect")
         mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         x, y, w, h = 100, 200, 300, 400
         view.return_value.master.winfo_width.return_value = w
@@ -268,12 +285,15 @@ class TestBaseController(object):
         controller.state = Settings.LOCATE
         controller.check_positioning_snapping(x, y)
         mocked.assert_called_once()
-        mocked.assert_called_with((x, y, w, h), SNAP, corner=controller.state)
+        mocked.assert_called_with(
+            mocked_rect.return_value, SNAP, corner=controller.state
+        )
 
     def test_BaseController_check_positioning_snapping_calls_check_intersection(
         self, mocker
     ):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.get_root_rect")
         root_rects = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         mocked = mocker.patch("arrangeit.base.check_intersection")
         view.return_value.workspaces.active = 1001
@@ -365,7 +385,7 @@ class TestBaseController(object):
         view.return_value.master.geometry.assert_not_called()
 
     def test_BaseController_change_position_not_calling_move_cursor(self, mocker):
-        mocked_setup(mocker)
+        view = mocked_setup_view(mocker)
         mocked_snap = mocker.patch("arrangeit.base.Settings")
         type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
         mocker.patch(
@@ -378,86 +398,33 @@ class TestBaseController(object):
         controller.state = Settings.LOCATE
         controller.change_position(x, y)
         mocked.assert_not_called()
+        view.return_value.master.geometry.assert_called_once()
 
-    def test_BaseController_change_position_corner_0_calls_set_geometry(self, mocker):
-        view = mocked_setup_view(mocker)
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
-        SHIFT = 10
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
-            return_value=SHIFT
+    def test_BaseController_change_position_calls_get_root_rect(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch(
+            "arrangeit.base.BaseController.get_root_rect", return_value=(0, 0, 0, 0)
         )
-        x, y = 200, 300
+        mocked_snap = mocker.patch("arrangeit.base.Settings")
+        type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
+        x, y = 105, 108
         controller = controller_mocked_app(mocker)
-        controller.state = 0
         controller.change_position(x, y)
-        new_x = x - SHIFT
-        new_y = y - SHIFT
-        assert view.return_value.master.geometry.call_count == 1
-        view.return_value.master.geometry.assert_called_with(
-            "+{}+{}".format(new_x, new_y)
-        )
+        mocked.assert_called_once()
+        mocked.assert_called_with(x, y)
 
-    def test_BaseController_change_position_corner_1_calls_set_geometry(self, mocker):
+    def test_BaseController_change_position_calls_master_geometry(self, mocker):
         view = mocked_setup_view(mocker)
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
-        SHIFT = 10
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
-            return_value=SHIFT
+        top, left = 487, 874
+        mocker.patch(
+            "arrangeit.base.BaseController.get_root_rect", return_value=(top, left, 0, 0)
         )
-        x, y, w = 201, 301, 500
+        mocked_snap = mocker.patch("arrangeit.base.Settings")
+        type(mocked_snap).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
         controller = controller_mocked_app(mocker)
-        view.return_value.master.winfo_width.return_value = w
-        controller.state = 1
-        controller.change_position(x, y)
-        new_x = x - w + SHIFT
-        new_y = y - SHIFT
-        assert view.return_value.master.geometry.call_count == 1
-        view.return_value.master.geometry.assert_called_with(
-            "+{}+{}".format(new_x, new_y)
-        )
-
-    def test_BaseController_change_position_corner_2_calls_set_geometry(self, mocker):
-        view = mocked_setup_view(mocker)
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
-        SHIFT = 10
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
-            return_value=SHIFT
-        )
-        x, y, w, h = 202, 302, 502, 602
-        controller = controller_mocked_app(mocker)
-        view.return_value.master.winfo_width.return_value = w
-        view.return_value.master.winfo_height.return_value = h
-        controller.state = 2
-        controller.change_position(x, y)
-        new_x = x - w + SHIFT
-        new_y = y - h + SHIFT
-        assert view.return_value.master.geometry.call_count == 1
-        view.return_value.master.geometry.assert_called_with(
-            "+{}+{}".format(new_x, new_y)
-        )
-
-    def test_BaseController_change_position_corner_3_calls_set_geometry(self, mocker):
-        view = mocked_setup_view(mocker)
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=False)
-        SHIFT = 10
-        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
-            return_value=SHIFT
-        )
-        x, y, h = 203, 303, 503
-        controller = controller_mocked_app(mocker)
-        view.return_value.master.winfo_height.return_value = h
-        controller.state = 3
-        controller.change_position(x, y)
-        new_x = x - SHIFT
-        new_y = y - h + SHIFT
-        assert view.return_value.master.geometry.call_count == 1
-        view.return_value.master.geometry.assert_called_with(
-            "+{}+{}".format(new_x, new_y)
-        )
+        controller.change_position(100, 100)
+        view.return_value.master.geometry.assert_called_once()
+        view.return_value.master.geometry.assert_called_with("+{}+{}".format(top, left))
 
     ## BaseController.change_size
     def test_BaseController_change_size_calls_check_current_size(self, mocker):
@@ -669,6 +636,34 @@ class TestBaseController(object):
         controller.state = state
         controller.cycle_corners(counter=True)
         assert controller.state == expected
+
+    ## BaseController.get_root_rect
+    @pytest.mark.parametrize(
+        "state,expected",
+        [
+            (Settings.LOCATE, (190, 290, 100, 100)),
+            (Settings.LOCATE + 1, (110, 290, 100, 100)),
+            (Settings.LOCATE + 2, (110, 210, 100, 100)),
+            (Settings.LOCATE + 3, (190, 210, 100, 100)),
+            (Settings.RESIZE, (190, 290, 100, 100)),
+            (Settings.RESIZE + 1, (110, 290, 100, 100)),
+            (Settings.RESIZE + 2, (110, 210, 100, 100)),
+            (Settings.RESIZE + 3, (190, 210, 100, 100)),
+        ],
+    )
+    def test_BaseController_get_root_rect_functionality(self, mocker, state, expected):
+        view = mocked_setup_view(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        SHIFT = 10
+        type(mocked_settings).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=SHIFT
+        )
+        x, y, w, h = 200, 300, 100, 100
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = w
+        controller = controller_mocked_app(mocker)
+        controller.state = state
+        assert controller.get_root_rect(x, y) == expected
 
     ## BaseController.listed_window_activated_by_digit
     def test_BaseController_listed_window_activated_by_digit_calls_winfo_children(

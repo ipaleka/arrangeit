@@ -153,6 +153,7 @@ class TestBaseControllerDomainLogic(object):
         controller.app.create_snapping_sources.assert_called_with(controller.model)
 
     def test_BaseController_next_sets_snapping_targets_attribute(self, mocker):
+        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         controller = controller_mocked_for_next(mocker)
         SAMPLE = {1: []}
         controller.app.create_snapping_sources.return_value = SAMPLE

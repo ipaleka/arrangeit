@@ -464,16 +464,7 @@ class BaseController(object):
             if offset and offset != (0, 0):
                 return move_cursor(x + offset[0], y + offset[1])
 
-        new_x, new_y = (
-            x - Settings.WINDOW_SHIFT_PIXELS,
-            y - Settings.WINDOW_SHIFT_PIXELS,
-        )
-        if self.state % 3:  # 1 and 2 have different new_x
-            new_x -= self.view.master.winfo_width() - 2 * Settings.WINDOW_SHIFT_PIXELS
-        if self.state // 2:  # 2 and 3 have different new_y
-            new_y -= self.view.master.winfo_height() - 2 * Settings.WINDOW_SHIFT_PIXELS
-
-        self.view.master.geometry("+{}+{}".format(new_x, new_y))
+        self.view.master.geometry("+{}+{}".format(*self.get_root_rect(x, y)[:2]))
 
     def change_size(self, x, y):
         """Changes root window size in regard to provided current x and y
@@ -566,8 +557,14 @@ class BaseController(object):
             return (
                 False
                 if (
-                    x < self.model.changed_x - Settings.WINDOW_MIN_WIDTH + Settings.WINDOW_SHIFT_PIXELS
-                    and y < self.model.changed_y - Settings.WINDOW_MIN_HEIGHT + Settings.WINDOW_SHIFT_PIXELS
+                    x
+                    < self.model.changed_x
+                    - Settings.WINDOW_MIN_WIDTH
+                    + Settings.WINDOW_SHIFT_PIXELS
+                    and y
+                    < self.model.changed_y
+                    - Settings.WINDOW_MIN_HEIGHT
+                    + Settings.WINDOW_SHIFT_PIXELS
                 )
                 else (
                     self.model.changed_x - Settings.WINDOW_MIN_WIDTH,
@@ -579,19 +576,33 @@ class BaseController(object):
             return (
                 False
                 if (
-                    x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH - Settings.WINDOW_SHIFT_PIXELS
-                    and y < self.model.changed_y - Settings.WINDOW_MIN_HEIGHT + Settings.WINDOW_SHIFT_PIXELS
+                    x
+                    > self.model.changed_x
+                    + Settings.WINDOW_MIN_WIDTH
+                    - Settings.WINDOW_SHIFT_PIXELS
+                    and y
+                    < self.model.changed_y
+                    - Settings.WINDOW_MIN_HEIGHT
+                    + Settings.WINDOW_SHIFT_PIXELS
                 )
-                else (self.model.changed_x, self.model.changed_y - Settings.WINDOW_MIN_HEIGHT)
+                else (
+                    self.model.changed_x,
+                    self.model.changed_y - Settings.WINDOW_MIN_HEIGHT,
+                )
             )
-
 
         elif self.state == Settings.RESIZE + 2:
             return (
                 False
                 if (
-                    x > self.model.changed_x + Settings.WINDOW_MIN_WIDTH - Settings.WINDOW_SHIFT_PIXELS
-                    and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT  - Settings.WINDOW_SHIFT_PIXELS
+                    x
+                    > self.model.changed_x
+                    + Settings.WINDOW_MIN_WIDTH
+                    - Settings.WINDOW_SHIFT_PIXELS
+                    and y
+                    > self.model.changed_y
+                    + Settings.WINDOW_MIN_HEIGHT
+                    - Settings.WINDOW_SHIFT_PIXELS
                 )
                 else (self.model.changed_x, self.model.changed_y)
             )
@@ -600,10 +611,19 @@ class BaseController(object):
             return (
                 False
                 if (
-                    x < self.model.changed_x - Settings.WINDOW_MIN_WIDTH + Settings.WINDOW_SHIFT_PIXELS
-                    and y > self.model.changed_y + Settings.WINDOW_MIN_HEIGHT  - Settings.WINDOW_SHIFT_PIXELS
+                    x
+                    < self.model.changed_x
+                    - Settings.WINDOW_MIN_WIDTH
+                    + Settings.WINDOW_SHIFT_PIXELS
+                    and y
+                    > self.model.changed_y
+                    + Settings.WINDOW_MIN_HEIGHT
+                    - Settings.WINDOW_SHIFT_PIXELS
                 )
-                else (self.model.changed_x - Settings.WINDOW_MIN_WIDTH, self.model.changed_y)
+                else (
+                    self.model.changed_x - Settings.WINDOW_MIN_WIDTH,
+                    self.model.changed_y,
+                )
             )
 
     def check_positioning_snapping(self, x, y):
@@ -624,14 +644,7 @@ class BaseController(object):
         return offset_for_intersecting_pair(
             check_intersection(
                 get_snapping_sources_for_rect(
-                    (
-                        x,
-                        y,
-                        self.view.master.winfo_width(),
-                        self.view.master.winfo_height(),
-                    ),
-                    Settings.SNAP_PIXELS,
-                    corner=self.state,
+                    self.get_root_rect(x, y), Settings.SNAP_PIXELS, corner=self.state
                 ),
                 self.snapping_targets[self.view.workspaces.active],
             ),
@@ -646,6 +659,28 @@ class BaseController(object):
             else:
                 self.state = self.state - 1 if self.state > 0 else 3
             self.setup_corner()
+
+    def get_root_rect(self, x, y):
+        """Returns current root position and size calculated from provided x, y.
+
+        :param x: current horizontal axis mouse position in pixels
+        :type x: int
+        :param y: current vertical axis mouse position in pixels
+        :type y: int
+        :returns: (int, int, int, int)
+        """
+        left, top, width, height = (
+            x - Settings.WINDOW_SHIFT_PIXELS,
+            y - Settings.WINDOW_SHIFT_PIXELS,
+            self.view.master.winfo_width(),
+            self.view.master.winfo_height(),
+        )
+        if (self.state % 10) % 3:  # 1 and 2 have different new_x
+            left -= width - 2 * Settings.WINDOW_SHIFT_PIXELS
+        if (self.state % 10) // 2:  # 2 and 3 have different new_y
+            top -= height - 2 * Settings.WINDOW_SHIFT_PIXELS
+
+        return (left, top, width, height)
 
     def listed_window_activated_by_digit(self, number):
         """Activates listed window by its ordinal in list presented by provided number.
