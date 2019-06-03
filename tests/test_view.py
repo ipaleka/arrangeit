@@ -978,6 +978,30 @@ class TestToolbar(object):
         ]
         mocked.assert_has_calls(calls, any_order=True)
 
+    ## Toolbar.on_options_click
+    def test_Toolbar_on_options_click_initializes_Options(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Options")
+        master = mocker.MagicMock()
+        toolbar = Toolbar(master)
+        toolbar.on_options_click()
+        mocked.assert_called_once()
+        mocked.assert_called_with(master.master)
+
+    def test_Toolbar_on_options_click_sets_topmost_for_options(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Options")
+        master = mocker.MagicMock()
+        toolbar = Toolbar(master)
+        toolbar.on_options_click()
+        mocked.return_value.attributes.assert_called_once()
+        mocked.return_value.attributes.assert_called_with("-topmost", "true")
+
+    def test_Toolbar_on_options_click_hides_root(self, mocker):
+        mocker.patch("arrangeit.view.Options")
+        master = mocker.MagicMock()
+        toolbar = Toolbar(master)
+        toolbar.on_options_click()
+        master.master.withdraw.assert_called_once()
+
 
 class TestOptions(object):
     """Unit testing class for :class:`Options` class."""
@@ -992,6 +1016,8 @@ class TestOptions(object):
 
     ## Options.__init__
     def test_Options_init_calls_super_with_master_arg(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.Options.setup_widgets")
         master = tk.Frame()
         mocked = mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         # with pytest.raises(AttributeError):
@@ -999,12 +1025,72 @@ class TestOptions(object):
         mocked.assert_called_with(master)
 
     def test_Options_init_sets_master_attribute(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_bindings")
         mocker.patch("arrangeit.view.Options.setup_widgets")
         master = tk.Frame()
         assert Options(master).master == master
 
     def test_Options_init_calls_setup_widgets(self, mocker):
-        master = tk.Frame()
+        mocker.patch("arrangeit.view.Options.setup_bindings")
         mocked = mocker.patch("arrangeit.view.Options.setup_widgets")
-        Options(master=master)
+        Options()
+        mocked.assert_called_once()
+
+    def test_Options_init_calls_setup_bindings(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.Options.setup_bindings")
+        Options()
+        mocked.assert_called_once()
+
+    ## Options.setup_widgets
+    def test_Options_setup_widgets_sets_quit_button(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Button")
+        options = Options()
+        options.setup_widgets()
+        calls = [
+            mocker.call(
+                options,
+                text=_("Cancel"),
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
+                command=options.destroy,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Options_setup_widgets_calls_button_pack(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Button.pack")
+        options = Options()
+        mocked.call_count = 0
+        options.setup_widgets()
+        assert mocked.call_count == 1
+
+
+    ## Options.setup_bindings
+    @pytest.mark.parametrize("event,callback", [("<Destroy>", "on_destroy_options")])
+    def test_Options_setup_bindings_binds_callback(self, mocker, event, callback):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.Options.bind")
+        options = Options()
+        callback = getattr(options, callback)
+        options.setup_bindings()
+        calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    ## Options.on_destroy_options
+    def test_Options_on_destroy_options_shows_root(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        options = Options()
+        options.master = mocker.MagicMock()
+        options.on_destroy_options(mocker.MagicMock())
+        options.master.update.assert_called_once()
+        options.master.deiconify.assert_called_once()
+
+    def test_Options_on_destroy_options_destroys_options(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocked = mocker.patch("arrangeit.view.Options.destroy")
+        options = Options()
+        options.master = mocker.MagicMock()
+        options.on_destroy_options(mocker.MagicMock())
         mocked.assert_called_once()

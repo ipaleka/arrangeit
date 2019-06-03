@@ -138,13 +138,9 @@ def get_prepared_screenshot(image, blur_size=2, grayscale=False):
     """
     if grayscale:
         return ImageTk.PhotoImage(
-            image.convert("L").filter(
-                ImageFilter.BoxBlur(blur_size)
-            )
+            image.convert("L").filter(ImageFilter.BoxBlur(blur_size))
         )
-    return ImageTk.PhotoImage(
-        image.filter(ImageFilter.BoxBlur(blur_size))
-    )
+    return ImageTk.PhotoImage(image.filter(ImageFilter.BoxBlur(blur_size)))
 
 
 ## SNAPPING
@@ -344,5 +340,5 @@ def offset_for_intersections(rectangles, snap):
 
     return (
         _offset_for_intersecting_pair(rectangles[1], snap)[0],
-        _offset_for_intersecting_pair(rectangles[0], snap)[1]
+        _offset_for_intersecting_pair(rectangles[0], snap)[1],
     )

@@ -29,7 +29,7 @@ def get_screenshot_widget(root):
     return label
 
 
-# NOTE following 2 functions probably should be moved somewhere else
+# NOTE following 3 functions probably should be moved somewhere else
 
 
 def get_mouse_listener(on_move_callback, on_scroll_callback):
@@ -683,9 +683,10 @@ class Toolbar(tk.Frame):
         )
 
     def on_options_click(self):
-        from tkinter import messagebox
-
-        messagebox.showinfo("arrangeit", _("Not implemented yet!"))
+        """Creates and shows options dialog and hides root window."""
+        options = Options(self.master.master)
+        options.attributes("-topmost", "true")
+        self.master.master.withdraw()
 
 
 class Options(tk.Toplevel):
@@ -705,8 +706,22 @@ class Options(tk.Toplevel):
         super().__init__(master)
         self.master = master
         self.setup_widgets()
+        self.setup_bindings()
+
+    def setup_bindings(self):
+        self.bind("<Destroy>", self.on_destroy_options)
 
     def setup_widgets(self):
         """Creates and places all the options' widgets."""
-        pass
-        # self.setup_name()
+        quit_button = tk.Button(
+            self,
+            text=_("Cancel"),
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
+            command=self.destroy,
+        )
+        quit_button.pack()
+
+    def on_destroy_options(self, event):
+        self.master.update()
+        self.master.deiconify()
+        self.destroy()
