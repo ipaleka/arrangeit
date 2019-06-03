@@ -123,6 +123,29 @@ def increased_by_fraction(value, fraction):
     return round(value * (1.0 + fraction))
 
 
+def get_prepared_screenshot(image):
+    """Filters provided image and converts it to format suitable for Tkinter.
+
+    SCREENSHOT_BLUR_PIXELS defines blur depth in pixels.
+
+    :param image: raw screenshot image
+    :type image: :class:`PIL.Image.Image`
+    :returns: :class:`PIL.ImageTk.PhotoImage`
+    """
+    from arrangeit.settings import Settings
+
+    if Settings.SCREENSHOT_TO_GRAYSCALE:
+        return ImageTk.PhotoImage(
+            image.convert("L").filter(
+                ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS)
+            )
+        )
+    return ImageTk.PhotoImage(
+        image.filter(ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS))
+    )
+
+
+## SNAPPING
 def _get_snapping_source_by_ordinal(rect, snap, ordinal=0):
     """Returns snapping rectangle by ordinal from 0 as horizontal top
 
@@ -201,7 +224,7 @@ def get_snapping_sources_for_rect(rect, snap, corner=None):
         return tuple((_get_snapping_source_by_ordinal(rect, snap, i) for i in range(4)))
 
 
-def intersects(source, target):
+def _intersects(source, target):
     """Checks does provided rectangle source intersect with provided target rectangle.
 
     Provided rectangles **don't** intersect if at least one of following statements
@@ -226,45 +249,7 @@ def intersects(source, target):
     )
 
 
-def check_intersection(sources, targets):
-    """Returns first pair that intersects from sources and targets list of four-tuples.
-
-    Sources is either four-tuple representing whole window or two-tuple representing
-    specific corner of the window (from first top-left clockwise to forth bottom-left).
-
-    We are interested in intersection of odd or even pairs of sources and targets.
-    It means that sources[0] or sources[2] should intersect with
-    targets[n][0] or targets[n][2], respectively sources[1] or sources[3]
-    should intersect with targets[n][1] or targets[n][3].
-
-    So we create iterator that first cycle through all even elements pairs and
-    then through all odd elements pairs. Stops iteration when first intersected pair
-    is found and returns that pair.
-
-    :param sources: two-tuple or four-tuple of (x0, y0, x1, y1)
-    :type sources: tuple
-    :param targets: collection of four-tuples (x0, y0, x1, y1)
-    :type targets: list of four-tuples
-    :returns: two-tuple ((x0,y0,x1,y1),(x0,y0,x1,y1)) or False
-    """
-    return next(
-        (
-            pair
-            for pair in chain(
-                product(
-                    islice(sources, 0, None, 2), islice(chain(*targets), 0, None, 2)
-                ),
-                product(
-                    islice(sources, 1, None, 2), islice(chain(*targets), 1, None, 2)
-                ),
-            )
-            if intersects(*pair)
-        ),
-        False,
-    )
-
-
-def offset_for_intersecting_pair(rectangles, snap):
+def _offset_for_intersecting_pair(rectangles, snap):
     """Calculates and returns offset (x, y) for provided overlapping pair of rectangles.
 
     Offset is value we should add or substract so rectangles overlapping sides fit.
@@ -291,23 +276,71 @@ def offset_for_intersecting_pair(rectangles, snap):
     )
 
 
-def get_prepared_screenshot(image):
-    """Filters provided image and converts it to format suitable for Tkinter.
+def check_intersections(sources, targets):
+    """Returns first pairs that intersects from sources and targets list of four-tuples.
 
-    SCREENSHOT_BLUR_PIXELS defines blur depth in pixels.
+    Sources is either four-tuple representing whole window or two-tuple representing
+    specific corner of the window (from first top-left clockwise to forth bottom-left).
 
-    :param image: raw screenshot image
-    :type image: :class:`PIL.Image.Image`
-    :returns: :class:`PIL.ImageTk.PhotoImage`
+    We are interested in intersection of odd or even pairs of sources and targets.
+    It means that sources[0] or sources[2] should intersect with
+    targets[n][0] or targets[n][2], respectively sources[1] or sources[3]
+    should intersect with targets[n][1] or targets[n][3].
+
+    So we create iterator that first cycle through all even elements pairs and
+    then through all odd elements pairs. Stops iteration when first intersected pair
+    is found. Returns either single pair (even or odd) or tuple of both.
+
+    :param sources: two-tuple or four-tuple of (x0, y0, x1, y1)
+    :type sources: tuple
+    :param targets: collection of four-tuples (x0, y0, x1, y1)
+    :type targets: list of four-tuples
+    :param even: horizontal intersection pair ((x0,y0,x1,y1),(x0,y0,x1,y1))
+    :type even: tuple
+    :param odd: vertical intersection pair ((x0,y0,x1,y1),(x0,y0,x1,y1)) or False
+    :type odd: tuple
+    :returns: tuple or two-tuple of two-tuples ((x0,y0,x1,y1),(x0,y0,x1,y1)) or False
     """
-    from arrangeit.settings import Settings
-
-    if Settings.SCREENSHOT_TO_GRAYSCALE:
-        return ImageTk.PhotoImage(
-            image.convert("L").filter(
-                ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS)
+    even = next(
+        (
+            pair
+            for pair in product(
+                islice(sources, 0, None, 2), islice(chain(*targets), 0, None, 2)
             )
-        )
-    return ImageTk.PhotoImage(
-        image.filter(ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS))
+            if _intersects(*pair)
+        ),
+        False,
+    )
+    odd = next(
+        (
+            pair
+            for pair in product(
+                islice(sources, 1, None, 2), islice(chain(*targets), 1, None, 2)
+            )
+            if _intersects(*pair)
+        ),
+        False,
+    )
+    if not even or not odd:
+        return even or odd
+    return (even, odd)
+
+
+def offset_for_intersections(rectangles, snap):
+    """Checks if single or both axes intersect and returns related offset(s).
+
+    :param rectangles: one or two intersecting pair of rectangles
+    :type rectangles: two tuples of or single two-tuple ((x0,y0,x1,y1),(x0,y0,x1,y1))
+    :param snap: snapping value in pixels
+    :type snap: int
+    :returns: tuple (x,y)
+    """
+    if not rectangles:
+        return (0, 0)
+    if isinstance(rectangles[0][0], int):  # single pair provided
+        return _offset_for_intersecting_pair(rectangles, snap)
+
+    return (
+        _offset_for_intersecting_pair(rectangles[1], snap)[0],
+        _offset_for_intersecting_pair(rectangles[0], snap)[1]
     )

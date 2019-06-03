@@ -6,7 +6,7 @@ from arrangeit.settings import Settings
 
 from .fixtures import (
     SAMPLE_SNAPPING_SOURCES_FOR_RECT,
-    SAMPLE_CHECK_INTERSECTION,
+    SAMPLE_CHECK_INTERSECTIONS,
     INTERSECTS_SAMPLES,
     OFFSET_INTERSECTING_PAIR_SAMPLES,
 )
@@ -175,132 +175,6 @@ class TestUtils(object):
     def test_increased_by_fraction(self, value, fraction, expected):
         assert utils.increased_by_fraction(value, fraction) == expected
 
-    ## _get_snapping_source_by_ordinal
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test__get_snapping_source_by_ordinal_ordinal(self, rect, expected):
-        for i in range(4):
-            assert utils._get_snapping_source_by_ordinal(rect, 10, i) == expected[i]
-
-    ## get_snapping_sources_for_rect
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10) == expected
-        assert utils.get_snapping_sources_for_rect(rect, 10, None) == expected
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_0(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 0) == (
-            expected[0],
-            expected[3],
-        )
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_1(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 1) == (
-            expected[0],
-            expected[1],
-        )
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_2(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 2) == (
-            expected[2],
-            expected[1],
-        )
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_3(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 3) == (
-            expected[2],
-            expected[3],
-        )
-
-    ## intersects
-    @pytest.mark.parametrize("source,target,expected", INTERSECTS_SAMPLES)
-    def test_intersects_functionality(self, source, target, expected):
-        assert utils.intersects(source, target) == expected
-
-    ## check_intersection
-    def test_check_intersection_calls_intersects_and_returns_False(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.intersects", return_value=False)
-        sample_sources = utils.get_snapping_sources_for_rect((50, 20, 200, 20), 10)
-        sample_targets1 = utils.get_snapping_sources_for_rect((300, 100, 200, 120), 10)
-        sample_targets2 = utils.get_snapping_sources_for_rect((520, 400, 850, 420), 10)
-        result = utils.check_intersection(
-            sample_sources, [sample_targets1, sample_targets2]
-        )
-        assert mocked.call_count == 16
-        assert result == False
-
-    def test_check_intersection_calls_intersects_once_and_returns_tuple(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.intersects", return_value=True)
-        sample_sources = utils.get_snapping_sources_for_rect((50, 20, 200, 20), 10)
-        sample_targets1 = utils.get_snapping_sources_for_rect((300, 100, 200, 120), 10)
-        sample_targets2 = utils.get_snapping_sources_for_rect((520, 400, 850, 420), 10)
-        result = utils.check_intersection(
-            sample_sources, [sample_targets1, sample_targets2]
-        )
-        assert mocked.call_count == 1
-        assert result == ((40, 10, 260, 30), (290, 90, 510, 110))
-
-    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_full_sources(
-        self, sources, targets, expected
-    ):
-        assert utils.check_intersection(sources, targets) == expected[0]
-
-    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_0(
-        self, sources, targets, expected
-    ):
-        assert (
-            utils.check_intersection((sources[0], sources[3]), targets) == expected[1]
-        )
-
-    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_1(
-        self, sources, targets, expected
-    ):
-        assert (
-            utils.check_intersection((sources[0], sources[1]), targets) == expected[2]
-        )
-
-    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_2(
-        self, sources, targets, expected
-    ):
-        assert (
-            utils.check_intersection((sources[2], sources[1]), targets) == expected[3]
-        )
-
-    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTION)
-    def test_check_intersection_functionality_for_two_sources_corner_3(
-        self, sources, targets, expected
-    ):
-        assert (
-            utils.check_intersection((sources[2], sources[3]), targets) == expected[4]
-        )
-
-    ## offset_for_intersecting_pair
-    def test_offset_for_intersecting_pair_returns_False(self, mocker):
-        assert utils.offset_for_intersecting_pair(False, 10) == (0, 0)
-
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
-    def test_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
-        assert utils.offset_for_intersecting_pair(pair, 10) == offset
-
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[1])
-    def test_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
-        assert utils.offset_for_intersecting_pair(pair, 10) == offset
-
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[2])
-    def test_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
-        assert utils.offset_for_intersecting_pair(pair, 10) == offset
-
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
-    def test_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
-        assert utils.offset_for_intersecting_pair(pair, 10) == offset
-
     ## get_prepared_screenshot
     def test_get_prepared_screenshot_calls_filter(self, mocker):
         image = Settings.BLANK_ICON
@@ -342,3 +216,146 @@ class TestUtils(object):
         mocker.patch("PIL.Image.Image.filter")
         mocked = mocker.patch("PIL.ImageTk.PhotoImage")
         assert utils.get_prepared_screenshot(Settings.BLANK_ICON) == mocked.return_value
+
+    ## _get_snapping_source_by_ordinal
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test__get_snapping_source_by_ordinal_ordinal(self, rect, expected):
+        for i in range(4):
+            assert utils._get_snapping_source_by_ordinal(rect, 10, i) == expected[i]
+
+    ## get_snapping_sources_for_rect
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10) == expected
+        assert utils.get_snapping_sources_for_rect(rect, 10, None) == expected
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_0(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 0) == (
+            expected[0],
+            expected[3],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_1(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 1) == (
+            expected[0],
+            expected[1],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_2(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 2) == (
+            expected[2],
+            expected[1],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_3(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 3) == (
+            expected[2],
+            expected[3],
+        )
+
+    ## _intersects
+    @pytest.mark.parametrize("source,target,expected", INTERSECTS_SAMPLES)
+    def test_intersects_functionality(self, source, target, expected):
+        assert utils._intersects(source, target) == expected
+
+    ## check_intersections
+    def test_check_intersections_single_calls_intersects_and_returns_False(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.utils._intersects", return_value=False)
+        sample_sources = utils.get_snapping_sources_for_rect((50, 20, 200, 20), 10)
+        sample_targets1 = utils.get_snapping_sources_for_rect((300, 100, 200, 120), 10)
+        sample_targets2 = utils.get_snapping_sources_for_rect((520, 400, 850, 420), 10)
+        result = utils.check_intersections(
+            sample_sources, [sample_targets1, sample_targets2]
+        )
+        assert mocked.call_count == 16
+        assert result == False
+
+    def test_check_intersections_calls_intersects_twice_and_returns_two_tuple(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.utils._intersects", return_value=True)
+        sample_sources = utils.get_snapping_sources_for_rect((50, 20, 200, 20), 10)
+        sample_targets1 = utils.get_snapping_sources_for_rect((300, 100, 200, 120), 10)
+        sample_targets2 = utils.get_snapping_sources_for_rect((520, 400, 850, 420), 10)
+        result = utils.check_intersections(
+            sample_sources, [sample_targets1, sample_targets2]
+        )
+        assert mocked.call_count == 2
+        assert result == (
+            ((40, 10, 260, 30), (290, 90, 510, 110)),
+            ((240, 10, 260, 50), (490, 90, 510, 230)),
+        )
+
+    @pytest.mark.parametrize(
+        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
+    )
+    def test_check_intersections_single_functionality_for_full_sources(
+        self, sources, targets, expected
+    ):
+        assert utils.check_intersections(sources, targets) == expected[0]
+
+    @pytest.mark.parametrize(
+        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
+    )
+    def test_check_intersections_single_functionality_for_two_sources_corner_0(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersections((sources[0], sources[3]), targets) == expected[1]
+        )
+
+    @pytest.mark.parametrize(
+        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
+    )
+    def test_check_intersections_single_functionality_for_two_sources_corner_1(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersections((sources[0], sources[1]), targets) == expected[2]
+        )
+
+    @pytest.mark.parametrize(
+        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
+    )
+    def test_check_intersections_single_functionality_for_two_sources_corner_2(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersections((sources[2], sources[1]), targets) == expected[3]
+        )
+
+    @pytest.mark.parametrize(
+        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
+    )
+    def test_check_intersections_single_functionality_for_two_sources_corner_3(
+        self, sources, targets, expected
+    ):
+        assert (
+            utils.check_intersections((sources[2], sources[3]), targets) == expected[4]
+        )
+
+    ## _offset_for_intersecting_pair
+    def test_offset_for_intersecting_pair_returns_False(self, mocker):
+        assert utils._offset_for_intersecting_pair(False, 10) == (0, 0)
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
+    def test_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[1])
+    def test_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[2])
+    def test_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
+    def test_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset

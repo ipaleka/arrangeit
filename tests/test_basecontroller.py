@@ -254,7 +254,7 @@ class TestBaseController(object):
         self, mocker
     ):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.check_intersection")
+        mocker.patch("arrangeit.base.check_intersections")
         mocked = mocker.patch("arrangeit.base.BaseController.get_root_rect")
         x, y, w, h = 100, 200, 300, 400
         view.return_value.master.winfo_width.return_value = w
@@ -296,7 +296,7 @@ class TestBaseController(object):
         view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.get_root_rect")
         root_rects = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
-        mocked = mocker.patch("arrangeit.base.check_intersection")
+        mocked = mocker.patch("arrangeit.base.check_intersections")
         view.return_value.workspaces.active = 1001
         controller = controller_mocked_app(mocker)
         SAMPLE = ["foo"]
@@ -311,8 +311,8 @@ class TestBaseController(object):
     ):
         view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
-        mocked_check = mocker.patch("arrangeit.base.check_intersection")
-        mocked = mocker.patch("arrangeit.base.offset_for_intersecting_pair")
+        mocked_check = mocker.patch("arrangeit.base.check_intersections")
+        mocked = mocker.patch("arrangeit.base.offset_for_intersections")
         view.return_value.workspaces.active = 1001
         controller = controller_mocked_app(mocker)
         controller.snapping_targets = {1001: ["foo"]}

@@ -9,8 +9,8 @@ from arrangeit.utils import (
     quarter_by_smaller,
     platform_user_data_path,
     get_snapping_sources_for_rect,
-    check_intersection,
-    offset_for_intersecting_pair,
+    check_intersections,
+    offset_for_intersections,
 )
 from arrangeit.view import (
     get_mouse_listener,
@@ -556,8 +556,8 @@ class BaseController(object):
         :type y: int
         :returns: (int, int) or False
         """
-        return offset_for_intersecting_pair(
-            check_intersection(
+        return offset_for_intersections(
+            check_intersections(
                 get_snapping_sources_for_rect(
                     self.get_root_rect(x, y),
                     Settings.SNAP_PIXELS,
