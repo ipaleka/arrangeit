@@ -707,6 +707,7 @@ class Options(tk.Toplevel):
         self.master = master
         self.setup_widgets()
         self.setup_bindings()
+        self.geometry("+{}+{}".format(self.master.winfo_x(), self.master.winfo_y()))
 
     def setup_bindings(self):
         self.bind("<Destroy>", self.on_destroy_options)

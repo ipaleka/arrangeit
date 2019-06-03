@@ -481,7 +481,7 @@ class TestWorkspace(object):
         mocker.patch("arrangeit.view.increased_by_fraction")
         mocked = mocker.patch("arrangeit.view.Workspace.get_humanized_number")
         workspace = Workspace(mocker.MagicMock(), number=1002)
-        mocked.call_count = 0
+        mocked.reset_mock()
         workspace.setup_widgets()
         assert mocked.call_count == 1
         calls = [mocker.call(1002)]
@@ -542,7 +542,7 @@ class TestWorkspace(object):
         mocker.patch("arrangeit.view.tk.Label.config")
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
         workspace = Workspace(mocker.MagicMock(), mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         workspace.setup_widgets()
         assert mocked.call_count == 2
         calls = [
@@ -705,7 +705,7 @@ class TestListedWindow(object):
         mocker.patch("arrangeit.view.ListedWindow.setup_widgets")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         window = ListedWindow(master=master)
-        mocked.call_count = 0
+        mocked.reset_mock()
         window.get_icon_image(Settings.BLANK_ICON)
         mocked.assert_called_once()
 
@@ -760,7 +760,7 @@ class TestListedWindow(object):
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
         window = ListedWindow(mocker.MagicMock(), mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         window.setup_widgets()
         assert mocked.call_count == 2
         calls = [
@@ -785,7 +785,7 @@ class TestListedWindow(object):
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Frame.config")
         window = ListedWindow(mocker.MagicMock(), mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         window.setup_widgets()
         assert mocked.call_count == 1
         calls = [mocker.call(background=Settings.LISTED_WINDOW_LABEL_BG)]
@@ -953,7 +953,7 @@ class TestToolbar(object):
     def test_Toolbar_setup_widgets_calls_button_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Button.place")
         toolbar = Toolbar(mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         toolbar.setup_widgets()
         assert mocked.call_count == 2
         calls = [
@@ -1018,34 +1018,56 @@ class TestOptions(object):
     def test_Options_init_calls_super_with_master_arg(self, mocker):
         mocker.patch("arrangeit.view.Options.setup_bindings")
         mocker.patch("arrangeit.view.Options.setup_widgets")
-        master = tk.Frame()
+        mocker.patch("arrangeit.view.Options.geometry")
+        master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        # with pytest.raises(AttributeError):
         Options(master=master)
         mocked.assert_called_with(master)
 
     def test_Options_init_sets_master_attribute(self, mocker):
-        mocker.patch("arrangeit.view.Options.setup_bindings")
         mocker.patch("arrangeit.view.Options.setup_widgets")
-        master = tk.Frame()
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        master = mocker.MagicMock()
         assert Options(master).master == master
 
     def test_Options_init_calls_setup_widgets(self, mocker):
+        mocker.patch("arrangeit.view.Options.geometry")
         mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         mocked = mocker.patch("arrangeit.view.Options.setup_widgets")
-        Options()
+        Options(mocker.MagicMock())
         mocked.assert_called_once()
 
     def test_Options_init_calls_setup_bindings(self, mocker):
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         mocker.patch("arrangeit.view.Options.setup_widgets")
         mocked = mocker.patch("arrangeit.view.Options.setup_bindings")
-        Options()
+        Options(mocker.MagicMock())
         mocked.assert_called_once()
+
+    def test_Options_init_calls_geometry_on_master_position(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocked = mocker.patch("arrangeit.view.Options.geometry")
+        master = mocker.MagicMock()
+        Options(master)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            "+{}+{}".format(master.winfo_x.return_value, master.winfo_y.return_value)
+        )
 
     ## Options.setup_widgets
     def test_Options_setup_widgets_sets_quit_button(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.view.Options.destroy")
         mocked = mocker.patch("arrangeit.view.tk.Button")
-        options = Options()
+        options = Options(mocker.MagicMock())
         options.setup_widgets()
         calls = [
             mocker.call(
@@ -1058,19 +1080,24 @@ class TestOptions(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Options_setup_widgets_calls_button_pack(self, mocker):
-        mocked = mocker.patch("arrangeit.view.tk.Button.pack")
-        options = Options()
-        mocked.call_count = 0
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.view.Options.destroy")
+        mocked = mocker.patch("arrangeit.view.tk.Button")
+        options = Options(mocker.MagicMock())
+        mocked.reset_mock()
         options.setup_widgets()
-        assert mocked.call_count == 1
-
+        assert mocked.return_value.pack.call_count == 1
 
     ## Options.setup_bindings
     @pytest.mark.parametrize("event,callback", [("<Destroy>", "on_destroy_options")])
     def test_Options_setup_bindings_binds_callback(self, mocker, event, callback):
         mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         mocked = mocker.patch("arrangeit.view.Options.bind")
-        options = Options()
+        options = Options(mocker.MagicMock())
         callback = getattr(options, callback)
         options.setup_bindings()
         calls = [mocker.call(event, callback)]
@@ -1080,8 +1107,10 @@ class TestOptions(object):
     def test_Options_on_destroy_options_shows_root(self, mocker):
         mocker.patch("arrangeit.view.Options.setup_widgets")
         mocker.patch("arrangeit.view.Options.setup_bindings")
-        options = Options()
-        options.master = mocker.MagicMock()
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.view.Options.destroy")
+        options = Options(mocker.MagicMock())
         options.on_destroy_options(mocker.MagicMock())
         options.master.update.assert_called_once()
         options.master.deiconify.assert_called_once()
@@ -1089,8 +1118,9 @@ class TestOptions(object):
     def test_Options_on_destroy_options_destroys_options(self, mocker):
         mocker.patch("arrangeit.view.Options.setup_widgets")
         mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         mocked = mocker.patch("arrangeit.view.Options.destroy")
-        options = Options()
-        options.master = mocker.MagicMock()
+        options = Options(mocker.MagicMock())
         options.on_destroy_options(mocker.MagicMock())
         mocked.assert_called_once()

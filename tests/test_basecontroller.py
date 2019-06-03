@@ -56,7 +56,7 @@ class TestBaseController(object):
     def test_BaseController_setup_calls_get_tkinter_root(self, mocker):
         mocked = mocked_setup_root(mocker)
         controller = base.BaseController(None)
-        mocked.call_count = 0
+        mocked.reset_mock()
         controller.setup()
         assert mocked.call_count == 1
 
@@ -64,7 +64,7 @@ class TestBaseController(object):
         root = mocked_setup_root(mocker)
         mocked = mocker.patch("arrangeit.base.get_screenshot_widget")
         controller = base.BaseController(None)
-        mocked.call_count = 0
+        mocked.reset_mock()
         controller.setup()
         assert mocked.call_count == 1
         mocked.assert_called_with(root.return_value)
@@ -73,7 +73,7 @@ class TestBaseController(object):
         root = mocked_setup_root(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.setup_root_window")
         controller = base.BaseController(None)
-        mocked.call_count = 0
+        mocked.reset_mock()
         controller.setup()
         assert mocked.call_count == 1
         mocked.assert_called_with(root.return_value)
@@ -82,7 +82,7 @@ class TestBaseController(object):
         root = mocked_setup_root(mocker)
         mocked = mocker.patch("arrangeit.base.ViewApplication")
         controller = base.BaseController(None)
-        mocked.call_count = 0
+        mocked.reset_mock()
         controller.setup()
         assert mocked.call_count == 1
         mocked.assert_called_with(master=root.return_value, controller=controller)
@@ -90,7 +90,7 @@ class TestBaseController(object):
     def test_BaseController_setup_withdraws_root_tk_window(self, mocker):
         root = mocked_setup_root(mocker)
         controller = base.BaseController(None)
-        root.return_value.withdraw.call_count = 0
+        root.return_value.withdraw.reset_mock()
         controller.setup()
         assert root.return_value.withdraw.call_count == 1
 

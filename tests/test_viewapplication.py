@@ -82,7 +82,7 @@ class TestViewApplication(object):
     def test_ViewApplication_setup_title_calls_label_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.call_count = 0
+        mocked.return_value.place.reset_mock()
         view.setup_title()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
@@ -107,7 +107,7 @@ class TestViewApplication(object):
     def test_ViewApplication_setup_icon_calls_label_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.call_count = 0
+        mocked.return_value.place.reset_mock()
         view.setup_icon()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
@@ -141,7 +141,7 @@ class TestViewApplication(object):
     def test_ViewApplication_setup_name_calls_label_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.call_count = 0
+        mocked.return_value.place.reset_mock()
         view.setup_name()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
@@ -169,7 +169,7 @@ class TestViewApplication(object):
     ):
         mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.call_count = 0
+        mocked.return_value.place.reset_mock()
         view.setup_workspaces()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
@@ -194,7 +194,7 @@ class TestViewApplication(object):
     def test_ViewApplication_setup_windows_calls_WindowsList_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.WindowsList")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.call_count = 0
+        mocked.return_value.place.reset_mock()
         view.setup_windows()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
@@ -207,42 +207,42 @@ class TestViewApplication(object):
         mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_title")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         view.setup_widgets()
         assert mocked.call_count == 1
 
     def test_ViewApplication_setup_widgets_calls_setup_icon(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_icon")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         view.setup_widgets()
         assert mocked.call_count == 1
 
     def test_ViewApplication_setup_widgets_calls_setup_name(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_name")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         view.setup_widgets()
         assert mocked.call_count == 1
 
     def test_ViewApplication_setup_widgets_calls_setup_workspaces(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_workspaces")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         view.setup_widgets()
         assert mocked.call_count == 1
 
     def test_ViewApplication_setup_widgets_calls_setup_toolbar(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_toolbar")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         view.setup_widgets()
         assert mocked.call_count == 1
 
     def test_ViewApplication_setup_widgets_calls_setup_windows(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_windows")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         view.setup_widgets()
         assert mocked.call_count == 1
 
@@ -261,7 +261,7 @@ class TestViewApplication(object):
     def test_ViewApplication_setup_toolbar_calls_Toolbar_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.Toolbar")
         view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.call_count = 0
+        mocked.return_value.place.reset_mock()
         view.setup_toolbar()
         assert mocked.return_value.place.call_count == 1
         mocked.return_value.place.assert_called_with(
@@ -416,7 +416,7 @@ class TestViewApplication(object):
         mocked = mocker.patch("arrangeit.view.tk.Frame.place")
         master = mocker.MagicMock()
         view = ViewApplication(master, mocker.MagicMock())
-        mocked.call_count = 0
+        mocked.reset_mock()
         view.startup()
         assert mocked.call_count == 1
         mocked.assert_called_with(
