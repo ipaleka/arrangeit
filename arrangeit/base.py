@@ -339,8 +339,8 @@ class BaseController(object):
         self.place_on_top_left()
         if first_time:
             self.on_mouse_move(
-                self.model.x + Settings.WINDOW_SHIFT_PIXELS,
-                self.model.y + Settings.WINDOW_SHIFT_PIXELS,
+                self.model.x + Settings.SHIFT_CURSOR,
+                self.model.y + Settings.SHIFT_CURSOR,
             )
 
         return False
@@ -370,8 +370,8 @@ class BaseController(object):
         :type y: int
         """
         self.model.set_changed(
-            x=x + (1 if self.state % 3 else -1) * Settings.WINDOW_SHIFT_PIXELS,
-            y=y + (1 if self.state // 2 else -1) * Settings.WINDOW_SHIFT_PIXELS,
+            x=x + (1 if self.state % 3 else -1) * Settings.SHIFT_CURSOR,
+            y=y + (1 if self.state // 2 else -1) * Settings.SHIFT_CURSOR,
         )
         if not self.model.resizable:
             if self.model.changed or self.model.is_ws_changed:
@@ -398,8 +398,8 @@ class BaseController(object):
         params = {
             "w": self.view.master.winfo_width(),
             "h": self.view.master.winfo_height(),
-            "x": x - Settings.WINDOW_SHIFT_PIXELS,
-            "y": y - Settings.WINDOW_SHIFT_PIXELS,
+            "x": x - Settings.SHIFT_CURSOR,
+            "y": y - Settings.SHIFT_CURSOR,
         }
 
         if (self.state % 10) % 3:
@@ -487,26 +487,24 @@ class BaseController(object):
             return self.set_minimum_size(*position)
 
         width = min(
-            self.model.changed_x - x + Settings.WINDOW_SHIFT_PIXELS,
-            self.model.changed_x,
+            self.model.changed_x - x + Settings.SHIFT_CURSOR, self.model.changed_x
         )
         height = min(
-            self.model.changed_y - y + Settings.WINDOW_SHIFT_PIXELS,
-            self.model.changed_y,
+            self.model.changed_y - y + Settings.SHIFT_CURSOR, self.model.changed_y
         )
-        left = x - Settings.WINDOW_SHIFT_PIXELS
-        top = y - Settings.WINDOW_SHIFT_PIXELS
+        left = x - Settings.SHIFT_CURSOR
+        top = y - Settings.SHIFT_CURSOR
 
         if (self.state % 10) // 2:
             height = min(
-                y - self.model.changed_y + Settings.WINDOW_SHIFT_PIXELS,
+                y - self.model.changed_y + Settings.SHIFT_CURSOR,
                 self.view.master.winfo_screenheight() - self.model.changed_y,
             )
             top = self.model.changed_y
 
         if (self.state % 10) % 3:
             width = min(
-                x - self.model.changed_x + Settings.WINDOW_SHIFT_PIXELS,
+                x - self.model.changed_x + Settings.SHIFT_CURSOR,
                 self.view.master.winfo_screenwidth() - self.model.changed_x,
             )
             left = self.model.changed_x
@@ -524,36 +522,20 @@ class BaseController(object):
         :type y: int
         :returns: tuple position (int, int) or False
         """
-        check_x = (
-            x
-            < self.model.changed_x
-            - Settings.WINDOW_MIN_WIDTH
-            + Settings.WINDOW_SHIFT_PIXELS
-        )
-        check_y = (
-            y
-            < self.model.changed_y
-            - Settings.WINDOW_MIN_HEIGHT
-            + Settings.WINDOW_SHIFT_PIXELS
-        )
-        left = self.model.changed_x - Settings.WINDOW_MIN_WIDTH
-        top = self.model.changed_y - Settings.WINDOW_MIN_HEIGHT
+        check_x = x < self.model.changed_x - Settings.MIN_WIDTH + Settings.SHIFT_CURSOR
+        check_y = y < self.model.changed_y - Settings.MIN_HEIGHT + Settings.SHIFT_CURSOR
+        left = self.model.changed_x - Settings.MIN_WIDTH
+        top = self.model.changed_y - Settings.MIN_HEIGHT
 
         if (self.state % 10) % 3:
             check_x = (
-                x
-                > self.model.changed_x
-                + Settings.WINDOW_MIN_WIDTH
-                - Settings.WINDOW_SHIFT_PIXELS
+                x > self.model.changed_x + Settings.MIN_WIDTH - Settings.SHIFT_CURSOR
             )
             left = self.model.changed_x
 
         if (self.state % 10) // 2:
             check_y = (
-                y
-                > self.model.changed_y
-                + Settings.WINDOW_MIN_HEIGHT
-                - Settings.WINDOW_SHIFT_PIXELS
+                y > self.model.changed_y + Settings.MIN_HEIGHT - Settings.SHIFT_CURSOR
             )
             top = self.model.changed_y
 
@@ -577,7 +559,9 @@ class BaseController(object):
         return offset_for_intersecting_pair(
             check_intersection(
                 get_snapping_sources_for_rect(
-                    self.get_root_rect(x, y), Settings.SNAP_PIXELS, corner=self.state
+                    self.get_root_rect(x, y),
+                    Settings.SNAP_PIXELS,
+                    corner=self.state % 10,
                 ),
                 self.snapping_targets[self.view.workspaces.active],
             ),
@@ -603,15 +587,15 @@ class BaseController(object):
         :returns: (int, int, int, int)
         """
         left, top, width, height = (
-            x - Settings.WINDOW_SHIFT_PIXELS,
-            y - Settings.WINDOW_SHIFT_PIXELS,
+            x - Settings.SHIFT_CURSOR,
+            y - Settings.SHIFT_CURSOR,
             self.view.master.winfo_width(),
             self.view.master.winfo_height(),
         )
         if (self.state % 10) % 3:  # 1 and 2 have different new_x
-            left -= width - 2 * Settings.WINDOW_SHIFT_PIXELS
+            left -= width - 2 * Settings.SHIFT_CURSOR
         if (self.state % 10) // 2:  # 2 and 3 have different new_y
-            top -= height - 2 * Settings.WINDOW_SHIFT_PIXELS
+            top -= height - 2 * Settings.SHIFT_CURSOR
 
         return (left, top, width, height)
 
@@ -635,60 +619,42 @@ class BaseController(object):
         """
         self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
         move_cursor(
-            self.model.x + Settings.WINDOW_SHIFT_PIXELS,
-            self.model.y + Settings.WINDOW_SHIFT_PIXELS,
+            self.model.x + Settings.SHIFT_CURSOR, self.model.y + Settings.SHIFT_CURSOR
         )
 
     def place_on_opposite_corner(self):
-        """Changes and moves cursor to model's bottom right position
+        """Changes and moves cursor to model windows corner opposite to positioning phase
 
-        and so indirectly resizes master. Cursor is changed to resize config.
+        and so triggers master resizing.
+
+        :var left: x-axis part of the cursor position
+        :type left: int
+        :var top: y-axis part of the cursor position
+        :type top: int
         """
         self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
 
-        if self.state == Settings.RESIZE:
-            move_cursor(
-                max(self.model.changed_x - self.model.w, 0)
-                + Settings.WINDOW_SHIFT_PIXELS,
-                max(self.model.changed_y - self.model.h, 0)
-                + Settings.WINDOW_SHIFT_PIXELS,
-            )
+        left = max(self.model.changed_x - self.model.w, 0) + Settings.SHIFT_CURSOR
+        top = max(self.model.changed_y - self.model.h, 0) + Settings.SHIFT_CURSOR
 
-        elif self.state == Settings.RESIZE + 1:
-            move_cursor(
-                min(
-                    self.model.changed_x + self.model.w,
-                    self.view.master.winfo_screenwidth(),
-                )
-                - Settings.WINDOW_SHIFT_PIXELS,
-                max(self.model.changed_y - self.model.h, 0)
-                + Settings.WINDOW_SHIFT_PIXELS,
-            )
-
-        elif self.state == Settings.RESIZE + 2:
-            move_cursor(
-                min(
-                    self.model.changed_x + self.model.w,
-                    self.view.master.winfo_screenwidth(),
-                )
-                - Settings.WINDOW_SHIFT_PIXELS,
+        if (self.state % 10) // 2:
+            top = (
                 min(
                     self.model.changed_y + self.model.h,
                     self.view.master.winfo_screenheight(),
                 )
-                - Settings.WINDOW_SHIFT_PIXELS,
+                - Settings.SHIFT_CURSOR
+            )
+        if (self.state % 10) % 3:
+            left = (
+                min(
+                    self.model.changed_x + self.model.w,
+                    self.view.master.winfo_screenwidth(),
+                )
+                - Settings.SHIFT_CURSOR
             )
 
-        elif self.state == Settings.RESIZE + 3:
-            move_cursor(
-                max(self.model.changed_x - self.model.w, 0)
-                + Settings.WINDOW_SHIFT_PIXELS,
-                min(
-                    self.model.changed_y + self.model.h,
-                    self.view.master.winfo_screenheight(),
-                )
-                - Settings.WINDOW_SHIFT_PIXELS,
-            )
+        move_cursor(left, top)
 
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.
@@ -720,8 +686,8 @@ class BaseController(object):
         self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
         self.set_default_geometry(self.view.master)
         move_cursor(
-            self.view.master.winfo_x() + Settings.WINDOW_SHIFT_PIXELS,
-            self.view.master.winfo_y() + Settings.WINDOW_SHIFT_PIXELS,
+            self.view.master.winfo_x() + Settings.SHIFT_CURSOR,
+            self.view.master.winfo_y() + Settings.SHIFT_CURSOR,
         )
         self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
         self.listener.start()
@@ -742,33 +708,29 @@ class BaseController(object):
         :type y: int
         """
         self.view.master.geometry(
-            "{}x{}+{}+{}".format(
-                Settings.WINDOW_MIN_WIDTH, Settings.WINDOW_MIN_HEIGHT, x, y
-            )
+            "{}x{}+{}+{}".format(Settings.MIN_WIDTH, Settings.MIN_HEIGHT, x, y)
         )
 
     def setup_corner(self):
+        """Configures mouse pointer and moves cursor to calculated corner position.
+
+        :var x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :var y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
         self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state])
 
-        x, y = self.view.master.winfo_x(), self.view.master.winfo_y()
-        w, h = self.view.master.winfo_width(), self.view.master.winfo_height()
-        if self.state == Settings.LOCATE:
-            move_cursor(
-                x + Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
-            )
-        elif self.state == Settings.LOCATE + 1:
-            move_cursor(
-                x + w - Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
-            )
-        elif self.state == Settings.LOCATE + 2:
-            move_cursor(
-                x + w - Settings.WINDOW_SHIFT_PIXELS,
-                y + h - Settings.WINDOW_SHIFT_PIXELS,
-            )
-        elif self.state == Settings.LOCATE + 3:
-            move_cursor(
-                x + Settings.WINDOW_SHIFT_PIXELS, y + h - Settings.WINDOW_SHIFT_PIXELS
-            )
+        x = self.view.master.winfo_x() + Settings.SHIFT_CURSOR
+        y = self.view.master.winfo_y() + Settings.SHIFT_CURSOR
+
+        if self.state % 3:
+            x += self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
+
+        if self.state // 2:
+            y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
+
+        move_cursor(x, y)
 
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""

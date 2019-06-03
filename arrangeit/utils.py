@@ -297,8 +297,8 @@ def get_prepared_screenshot(image):
     SCREENSHOT_BLUR_PIXELS defines blur depth in pixels.
 
     :param image: raw screenshot image
-    :type image: :class:`PIL.Image.Image
-    :returns: :class:`PIL.ImageTk.PhotoImage
+    :type image: :class:`PIL.Image.Image`
+    :returns: :class:`PIL.ImageTk.PhotoImage`
     """
     from arrangeit.settings import Settings
 

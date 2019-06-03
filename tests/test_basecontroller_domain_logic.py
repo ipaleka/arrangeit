@@ -189,7 +189,7 @@ class TestBaseControllerDomainLogic(object):
         controller.next(True)
         mocked.assert_called_once()
         mocked.assert_called_with(
-            x + Settings.WINDOW_SHIFT_PIXELS, y + Settings.WINDOW_SHIFT_PIXELS
+            x + Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR
         )
 
     def test_BaseController_next_not_calling_on_mouse_move_for_first_time_False(
@@ -252,7 +252,7 @@ class TestBaseControllerDomainLogic(object):
         controller.state = state
         mocked_setting = mocker.patch("arrangeit.base.Settings")
         SHIFT = 10
-        type(mocked_setting).WINDOW_SHIFT_PIXELS = mocker.PropertyMock(
+        type(mocked_setting).SHIFT_CURSOR = mocker.PropertyMock(
             return_value=SHIFT
         )
         controller.update_positioning(x, y)
@@ -334,8 +334,8 @@ class TestBaseControllerDomainLogic(object):
         view.return_value.master.winfo_height.return_value = h
         controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            x=x - Settings.WINDOW_SHIFT_PIXELS,
-            y=y - Settings.WINDOW_SHIFT_PIXELS,
+            x=x - Settings.SHIFT_CURSOR,
+            y=y - Settings.SHIFT_CURSOR,
             w=w,
             h=h,
         )
@@ -351,7 +351,7 @@ class TestBaseControllerDomainLogic(object):
         view.return_value.master.winfo_height.return_value = h
         controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            y=y - Settings.WINDOW_SHIFT_PIXELS, w=w, h=h
+            y=y - Settings.SHIFT_CURSOR, w=w, h=h
         )
 
     def test_BaseController_update_resizing_corner_2_calls_set_changed(self, mocker):
@@ -377,7 +377,7 @@ class TestBaseControllerDomainLogic(object):
         view.return_value.master.winfo_height.return_value = h
         controller.update_resizing(x, y)
         mocked.return_value.set_changed.assert_called_with(
-            x=x - Settings.WINDOW_SHIFT_PIXELS, w=w, h=h
+            x=x - Settings.SHIFT_CURSOR, w=w, h=h
         )
 
     def test_BaseController_update_resizing_calls_run_task_move_and_resize_window(

@@ -131,7 +131,7 @@ class TestSettingsModule(object):
         mocked.reset_mock()
         _ = Settings.ROOT_ALPHA
         _ = Settings.HIGHLIGHTED_COLOR
-        _ = Settings.WINDOW_MIN_WIDTH
+        _ = Settings.MIN_WIDTH
         assert mocked.call_count == 0
 
     def test_SettingsMetaclass___getattr___uses_CONSTANTS_for_no_user_setting(self):
