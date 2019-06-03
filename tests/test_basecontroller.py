@@ -105,6 +105,12 @@ class TestBaseController(object):
         ]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
 
+    def test_BaseController_setup_root_window_calls_config_background(self, mocker):
+        root = mocker.MagicMock()
+        base.BaseController(None).setup_root_window(root)
+        calls = [mocker.call(background=Settings.MAIN_BG)]
+        root.config.assert_has_calls(calls, any_order=True)
+
     ## BaseController.set_default_geometry
     def test_BaseController_set_default_geometry_calls_quarter_by_smaller(self, mocker):
         root = mocker.MagicMock()
@@ -580,18 +586,18 @@ class TestBaseController(object):
     @pytest.mark.parametrize(
         "corner,x,y,changed,expected",
         [
-            (0, 215, 205, (300, 300, 300, 300), (200,200)),
-            (0, 205, 215, (300, 300, 300, 300), (200,200)),
-            (0, 215, 215, (300, 300, 300, 300), (200,200)),
-            (1, 385, 205, (300, 300, 300, 300), (300,200)),
-            (1, 395, 215, (300, 300, 300, 300), (300,200)),
-            (1, 385, 215, (300, 300, 300, 300), (300,200)),
-            (2, 385, 395, (300, 300, 300, 300), (300,300)),
-            (2, 395, 385, (300, 300, 300, 300), (300,300)),
-            (2, 385, 385, (300, 300, 300, 300), (300,300)),
-            (3, 215, 395, (300, 300, 300, 300), (200,300)),
-            (3, 205, 385, (300, 300, 300, 300), (200,300)),
-            (3, 215, 395, (300, 300, 300, 300), (200,300)),
+            (0, 215, 205, (300, 300, 300, 300), (200, 200)),
+            (0, 205, 215, (300, 300, 300, 300), (200, 200)),
+            (0, 215, 215, (300, 300, 300, 300), (200, 200)),
+            (1, 385, 205, (300, 300, 300, 300), (300, 200)),
+            (1, 395, 215, (300, 300, 300, 300), (300, 200)),
+            (1, 385, 215, (300, 300, 300, 300), (300, 200)),
+            (2, 385, 395, (300, 300, 300, 300), (300, 300)),
+            (2, 395, 385, (300, 300, 300, 300), (300, 300)),
+            (2, 385, 385, (300, 300, 300, 300), (300, 300)),
+            (3, 215, 395, (300, 300, 300, 300), (200, 300)),
+            (3, 205, 385, (300, 300, 300, 300), (200, 300)),
+            (3, 215, 395, (300, 300, 300, 300), (200, 300)),
         ],
     )
     def test_BaseController_check_current_size_for_invalid_xy_returns_position(

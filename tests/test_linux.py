@@ -73,9 +73,9 @@ class TestLinuxApp(object):
         App().grab_window_screen(mocked_model)
         mocked.assert_called_once()
 
-    def test_LinuxApp_grab_window_screen_returns_photoimage(self, mocker):
+    def test_LinuxApp_grab_window_screen_returns_get_prepared_screenshot_image(self, mocker):
         mocker.patch("arrangeit.linux.collector.Collector.get_image_from_pixbuf")
-        mocked_photo = mocker.patch("arrangeit.linux.app.ImageTk.PhotoImage")
+        mocked_photo = mocker.patch("arrangeit.linux.app.get_prepared_screenshot")
         mocked_default = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
         mocked_model = mocker.MagicMock()
         mocked_model.changed_w = 500

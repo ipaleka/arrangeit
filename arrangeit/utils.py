@@ -4,6 +4,8 @@ from gettext import gettext as _
 from importlib import import_module
 from itertools import islice, chain, product
 
+from PIL import ImageFilter, ImageTk
+
 
 def platform_path():
     """Returns lowercased string holding platform name."""
@@ -287,3 +289,26 @@ def offset_for_intersecting_pair(rectangles, snap):
         == snap * 2
         else (0, rectangles[1][1] - rectangles[0][1])
     )
+
+
+def get_prepared_screenshot(image):
+    """Filters provided image and converts it to format suitable for Tkinter.
+
+    SCREENSHOT_BLUR_PIXELS defines blur depth in pixels.
+
+    :param image: raw screenshot image
+    :type image: :class:`PIL.Image.Image
+    :returns: :class:`PIL.ImageTk.PhotoImage
+    """
+    from arrangeit.settings import Settings
+
+    if Settings.SCREENSHOT_TO_GRAYSCALE:
+        return ImageTk.PhotoImage(
+            image.convert("L").filter(
+                ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS)
+            )
+        )
+    return ImageTk.PhotoImage(
+        image.filter(ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS))
+    )
+

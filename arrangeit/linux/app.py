@@ -8,6 +8,7 @@ from Xlib import X
 
 from arrangeit.base import BaseApp
 from arrangeit.settings import Settings
+from arrangeit.utils import get_prepared_screenshot
 
 
 class App(BaseApp):
@@ -46,7 +47,7 @@ class App(BaseApp):
             width, height = window.get_width(), window.get_height()
             pixbuf = Gdk.pixbuf_get_from_window(window, 0, 0, width, height)
             return (
-                ImageTk.PhotoImage(self.collector.get_image_from_pixbuf(pixbuf)),
+                get_prepared_screenshot(self.collector.get_image_from_pixbuf(pixbuf)),
                 (model.changed_w - width, model.changed_h - height),
             )
         return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)

@@ -1,12 +1,14 @@
 import pytest
+from PIL import ImageFilter
 
 from arrangeit import utils
+from arrangeit.settings import Settings
 
 from .fixtures import (
     SAMPLE_SNAPPING_SOURCES_FOR_RECT,
     SAMPLE_CHECK_INTERSECTION,
     INTERSECTS_SAMPLES,
-    OFFSET_INTERSECTING_PAIR_SAMPLES
+    OFFSET_INTERSECTING_PAIR_SAMPLES,
 )
 
 
@@ -298,3 +300,45 @@ class TestUtils(object):
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
     def test_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
         assert utils.offset_for_intersecting_pair(pair, 10) == offset
+
+    ## get_prepared_screenshot
+    def test_get_prepared_screenshot_calls_filter(self, mocker):
+        image = Settings.BLANK_ICON
+        mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        BLUR = 2
+        type(mocked_settings).SCREENSHOT_TO_GRAYSCALE = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_settings).SCREENSHOT_BLUR_PIXELS = mocker.PropertyMock(
+            return_value=BLUR
+        )
+        mocked = mocker.patch("PIL.Image.Image.filter")
+        utils.get_prepared_screenshot(image)
+        mocked.assert_called_once()
+        mocked.assert_called_with(ImageFilter.BoxBlur(BLUR))
+
+    def test_get_prepared_screenshot_converts_to_grayscale_if_set(self, mocker):
+        image = Settings.BLANK_ICON
+        mocked_photo = mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocker.patch("PIL.Image.Image.filter")
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        BLUR = 2
+        type(mocked_settings).SCREENSHOT_TO_GRAYSCALE = mocker.PropertyMock(
+            return_value=True
+        )
+        type(mocked_settings).SCREENSHOT_BLUR_PIXELS = mocker.PropertyMock(
+            return_value=BLUR
+        )
+        mocked = mocker.patch("PIL.Image.Image.convert")
+        assert utils.get_prepared_screenshot(image) == mocked_photo.return_value
+        mocked.assert_called_once()
+        mocked.assert_called_with("L")
+
+    def test_get_prepared_screenshot_returns_ImageTk_PhotoImage(self, mocker):
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocker.patch("PIL.Image.Image.filter")
+        mocked = mocker.patch("PIL.ImageTk.PhotoImage")
+        assert utils.get_prepared_screenshot(Settings.BLANK_ICON) == mocked.return_value

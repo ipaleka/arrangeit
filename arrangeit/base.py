@@ -219,6 +219,7 @@ class BaseController(object):
         """
         root.wm_attributes("-alpha", Settings.ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
+        root.config(background=Settings.MAIN_BG)
 
     def set_default_geometry(self, root):
         """Sets provided root window width and height
