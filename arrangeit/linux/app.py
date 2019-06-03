@@ -47,7 +47,11 @@ class App(BaseApp):
             width, height = window.get_width(), window.get_height()
             pixbuf = Gdk.pixbuf_get_from_window(window, 0, 0, width, height)
             return (
-                get_prepared_screenshot(self.collector.get_image_from_pixbuf(pixbuf)),
+                get_prepared_screenshot(
+                    self.collector.get_image_from_pixbuf(pixbuf),
+                    blur_size=Settings.SCREENSHOT_BLUR_PIXELS,
+                    grayscale=Settings.SCREENSHOT_TO_GRAYSCALE,
+                ),
                 (model.changed_w - width, model.changed_h - height),
             )
         return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)

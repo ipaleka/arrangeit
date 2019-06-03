@@ -123,25 +123,27 @@ def increased_by_fraction(value, fraction):
     return round(value * (1.0 + fraction))
 
 
-def get_prepared_screenshot(image):
+def get_prepared_screenshot(image, blur_size=2, grayscale=False):
     """Filters provided image and converts it to format suitable for Tkinter.
 
     SCREENSHOT_BLUR_PIXELS defines blur depth in pixels.
 
     :param image: raw screenshot image
     :type image: :class:`PIL.Image.Image`
+    :param blur_size: how many pixels in all directions will be blured
+    :type blur_size: int
+    :param grayscale: should image be converted to grayscale
+    :type grayscale: Boolean
     :returns: :class:`PIL.ImageTk.PhotoImage`
     """
-    from arrangeit.settings import Settings
-
-    if Settings.SCREENSHOT_TO_GRAYSCALE:
+    if grayscale:
         return ImageTk.PhotoImage(
             image.convert("L").filter(
-                ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS)
+                ImageFilter.BoxBlur(blur_size)
             )
         )
     return ImageTk.PhotoImage(
-        image.filter(ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS))
+        image.filter(ImageFilter.BoxBlur(blur_size))
     )
 
 

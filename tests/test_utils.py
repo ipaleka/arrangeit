@@ -180,16 +180,17 @@ class TestUtils(object):
         image = Settings.BLANK_ICON
         mocker.patch("PIL.ImageTk.PhotoImage")
         mocker.patch("PIL.ImageFilter.BoxBlur")
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        BLUR = 2
-        type(mocked_settings).SCREENSHOT_TO_GRAYSCALE = mocker.PropertyMock(
-            return_value=False
-        )
-        type(mocked_settings).SCREENSHOT_BLUR_PIXELS = mocker.PropertyMock(
-            return_value=BLUR
-        )
         mocked = mocker.patch("PIL.Image.Image.filter")
-        utils.get_prepared_screenshot(image)
+        utils.get_prepared_screenshot(image, grayscale=False)
+        mocked.assert_called_once()
+
+    def test_get_prepared_screenshot_calls_filter_with_blur_size(self, mocker):
+        image = Settings.BLANK_ICON
+        mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        BLUR = 5
+        mocked = mocker.patch("PIL.Image.Image.filter")
+        utils.get_prepared_screenshot(image, blur_size=BLUR, grayscale=False)
         mocked.assert_called_once()
         mocked.assert_called_with(ImageFilter.BoxBlur(BLUR))
 
@@ -198,18 +199,19 @@ class TestUtils(object):
         mocked_photo = mocker.patch("PIL.ImageTk.PhotoImage")
         mocker.patch("PIL.ImageFilter.BoxBlur")
         mocker.patch("PIL.Image.Image.filter")
-        mocked_settings = mocker.patch("arrangeit.base.Settings")
-        BLUR = 2
-        type(mocked_settings).SCREENSHOT_TO_GRAYSCALE = mocker.PropertyMock(
-            return_value=True
-        )
-        type(mocked_settings).SCREENSHOT_BLUR_PIXELS = mocker.PropertyMock(
-            return_value=BLUR
-        )
         mocked = mocker.patch("PIL.Image.Image.convert")
-        assert utils.get_prepared_screenshot(image) == mocked_photo.return_value
+        assert utils.get_prepared_screenshot(image, grayscale=True) == mocked_photo.return_value
         mocked.assert_called_once()
         mocked.assert_called_with("L")
+
+    def test_get_prepared_screenshot_not_converting_to_grayscale(self, mocker):
+        image = Settings.BLANK_ICON
+        mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocker.patch("PIL.Image.Image.filter")
+        mocked = mocker.patch("PIL.Image.Image.convert")
+        utils.get_prepared_screenshot(image, grayscale=False)
+        mocked.assert_not_called()
 
     def test_get_prepared_screenshot_returns_ImageTk_PhotoImage(self, mocker):
         mocker.patch("PIL.ImageFilter.BoxBlur")
