@@ -311,4 +311,3 @@ def get_prepared_screenshot(image):
     return ImageTk.PhotoImage(
         image.filter(ImageFilter.BoxBlur(Settings.SCREENSHOT_BLUR_PIXELS))
     )
-

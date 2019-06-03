@@ -31,6 +31,7 @@ def get_screenshot_widget(root):
 
 # NOTE following 2 functions probably should be moved somewhere else
 
+
 def get_mouse_listener(on_move_callback, on_scroll_callback):
     """Initializes mouse listener by binding it to provided callbacks and returns it.
 
