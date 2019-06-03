@@ -18,7 +18,7 @@ class TestBaseControllerDomainLogic(object):
 
     ## BaseController.check_snapping
     def test_BaseController_check_snapping_snapping_is_on_false(self, mocker):
-        view = mocked_setup_view(mocker)
+        mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.offset_for_intersections")
         controller = controller_mocked_app(mocker)
         mocked_settings = mocker.patch("arrangeit.base.Settings")

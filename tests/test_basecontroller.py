@@ -556,7 +556,7 @@ class TestBaseController(object):
         type(mocked_settings).SHIFT_CURSOR = mocker.PropertyMock(return_value=SHIFT)
         x, y, w, h = 200, 300, 100, 100
         view.return_value.master.winfo_width.return_value = w
-        view.return_value.master.winfo_height.return_value = w
+        view.return_value.master.winfo_height.return_value = h
         controller = controller_mocked_app(mocker)
         controller.state = state
         assert controller.get_root_rect(x, y) == expected

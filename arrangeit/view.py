@@ -294,8 +294,8 @@ class WorkspacesCollection(tk.Frame):
     def select_active(self, number):
         """Emphasizes active workspace and deemphasizes all others.
 
-        Foreground text coloured by constant SELECTED_COLOR is used
-        to emphasize selection, together with SELECT_CURSOR constant.
+        Foreground text coloured by setting SELECTED_COLOR is used
+        to emphasize selection, together with SELECT_CURSOR setting.
 
         :param number: number of workspace to select
         :type number: int

@@ -1,5 +1,8 @@
 from json import JSONDecodeError
 
+import pytest
+from PIL import Image
+
 import arrangeit
 from arrangeit import settings
 from arrangeit.settings import SettingsMetaclass, Settings
@@ -8,23 +11,23 @@ from arrangeit.settings import SettingsMetaclass, Settings
 class TestSettingsModule(object):
     """Unit testing class for settings module and SettingsMetaclass"""
 
-    ## TestSettingsModule.CONSTANTS
+    ## TestSettingsModule.SETTINGS
     def test_settings_module_initializes_CONSTANTS(self):
-        assert hasattr(settings, "CONSTANTS")
-        assert isinstance(settings.CONSTANTS, dict)
+        assert hasattr(settings, "SETTINGS")
+        assert isinstance(settings.SETTINGS, dict)
 
     def test_settings_module_CONSTANTS_is_dictionary(self):
-        assert isinstance(settings.CONSTANTS, dict)
+        assert isinstance(settings.SETTINGS, dict)
 
     def test_settings_module_CONSTANTS_has_valid_format_for_all(self):
-        for key, value in settings.CONSTANTS.items():
+        for key, value in settings.SETTINGS.items():
             assert isinstance(key, str)
             assert key.strip("_").isupper()
             assert isinstance(value, (tuple,))
             assert len(value) == 2
 
     def test_settings_module_CONSTANTS_for_value_type(self):
-        for _, (typ, value) in settings.CONSTANTS.items():
+        for _, (typ, value) in settings.SETTINGS.items():
             assert value is not None
             assert isinstance(value, typ)
 
@@ -64,9 +67,7 @@ class TestSettingsModule(object):
         mocker.patch("arrangeit.settings.os.path.join", return_value="foo")
         mocker.patch("arrangeit.settings.os.path.exists", return_value=True)
         mocker.patch("arrangeit.settings.open")
-        mocker.patch(
-            "arrangeit.settings.json.load", return_value={"foo": "bar"}
-        )
+        mocker.patch("arrangeit.settings.json.load", return_value={"foo": "bar"})
         assert settings.read_user_settings() == {"foo": "bar"}
 
     def test_settings_read_user_settings_returns_empty_for_exception(self, mocker):
@@ -124,6 +125,24 @@ class TestSettingsModule(object):
         Settings.user_settings = {"foo": "bar"}
         assert Settings.foo == "bar"
 
+    @pytest.mark.parametrize(
+        "constant",
+        [
+            "LOCATE",
+            "RESIZE",
+            "OTHER",
+            "WINDOW_MODEL_TYPES",
+            "WINDOW_MODEL_RECT_ELEMENTS",
+            "ICON_WIDTH",
+            "BLANK_ICON",
+        ],
+    )
+    def test_SettingsMetaclass___getattr___not_changing_core_constant(self, constant):
+        value = getattr(Settings, constant)
+        Settings.user_settings = {constant: "foo"}
+        assert getattr(Settings, constant) != "foo"
+        assert getattr(Settings, constant) == value
+
     def test_SettingsMetaclass___getattr___calls_validate_user_settings_just_once(
         self, mocker
     ):
@@ -137,7 +156,7 @@ class TestSettingsModule(object):
     def test_SettingsMetaclass___getattr___uses_CONSTANTS_for_no_user_setting(self):
         Settings.user_settings = {"foo": "bar"}
         value = Settings.HIGHLIGHTED_COLOR
-        assert value == settings.CONSTANTS["HIGHLIGHTED_COLOR"][1]
+        assert value == settings.SETTINGS["HIGHLIGHTED_COLOR"][1]
 
 
 class TestSettings(object):
@@ -147,6 +166,38 @@ class TestSettings(object):
     def test_Settings_metaclass_is_SettingsMetaclass(self):
         assert Settings.__class__ == arrangeit.settings.SettingsMetaclass
 
-    def test_Settings_availability_for_all_constants(self):
-        for name, _ in settings.CONSTANTS.items():
+    @pytest.mark.parametrize(
+        "constant,value",
+        [
+            ("LOCATE", 0),
+            ("RESIZE", 10),
+            ("OTHER", 100),
+            (
+                "WINDOW_MODEL_TYPES",
+                {
+                    "wid": int,
+                    "rect": (int, int, int, int),
+                    "resizable": bool,
+                    "title": str,
+                    "name": str,
+                    "icon": Image.Image,
+                    "workspace": int,
+                },
+            ),
+            ("WINDOW_MODEL_RECT_ELEMENTS", ("x", "y", "w", "h")),
+            ("ICON_WIDTH", 32),
+        ],
+    )
+    def test_Settings_initializes_unchangeable_core_program_constant(
+        self, constant, value
+    ):
+        assert hasattr(Settings, constant)
+        assert getattr(Settings, constant) == value
+
+    def test_Settings_initializes_blank_icon(self):
+        assert hasattr(Settings, "BLANK_ICON")
+        assert isinstance(Settings.BLANK_ICON, Image.Image)
+
+    def test_Settings_availability_for_all_constants_in_CONSTANTS(self):
+        for name, _ in settings.SETTINGS.items():
             assert hasattr(Settings, name)
