@@ -707,7 +707,10 @@ class Options(tk.Toplevel):
         self.master = master
         self.setup_widgets()
         self.setup_bindings()
-        self.geometry("+{}+{}".format(self.master.winfo_x(), self.master.winfo_y()))
+        self.geometry(
+            "+{}+{}".format(self.master.master.winfo_x(), self.master.master.winfo_y())
+        )
+        self.title(MESSAGES["options_title"])
 
     def setup_bindings(self):
         """Binds relevant events to related callback."""

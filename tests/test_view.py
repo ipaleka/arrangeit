@@ -1051,7 +1051,7 @@ class TestOptions(object):
         Options(mocker.MagicMock())
         mocked.assert_called_once()
 
-    def test_Options_init_calls_geometry_on_master_position(self, mocker):
+    def test_Options_init_calls_geometry_on_root_position(self, mocker):
         mocker.patch("arrangeit.view.Options.setup_widgets")
         mocker.patch("arrangeit.view.Options.setup_bindings")
         mocker.patch("arrangeit.view.tk.Toplevel.__init__")
@@ -1060,7 +1060,7 @@ class TestOptions(object):
         Options(master)
         mocked.assert_called_once()
         mocked.assert_called_with(
-            "+{}+{}".format(master.winfo_x.return_value, master.winfo_y.return_value)
+            "+{}+{}".format(master.master.winfo_x.return_value, master.master.winfo_y.return_value)
         )
 
     ## Options.setup_widgets

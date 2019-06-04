@@ -135,6 +135,7 @@ class TestSettingsModule(object):
             "WINDOW_MODEL_RECT_ELEMENTS",
             "ICON_WIDTH",
             "BLANK_ICON",
+            "COLORS"
         ],
     )
     def test_SettingsMetaclass___getattr___not_changing_core_constant(self, constant):
@@ -202,6 +203,11 @@ class TestSettings(object):
     def test_Settings_initializes_blank_icon(self):
         assert hasattr(Settings, "BLANK_ICON")
         assert isinstance(Settings.BLANK_ICON, Image.Image)
+
+    def test_Settings_initializes_solors(self):
+        assert hasattr(Settings, "COLORS")
+        assert isinstance(Settings.COLORS, tuple)
+        assert all(isinstance(val, str) for val in Settings.COLORS)
 
     def test_Settings_availability_for_all_constants_in_CONSTANTS(self):
         for name, _ in settings.SETTINGS.items():

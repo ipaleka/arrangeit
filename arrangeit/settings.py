@@ -15,6 +15,7 @@ user_settings.json file created and located in arrangeit user data directory.
 MESSAGES = {
     "platform_error": _("arrangeit can't run on your platform. :("),
     "default_saved": _("Finished: saving to default file..."),
+    "options_title": _("arrangeit options"),
     "setting_changed": _(
         "Setting is changed, please restart program in order for the change to take effect."
     ),
@@ -151,6 +152,7 @@ class SettingsMetaclass(type):
 class Settings(metaclass=SettingsMetaclass):
     """Class holding all the program's constants and settings."""
 
+    user_settings = validate_user_settings()
     LOCATE = 0
     RESIZE = 10
     OTHER = 100
@@ -168,4 +170,24 @@ class Settings(metaclass=SettingsMetaclass):
     BLANK_ICON = Image.open(
         os.path.join(os.path.dirname(__file__), "resources", "blank.png")
     )
-    user_settings = validate_user_settings()
+    COLORS = (
+        "white",
+        "light blue",
+        "blue",
+        "royal blue",
+        "cyan",
+        "khaki",
+        "slate gray",
+        "gray",
+        "orange",
+        "salmon",
+        "indian red",
+        "red",
+        "orchid",
+        "pink",
+        "green",
+        "olive drab",
+        "wheat",
+        "tan",
+        "yellow",
+    )

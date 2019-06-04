@@ -128,6 +128,7 @@ class TestBaseApp(object):
         ],
     )
     def test_BaseApp_run_task_calls_related_methods(self, mocker, task, args):
+        mocker.patch("arrangeit.base.BaseApp.change_setting")  # to not change the value
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp.{}".format(task))
         base.BaseApp().run_task(task, *args)
@@ -149,6 +150,7 @@ class TestBaseApp(object):
         base.BaseApp().change_setting("ROOT_ALPHA", SAMPLE)
         assert int(Settings.ROOT_ALPHA * 10000) != alpha
         assert int(Settings.ROOT_ALPHA * 10000) == int(SAMPLE * 10000)
+        base.BaseApp().change_setting("ROOT_ALPHA", alpha/10000)
 
     def test_BaseApp_change_setting_does_nothing_for_invalid_setting(self, mocker):
         SAMPLE = 0.972
