@@ -18,6 +18,7 @@ from arrangeit.view import (
     Options,
     ScaleOption,
     CheckOption,
+    ChoiceOption,
 )
 from arrangeit.settings import Settings, MESSAGES
 from arrangeit.utils import increased_by_fraction
@@ -1221,17 +1222,24 @@ class TestScaleOption(object):
         mocked = mocker.patch("arrangeit.view.tk.Scale.config")
         master = mocker.MagicMock()
         scale = ScaleOption(
-            master, from_=0.2, to=0.8, resolution=0.1, tickinterval=0.3, digits=2
-        )
-        mocked.assert_called_once()
-        mocked.assert_called_with(
-            command=scale.on_update_value,
-            orient=tk.HORIZONTAL,
+            master,
+            text="foo",
             from_=0.2,
             to=0.8,
             resolution=0.1,
             tickinterval=0.3,
             digits=2,
+        )
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            label="foo",
+            from_=0.2,
+            to=0.8,
+            resolution=0.1,
+            tickinterval=0.3,
+            digits=2,
+            orient=tk.HORIZONTAL,
+            command=scale.on_update_value,
         )
 
     def test_ScaleOption_init_sets_initial(self, mocker):
@@ -1354,5 +1362,67 @@ class TestCheckOption(object):
         mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
         mocker.patch("arrangeit.view.tk.Checkbutton.config")
         check = CheckOption(mocker.MagicMock())
+        returned = check.on_update_value(mocker.MagicMock())
+        assert returned == "break"
+
+
+class TestChoiceOption(object):
+    """Unit testing class for :class:`ChoiceOption` class."""
+
+    ## ChoiceOption
+    def test_ChoiceOption_issubclass_of_OptionMenu(self):
+        assert issubclass(ChoiceOption, tk.OptionMenu)
+
+    @pytest.mark.parametrize(
+        "attr,value", [("master", None), ("name", ""), ("var", None)]
+    )
+    def test_ChoiceOption_inits_attributes(self, attr, value):
+        assert getattr(ChoiceOption, attr) == value
+
+    ## ChoiceOption.__init__
+    def test_ChoiceOption_init_sets_var_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.OptionMenu.__init__")
+        assert isinstance(ChoiceOption(mocker.MagicMock()).var, tk.StringVar)
+
+    def test_ChoiceOption_init_sets_var_to_initial(self, mocker):
+        mocker.patch("arrangeit.view.tk.OptionMenu.__init__")
+        mocked = mocker.patch("arrangeit.view.tk.StringVar.set")
+        INITIAL = "foo"
+        ChoiceOption(mocker.MagicMock(), initial=INITIAL)
+        mocked.assert_called_once()
+        mocked.assert_called_with(INITIAL)
+
+    def test_ChoiceOption_init_calls_super_with_provided_arguments(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.OptionMenu.__init__")
+        master = mocker.MagicMock()
+        CHOICES = ("foo", "bar")
+        option = ChoiceOption(master=master, choices=CHOICES)
+        mocked.assert_called_with(
+            master, option.var, *CHOICES, command=option.on_update_value
+        )
+
+    def test_ChoiceOption_init_sets_master_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.OptionMenu.__init__")
+        master = mocker.MagicMock()
+        assert ChoiceOption(master).master == master
+
+    def test_ChoiceOption_init_sets_name_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.OptionMenu.__init__")
+        assert ChoiceOption(mocker.MagicMock(), name="foo").name == "foo"
+
+    ## ChoiceOption.on_update_value
+    def test_ChoiceOption_on_update_value_calls_master_change_setting(self, mocker):
+        mocker.patch("arrangeit.view.tk.OptionMenu.__init__")
+        master = mocker.MagicMock()
+        NAME = "MAIN_BG"
+        CHOICES = ("foo", "bar")
+        check = ChoiceOption(master, name=NAME, initial="foo", choices=CHOICES)
+        check.on_update_value(mocker.MagicMock())
+        master.change_setting.assert_called_once()
+        master.change_setting.assert_called_with(name=NAME, value="foo")
+
+    def test_ChoiceOption_on_update_value_returns_break(self, mocker):
+        mocker.patch("arrangeit.view.tk.OptionMenu.__init__")
+        check = ChoiceOption(mocker.MagicMock())
         returned = check.on_update_value(mocker.MagicMock())
         assert returned == "break"

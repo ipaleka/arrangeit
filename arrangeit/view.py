@@ -721,7 +721,6 @@ class Options(tk.Toplevel):
         #         "SNAPPING_IS_ON": tk.IntVar(),
         #         "SCREENSHOT_TO_GRAYSCALE": tk.IntVar(),
 
-
         quit_button = tk.Button(
             self,
             text=_("Cancel"),
@@ -758,6 +757,7 @@ class ScaleOption(tk.Scale):
         master=None,
         name="",
         initial=0.0,
+        text="",
         from_=0.0,
         to=1.0,
         resolution=0.05,
@@ -776,6 +776,8 @@ class ScaleOption(tk.Scale):
         :param name: str
         :param initial: starting value
         :param initial: float/int
+        :param text: explanation text/label for this scale
+        :param text: str
         :param from_: starting value
         :param from_: float/int
         :param to: ending value
@@ -791,6 +793,7 @@ class ScaleOption(tk.Scale):
         self.master = master
         self.name = name
         self.config(
+            label=text,
             from_=from_,
             to=to,
             resolution=resolution,
@@ -834,7 +837,7 @@ class CheckOption(tk.Checkbutton):
         :param name: str
         :param initial: starting value
         :param initial: bool
-        :param text: explanation text for check button
+        :param text: explanation text for this check button
         :param text: str
         """
         super().__init__(master)
@@ -844,6 +847,48 @@ class CheckOption(tk.Checkbutton):
         self.config(text=text, variable=self.var, command=self.on_update_value)
         self.select() if initial else self.deselect()
 
-    def on_update_value(self, event):
+    def on_update_value(self, *args):
         self.master.change_setting(name=self.name, value=bool(self.var.get()))
+        return "break"
+
+
+class ChoiceOption(tk.OptionMenu):
+    """Tkinter widget for showing and changing Boolean values.
+
+    :var ChoiceOption.master: master widget
+    :type ChoiceOption.master: :class:`.tk.Toplevel`
+    :var ChoiceOption.name: setting name to change
+    :type ChoiceOption.name: str
+    :var ChoiceOption.var: variable holding the choice value
+    :type ChoiceOption.var: :class:`tk.StringVar`
+    """
+
+    master = None
+    name = ""
+    var = None
+
+    def __init__(self, master=None, name="", initial="", choices=()):
+        """Sets master attribute and configs choice widget from provided arguments
+
+        after super __init__ is called.
+
+        Also sets command callback.
+
+        :param master: parent widget
+        :param master: :class:`.tk.Toplevel`
+        :param name: settings name to change
+        :param name: str
+        :param initial: starting value
+        :param initial: str
+        :param choices: collection of available text values
+        :param choices: tuple
+        """
+        self.var = tk.StringVar()
+        self.var.set(initial)
+        super().__init__(master, self.var, *choices, command=self.on_update_value)
+        self.master = master
+        self.name = name
+
+    def on_update_value(self, *args):
+        self.master.change_setting(name=self.name, value=self.var.get())
         return "break"
