@@ -1,9 +1,8 @@
 import os
 import json
-from gettext import gettext as _
 
 from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.settings import Settings, SETTINGS
+from arrangeit.settings import Settings, SETTINGS, MESSAGES
 from arrangeit.utils import (
     get_component_class,
     quarter_by_smaller,
@@ -112,7 +111,7 @@ class BaseApp(object):
 
         Creates application's user data directory if it not exists.
         """
-        print(_("Finished: saving to default file"))
+        print(MESSAGES["default_saved"])
         directory = platform_user_data_path()
         if not os.path.exists(directory):
             os.mkdir(directory)

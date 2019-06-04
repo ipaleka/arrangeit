@@ -2,7 +2,7 @@ import pytest
 from PIL import ImageFilter
 
 from arrangeit import utils
-from arrangeit.settings import Settings
+from arrangeit.settings import Settings, MESSAGES
 
 from .fixtures import (
     SAMPLE_SNAPPING_SOURCES_FOR_RECT,
@@ -55,7 +55,7 @@ class TestUtils(object):
     ):
         with pytest.raises(SystemExit) as exception:
             utils.get_component_class(name, platform)
-        assert "on your platform" in exception.value.code
+        assert exception.value.code == MESSAGES["platform_error"]
 
     @pytest.mark.parametrize("function", ["app", "gui", "collector"])
     def test_get_component_class_calls_get_class(self, mocker, function):

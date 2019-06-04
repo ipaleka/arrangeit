@@ -5,7 +5,7 @@ from gettext import gettext as _
 from PIL import ImageTk, Image
 from pynput import mouse
 
-from arrangeit.settings import Settings
+from arrangeit.settings import Settings, MESSAGES
 from arrangeit.utils import increased_by_fraction
 
 
@@ -715,6 +715,13 @@ class Options(tk.Toplevel):
 
     def setup_widgets(self):
         """Creates and places all the options' widgets."""
+        self.message = tk.Label(self, text="", anchor="center")
+        self.message.pack()
+
+        #         "SNAPPING_IS_ON": tk.IntVar(),
+        #         "SCREENSHOT_TO_GRAYSCALE": tk.IntVar(),
+
+
         quit_button = tk.Button(
             self,
             text=_("Cancel"),
@@ -729,15 +736,18 @@ class Options(tk.Toplevel):
         self.master.master.deiconify()
         self.destroy()
 
-    def scale_callback(self, name="", value=None):
+    def change_setting(self, name="", value=None):
         self.master.controller.app.run_task("change_setting", name, value)
+        self.message.config(text=MESSAGES["setting_changed"])
 
 
-class ScaleWidget(tk.Scale):
+class ScaleOption(tk.Scale):
     """Tkinter widget for showing and changing range settings values.
 
-    :var ScaleWidget.master: master widget
-    :type ScaleWidget.master: :class:`.tk.Toplevel`
+    :var ScaleOption.master: master widget
+    :type ScaleOption.master: :class:`.tk.Toplevel`
+    :var ScaleOption.name: setting name to change
+    :type ScaleOption.name: str
     """
 
     master = None
@@ -747,6 +757,7 @@ class ScaleWidget(tk.Scale):
         self,
         master=None,
         name="",
+        initial=0.0,
         from_=0.0,
         to=1.0,
         resolution=0.05,
@@ -760,9 +771,11 @@ class ScaleWidget(tk.Scale):
         Also sets command callback and orientation.
 
         :param master: parent widget
-        :param master: Tkinter widget
-        :param name: Settings name to change
+        :param master: :class:`.tk.Toplevel`
+        :param name: settings name to change
         :param name: str
+        :param initial: starting value
+        :param initial: float/int
         :param from_: starting value
         :param from_: float/int
         :param to: ending value
@@ -778,15 +791,59 @@ class ScaleWidget(tk.Scale):
         self.master = master
         self.name = name
         self.config(
-            command=self.on_update_value,
-            orient=tk.HORIZONTAL,
             from_=from_,
             to=to,
             resolution=resolution,
             tickinterval=tickinterval,
             digits=digits,
+            orient=tk.HORIZONTAL,
+            command=self.on_update_value,
         )
+        self.set(initial)
 
     def on_update_value(self, value):
-        self.master.scale_callback(name=self.name, value=value)
+        self.master.change_setting(name=self.name, value=value)
+        return "break"
+
+
+class CheckOption(tk.Checkbutton):
+    """Tkinter widget for showing and changing Boolean values.
+
+    :var CheckOption.master: master widget
+    :type CheckOption.master: :class:`.tk.Toplevel`
+    :var CheckOption.name: setting name to change
+    :type CheckOption.name: str
+    :var CheckOption.var: variable holding the check button value
+    :type CheckOption.var: :class:`tk.IntVar`
+    """
+
+    master = None
+    name = ""
+    var = None
+
+    def __init__(self, master=None, name="", initial=False, text=""):
+        """Sets master attribute and configs check button widget from provided arguments
+
+        after super __init__ is called.
+
+        Also sets command callback.
+
+        :param master: parent widget
+        :param master: :class:`.tk.Toplevel`
+        :param name: settings name to change
+        :param name: str
+        :param initial: starting value
+        :param initial: bool
+        :param text: explanation text for check button
+        :param text: str
+        """
+        super().__init__(master)
+        self.master = master
+        self.name = name
+        self.var = tk.IntVar()
+        self.config(text=text, variable=self.var, command=self.on_update_value)
+        self.select() if initial else self.deselect()
+
+    def on_update_value(self, event):
+        self.master.change_setting(name=self.name, value=bool(self.var.get()))
         return "break"

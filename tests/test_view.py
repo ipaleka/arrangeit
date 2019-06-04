@@ -16,9 +16,10 @@ from arrangeit.view import (
     ListedWindow,
     Toolbar,
     Options,
-    ScaleWidget,
+    ScaleOption,
+    CheckOption,
 )
-from arrangeit.settings import Settings
+from arrangeit.settings import Settings, MESSAGES
 from arrangeit.utils import increased_by_fraction
 
 
@@ -1062,11 +1063,36 @@ class TestOptions(object):
         )
 
     ## Options.setup_widgets
+    def test_Options_setup_widgets_sets_message_label(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.view.Options.destroy")
+        mocker.patch("arrangeit.view.tk.Button")
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        options = Options(mocker.MagicMock())
+        options.setup_widgets()
+        calls = [mocker.call(options, text="", anchor="center")]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Options_setup_widgets_calls_label_pack(self, mocker):
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.view.Options.destroy")
+        mocker.patch("arrangeit.view.tk.Button")
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        options = Options(mocker.MagicMock())
+        mocked.reset_mock()
+        options.setup_widgets()
+        assert mocked.return_value.pack.call_count == 1
+
     def test_Options_setup_widgets_sets_quit_button(self, mocker):
         mocker.patch("arrangeit.view.Options.setup_bindings")
         mocker.patch("arrangeit.view.Options.geometry")
         mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         mocker.patch("arrangeit.view.Options.destroy")
+        mocker.patch("arrangeit.view.tk.Label")
         mocked = mocker.patch("arrangeit.view.tk.Button")
         options = Options(mocker.MagicMock())
         options.setup_widgets()
@@ -1085,6 +1111,7 @@ class TestOptions(object):
         mocker.patch("arrangeit.view.Options.setup_bindings")
         mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         mocker.patch("arrangeit.view.Options.destroy")
+        mocker.patch("arrangeit.view.tk.Label")
         mocked = mocker.patch("arrangeit.view.tk.Button")
         options = Options(mocker.MagicMock())
         mocked.reset_mock()
@@ -1126,58 +1153,74 @@ class TestOptions(object):
         options.on_destroy_options(mocker.MagicMock())
         mocked.assert_called_once()
 
-    ## Options.scale_callback
-    def test_Options_scale_callback_calls_run_task(self, mocker):
+    ## Options.change_setting
+    def test_Options_change_setting_calls_run_task(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        master = mocker.MagicMock()
+        options = Options(master)
+        NAME = "foo"
+        VALUE = 2
+        options.message = mocker.MagicMock()
+        options.change_setting(name=NAME, value=VALUE)
+        master.controller.app.run_task.assert_called_once()
+        master.controller.app.run_task.assert_called_with("change_setting", NAME, VALUE)
+
+    def test_Options_change_setting_displays_message(self, mocker):
         mocker.patch("arrangeit.view.Options.setup_widgets")
         mocker.patch("arrangeit.view.Options.setup_bindings")
         mocker.patch("arrangeit.view.Options.geometry")
         mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         master = mocker.MagicMock()
         options = Options(master)
-        NAME = "foo"
-        VALUE = 2
-        options.scale_callback(name=NAME, value=VALUE)
-        master.controller.app.run_task.assert_called_once()
-        master.controller.app.run_task.assert_called_with("change_setting", NAME, VALUE)
+        options.message = mocker.MagicMock()
+        options.change_setting(name="foo", value=1)
+        options.message.config.assert_called_once()
+        options.message.config.assert_called_with(text=MESSAGES["setting_changed"])
 
 
+class TestScaleOption(object):
+    """Unit testing class for :class:`ScaleOption` class."""
 
-
-class TestScaleWidget(object):
-    """Unit testing class for :class:`ScaleWidget` class."""
-
-    ## ScaleWidget
-    def test_ScaleWidget_issubclass_of_Scale(self):
-        assert issubclass(ScaleWidget, tk.Scale)
+    ## ScaleOption
+    def test_ScaleOption_issubclass_of_Scale(self):
+        assert issubclass(ScaleOption, tk.Scale)
 
     @pytest.mark.parametrize("attr,value", [("master", None), ("name", "")])
-    def test_ScaleWidget_inits_attributes(self, attr, value):
-        assert getattr(ScaleWidget, attr) == value
+    def test_ScaleOption_inits_attributes(self, attr, value):
+        assert getattr(ScaleOption, attr) == value
 
-    ## ScaleWidget.__init__
-    def test_ScaleWidget_init_calls_super_with_master_arg(self, mocker):
+    ## ScaleOption.__init__
+    def test_ScaleOption_init_calls_super_with_master_arg(self, mocker):
         mocker.patch("arrangeit.view.tk.Scale.config")
+        mocker.patch("arrangeit.view.tk.Scale.set")
         mocked = mocker.patch("arrangeit.view.tk.Scale.__init__")
         master = mocker.MagicMock()
-        ScaleWidget(master=master)
+        ScaleOption(master=master)
         mocked.assert_called_with(master)
 
-    def test_ScaleWidget_init_sets_master_attribute(self, mocker):
+    def test_ScaleOption_init_sets_master_attribute(self, mocker):
         mocker.patch("arrangeit.view.tk.Scale.config")
+        mocker.patch("arrangeit.view.tk.Scale.set")
         mocker.patch("arrangeit.view.tk.Scale.__init__")
         master = mocker.MagicMock()
-        assert ScaleWidget(master).master == master
+        assert ScaleOption(master).master == master
 
-    def test_ScaleWidget_init_sets_name_attribute(self, mocker):
+    def test_ScaleOption_init_sets_name_attribute(self, mocker):
         mocker.patch("arrangeit.view.tk.Scale.config")
+        mocker.patch("arrangeit.view.tk.Scale.set")
         mocker.patch("arrangeit.view.tk.Scale.__init__")
-        assert ScaleWidget(mocker.MagicMock(), name="foo").name == "foo"
+        assert ScaleOption(mocker.MagicMock(), name="foo").name == "foo"
 
-    def test_ScaleWidget_init_configs_attributes(self, mocker):
+    def test_ScaleOption_init_configs_attributes(self, mocker):
         mocker.patch("arrangeit.view.tk.Scale.__init__")
+        mocker.patch("arrangeit.view.tk.Scale.set")
         mocked = mocker.patch("arrangeit.view.tk.Scale.config")
         master = mocker.MagicMock()
-        scale = ScaleWidget(
+        scale = ScaleOption(
             master, from_=0.2, to=0.8, resolution=0.1, tickinterval=0.3, digits=2
         )
         mocked.assert_called_once()
@@ -1191,22 +1234,125 @@ class TestScaleWidget(object):
             digits=2,
         )
 
-    ## ScaleWidget.on_update_value
-    def test_ScaleWidget_on_update_value_calls_master_scale_callback(self, mocker):
+    def test_ScaleOption_init_sets_initial(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.__init__")
         mocker.patch("arrangeit.view.tk.Scale.config")
+        mocked = mocker.patch("arrangeit.view.tk.Scale.set")
+        master = mocker.MagicMock()
+        INITIAL = 0.4
+        ScaleOption(master, initial=INITIAL)
+        mocked.assert_called_once()
+        mocked.assert_called_with(INITIAL)
+
+    ## ScaleOption.on_update_value
+    def test_ScaleOption_on_update_value_calls_master_change_setting(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.config")
+        mocker.patch("arrangeit.view.tk.Scale.set")
         mocker.patch("arrangeit.view.tk.Scale.__init__")
         master = mocker.MagicMock()
         NAME = "ROOT_ALPHA"
         VALUE = 0.4
-        scale = ScaleWidget(master, name=NAME)
+        scale = ScaleOption(master, name=NAME)
         scale.on_update_value(VALUE)
-        master.scale_callback.assert_called_once()
-        master.scale_callback.assert_called_with(name=NAME, value=VALUE)
+        master.change_setting.assert_called_once()
+        master.change_setting.assert_called_with(name=NAME, value=VALUE)
 
-    def test_ScaleWidget_on_update_value_returns_break(self, mocker):
+    def test_ScaleOption_on_update_value_returns_break(self, mocker):
         mocker.patch("arrangeit.view.tk.Scale.__init__")
+        mocker.patch("arrangeit.view.tk.Scale.set")
         mocker.patch("arrangeit.view.tk.Scale.config")
-        scale = ScaleWidget(mocker.MagicMock())
+        scale = ScaleOption(mocker.MagicMock())
         returned = scale.on_update_value(0.4)
         assert returned == "break"
 
+
+class TestCheckOption(object):
+    """Unit testing class for :class:`CheckOption` class."""
+
+    ## CheckOption
+    def test_CheckOption_issubclass_of_Checkbutton(self):
+        assert issubclass(CheckOption, tk.Checkbutton)
+
+    @pytest.mark.parametrize(
+        "attr,value", [("master", None), ("name", ""), ("var", None)]
+    )
+    def test_CheckOption_inits_attributes(self, attr, value):
+        assert getattr(CheckOption, attr) == value
+
+    ## CheckOption.__init__
+    def test_CheckOption_init_calls_super_with_master_arg(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        mocked = mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        master = mocker.MagicMock()
+        CheckOption(master=master)
+        mocked.assert_called_with(master)
+
+    def test_CheckOption_init_sets_master_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        master = mocker.MagicMock()
+        assert CheckOption(master).master == master
+
+    def test_CheckOption_init_sets_name_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        assert CheckOption(mocker.MagicMock(), name="foo").name == "foo"
+
+    def test_CheckOption_init_sets_var_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        assert isinstance(CheckOption(mocker.MagicMock()).var, tk.IntVar)
+
+    def test_CheckOption_init_configs_attributes(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        mocked = mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        master = mocker.MagicMock()
+        TEXT = "foo"
+        check = CheckOption(master, text=TEXT)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            text=TEXT, variable=check.var, command=check.on_update_value
+        )
+
+    def test_CheckOption_init_selects_for_initial_value_True(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        mocked = mocker.patch("arrangeit.view.tk.Checkbutton.select")
+        master = mocker.MagicMock()
+        VALUE = True
+        CheckOption(master, initial=VALUE)
+        mocked.assert_called_once()
+
+    def test_CheckOption_init_deselects_for_initial_value_False(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        mocked = mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        master = mocker.MagicMock()
+        VALUE = False
+        CheckOption(master, initial=VALUE)
+        mocked.assert_called_once()
+
+    ## CheckOption.on_update_value
+    def test_CheckOption_on_update_value_calls_master_change_setting(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        master = mocker.MagicMock()
+        NAME = "SNAPPING_IS_ON"
+        check = CheckOption(master, name=NAME)
+        check.on_update_value(mocker.MagicMock())
+        master.change_setting.assert_called_once()
+        master.change_setting.assert_called_with(name=NAME, value=False)
+
+    def test_CheckOption_on_update_value_returns_break(self, mocker):
+        mocker.patch("arrangeit.view.tk.Checkbutton.__init__")
+        mocker.patch("arrangeit.view.tk.Checkbutton.deselect")
+        mocker.patch("arrangeit.view.tk.Checkbutton.config")
+        check = CheckOption(mocker.MagicMock())
+        returned = check.on_update_value(mocker.MagicMock())
+        assert returned == "break"

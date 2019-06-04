@@ -1,6 +1,5 @@
 import sys
 from platform import system
-from gettext import gettext as _
 from importlib import import_module
 from itertools import islice, chain, product
 
@@ -41,7 +40,8 @@ def get_class(name, platform):
             )
         )
     except ImportError:
-        sys.exit(_("arrangeit can't run on your platform. :("))
+        from arrangeit.settings import MESSAGES
+        sys.exit(MESSAGES["platform_error"])
     return getattr(module, name)
 
 
