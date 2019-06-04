@@ -158,6 +158,11 @@ class TestSettingsModule(object):
         value = Settings.HIGHLIGHTED_COLOR
         assert value == settings.SETTINGS["HIGHLIGHTED_COLOR"][1]
 
+    def test_SettingsMetaclass___getattr___returns_None_for_invalid_name(self):
+        Settings.user_settings = {"foo": "bar"}
+        value = Settings.HIGHLIGHTED11_COLOR
+        assert value is None
+
 
 class TestSettings(object):
     """Unit testing class for :class:`Settings`."""

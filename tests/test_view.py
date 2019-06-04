@@ -16,6 +16,7 @@ from arrangeit.view import (
     ListedWindow,
     Toolbar,
     Options,
+    ScaleWidget,
 )
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
@@ -873,7 +874,7 @@ class TestToolbar(object):
         assert issubclass(Toolbar, tk.Frame)
 
     @pytest.mark.parametrize("attr,value", [("master", None)])
-    def test_Toolbar_inits_attributtes(self, attr, value):
+    def test_Toolbar_inits_attributes(self, attr, value):
         assert getattr(Toolbar, attr) == value
 
     ## Toolbar.__init__
@@ -985,7 +986,7 @@ class TestToolbar(object):
         toolbar = Toolbar(master)
         toolbar.on_options_click()
         mocked.assert_called_once()
-        mocked.assert_called_with(master.master)
+        mocked.assert_called_with(master)
 
     def test_Toolbar_on_options_click_sets_topmost_for_options(self, mocker):
         mocked = mocker.patch("arrangeit.view.Options")
@@ -1011,7 +1012,7 @@ class TestOptions(object):
         assert issubclass(Options, tk.Toplevel)
 
     @pytest.mark.parametrize("attr,value", [("master", None)])
-    def test_Options_inits_attributtes(self, attr, value):
+    def test_Options_inits_attributes(self, attr, value):
         assert getattr(Options, attr) == value
 
     ## Options.__init__
@@ -1112,8 +1113,8 @@ class TestOptions(object):
         mocker.patch("arrangeit.view.Options.destroy")
         options = Options(mocker.MagicMock())
         options.on_destroy_options(mocker.MagicMock())
-        options.master.update.assert_called_once()
-        options.master.deiconify.assert_called_once()
+        options.master.master.update.assert_called_once()
+        options.master.master.deiconify.assert_called_once()
 
     def test_Options_on_destroy_options_destroys_options(self, mocker):
         mocker.patch("arrangeit.view.Options.setup_widgets")
@@ -1124,3 +1125,88 @@ class TestOptions(object):
         options = Options(mocker.MagicMock())
         options.on_destroy_options(mocker.MagicMock())
         mocked.assert_called_once()
+
+    ## Options.scale_callback
+    def test_Options_scale_callback_calls_run_task(self, mocker):
+        mocker.patch("arrangeit.view.Options.setup_widgets")
+        mocker.patch("arrangeit.view.Options.setup_bindings")
+        mocker.patch("arrangeit.view.Options.geometry")
+        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        master = mocker.MagicMock()
+        options = Options(master)
+        NAME = "foo"
+        VALUE = 2
+        options.scale_callback(name=NAME, value=VALUE)
+        master.controller.app.run_task.assert_called_once()
+        master.controller.app.run_task.assert_called_with("change_setting", NAME, VALUE)
+
+
+
+
+class TestScaleWidget(object):
+    """Unit testing class for :class:`ScaleWidget` class."""
+
+    ## ScaleWidget
+    def test_ScaleWidget_issubclass_of_Scale(self):
+        assert issubclass(ScaleWidget, tk.Scale)
+
+    @pytest.mark.parametrize("attr,value", [("master", None), ("name", "")])
+    def test_ScaleWidget_inits_attributes(self, attr, value):
+        assert getattr(ScaleWidget, attr) == value
+
+    ## ScaleWidget.__init__
+    def test_ScaleWidget_init_calls_super_with_master_arg(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.config")
+        mocked = mocker.patch("arrangeit.view.tk.Scale.__init__")
+        master = mocker.MagicMock()
+        ScaleWidget(master=master)
+        mocked.assert_called_with(master)
+
+    def test_ScaleWidget_init_sets_master_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.config")
+        mocker.patch("arrangeit.view.tk.Scale.__init__")
+        master = mocker.MagicMock()
+        assert ScaleWidget(master).master == master
+
+    def test_ScaleWidget_init_sets_name_attribute(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.config")
+        mocker.patch("arrangeit.view.tk.Scale.__init__")
+        assert ScaleWidget(mocker.MagicMock(), name="foo").name == "foo"
+
+    def test_ScaleWidget_init_configs_attributes(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.__init__")
+        mocked = mocker.patch("arrangeit.view.tk.Scale.config")
+        master = mocker.MagicMock()
+        scale = ScaleWidget(
+            master, from_=0.2, to=0.8, resolution=0.1, tickinterval=0.3, digits=2
+        )
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            command=scale.on_update_value,
+            orient=tk.HORIZONTAL,
+            from_=0.2,
+            to=0.8,
+            resolution=0.1,
+            tickinterval=0.3,
+            digits=2,
+        )
+
+    ## ScaleWidget.on_update_value
+    def test_ScaleWidget_on_update_value_calls_master_scale_callback(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.config")
+        mocker.patch("arrangeit.view.tk.Scale.__init__")
+        master = mocker.MagicMock()
+        NAME = "ROOT_ALPHA"
+        VALUE = 0.4
+        scale = ScaleWidget(master, name=NAME)
+        scale.on_update_value(VALUE)
+        master.scale_callback.assert_called_once()
+        master.scale_callback.assert_called_with(name=NAME, value=VALUE)
+
+    def test_ScaleWidget_on_update_value_returns_break(self, mocker):
+        mocker.patch("arrangeit.view.tk.Scale.__init__")
+        mocker.patch("arrangeit.view.tk.Scale.config")
+        scale = ScaleWidget(mocker.MagicMock())
+        returned = scale.on_update_value(0.4)
+        assert returned == "break"
+

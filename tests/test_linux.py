@@ -362,14 +362,6 @@ class TestLinuxApp(object):
         mocked.assert_called()
         mocked.assert_called_with(101, 1001)
 
-    ## LinuxApp.rerun_from_window
-    def test_LinuxApp_rerun_from_window_calls_repopulate_for_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.data.WindowsCollection.repopulate_for_wid")
-        app = App()
-        app.rerun_from_window(45221, 75300)
-        mocked.assert_called()
-        mocked.assert_called_with(45221, 75300)
-
 
 class TestLinuxController(object):
     """Testing class for :py:class:`arrangeit.linux.controller.Controller` class."""

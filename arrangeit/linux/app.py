@@ -17,44 +17,32 @@ class App(BaseApp):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def grab_window_screen(self, model):
-        """Grabs and returns screenshot of the window from provided model.
+    ## TASKS
+    def activate_root(self, wid):
+        """Activates/focuses root window.
 
-        We can't include window decoration in image so offset in pixels
-        for both axes is returned.
-
-        :param model: model of the window we want screenshot form
-        :type model: :class:`WindowModel`
-        :param window: model window instance
-        :type window: :class:`Gdk.Window`
-        :param pixbuf: X11 pixbuf image
-        :type pixbuf: binary data
-        :param width: window width in pixels without window manager decoration
-        :type width: int
-        :param height: window height in pixels without window manager decoration
-        :type height: int
-        :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
+        FIXME possible nasty hack wid+1
         """
         window = next(
             (
                 win
                 for win in Gdk.Screen.get_default().get_window_stack()
-                if win.get_xid() == model.wid
+                if win.get_xid() == wid + 1
             ),
             None,
         )
         if window is not None:
-            width, height = window.get_width(), window.get_height()
-            pixbuf = Gdk.pixbuf_get_from_window(window, 0, 0, width, height)
-            return (
-                get_prepared_screenshot(
-                    self.collector.get_image_from_pixbuf(pixbuf),
-                    blur_size=Settings.SCREENSHOT_BLUR_PIXELS,
-                    grayscale=Settings.SCREENSHOT_TO_GRAYSCALE,
-                ),
-                (model.changed_w - width, model.changed_h - height),
-            )
-        return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)
+            window.focus(X.CurrentTime)
+
+    def move(self, wid):
+        """Just calls `move_and_resize` as the same method moves and resizes
+
+        in Wnck.Window class under GNU/Linux.
+
+        :param wid: windows id
+        :type wid: int
+        """
+        return self.move_and_resize(wid)
 
     def move_and_resize(self, wid):
         """Moves and resizes window having provided wid.
@@ -85,16 +73,6 @@ class App(BaseApp):
             win.set_geometry(Wnck.WindowGravity.STATIC, mask, *model.changed)
             return False
         return True
-
-    def move(self, wid):
-        """Just calls `move_and_resize` as the same method moves and resizes
-
-        in Wnck.Window class under GNU/Linux.
-
-        :param wid: windows id
-        :type wid: int
-        """
-        return self.move_and_resize(wid)
 
     def _activate_workspace(self, number):
         """Activates workspace identified by provided our custom workspace number.
@@ -151,18 +129,42 @@ class App(BaseApp):
         """
         return self._move_window_to_workspace(wid + 1, number)
 
-    def activate_root(self, wid):
-        """Activates/focuses root window.
+    ## COMMANDS
+    def grab_window_screen(self, model):
+        """Grabs and returns screenshot of the window from provided model.
 
-        FIXME possible nasty hack wid+1
+        We can't include window decoration in image so offset in pixels
+        for both axes is returned.
+
+        :param model: model of the window we want screenshot form
+        :type model: :class:`WindowModel`
+        :param window: model window instance
+        :type window: :class:`Gdk.Window`
+        :param pixbuf: X11 pixbuf image
+        :type pixbuf: binary data
+        :param width: window width in pixels without window manager decoration
+        :type width: int
+        :param height: window height in pixels without window manager decoration
+        :type height: int
+        :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
         """
         window = next(
             (
                 win
                 for win in Gdk.Screen.get_default().get_window_stack()
-                if win.get_xid() == wid + 1
+                if win.get_xid() == model.wid
             ),
             None,
         )
         if window is not None:
-            window.focus(X.CurrentTime)
+            width, height = window.get_width(), window.get_height()
+            pixbuf = Gdk.pixbuf_get_from_window(window, 0, 0, width, height)
+            return (
+                get_prepared_screenshot(
+                    self.collector.get_image_from_pixbuf(pixbuf),
+                    blur_size=Settings.SCREENSHOT_BLUR_PIXELS,
+                    grayscale=Settings.SCREENSHOT_TO_GRAYSCALE,
+                ),
+                (model.changed_w - width, model.changed_h - height),
+            )
+        return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)

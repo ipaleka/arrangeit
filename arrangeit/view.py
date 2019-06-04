@@ -684,7 +684,7 @@ class Toolbar(tk.Frame):
 
     def on_options_click(self):
         """Creates and shows options dialog and hides root window."""
-        options = Options(self.master.master)
+        options = Options(self.master)
         options.attributes("-topmost", "true")
         self.master.master.withdraw()
 
@@ -699,9 +699,9 @@ class Options(tk.Toplevel):
     master = None
 
     def __init__(self, master=None):
-        """Sets master attribute from provided argument
+        """Sets master attribute, position dialog on former master position
 
-        after super __init__ is called.
+        and call setup routines after super __init__ is called.
         """
         super().__init__(master)
         self.master = master
@@ -710,6 +710,7 @@ class Options(tk.Toplevel):
         self.geometry("+{}+{}".format(self.master.winfo_x(), self.master.winfo_y()))
 
     def setup_bindings(self):
+        """Binds relevant events to related callback."""
         self.bind("<Destroy>", self.on_destroy_options)
 
     def setup_widgets(self):
@@ -723,6 +724,69 @@ class Options(tk.Toplevel):
         quit_button.pack()
 
     def on_destroy_options(self, event):
-        self.master.update()
-        self.master.deiconify()
+        """Brings back root window and destroys options dialog."""
+        self.master.master.update()
+        self.master.master.deiconify()
         self.destroy()
+
+    def scale_callback(self, name="", value=None):
+        self.master.controller.app.run_task("change_setting", name, value)
+
+
+class ScaleWidget(tk.Scale):
+    """Tkinter widget for showing and changing range settings values.
+
+    :var ScaleWidget.master: master widget
+    :type ScaleWidget.master: :class:`.tk.Toplevel`
+    """
+
+    master = None
+    name = ""
+
+    def __init__(
+        self,
+        master=None,
+        name="",
+        from_=0.0,
+        to=1.0,
+        resolution=0.05,
+        tickinterval=0.2,
+        digits=3,
+    ):
+        """Sets master attribute and configs scale widget from provided arguments
+
+        after super __init__ is called.
+
+        Also sets command callback and orientation.
+
+        :param master: parent widget
+        :param master: Tkinter widget
+        :param name: Settings name to change
+        :param name: str
+        :param from_: starting value
+        :param from_: float/int
+        :param to: ending value
+        :param to: float/int
+        :param resolution: minimum step
+        :param resolution: float/int
+        :param tickinterval: named values on scale
+        :param tickinterval: float/int
+        :param digits: how many digits are shown on tick intervals
+        :param digits: int
+        """
+        super().__init__(master)
+        self.master = master
+        self.name = name
+        self.config(
+            command=self.on_update_value,
+            orient=tk.HORIZONTAL,
+            from_=from_,
+            to=to,
+            resolution=resolution,
+            tickinterval=tickinterval,
+            digits=digits,
+        )
+
+    def on_update_value(self, value):
+        self.master.scale_callback(name=self.name, value=value)
+        return "break"

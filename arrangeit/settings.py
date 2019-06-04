@@ -136,7 +136,7 @@ class SettingsMetaclass(type):
         If user hasn't configured attribute then program setting is returned.
         """
         value = self.user_settings.get(name)
-        return value if value is not None else SETTINGS[name][1]
+        return value if value is not None else SETTINGS.get(name, [None, None])[1]
 
 
 class Settings(metaclass=SettingsMetaclass):

@@ -1,7 +1,10 @@
+from json import JSONDecodeError
+
 import pytest
 
 from arrangeit import base, utils
 from arrangeit.data import WindowModel, WindowsCollection
+from arrangeit.settings import Settings
 
 from .fixtures import (
     SAMPLE_RECT,
@@ -73,6 +76,12 @@ class TestBaseApp(object):
         mocked.assert_called()
         mocked.assert_called_with("Collector")
 
+    ## BaseApp.grab_window_screen
+    def test_BaseApp_grab_window_screen_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().grab_window_screen(None)
+
     ## BaseApp.run
     def test_BaseApp_run_calls_collector_run(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
@@ -109,10 +118,11 @@ class TestBaseApp(object):
     @pytest.mark.parametrize(
         "task, args",
         [
+            ("activate_root", (100,)),
+            ("change_setting", ("ROOT_ALPHA", 0.95)),
             ("move", (50,)),
             ("move_and_resize", (100,)),
             ("move_to_workspace", (50001, 1001)),
-            ("activate_root", (100,)),
             ("rerun_from_window", (20001,)),
             ("save_default", ()),
         ],
@@ -123,17 +133,47 @@ class TestBaseApp(object):
         base.BaseApp().run_task(task, *args)
         mocked.assert_called_with(*args)
 
-    ## BaseApp.grab_window_screen
-    def test_BaseApp_grab_window_screen_raises_NotImplementedError(self, mocker):
+    ## BaseApp.activate_root
+    def test_BaseApp_activate_root_raises_NotImplementedError(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
-            base.BaseApp().grab_window_screen(None)
+            base.BaseApp().activate_root()
 
-    ## BaseApp.move_and_resize
-    def test_BaseApp_move_and_resize_raises_NotImplementedError(self, mocker):
-        mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        with pytest.raises(NotImplementedError):
-            base.BaseApp().move_and_resize()
+    ## BaseApp.change_setting
+    def test_BaseApp_change_setting_changes_valid_setting(self, mocker):
+        import time
+        from random import seed, random
+        alpha = int(Settings.ROOT_ALPHA * 10000)
+        seed(int(time.time()))
+        SAMPLE = random()
+        base.BaseApp().change_setting("ROOT_ALPHA", SAMPLE)
+        assert int(Settings.ROOT_ALPHA * 10000) != alpha
+        assert int(Settings.ROOT_ALPHA * 10000) == int(SAMPLE * 10000)
+
+    def test_BaseApp_change_setting_does_nothing_for_invalid_setting(self, mocker):
+        SAMPLE = 0.972
+        base.BaseApp().change_setting("ROOT_ALPHA1", SAMPLE)
+        assert Settings.ROOT_ALPHA1 is None
+
+    def test_BaseApp_change_setting_does_nothing_for_value_None(self, mocker):
+        old = Settings.MAIN_BG
+        base.BaseApp().change_setting("MAIN_BG", None)
+        assert Settings.MAIN_BG == old
+
+    def test_BaseApp_change_setting_does_nothing_for_invalid_value_type(self, mocker):
+        old = Settings.MAIN_BG
+        base.BaseApp().change_setting("MAIN_BG", 1)
+        assert Settings.MAIN_BG == old
+
+    def test_BaseApp_change_setting_does_nothing_for_core_setting(self, mocker):
+        base.BaseApp().change_setting("RESIZE", 187)
+        assert Settings.RESIZE == 10
+
+    def test_BaseApp_change_setting_calls__save_setting(self, mocker):
+        mocked = mocker.patch("arrangeit.base.BaseApp._save_setting")
+        base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
+        mocked.assert_called_once()
+        mocked.assert_called_with("ROOT_ALPHA", 0.95)
 
     ## BaseApp.move
     def test_BaseApp_move_raises_NotImplementedError(self, mocker):
@@ -141,17 +181,25 @@ class TestBaseApp(object):
         with pytest.raises(NotImplementedError):
             base.BaseApp().move()
 
+    ## BaseApp.move_and_resize
+    def test_BaseApp_move_and_resize_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        with pytest.raises(NotImplementedError):
+            base.BaseApp().move_and_resize()
+
     ## BaseApp.move_to_workspace
     def test_BaseApp_move_to_workspace_raises_NotImplementedError(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move_to_workspace()
 
-    ## BaseApp.activate_root
-    def test_BaseApp_activate_root_raises_NotImplementedError(self, mocker):
-        mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        with pytest.raises(NotImplementedError):
-            base.BaseApp().activate_root()
+    ## BaseApp.rerun_from_window
+    def test_BaseApp_rerun_from_window_calls_repopulate_for_wid(self, mocker):
+        mocked = mocker.patch("arrangeit.data.WindowsCollection.repopulate_for_wid")
+        app = base.BaseApp()
+        app.rerun_from_window(45221, 75300)
+        mocked.assert_called()
+        mocked.assert_called_with(45221, 75300)
 
     ## BaseApp.save_default
     def test_BaseApp_save_default_calls_platform_user_data_path(self, mocker):
@@ -198,6 +246,82 @@ class TestBaseApp(object):
         mocker.patch("arrangeit.data.WindowsCollection.export")
         base.BaseApp().save_default()
         mocked.assert_called_once()
+
+    ## BaseApp._save_setting
+    def test_BaseApp__save_setting_calls_platform_user_data_path(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.os")
+        mocker.patch("arrangeit.base.open")
+        mocker.patch("arrangeit.base.json")
+        mocked = mocker.patch("arrangeit.base.platform_user_data_path")
+        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        mocked.assert_called_once()
+
+    def test_BaseApp__save_setting_checks_if_directory_exists(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.platform_user_data_path")
+        mocker.patch("arrangeit.base.json")
+        mocker.patch("arrangeit.base.os")
+        mocker.patch("arrangeit.base.open")
+        SAMPLE = "foo"
+        mocker.patch("arrangeit.base.platform_user_data_path", return_value=SAMPLE)
+        mocked = mocker.patch("arrangeit.base.os.path.exists")
+        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        calls = [mocker.call(SAMPLE)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_BaseApp__save_setting_creates_directory(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        path = mocker.patch("arrangeit.base.platform_user_data_path")
+        mocker.patch("arrangeit.base.json")
+        mocker.patch("arrangeit.base.os")
+        mocker.patch("arrangeit.base.os.path.exists", return_value=False)
+        mocked = mocker.patch("arrangeit.base.os.mkdir")
+        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        mocked.assert_called_once()
+        mocked.assert_called_once_with(path.return_value)
+
+    def test_BaseApp__save_setting_checks_if_file_exists(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.platform_user_data_path")
+        mocker.patch("arrangeit.base.json")
+        mocker.patch("arrangeit.base.open")
+        SAMPLE = "foobar"
+        mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
+        mocked = mocker.patch("arrangeit.base.os.path.exists")
+        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        calls = [mocker.call(SAMPLE)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_BaseApp__save_setting_calls_json_load(self, mocker):
+        mocker.patch("arrangeit.base.os.path.join", return_value="foo")
+        mocker.patch("arrangeit.base.os.path.exists", return_value=True)
+        mocker.patch("arrangeit.base.open")
+        mocker.patch("arrangeit.base.json.load")
+        mocked = mocker.patch("arrangeit.base.json.dump")
+        base.BaseApp()._save_setting("ROOT_ALPHA", 0.97)
+        mocked.assert_called_once()
+
+    def test_BaseApp__save_setting_catches_exception_and_continues(self, mocker):
+        SAMPLE = "barfoo"
+        mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
+        mocker.patch("arrangeit.base.os.path.exists", return_value=True)
+        mocker.patch("arrangeit.base.open")
+        mocker.patch("arrangeit.base.json.load", side_effect=JSONDecodeError("", "", 0))
+        returned = base.BaseApp()._save_setting("ROOT_ALPHA", 0.97)
+        assert returned is False
+
+    def test_BaseApp__save_setting_writes_to_settings_file(self, mocker):
+        SAMPLE = "barfoo"
+        mocker.patch("arrangeit.base.json.load")
+        mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
+        mocker.patch("arrangeit.base.os.path.exists", return_value=True)
+        mocked = mocker.patch("arrangeit.base.open")
+        mocked_dump = mocker.patch("arrangeit.base.json.dump")
+        base.BaseApp()._save_setting("ROOT_ALPHA", 0.97)
+        calls = [mocker.call(SAMPLE, "w")]
+        mocked.assert_has_calls(calls, any_order=True)
+        mocked_dump.assert_called_once()
 
     ## BaseApp._initialize_snapping_sources
     def test_BaseApp__initialize_snapping_sources_calls_collector_get_monitors_rects(

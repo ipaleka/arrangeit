@@ -2,8 +2,8 @@ import os
 import json
 from gettext import gettext as _
 
-from arrangeit.settings import Settings
 from arrangeit.data import WindowModel, WindowsCollection
+from arrangeit.settings import Settings, SETTINGS
 from arrangeit.utils import (
     get_component_class,
     quarter_by_smaller,
@@ -39,6 +39,7 @@ class BaseApp(object):
         self.controller = self.setup_controller()(self)
         self.collector = self.setup_collector()()
 
+    ## SETUP
     def setup_controller(self):
         """Returns platform specific Controller class."""
         return get_component_class("Controller")
@@ -47,6 +48,7 @@ class BaseApp(object):
         """Returns platform specific Collector class."""
         return get_component_class("Collector")
 
+    ## DOMAIN LOGIC
     def run(self):
         """Collects data, prepare them for view and finally shows view application."""
         self.collector.run()
@@ -60,7 +62,30 @@ class BaseApp(object):
         """
         return getattr(self, task)(*args)
 
-    def grab_window_screen(self, model):
+    ## TASKS
+    def activate_root(self, *args):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def change_setting(self, name="", value=None):
+        """Changes provided setting name to provided value
+
+        and saves it to user settings file.
+
+        :param name: setting name to save
+        :type name: str
+        :param value: setting value to save
+        :type name: int/float/str
+        """
+        if name not in SETTINGS or not isinstance(
+            value, SETTINGS[name][0]
+        ):
+            return True
+
+        setattr(Settings, name, value)
+        return self._save_setting(name, value)
+
+    def move(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
 
@@ -68,15 +93,7 @@ class BaseApp(object):
         """Method must be overridden."""
         raise NotImplementedError
 
-    def move(self, *args):
-        """Method must be overridden."""
-        raise NotImplementedError
-
     def move_to_workspace(self, *args):
-        """Method must be overridden."""
-        raise NotImplementedError
-
-    def activate_root(self, *args):
         """Method must be overridden."""
         raise NotImplementedError
 
@@ -102,6 +119,35 @@ class BaseApp(object):
 
         with open(os.path.join(directory, "default.json"), "w") as default:
             json.dump(self.collector.collection.export(), default)
+
+    ## COMMANDS
+    def _save_setting(self, name, value):
+        """Saves provided user setting value into user settings file.
+
+        :param name: setting name to save
+        :type name: str
+        :param value: setting value to save
+        :type name: int/float/str
+        """
+        directory = platform_user_data_path()
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+
+        settings_file = os.path.join(directory, "user_settings.json")
+        data = {}
+        if os.path.exists(settings_file):
+            with open(settings_file, "r") as json_settings:
+                try:
+                    data = json.load(json_settings)
+                except json.JSONDecodeError:
+                    pass
+
+        data[name] = value
+
+        with open(settings_file, "w") as json_settings:
+            json.dump(data, json_settings)
+
+        return False
 
     def _initialize_snapping_sources(self):
         """Creates and returns dictionary with all workspaces numbers as keys
@@ -149,6 +195,10 @@ class BaseApp(object):
                 )
             )
         return sources
+
+    def grab_window_screen(self, model):
+        """Method must be overridden."""
+        raise NotImplementedError
 
 
 class BaseController(object):
