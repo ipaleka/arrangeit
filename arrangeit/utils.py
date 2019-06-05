@@ -1,10 +1,15 @@
 import sys
 from platform import system
+from gettext import gettext as _
 from importlib import import_module
 from itertools import islice, chain, product
 
+
 from PIL import ImageFilter, ImageTk
 
+MESSAGES = {
+    "platform_error": _("arrangeit can't run on your platform. :("),
+}
 
 def platform_path():
     """Returns lowercased string holding platform name."""
@@ -40,7 +45,6 @@ def get_class(name, platform):
             )
         )
     except ImportError:
-        from arrangeit.settings import MESSAGES
         sys.exit(MESSAGES["platform_error"])
     return getattr(module, name)
 

@@ -135,7 +135,7 @@ class TestSettingsModule(object):
             "WINDOW_MODEL_RECT_ELEMENTS",
             "ICON_WIDTH",
             "BLANK_ICON",
-            "COLORS"
+            "COLORS",
         ],
     )
     def test_SettingsMetaclass___getattr___not_changing_core_constant(self, constant):
@@ -168,7 +168,7 @@ class TestSettingsModule(object):
 class TestSettings(object):
     """Unit testing class for :class:`Settings`."""
 
-    ## TestSettings
+    ## Settings
     def test_Settings_metaclass_is_SettingsMetaclass(self):
         assert Settings.__class__ == arrangeit.settings.SettingsMetaclass
 
@@ -212,3 +212,24 @@ class TestSettings(object):
     def test_Settings_availability_for_all_constants_in_CONSTANTS(self):
         for name, _ in settings.SETTINGS.items():
             assert hasattr(Settings, name)
+
+    ## Settings.is_setting
+    def test_Settings_is_setting_returns_True_for_valid_setting(self, mocker):
+        returned = Settings.is_setting("ROOT_ALPHA", 0.75)
+        assert returned is True
+    
+    def test_Settings_is_setting_returns_False_for_invalid_setting(self, mocker):
+        returned = Settings.is_setting("ROOT_ALPHA1", 0.75)
+        assert returned is False
+
+    def test_Settings_is_setting_does_nothing_for_value_None(self, mocker):
+        returned = Settings.is_setting("MAIN_BG", None)
+        assert returned is False
+
+    def test_Settings_is_setting_does_nothing_for_invalid_value_type(self, mocker):
+        returned = Settings.is_setting("MAIN_BG", 1)
+        assert returned is False
+
+    def test_Settings_is_setting_does_nothing_for_core_setting(self, mocker):
+        returned = Settings.is_setting("RESIZE", 187)
+        assert returned is False

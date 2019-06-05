@@ -13,7 +13,6 @@ user_settings.json file created and located in arrangeit user data directory.
 """
 
 MESSAGES = {
-    "platform_error": _("arrangeit can't run on your platform. :("),
     "default_saved": _("Finished: saving to default file..."),
     "options_title": _("arrangeit options"),
     "setting_changed": _(
@@ -191,3 +190,16 @@ class Settings(metaclass=SettingsMetaclass):
         "tan",
         "yellow",
     )
+
+    @classmethod
+    def is_setting(cls, name, value):
+        """Returns Boolean is provided name with value is valid setting.
+
+        :param name: setting name
+        :type name: str
+        :param value: value to check type for
+        :type value: str/int/float
+        :returns: Boolean
+        """
+        return not (name not in SETTINGS or not isinstance(value, SETTINGS[name][0]))
+

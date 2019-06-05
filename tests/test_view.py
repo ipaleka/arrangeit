@@ -1182,7 +1182,6 @@ class TestOptions(object):
         options.message.config.assert_called_once()
         options.message.config.assert_called_with(text=MESSAGES["setting_changed"])
 
-
 class TestScaleOption(object):
     """Unit testing class for :class:`ScaleOption` class."""
 

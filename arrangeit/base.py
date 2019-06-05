@@ -2,7 +2,7 @@ import os
 import json
 
 from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.settings import Settings, SETTINGS, MESSAGES
+from arrangeit.settings import Settings, MESSAGES
 from arrangeit.utils import (
     get_component_class,
     quarter_by_smaller,
@@ -76,9 +76,7 @@ class BaseApp(object):
         :param value: setting value to save
         :type name: int/float/str
         """
-        if name not in SETTINGS or not isinstance(
-            value, SETTINGS[name][0]
-        ):
+        if not Settings.is_setting(name, value):
             return True
 
         setattr(Settings, name, value)

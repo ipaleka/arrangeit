@@ -141,6 +141,20 @@ class TestBaseApp(object):
             base.BaseApp().activate_root()
 
     ## BaseApp.change_setting
+    def test_BaseApp_change_setting_calls_is_setting(self, mocker):
+        mocked = mocker.patch("arrangeit.base.Settings.is_setting")
+        returned = base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
+        mocked.assert_called_once()
+        mocked.assert_called_with("ROOT_ALPHA", 0.95)
+        assert returned is not True
+
+    def test_BaseApp_change_setting_calls_is_setting_invalid(self, mocker):
+        mocked = mocker.patch("arrangeit.base.Settings.is_setting", return_value=False)
+        returned = base.BaseApp().change_setting("ROOT_ALPHA1", 0.95)
+        mocked.assert_called_once()
+        mocked.assert_called_with("ROOT_ALPHA1", 0.95)
+        assert returned is True
+
     def test_BaseApp_change_setting_changes_valid_setting(self, mocker):
         import time
         from random import seed, random
@@ -151,25 +165,6 @@ class TestBaseApp(object):
         assert int(Settings.ROOT_ALPHA * 10000) != alpha
         assert int(Settings.ROOT_ALPHA * 10000) == int(SAMPLE * 10000)
         base.BaseApp().change_setting("ROOT_ALPHA", alpha/10000)
-
-    def test_BaseApp_change_setting_does_nothing_for_invalid_setting(self, mocker):
-        SAMPLE = 0.972
-        base.BaseApp().change_setting("ROOT_ALPHA1", SAMPLE)
-        assert Settings.ROOT_ALPHA1 is None
-
-    def test_BaseApp_change_setting_does_nothing_for_value_None(self, mocker):
-        old = Settings.MAIN_BG
-        base.BaseApp().change_setting("MAIN_BG", None)
-        assert Settings.MAIN_BG == old
-
-    def test_BaseApp_change_setting_does_nothing_for_invalid_value_type(self, mocker):
-        old = Settings.MAIN_BG
-        base.BaseApp().change_setting("MAIN_BG", 1)
-        assert Settings.MAIN_BG == old
-
-    def test_BaseApp_change_setting_does_nothing_for_core_setting(self, mocker):
-        base.BaseApp().change_setting("RESIZE", 187)
-        assert Settings.RESIZE == 10
 
     def test_BaseApp_change_setting_calls__save_setting(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseApp._save_setting")
