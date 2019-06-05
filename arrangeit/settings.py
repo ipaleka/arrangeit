@@ -12,13 +12,7 @@ DO NOT EDIT SETTINGS IN THIS FILE FOR USER SIDE CONFIGURATION - for such purpose
 user_settings.json file created and located in arrangeit user data directory.
 """
 
-MESSAGES = {
-    "default_saved": _("Finished: saving to default file..."),
-    "options_title": _("arrangeit options"),
-    "setting_changed": _(
-        "Setting is changed, please restart program in order for the change to take effect."
-    ),
-}
+MESSAGES = {"default_saved": _("Finished: saving to default file...")}
 
 SETTINGS = {
     "MIN_WIDTH": (int, 100),
@@ -169,27 +163,6 @@ class Settings(metaclass=SettingsMetaclass):
     BLANK_ICON = Image.open(
         os.path.join(os.path.dirname(__file__), "resources", "blank.png")
     )
-    COLORS = (
-        "white",
-        "light blue",
-        "blue",
-        "royal blue",
-        "cyan",
-        "khaki",
-        "slate gray",
-        "gray",
-        "orange",
-        "salmon",
-        "indian red",
-        "red",
-        "orchid",
-        "pink",
-        "green",
-        "olive drab",
-        "wheat",
-        "tan",
-        "yellow",
-    )
 
     @classmethod
     def is_setting(cls, name, value):
@@ -202,4 +175,3 @@ class Settings(metaclass=SettingsMetaclass):
         :returns: Boolean
         """
         return not (name not in SETTINGS or not isinstance(value, SETTINGS[name][0]))
-

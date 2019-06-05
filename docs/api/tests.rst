@@ -67,6 +67,15 @@
   :show-inheritance:
 
 
+:mod:`tests.test_options` -- Unit tests for options classes and functions
+-------------------------------------------------------------------------
+
+.. automodule:: tests.test_options
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.test_utils` -- Unit tests for helper functions
 ----------------------------------------------------------
 

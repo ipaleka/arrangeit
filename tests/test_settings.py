@@ -12,21 +12,21 @@ class TestSettingsModule(object):
     """Unit testing class for settings module and SettingsMetaclass"""
 
     ## TestSettingsModule.SETTINGS
-    def test_settings_module_initializes_CONSTANTS(self):
+    def test_settings_module_initializes_SETTINGS(self):
         assert hasattr(settings, "SETTINGS")
         assert isinstance(settings.SETTINGS, dict)
 
-    def test_settings_module_CONSTANTS_is_dictionary(self):
+    def test_settings_module_SETTINGS_is_dictionary(self):
         assert isinstance(settings.SETTINGS, dict)
 
-    def test_settings_module_CONSTANTS_has_valid_format_for_all(self):
+    def test_settings_module_SETTINGS_has_valid_format_for_all(self):
         for key, value in settings.SETTINGS.items():
             assert isinstance(key, str)
             assert key.strip("_").isupper()
             assert isinstance(value, (tuple,))
             assert len(value) == 2
 
-    def test_settings_module_CONSTANTS_for_value_type(self):
+    def test_settings_module_SETTINGS_for_value_type(self):
         for _, (typ, value) in settings.SETTINGS.items():
             assert value is not None
             assert isinstance(value, typ)
@@ -135,7 +135,6 @@ class TestSettingsModule(object):
             "WINDOW_MODEL_RECT_ELEMENTS",
             "ICON_WIDTH",
             "BLANK_ICON",
-            "COLORS",
         ],
     )
     def test_SettingsMetaclass___getattr___not_changing_core_constant(self, constant):
@@ -154,7 +153,7 @@ class TestSettingsModule(object):
         _ = Settings.MIN_WIDTH
         assert mocked.call_count == 0
 
-    def test_SettingsMetaclass___getattr___uses_CONSTANTS_for_no_user_setting(self):
+    def test_SettingsMetaclass___getattr___uses_SETTINGS_for_no_user_setting(self):
         Settings.user_settings = {"foo": "bar"}
         value = Settings.HIGHLIGHTED_COLOR
         assert value == settings.SETTINGS["HIGHLIGHTED_COLOR"][1]
@@ -204,12 +203,7 @@ class TestSettings(object):
         assert hasattr(Settings, "BLANK_ICON")
         assert isinstance(Settings.BLANK_ICON, Image.Image)
 
-    def test_Settings_initializes_solors(self):
-        assert hasattr(Settings, "COLORS")
-        assert isinstance(Settings.COLORS, tuple)
-        assert all(isinstance(val, str) for val in Settings.COLORS)
-
-    def test_Settings_availability_for_all_constants_in_CONSTANTS(self):
+    def test_Settings_availability_for_all_constants_in_SETTINGS(self):
         for name, _ in settings.SETTINGS.items():
             assert hasattr(Settings, name)
 

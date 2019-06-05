@@ -7,9 +7,8 @@ from itertools import islice, chain, product
 
 from PIL import ImageFilter, ImageTk
 
-MESSAGES = {
-    "platform_error": _("arrangeit can't run on your platform. :("),
-}
+MESSAGES = {"platform_error": _("arrangeit can't run on your platform. :(")}
+
 
 def platform_path():
     """Returns lowercased string holding platform name."""

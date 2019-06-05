@@ -40,6 +40,15 @@
   :show-inheritance:
 
 
+ (without ViewApplication)tions for options dialog
+ (without ViewApplication)------------------------
+ (without ViewApplication)
+.. automodule:: arrangeit.options
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`arrangeit.utils` -- Module holding various utility functions
 ------------------------------------------------------------------
 
