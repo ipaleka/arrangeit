@@ -87,12 +87,12 @@ class TestBaseController(object):
         assert mocked.call_count == 1
         mocked.assert_called_with(master=root.return_value, controller=controller)
 
-    def test_BaseController_setup_withdraws_root_tk_window(self, mocker):
-        root = mocked_setup_root(mocker)
+    def test_BaseController_setup_hides_root_tk_window(self, mocker):
+        view = mocked_setup_view(mocker)
         controller = base.BaseController(None)
-        root.return_value.withdraw.reset_mock()
+        view.reset_mock()
         controller.setup()
-        assert root.return_value.withdraw.call_count == 1
+        assert view.return_value.hide_root.call_count == 1
 
     ## BaseController.setup_root_window
     def test_BaseController_setup_root_window_calls_wm_attributes(self, mocker):
@@ -418,6 +418,16 @@ class TestBaseController(object):
         controller.change_size(x, y)
         assert view.return_value.master.geometry.call_count == 1
         view.return_value.master.geometry.assert_called_with(expected)
+
+    ## BaseController.change_setting
+
+    def test_BaseController_change_setting_calls_run_task(self, mocker):
+        mocked_setup(mocker)
+        controller = controller_mocked_app(mocker)
+        NAME, VALUE = "foo", 507
+        controller.change_setting(NAME, VALUE)
+        controller.app.run_task.assert_called_once()
+        controller.app.run_task.assert_called_with("change_setting", NAME, VALUE)
 
     ## BaseController.check_current_size
     @pytest.mark.parametrize(

@@ -249,14 +249,14 @@ class BaseController(object):
 
         Creates and place screenshot widget below view frame, used to hold window image.
         Sets view attribute to newly created Tkinter application.
-        Prevents root window to show by calling its `withdraw` method.
+        Temporary hides root window.
         Tkinter root window from now may be accessed by `[self].view.master` attribute.
         """
         root = get_tkinter_root()
         self.setup_root_window(root)
         self.screenshot_widget = get_screenshot_widget(root)
         self.view = ViewApplication(master=root, controller=self)
-        root.withdraw()
+        self.view.hide_root()
 
     def setup_root_window(self, root):
         """Sets provided root window appearance common for all platforms.
@@ -592,6 +592,16 @@ class BaseController(object):
             left = self.model.changed_x
 
         self.view.master.geometry("{}x{}+{}+{}".format(width, height, left, top))
+
+    def change_setting(self, name, value):
+        """Calls task for changing provided settings name to provided value.
+
+        :param name: setting name
+        :type name: str
+        :param value: value to change the setting to
+        :type name: str/int/float
+        """
+        return self.app.run_task("change_setting", name, value)
 
     def check_current_size(self, x, y):
         """Returns True if current size in resizing phase is greater than minimum size

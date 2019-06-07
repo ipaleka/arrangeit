@@ -166,7 +166,7 @@ class Settings(metaclass=SettingsMetaclass):
 
     @classmethod
     def is_setting(cls, name, value):
-        """Returns Boolean is provided name with value is valid setting.
+        """Returns True if provided name with value is valid setting.
 
         :param name: setting name
         :type name: str

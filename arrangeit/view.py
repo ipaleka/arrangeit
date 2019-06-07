@@ -208,13 +208,21 @@ class ViewApplication(tk.Frame):
             relwidth=Settings.TOOLBAR_RELWIDTH,
         )
 
+    def hide_root(self):
+        """Hides master/root window."""
+        self.master.withdraw()
+
+    def show_root(self):
+        """Shows up master/root window."""
+        self.master.update()
+        self.master.deiconify()
+
     def startup(self):
         """Shows master and then calculates and sets now visible parameters.
 
         Calls `focus_set` so frame can trigger keyboard events.
         """
-        self.master.update()
-        self.master.deiconify()
+        self.show_root()
         self.place(width=self.master.winfo_width(), height=self.master.winfo_height())
         self.title_label.config(
             wraplength=int(self.master.winfo_width() * Settings.TITLE_LABEL_RELWIDTH)
@@ -646,7 +654,7 @@ class Toolbar(tk.Frame):
                     Settings.TOOLBAR_BUTTON_FONT_INCREASE,
                 ),
             ),
-            text=_("OptionsDialog"),
+            text=_("Options"),
             activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.on_options_click,
         )
@@ -687,4 +695,4 @@ class Toolbar(tk.Frame):
         """Creates and shows options dialog and hides root window."""
         options = OptionsDialog(self.master)
         options.attributes("-topmost", "true")
-        self.master.master.withdraw()
+        self.master.hide_root()

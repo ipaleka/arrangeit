@@ -389,17 +389,36 @@ class TestViewApplication(object):
         assert mocked.call_count == 1
         mocked.assert_has_calls(calls, any_order=True)
 
-    ## ViewApplication.startup
-    @pytest.mark.parametrize("method", ["update", "deiconify"])
-    def test_ViewApplication_startup_calls_master_showing_up_method(
+    ## ViewApplication.hide_root
+    @pytest.mark.parametrize("method", ["withdraw",])
+    def test_ViewApplication_hide_root_calls_master_hiding_up_method(
         self, mocker, method
     ):
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        master = mocker.MagicMock()
+        ViewApplication(master, mocker.MagicMock()).hide_root()
+        assert getattr(master, method).call_count == 1
+
+    ## ViewApplication.show_root
+    @pytest.mark.parametrize("method", ["update", "deiconify"])
+    def test_ViewApplication_show_root_calls_master_showing_up_method(
+        self, mocker, method
+    ):
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        master = mocker.MagicMock()
+        ViewApplication(master, mocker.MagicMock()).show_root()
+        assert getattr(master, method).call_count == 1
+
+    ## ViewApplication.startup
+    def test_ViewApplication_startup_calls_show_root(self, mocker):
         mocker.patch("arrangeit.view.tk.StringVar")
         mocker.patch("arrangeit.view.nametofont")
         mocker.patch("arrangeit.view.increased_by_fraction")
-        master = mocker.MagicMock()
-        ViewApplication(master, mocker.MagicMock()).startup()
-        assert getattr(master, method).call_count == 1
+        mocked = mocker.patch("arrangeit.view.ViewApplication.show_root")
+        ViewApplication(mocker.MagicMock(), mocker.MagicMock()).startup()
+        mocked.assert_called_once()
 
     def test_ViewApplication_startup_calls_focus_set_on_view_frame(self, mocker):
         mocker.patch("arrangeit.view.tk.StringVar")

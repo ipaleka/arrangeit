@@ -5,7 +5,16 @@ import pytest
 
 import arrangeit
 from arrangeit import options
-from arrangeit.options import MESSAGES, OptionsMetaclass, Options, OptionsDialog, ScaleOption, CheckOption, ChoiceOption
+from arrangeit.options import (
+    MESSAGES,
+    OptionsMetaclass,
+    Options,
+    OptionsDialog,
+    ScaleOption,
+    CheckOption,
+    ChoiceOption,
+)
+from .mock_helpers import mocked_for_options, mocked_for_options_setup_widgets
 
 
 class TestOptionsModule(object):
@@ -80,42 +89,38 @@ class TestOptionsDialog(object):
 
     ## OptionsDialog.__init__
     def test_Options_init_calls_super_with_master_arg(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
+        mocked_for_options(mocker)
         master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Toplevel.__init__")
         OptionsDialog(master=master)
         mocked.assert_called_with(master)
 
     def test_Options_init_sets_master_attribute(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocked_for_options(mocker)
         master = mocker.MagicMock()
         assert OptionsDialog(master).master == master
 
     def test_Options_init_calls_setup_widgets(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocked_for_options(mocker)
         mocked = mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
         OptionsDialog(mocker.MagicMock())
         mocked.assert_called_once()
 
     def test_Options_init_calls_setup_bindings(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
+        mocked_for_options(mocker)
         mocked = mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
         OptionsDialog(mocker.MagicMock())
         mocked.assert_called_once()
 
+    def test_Options_init_sets_options_dialog_title(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.view.OptionsDialog.title")
+        OptionsDialog(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["options_title"])
+
     def test_Options_init_calls_geometry_on_root_position(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocked_for_options(mocker)
         mocked = mocker.patch("arrangeit.view.OptionsDialog.geometry")
         master = mocker.MagicMock()
         OptionsDialog(master)
@@ -128,11 +133,7 @@ class TestOptionsDialog(object):
 
     ## OptionsDialog.setup_widgets
     def test_Options_setup_widgets_sets_message_label(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        mocker.patch("arrangeit.view.OptionsDialog.destroy")
-        mocker.patch("arrangeit.view.tk.Button")
+        mocked_for_options_setup_widgets(mocker)
         mocked = mocker.patch("arrangeit.view.tk.Label")
         options = OptionsDialog(mocker.MagicMock())
         options.setup_widgets()
@@ -140,11 +141,7 @@ class TestOptionsDialog(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Options_setup_widgets_calls_label_pack(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        mocker.patch("arrangeit.view.OptionsDialog.destroy")
-        mocker.patch("arrangeit.view.tk.Button")
+        mocked_for_options_setup_widgets(mocker)
         mocked = mocker.patch("arrangeit.view.tk.Label")
         options = OptionsDialog(mocker.MagicMock())
         mocked.reset_mock()
@@ -152,11 +149,7 @@ class TestOptionsDialog(object):
         assert mocked.return_value.pack.call_count == 1
 
     def test_Options_setup_widgets_sets_quit_button(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        mocker.patch("arrangeit.view.OptionsDialog.destroy")
-        mocker.patch("arrangeit.view.tk.Label")
+        mocked_for_options_setup_widgets(mocker)
         mocked = mocker.patch("arrangeit.view.tk.Button")
         options = OptionsDialog(mocker.MagicMock())
         options.setup_widgets()
@@ -171,11 +164,7 @@ class TestOptionsDialog(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Options_setup_widgets_calls_button_pack(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        mocker.patch("arrangeit.view.OptionsDialog.destroy")
-        mocker.patch("arrangeit.view.tk.Label")
+        mocked_for_options_setup_widgets(mocker)
         mocked = mocker.patch("arrangeit.view.tk.Button")
         options = OptionsDialog(mocker.MagicMock())
         mocked.reset_mock()
@@ -185,9 +174,10 @@ class TestOptionsDialog(object):
     ## OptionsDialog.setup_bindings
     @pytest.mark.parametrize("event,callback", [("<Destroy>", "on_destroy_options")])
     def test_Options_setup_bindings_binds_callback(self, mocker, event, callback):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
         mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
+        mocker.patch("arrangeit.view.OptionsDialog.title")
+        mocker.patch("arrangeit.view.OptionsDialog.geometry")
         mocked = mocker.patch("arrangeit.view.OptionsDialog.bind")
         options = OptionsDialog(mocker.MagicMock())
         callback = getattr(options, callback)
@@ -197,32 +187,21 @@ class TestOptionsDialog(object):
 
     ## OptionsDialog.on_destroy_options
     def test_Options_on_destroy_options_shows_root(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        mocker.patch("arrangeit.view.OptionsDialog.destroy")
+        mocked_for_options(mocker)
         options = OptionsDialog(mocker.MagicMock())
         options.on_destroy_options(mocker.MagicMock())
-        options.master.master.update.assert_called_once()
-        options.master.master.deiconify.assert_called_once()
+        options.master.show_root.assert_called_once()
 
     def test_Options_on_destroy_options_destroys_options(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+        mocked_for_options(mocker)
         mocked = mocker.patch("arrangeit.view.OptionsDialog.destroy")
         options = OptionsDialog(mocker.MagicMock())
         options.on_destroy_options(mocker.MagicMock())
         mocked.assert_called_once()
 
     ## OptionsDialog.change_setting
-    def test_Options_change_setting_calls_run_task(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
+    def test_Options_change_setting_calls_controller_change_setting(self, mocker):
+        mocked_for_options(mocker)
         mocker.patch("arrangeit.view.tk.Label.config")
         master = mocker.MagicMock()
         options = OptionsDialog(master)
@@ -230,16 +209,12 @@ class TestOptionsDialog(object):
         VALUE = 2
         options.message = mocker.MagicMock()
         options.change_setting(name=NAME, value=VALUE)
-        master.controller.app.run_task.assert_called_once()
-        master.controller.app.run_task.assert_called_with("change_setting", NAME, VALUE)
+        master.controller.change_setting.assert_called_once()
+        master.controller.change_setting.assert_called_with(NAME, VALUE)
 
     def test_Options_change_setting_displays_message(self, mocker):
-        mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-        mocker.patch("arrangeit.view.OptionsDialog.geometry")
-        mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-        master = mocker.MagicMock()
-        options = OptionsDialog(master)
+        mocked_for_options(mocker)
+        options = OptionsDialog(mocker.MagicMock())
         options.message = mocker.MagicMock()
         options.change_setting(name="foo", value=1)
         options.message.config.assert_called_once()

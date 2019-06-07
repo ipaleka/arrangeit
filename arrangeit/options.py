@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.ttk as ttk
 from gettext import gettext as _
 
 
@@ -26,13 +27,14 @@ class Options(metaclass=OptionsMetaclass):
 
     COLORS = (
         "white",
+        "gray",
+        "slate gray",
+        "gray25",
+        "gray75",
         "light blue",
         "blue",
         "royal blue",
         "cyan",
-        "khaki",
-        "slate gray",
-        "gray",
         "orange",
         "salmon",
         "indian red",
@@ -42,6 +44,7 @@ class Options(metaclass=OptionsMetaclass):
         "green",
         "olive drab",
         "wheat",
+        "khaki",
         "tan",
         "yellow",
     )
@@ -49,6 +52,10 @@ class Options(metaclass=OptionsMetaclass):
 
 class OptionsDialog(tk.Toplevel):
     """Tkinter dialog window for manipulating of user configuration data.
+
+    from tkinter import *
+    from tkinter.ttk import *
+    (Button, Checkbutton, Entry, Frame, Label, LabelFrame, Menubutton, Radiobutton, Scale and Scrollbar) .
 
     :var OptionsDialog.master: master widget
     :type OptionsDialog.master: :class:`.tk.Tk`
@@ -65,7 +72,7 @@ class OptionsDialog(tk.Toplevel):
         self.master = master
         self.setup_widgets()
         self.setup_bindings()
-        # self.title(MESSAGES["options_title"])
+        self.title(MESSAGES["options_title"])
         self.geometry(
             "+{}+{}".format(self.master.master.winfo_x(), self.master.master.winfo_y())
         )
@@ -74,8 +81,32 @@ class OptionsDialog(tk.Toplevel):
         """Binds relevant events to related callback."""
         self.bind("<Destroy>", self.on_destroy_options)
 
+    def setup_appearance(self):
+        appearance = ttk.LabelFrame(self, text="Appearance")
+        appearance.pack()
+        # LabelFrame(root, text="This is a LabelFrame")
+        # ALPHA_ROOT_IS_ON setting
+        # ALPHA_ROOT setting (from 0.6 to 0.99)
+        # "SHIFT_CURSOR": (int, 8),
+        # "MIN_WIDTH": (int, 100),
+        # "MIN_HEIGHT": (int, 40),
+
     def setup_widgets(self):
         """Creates and places all the options' widgets."""
+
+        self.setup_appearance()
+        # grid
+        # LabelFrame(self.master, text="Appereance")
+
+        # SCREENSHOT_BLUR_PIXELS setting (from 0 to 5)
+        # SCREENSHOT_TO_GRAYSCALE setting
+
+        # SNAPPING_IS_ON setting
+        # SNAP_PIXELS setting (from 1 to 5)
+        # "SNAP_INCLUDE_SELF": (bool, False),
+
+        # bg colors (title, icon, workspaces, windowslist) setting
+
         self.message = tk.Label(self, text="", anchor="center")
         self.message.pack()
 
@@ -92,12 +123,18 @@ class OptionsDialog(tk.Toplevel):
 
     def on_destroy_options(self, event):
         """Brings back root window and destroys options dialog."""
-        self.master.master.update()
-        self.master.master.deiconify()
+        self.master.show_root()
         self.destroy()
 
     def change_setting(self, name="", value=None):
-        self.master.controller.app.run_task("change_setting", name, value)
+        """Calls sontroller's change setting method and updates message log.
+
+        :param name: setting name
+        :type name: str
+        :param value: value to change the setting to
+        :type name: str/int/float
+        """
+        self.master.controller.change_setting(name, value)
         self.message.config(text=MESSAGES["setting_changed"])
 
 

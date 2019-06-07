@@ -920,7 +920,7 @@ class TestToolbar(object):
                         Settings.TOOLBAR_BUTTON_FONT_INCREASE,
                     ),
                 ),
-                text=_("OptionsDialog"),
+                text=_("Options"),
                 activeforeground=Settings.HIGHLIGHTED_COLOR,
                 command=toolbar.on_options_click,
             )
@@ -995,9 +995,10 @@ class TestToolbar(object):
         mocked.return_value.attributes.assert_called_with("-topmost", "true")
 
     def test_Toolbar_on_options_click_hides_root(self, mocker):
+        mocker.patch("arrangeit.view.Toolbar.setup_widgets")
         mocker.patch("arrangeit.view.OptionsDialog")
         master = mocker.MagicMock()
         toolbar = Toolbar(master)
         toolbar.on_options_click()
-        master.master.withdraw.assert_called_once()
+        master.hide_root.assert_called_once()
 
