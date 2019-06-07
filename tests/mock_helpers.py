@@ -61,20 +61,20 @@ def controller_mocked_next(mocker):
     return controller
 
 def mocked_for_options(mocker):
-    mocker.patch("arrangeit.view.OptionsDialog.setup_widgets")
-    mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-    mocker.patch("arrangeit.view.OptionsDialog.geometry")
-    mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-    mocker.patch("arrangeit.view.OptionsDialog.title")
-    mocker.patch("arrangeit.view.OptionsDialog.destroy")
+    mocker.patch("arrangeit.options.OptionsDialog.setup_widgets")
+    mocker.patch("arrangeit.options.OptionsDialog.setup_bindings")
+    mocker.patch("arrangeit.options.OptionsDialog.geometry")
+    mocker.patch("arrangeit.options.tk.Toplevel.__init__")
+    mocker.patch("arrangeit.options.OptionsDialog.title")
+    mocker.patch("arrangeit.options.OptionsDialog.destroy")
 
 def mocked_for_options_setup_widgets(mocker):
-    mocker.patch("arrangeit.view.OptionsDialog.setup_appearance")
-    mocker.patch("arrangeit.view.OptionsDialog.setup_bindings")
-    mocker.patch("arrangeit.view.OptionsDialog.geometry")
-    mocker.patch("arrangeit.view.tk.Toplevel.__init__")
-    mocker.patch("arrangeit.view.OptionsDialog.title")
-    mocker.patch("arrangeit.view.OptionsDialog.destroy")
-    mocker.patch("arrangeit.view.tk.Label")
-    mocker.patch("arrangeit.view.tk.Button")
+    mocker.patch("arrangeit.options.OptionsDialog.setup_appearance")
+    mocker.patch("arrangeit.options.OptionsDialog.setup_bindings")
+    mocker.patch("arrangeit.options.OptionsDialog.geometry")
+    mocker.patch("arrangeit.options.tk.Toplevel.__init__")
+    mocker.patch("arrangeit.options.OptionsDialog.title")
+    mocker.patch("arrangeit.options.OptionsDialog.destroy")
+    mocker.patch("arrangeit.options.tk.Label")
+    mocker.patch("arrangeit.options.tk.Button")
 

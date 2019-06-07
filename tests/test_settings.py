@@ -211,19 +211,41 @@ class TestSettings(object):
     def test_Settings_is_setting_returns_True_for_valid_setting(self, mocker):
         returned = Settings.is_setting("ROOT_ALPHA", 0.75)
         assert returned is True
-    
+
     def test_Settings_is_setting_returns_False_for_invalid_setting(self, mocker):
         returned = Settings.is_setting("ROOT_ALPHA1", 0.75)
         assert returned is False
 
-    def test_Settings_is_setting_does_nothing_for_value_None(self, mocker):
+    def test_Settings_is_setting_returns_False_for_value_None(self, mocker):
         returned = Settings.is_setting("MAIN_BG", None)
         assert returned is False
 
-    def test_Settings_is_setting_does_nothing_for_invalid_value_type(self, mocker):
+    def test_Settings_is_setting_returns_False_for_invalid_value_type(self, mocker):
         returned = Settings.is_setting("MAIN_BG", 1)
         assert returned is False
 
-    def test_Settings_is_setting_does_nothing_for_core_setting(self, mocker):
+    def test_Settings_is_setting_returns_False_for_core_setting(self, mocker):
         returned = Settings.is_setting("RESIZE", 187)
         assert returned is False
+
+    ## Settings.setting_type
+    def test_Settings_setting_type_returns_type_for_valid(self, mocker):
+        returned = Settings.setting_type("ROOT_ALPHA")
+        assert returned is float
+
+    @pytest.mark.parametrize(
+        "name,typ",
+        [
+            ("TRANSPARENCY_IS_ON", bool),
+            ("SNAP_PIXELS", int),
+            ("DEFAULT_CURSOR", str),
+            ("ROOT_ALPHA", float),
+        ],
+    )
+    def test_Settings_setting_type_returns_type_for_valid_setting_name(self, mocker,name,typ):
+        returned = Settings.setting_type(name)
+        assert returned is typ
+
+    def test_Settings_setting_type_returns_None_for_invalid(self, mocker):
+        returned = Settings.setting_type("ROOT_ALPHA1")
+        assert returned is None

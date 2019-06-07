@@ -105,6 +105,16 @@ class TestBaseController(object):
         ]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
 
+    def test_BaseController_setup_root_window_not_calling_alpha(self, mocker):
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).TRANSPARENCY_IS_ON = mocker.PropertyMock(return_value=False)
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.get_tkinter_root")
+        controller = base.BaseController(None)
+        mocked.reset_mock()
+        controller.setup_root_window(mocked.return_value)
+        assert mocked.return_value.wm_attributes.call_count == 1
+
     def test_BaseController_setup_root_window_calls_config_background(self, mocker):
         root = mocker.MagicMock()
         base.BaseController(None).setup_root_window(root)

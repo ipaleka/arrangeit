@@ -264,7 +264,8 @@ class BaseController(object):
         :param root: root tkinter window
         :type root: :class:`tkinter.Tk` instance
         """
-        root.wm_attributes("-alpha", Settings.ROOT_ALPHA)
+        if Settings.TRANSPARENCY_IS_ON:
+            root.wm_attributes("-alpha", Settings.ROOT_ALPHA)
         root.wm_attributes("-topmost", True)
         root.config(background=Settings.MAIN_BG)
 

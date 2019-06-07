@@ -24,6 +24,7 @@ SETTINGS = {
     "SCREENSHOT_SHIFT_PIXELS": (int, -1),
     "SCREENSHOT_BLUR_PIXELS": (int, 2),
     "SCREENSHOT_TO_GRAYSCALE": (bool, True),
+    "TRANSPARENCY_IS_ON": (bool, True),
     "ROOT_ALPHA": (float, 0.9),
     "DEFAULT_CURSOR": (str, "arrow"),
     "SELECT_CURSOR": (str, "hand2"),
@@ -43,15 +44,15 @@ SETTINGS = {
     "ICON_LABEL_ANCHOR": (str, "n"),
     "ICON_LABEL_BG": (str, "white"),
     "ICON_LABEL_PADX": (int, 2),
-    "ICON_LABEL_PADY": (int, 2),
+    "ICON_LABEL_PADY": (int, 0),
     "NAME_LABEL_RELHEIGHT": (float, 0.25),
     "NAME_LABEL_RELWIDTH": (float, 0.25),
     "NAME_LABEL_ANCHOR": (str, "s"),
     "NAME_LABEL_BG": (str, "white"),
     "NAME_LABEL_FG": (str, "black"),
-    "NAME_LABEL_HEIGHT": (int, 3),
+    "NAME_LABEL_HEIGHT": (int, 2),
     "NAME_LABEL_PADX": (int, 2),
-    "NAME_LABEL_PADY": (int, 10),
+    "NAME_LABEL_PADY": (int, 0),
     "WORKSPACES_FRAME_RELHEIGHT": (float, 0.60),
     "WORKSPACES_FRAME_RELWIDTH": (float, 0.25),
     "WORKSPACE_NUMBER_RELHEIGHT": (float, 0.75),
@@ -175,3 +176,13 @@ class Settings(metaclass=SettingsMetaclass):
         :returns: Boolean
         """
         return not (name not in SETTINGS or not isinstance(value, SETTINGS[name][0]))
+
+    @classmethod
+    def setting_type(cls, name):
+        """Returns type of setting with provided name.
+
+        :param name: setting name
+        :type name: str
+        :returns: type
+        """
+        return SETTINGS.get(name, (None, None))[0]

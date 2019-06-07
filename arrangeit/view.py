@@ -161,7 +161,7 @@ class ViewApplication(tk.Frame):
         )
 
     def setup_name(self):
-        """Sets and places name label widget."""
+        """Sets and places application name label widget."""
         self.name = tk.StringVar()
         self.name_label = tk.Label(
             self,
