@@ -71,16 +71,37 @@ class BaseApp(object):
 
         and saves it to user settings file.
 
+        If name startswith _ it means we want to change theme part,
+        so it calls and returns `change_settings_color_group`.
+
         :param name: setting name to save
         :type name: str
         :param value: setting value to save
-        :type name: int/float/str
+        :type value: int/float/str
         """
+        if name.startswith("_"):
+            return self.change_settings_color_group(name, value)
+
         if not Settings.is_setting(name, value):
             return True
 
         setattr(Settings, name, value)
-        return self._save_setting(name, value)
+        return self._save_setting([name, ], value)
+
+    def change_settings_color_group(self, group="", value=None):
+        """Changes values for all settings ending with provided `group`
+
+        and saves them to user settings file.
+
+        :param group: settings group to save
+        :type group: str
+        :param value: setting value to save
+        :type value: int/float/str
+        """
+        group = Settings.color_group(group)
+        for name in group:
+            setattr(Settings, name, value)
+        return self._save_setting(group, value)
 
     def move(self, *args):
         """Method must be overridden."""
@@ -118,11 +139,12 @@ class BaseApp(object):
             json.dump(self.collector.collection.export(), default)
 
     ## COMMANDS
-    def _save_setting(self, name, value):
-        """Saves provided user setting value into user settings file.
+    def _save_setting(self, names, value):
+        """Saves user settings with provided names with provided value
+        into user settings file.
 
-        :param name: setting name to save
-        :type name: str
+        :param names: collection of settings names
+        :type names: list
         :param value: setting value to save
         :type name: int/float/str
         """
@@ -139,7 +161,7 @@ class BaseApp(object):
                 except json.JSONDecodeError:
                     pass
 
-        data[name] = value
+        data.update(**{name: value for name in names})
 
         with open(settings_file, "w") as json_settings:
             json.dump(data, json_settings)

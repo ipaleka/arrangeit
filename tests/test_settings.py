@@ -242,10 +242,37 @@ class TestSettings(object):
             ("ROOT_ALPHA", float),
         ],
     )
-    def test_Settings_setting_type_returns_type_for_valid_setting_name(self, mocker,name,typ):
+    def test_Settings_setting_type_returns_type_for_valid_setting_name(
+        self, mocker, name, typ
+    ):
         returned = Settings.setting_type(name)
         assert returned is typ
 
     def test_Settings_setting_type_returns_None_for_invalid(self, mocker):
         returned = Settings.setting_type("ROOT_ALPHA1")
         assert returned is None
+
+    ## Settings.color_group
+    def test_Settings_color_group_returns_list(self, mocker):
+        returned = Settings.color_group("_BG")
+        assert isinstance(returned, list)
+
+    def test_Settings_color_group_returns_empty_list_for_no_group(self, mocker):
+        returned = Settings.color_group("_BACKGRND")
+        assert returned == []
+
+    @pytest.mark.parametrize(
+        "group,expected",
+        [
+            (
+                "_CURSOR",
+                ["SHIFT_CURSOR", "DEFAULT_CURSOR", "SELECT_CURSOR", "CORNER_CURSOR"],
+            ),
+            ("_SELF", ["SNAP_INCLUDE_SELF"]),
+        ],
+    )
+    def test_Settings_color_group_returns_type_for_valid_setting_name(
+        self, mocker, group, expected
+    ):
+        returned = Settings.color_group(group)
+        assert returned == expected

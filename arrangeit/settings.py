@@ -45,7 +45,7 @@ SETTINGS = {
     "ICON_LABEL_ANCHOR": (str, "n"),
     "ICON_LABEL_BG": (str, "white"),
     "ICON_LABEL_PADX": (int, 2),
-    "ICON_LABEL_PADY": (int, 0),
+    "ICON_LABEL_PADY": (int, 1),
     "NAME_LABEL_RELHEIGHT": (float, 0.25),
     "NAME_LABEL_RELWIDTH": (float, 0.25),
     "NAME_LABEL_ANCHOR": (str, "s"),
@@ -189,3 +189,13 @@ class Settings(metaclass=SettingsMetaclass):
         :returns: type
         """
         return SETTINGS.get(name, (None, None))[0]
+
+    @classmethod
+    def color_group(cls, group):
+        """Returns all the Settings members which names end with provided name.
+
+        :param group: setting name
+        :type group: str
+        :returns: list
+        """
+        return [key for key in SETTINGS.keys() if key.endswith(group)]

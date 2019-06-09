@@ -1,3 +1,4 @@
+import copy
 from json import JSONDecodeError
 
 import pytest
@@ -141,6 +142,28 @@ class TestBaseApp(object):
             base.BaseApp().activate_root()
 
     ## BaseApp.change_setting
+    def test_BaseApp_change_setting_returns_change_settings_color_group_BG(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.base.BaseApp.change_settings_color_group")
+        mocked_is_setting = mocker.patch("arrangeit.base.Settings.is_setting")
+        returned = base.BaseApp().change_setting("_BG", "white")
+        mocked.assert_called_once()
+        mocked.assert_called_with("_BG", "white")
+        assert returned == mocked.return_value
+        mocked_is_setting.assert_not_called()
+
+    def test_BaseApp_change_setting_returns_change_settings_color_group_FG(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.base.BaseApp.change_settings_color_group")
+        mocked_is_setting = mocker.patch("arrangeit.base.Settings.is_setting")
+        returned = base.BaseApp().change_setting("_FG", "black")
+        mocked.assert_called_once()
+        mocked.assert_called_with("_FG", "black")
+        assert returned == mocked.return_value
+        mocked_is_setting.assert_not_called()
+
     def test_BaseApp_change_setting_calls_is_setting(self, mocker):
         mocked = mocker.patch("arrangeit.base.Settings.is_setting")
         returned = base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
@@ -158,19 +181,52 @@ class TestBaseApp(object):
     def test_BaseApp_change_setting_changes_valid_setting(self, mocker):
         import time
         from random import seed, random
+
         alpha = int(Settings.ROOT_ALPHA * 10000)
         seed(int(time.time()))
         SAMPLE = random()
         base.BaseApp().change_setting("ROOT_ALPHA", SAMPLE)
         assert int(Settings.ROOT_ALPHA * 10000) != alpha
         assert int(Settings.ROOT_ALPHA * 10000) == int(SAMPLE * 10000)
-        base.BaseApp().change_setting("ROOT_ALPHA", alpha/10000)
+        base.BaseApp().change_setting("ROOT_ALPHA", alpha / 10000)
 
     def test_BaseApp_change_setting_calls__save_setting(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseApp._save_setting")
         base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
         mocked.assert_called_once()
-        mocked.assert_called_with("ROOT_ALPHA", 0.95)
+        mocked.assert_called_with(["ROOT_ALPHA"], 0.95)
+
+    ## BaseApp.change_settings_color_group
+    def test_BaseApp_change_settings_color_group_calls_Settings_color_group(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp._save_setting")
+        mocker.patch("arrangeit.base.setattr")
+        mocked = mocker.patch("arrangeit.base.Settings.color_group")
+        GROUP = "_BG"
+        base.BaseApp().change_settings_color_group(GROUP, "white")
+        mocked.assert_called_once()
+        mocked.assert_called_with(GROUP)
+
+    def test_BaseApp_change_settings_color_group_calls_Settings_setattr(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp._save_setting")
+        mocked = mocker.patch("arrangeit.base.setattr")
+        GROUP, VALUE = "_BG", "white"
+        base.BaseApp().change_settings_color_group(GROUP, VALUE)
+        for name in Settings.color_group(GROUP):
+            calls = [mocker.call(Settings, name, VALUE)]
+            mocked.assert_has_calls(calls, any_order=True)
+
+    def test_BaseApp_change_settings_color_group_calls__save_setting(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.base.BaseApp._save_setting")
+        mocker.patch("arrangeit.base.setattr")
+        GROUP, VALUE = "_BG", "white"
+        base.BaseApp().change_settings_color_group(GROUP, VALUE)
+        calls = [mocker.call(Settings.color_group(GROUP), VALUE)]
+        mocked.assert_has_calls(calls, any_order=True)
 
     ## BaseApp.move
     def test_BaseApp_move_raises_NotImplementedError(self, mocker):
@@ -251,7 +307,7 @@ class TestBaseApp(object):
         mocker.patch("arrangeit.base.open")
         mocker.patch("arrangeit.base.json")
         mocked = mocker.patch("arrangeit.base.platform_user_data_path")
-        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        base.BaseApp()._save_setting(["ROOT_ALPHA"], 0.9)
         mocked.assert_called_once()
 
     def test_BaseApp__save_setting_checks_if_directory_exists(self, mocker):
@@ -263,7 +319,7 @@ class TestBaseApp(object):
         SAMPLE = "foo"
         mocker.patch("arrangeit.base.platform_user_data_path", return_value=SAMPLE)
         mocked = mocker.patch("arrangeit.base.os.path.exists")
-        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        base.BaseApp()._save_setting(["ROOT_ALPHA"], 0.9)
         calls = [mocker.call(SAMPLE)]
         mocked.assert_has_calls(calls, any_order=True)
 
@@ -274,7 +330,7 @@ class TestBaseApp(object):
         mocker.patch("arrangeit.base.os")
         mocker.patch("arrangeit.base.os.path.exists", return_value=False)
         mocked = mocker.patch("arrangeit.base.os.mkdir")
-        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        base.BaseApp()._save_setting(["ROOT_ALPHA"], 0.9)
         mocked.assert_called_once()
         mocked.assert_called_once_with(path.return_value)
 
@@ -286,17 +342,17 @@ class TestBaseApp(object):
         SAMPLE = "foobar"
         mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
         mocked = mocker.patch("arrangeit.base.os.path.exists")
-        base.BaseApp()._save_setting("ROOT_ALPHA", 0.9)
+        base.BaseApp()._save_setting(["ROOT_ALPHA"], 0.9)
         calls = [mocker.call(SAMPLE)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_BaseApp__save_setting_calls_json_load(self, mocker):
+    def test_BaseApp__save_setting_calls_json_load_once(self, mocker):
         mocker.patch("arrangeit.base.os.path.join", return_value="foo")
         mocker.patch("arrangeit.base.os.path.exists", return_value=True)
         mocker.patch("arrangeit.base.open")
         mocker.patch("arrangeit.base.json.load")
         mocked = mocker.patch("arrangeit.base.json.dump")
-        base.BaseApp()._save_setting("ROOT_ALPHA", 0.97)
+        base.BaseApp()._save_setting(["MAIN_BG", "ICON_LABEL_BG"], "white")
         mocked.assert_called_once()
 
     def test_BaseApp__save_setting_catches_exception_and_continues(self, mocker):
@@ -305,20 +361,48 @@ class TestBaseApp(object):
         mocker.patch("arrangeit.base.os.path.exists", return_value=True)
         mocker.patch("arrangeit.base.open")
         mocker.patch("arrangeit.base.json.load", side_effect=JSONDecodeError("", "", 0))
-        returned = base.BaseApp()._save_setting("ROOT_ALPHA", 0.97)
+        returned = base.BaseApp()._save_setting(["ROOT_ALPHA"], 0.97)
         assert returned is False
 
     def test_BaseApp__save_setting_writes_to_settings_file(self, mocker):
         SAMPLE = "barfoo"
-        mocker.patch("arrangeit.base.json.load")
+        mocker.patch("arrangeit.base.json.load", return_value={})
         mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
         mocker.patch("arrangeit.base.os.path.exists", return_value=True)
-        mocked = mocker.patch("arrangeit.base.open")
-        mocked_dump = mocker.patch("arrangeit.base.json.dump")
-        base.BaseApp()._save_setting("ROOT_ALPHA", 0.97)
-        calls = [mocker.call(SAMPLE, "w")]
+        mocked_open = mocker.patch("arrangeit.base.open")
+        mocked = mocker.patch("arrangeit.base.json.dump")
+        VALUES = {"ROOT_ALPHA": 0.97}
+        base.BaseApp()._save_setting(["ROOT_ALPHA"], 0.97)
+        calls_open = [mocker.call(SAMPLE, "w")]
+        mocked_open.assert_has_calls(calls_open, any_order=True)
+        calls = [mocker.call(VALUES, mocked_open.return_value.__enter__.return_value)]
         mocked.assert_has_calls(calls, any_order=True)
-        mocked_dump.assert_called_once()
+
+    def test_BaseApp__save_setting_updates_settings_file(self, mocker):
+        SAMPLE = "barfoo"
+        VALUES = {"MAIN_FG": "white", "MAIN_BG": "black"}
+        mocker.patch("arrangeit.base.json.load", return_value=copy.deepcopy(VALUES))
+        mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
+        mocker.patch("arrangeit.base.os.path.exists", return_value=True)
+        mocked_open = mocker.patch("arrangeit.base.open")
+        mocked = mocker.patch("arrangeit.base.json.dump")
+        base.BaseApp()._save_setting(["ROOT_ALPHA"], 0.97)
+        VALUES.update(ROOT_ALPHA=0.97)
+        calls = [mocker.call(VALUES, mocked_open.return_value.__enter__.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_BaseApp__save_setting_overwrites_settings_file_values(self, mocker):
+        SAMPLE = "barfoo"
+        VALUES = {"MAIN_FG": "white", "MAIN_BG": "black"}
+        mocker.patch("arrangeit.base.json.load", return_value=copy.deepcopy(VALUES))
+        mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
+        mocker.patch("arrangeit.base.os.path.exists", return_value=True)
+        mocked_open = mocker.patch("arrangeit.base.open")
+        mocked = mocker.patch("arrangeit.base.json.dump")
+        base.BaseApp()._save_setting(["MAIN_FG", "MAIN_BG"], "red")
+        VALUES = {"MAIN_FG": "red", "MAIN_BG": "red"}
+        calls = [mocker.call(VALUES, mocked_open.return_value.__enter__.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
 
     ## BaseApp._initialize_snapping_sources
     def test_BaseApp__initialize_snapping_sources_calls_collector_get_monitors_rects(
