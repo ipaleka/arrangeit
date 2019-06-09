@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from gettext import gettext as _
+from importlib import import_module
 
 import pytest
 
@@ -9,8 +10,6 @@ from arrangeit import options
 from arrangeit.options import (
     MESSAGES,
     WIDGETS,
-    OptionsMetaclass,
-    Options,
     OptionsDialog,
     ScaleOption,
     FloatScaleOption,
@@ -24,60 +23,45 @@ from .mock_helpers import mocked_for_options, mocked_for_options_setup_widgets
 class TestOptionsModule(object):
     """Unit testing class for options module and OptionsMetaclass"""
 
-    ## TestOptionsModule.OPTIONS
-    def test_options_module_initializes_OPTIONS(self):
-        assert hasattr(options, "OPTIONS")
-        assert isinstance(options.OPTIONS, dict)
+    ## TestOptionsModule.MESSAGES
+    def test_options_module_initializes_MESSAGES(self):
+        assert hasattr(options, "MESSAGES")
+        assert isinstance(options.MESSAGES, dict)
 
-    def test_options_module_OPTIONS_is_dictionary(self):
-        assert isinstance(options.OPTIONS, dict)
+    def test_options_module_MESSAGES_is_dictionary(self):
+        assert isinstance(options.MESSAGES, dict)
 
-    def test_options_module_OPTIONS_has_valid_format_for_all(self):
-        for key, value in options.OPTIONS.items():
+    ## TestOptionsModule.WIDGETS
+    def test_options_module_initializes_WIDGETS(self):
+        assert hasattr(options, "WIDGETS")
+        assert isinstance(options.WIDGETS, dict)
+
+    def test_options_module_WIDGETS_is_dictionary(self):
+        assert isinstance(options.WIDGETS, dict)
+
+    def test_options_module_WIDGETS_has_valid_format_for_all(self):
+        for key, values in options.WIDGETS.items():
             assert isinstance(key, str)
-            assert key.strip("_").isupper()
-            assert isinstance(value, (tuple,))
-            assert len(value) == 2
+            for element in values:
+                assert isinstance(element, (tuple,))
+                assert len(element) == 2
+                assert isinstance(element[0], str)
+                assert isinstance(element[1], (dict,))
+                assert element[0].strip("_").isupper()
 
-    def test_options_module_OPTIONS_for_value_type(self):
-        for _a, (typ, value) in options.OPTIONS.items():
-            assert value is not None
-            assert isinstance(value, typ)
+    ## TestOptionsModule.CLASSES
+    def test_options_module_WIDGETS_TYPES(self):
+        module = import_module("arrangeit.options")
+        for typ, value in options.CLASSES.items():
+            assert isinstance(typ, type)
+            klass = "{}Option".format(value)
+            assert hasattr(options, klass)
+            assert isinstance(getattr(module, klass), type)
 
-    ## OptionsMetaclass
-    def test_OptionsMetaclass_is_metaclass(self):
-        assert issubclass(OptionsMetaclass, type)
-
-    ## OptionsMetaclass.__getattr__
-    def test_OptionsMetaclass_defines___getattr__(self):
-        assert hasattr(OptionsMetaclass, "__getattr__")
-        assert callable(OptionsMetaclass.__getattr__)
-
-    def test_OptionsMetaclass___getattr___returns_None_for_invalid_name(self):
-        Options.user_settings = {"foo": "bar"}
-        value = Options.HIGHLIGHTED11_COLOR
-        assert value is None
-
-
-class TestOptions(object):
-    """Unit testing class for :class:`Options`."""
-
-    ## Options
-    def test_Options_metaclass_is_OptionsMetaclass(self):
-        assert Options.__class__ == arrangeit.options.OptionsMetaclass
-
-    def test_Options_initializes_highlighted_color(self):
-        assert hasattr(Options, "HIGHLIGHTED_COLOR")
-        assert isinstance(Options.HIGHLIGHTED_COLOR[1], str)
-
-    def test_Options_initializes_colors(self):
-        assert hasattr(Options, "COLORS")
-        assert isinstance(Options.COLORS, tuple)
-        assert all(isinstance(val, str) for val in Options.COLORS)
-
-    def test_Options_availability_for_all_constants_in_OPTIONS(self):
-        for name, _a in options.OPTIONS.items():
-            assert hasattr(Options, name)
+    ## TestOptionsModule.COLORS
+    def test_options_module_COLORS(self):
+        for value in options.COLORS:
+            assert isinstance(value, str)
 
 
 class TestOptionsDialog(object):
@@ -135,96 +119,40 @@ class TestOptionsDialog(object):
             )
         )
 
-    ## OptionsDialog.setup_bindings
-    @pytest.mark.parametrize("event,callback", [("<Destroy>", "on_destroy_options")])
-    def test_OptionsDialog_setup_bindings_binds_callback(self, mocker, event, callback):
-        mocker.patch("arrangeit.options.tk.Toplevel.__init__")
-        mocker.patch("arrangeit.options.OptionsDialog.setup_widgets")
-        mocker.patch("arrangeit.options.OptionsDialog.title")
-        mocker.patch("arrangeit.options.OptionsDialog.geometry")
-        mocked = mocker.patch("arrangeit.options.OptionsDialog.bind")
-        options = OptionsDialog(mocker.MagicMock())
-        callback = getattr(options, callback)
-        options.setup_bindings()
-        calls = [mocker.call(event, callback)]
-        mocked.assert_has_calls(calls, any_order=True)
-
-    ## OptionsDialog.setup_widgets
-    def test_OptionsDialog_setup_widgets_sets_message_var(self, mocker):
-        mocked_for_options_setup_widgets(mocker)
-        mocked = mocker.patch("arrangeit.options.tk.StringVar")
-        mocker.patch("arrangeit.options.tk.Label")
-        options = OptionsDialog(mocker.MagicMock())
-        options.message = None
-        options.setup_widgets()
-        assert options.message is not None
-        assert options.message == mocked.return_value
-
-    def test_OptionsDialog_setup_widgets_calls_setup_appearance(self, mocker):
-        mocked_for_options_setup_widgets(mocker)
-        mocked = mocker.patch("arrangeit.options.OptionsDialog.setup_appearance")
-        options = OptionsDialog(mocker.MagicMock())
-        mocked.reset_mock()
-        options.setup_widgets()
+    ## OptionsDialog.create_frame
+    def test_OptionsDialog_create_frame_instantiates_ttk_Frame(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.ttk.Frame")
+        dialog = OptionsDialog(mocker.MagicMock())
+        dialog.create_frame(None)
         mocked.assert_called_once()
+        mocked.assert_called_with(None)
 
-    def test_OptionsDialog_setup_widgets_sets_label_for_message(self, mocker):
-        mocked_for_options_setup_widgets(mocker)
-        mocker.patch("arrangeit.options.tk.StringVar")
-        mocked = mocker.patch("arrangeit.options.tk.Label")
-        options = OptionsDialog(mocker.MagicMock())
-        options.setup_widgets()
-        calls = [mocker.call(options, textvariable=options.message, anchor="center")]
-        mocked.assert_has_calls(calls, any_order=True)
+    def test_OptionsDialog_create_frame_returns_frame(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.ttk.Frame")
+        dialog = OptionsDialog(mocker.MagicMock())
+        returned = dialog.create_frame(None)
+        assert returned == mocked.return_value
 
-    def test_OptionsDialog_setup_widgets_calls_label_pack(self, mocker):
-        mocked_for_options_setup_widgets(mocker)
-        mocked = mocker.patch("arrangeit.options.tk.Label")
-        options = OptionsDialog(mocker.MagicMock())
-        mocked.reset_mock()
-        options.setup_widgets()
-        assert mocked.return_value.pack.call_count == 1
+    ## OptionsDialog.create_separator
+    def test_OptionsDialog_create_separator_instantiates_ttk_Separator(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.ttk.Separator")
+        dialog = OptionsDialog(mocker.MagicMock())
+        dialog.create_separator(None)
+        mocked.assert_called_once()
+        mocked.assert_called_with(None, orient=tk.HORIZONTAL)
 
-    def test_OptionsDialog_setup_widgets_sets_quit_button(self, mocker):
-        mocked_for_options_setup_widgets(mocker)
-        mocked = mocker.patch("arrangeit.options.tk.Button")
-        options = OptionsDialog(mocker.MagicMock())
-        options.setup_widgets()
-        calls = [
-            mocker.call(
-                options,
-                text=_("Continue"),
-                activeforeground=Options.HIGHLIGHTED_COLOR,
-                command=options.destroy,
-            )
-        ]
-        mocked.assert_has_calls(calls, any_order=True)
-
-    def test_OptionsDialog_setup_widgets_calls_button_pack(self, mocker):
-        mocked_for_options_setup_widgets(mocker)
-        mocked = mocker.patch("arrangeit.options.tk.Button")
-        options = OptionsDialog(mocker.MagicMock())
-        mocked.reset_mock()
-        options.setup_widgets()
-        assert mocked.return_value.pack.call_count == 1
-
-    ## OptionsDialog.widget_class_from_name
-    @pytest.mark.parametrize(
-        "name,typ",
-        [
-            ("ROOT_ALPHA", "FloatScale"),
-            ("TRANSPARENCY_IS_ON", "Check"),
-            ("SNAP_PIXELS", "Scale"),
-            ("MAIN_BG", "Choice"),
-        ],
-    )
-    def test_OptionsDialog_widget_class_from_name_returns_related_class(
-        self, mocker, name, typ
+    def test_OptionsDialog_create_separator_instantiates_vertical_ttk_Separator(
+        self, mocker
     ):
         mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.ttk.Separator")
         dialog = OptionsDialog(mocker.MagicMock())
-        returned = dialog.widget_class_from_name(name)
-        assert returned == getattr(options, "{}Option".format(typ))
+        dialog.create_separator(None, vertical=True)
+        mocked.assert_called_once()
+        mocked.assert_called_with(None, orient=tk.VERTICAL)
 
     ## OptionsDialog.create_widget
     def test_OptionsDialog_create_widget_calls_widget_class_from_name(self, mocker):
@@ -305,14 +233,6 @@ class TestOptionsDialog(object):
         ]
         mocked.return_value.assert_has_calls(calls, any_order=True)
 
-    def test_OptionsDialog_create_widget_calls_widget_pack(self, mocker):
-        mocked_for_options(mocker)
-        mocked = mocker.patch("arrangeit.options.ScaleOption.pack")
-        dialog = OptionsDialog(mocker.MagicMock())
-        dialog.create_widget(None, "ROOT_ALPHA")
-        mocked.assert_called_once()
-        mocked.assert_called_with(fill=tk.X, side=tk.TOP)
-
     ## OptionsDialog.setup_appearance
     def test_OptionsDialog_setup_appearance_inits_LabelFrame(self, mocker):
         mocked_for_options(mocker)
@@ -321,14 +241,6 @@ class TestOptionsDialog(object):
         options.setup_appearance()
         mocked.assert_called_once()
         mocked.assert_called_with(options, text=MESSAGES["appearance"])
-
-    def test_OptionsDialog_setup_appearance_calls_LabelFrame_pack(self, mocker):
-        mocked_for_options(mocker)
-        mocked = mocker.patch("arrangeit.options.ttk.LabelFrame")
-        options = OptionsDialog(mocker.MagicMock())
-        options.setup_appearance()
-        mocked.return_value.pack.assert_called_once()
-        mocked.return_value.pack.assert_called_with(fill=tk.BOTH, expand=True)
 
     def test_OptionsDialog_setup_appearance_calls_create_widget(self, mocker):
         mocked_for_options(mocker)
@@ -339,29 +251,179 @@ class TestOptionsDialog(object):
         calls = len(WIDGETS["appearance"])
         assert mocked.call_count == calls
 
-    def test_OptionsDialog_setup_appearance_calls_frame_placeholder(self, mocker):
+    def test_OptionsDialog_setup_appearance_calls_widget_pack(self, mocker):
+        mocked_for_options(mocker)
+        mocker.patch("arrangeit.options.ttk.LabelFrame")
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.create_widget")
+        dialog = OptionsDialog(mocker.MagicMock())
+        dialog.setup_appearance()
+        mocked.return_value.pack.assert_called_with(fill=tk.X, side=tk.TOP)
+
+    def test_OptionsDialog_setup_appearance_calls_create_frame(self, mocker):
         mocked_for_options(mocker)
         mocker.patch("arrangeit.options.ttk.LabelFrame")
         mocker.patch("arrangeit.options.OptionsDialog.create_widget")
-        mocked = mocker.patch("arrangeit.options.OptionsDialog.frame_placeholder")
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.create_frame")
         options = OptionsDialog(mocker.MagicMock())
         options.setup_appearance()
         calls = len(WIDGETS["appearance"]) / 4
         assert mocked.call_count == calls
 
-    ## OptionsDialog.on_destroy_options
-    def test_OptionsDialog_on_destroy_options_shows_root(self, mocker):
+    def test_OptionsDialog_setup_appearance_calls_Frame_pack(self, mocker):
         mocked_for_options(mocker)
-        options = OptionsDialog(mocker.MagicMock())
-        options.on_destroy_options(mocker.MagicMock())
-        options.master.show_root.assert_called_once()
+        mocker.patch("arrangeit.options.ttk.LabelFrame")
+        mocker.patch("arrangeit.options.OptionsDialog.create_widget")
+        mocked = mocker.patch("arrangeit.options.ttk.Frame.pack")
+        dialog = OptionsDialog(mocker.MagicMock())
+        dialog.setup_appearance()
+        mocked.assert_called_with(fill=tk.X, side=tk.LEFT, expand=True)
 
-    def test_OptionsDialog_on_destroy_options_destroys_options(self, mocker):
+    def test_OptionsDialog_setup_appearance_calls_create_separator(self, mocker):
         mocked_for_options(mocker)
-        mocked = mocker.patch("arrangeit.options.OptionsDialog.destroy")
+        mocker.patch("arrangeit.options.ttk.LabelFrame")
+        mocker.patch("arrangeit.options.OptionsDialog.create_widget")
+        mocked_frame = mocker.patch("arrangeit.options.OptionsDialog.create_frame")
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.create_separator")
         options = OptionsDialog(mocker.MagicMock())
-        options.on_destroy_options(mocker.MagicMock())
+        options.setup_appearance()
+        calls = [mocker.call(mocked_frame.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_OptionsDialog_setup_appearance_calls_add_vertical_separator(self, mocker):
+        mocked_for_options(mocker)
+        mocker.patch("arrangeit.options.ttk.LabelFrame")
+        mocker.patch("arrangeit.options.OptionsDialog.create_widget")
+        mocked_frame = mocker.patch("arrangeit.options.OptionsDialog.create_frame")
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.create_separator")
+        options = OptionsDialog(mocker.MagicMock())
+        options.setup_appearance()
+        calls = [mocker.call(mocked_frame.return_value, vertical=True)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_OptionsDialog_setup_appearance_calls_Separator_pack(self, mocker):
+        mocked_for_options(mocker)
+        mocker.patch("arrangeit.options.ttk.LabelFrame")
+        mocker.patch("arrangeit.options.OptionsDialog.create_widget")
+        mocker.patch("arrangeit.options.OptionsDialog.create_frame")
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.create_separator")
+        options = OptionsDialog(mocker.MagicMock())
+        options.setup_appearance()
+        calls = [mocker.call(fill=tk.X, expand=True)]
+        mocked.return_value.pack.assert_has_calls(calls, any_order=True)
+
+    def test_OptionsDialog_setup_appearance_calls_Separator_pack_for_vertical(
+        self, mocker
+    ):
+        mocked_for_options(mocker)
+        mocker.patch("arrangeit.options.ttk.LabelFrame")
+        mocker.patch("arrangeit.options.OptionsDialog.create_widget")
+        mocker.patch("arrangeit.options.OptionsDialog.create_frame")
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.create_separator")
+        options = OptionsDialog(mocker.MagicMock())
+        options.setup_appearance()
+        calls = [mocker.call(fill=tk.Y, expand=True)]
+        mocked.return_value.pack.assert_has_calls(calls, any_order=True)
+
+    ## OptionsDialog.setup_bindings
+    @pytest.mark.parametrize("event,callback", [("<Destroy>", "on_destroy_options")])
+    def test_OptionsDialog_setup_bindings_binds_callback(self, mocker, event, callback):
+        mocker.patch("arrangeit.options.tk.Toplevel.__init__")
+        mocker.patch("arrangeit.options.OptionsDialog.setup_widgets")
+        mocker.patch("arrangeit.options.OptionsDialog.title")
+        mocker.patch("arrangeit.options.OptionsDialog.geometry")
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.bind")
+        options = OptionsDialog(mocker.MagicMock())
+        callback = getattr(options, callback)
+        options.setup_bindings()
+        calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    ## OptionsDialog.setup_widgets
+    def test_OptionsDialog_setup_widgets_sets_message_var(self, mocker):
+        mocked_for_options_setup_widgets(mocker)
+        mocked = mocker.patch("arrangeit.options.tk.StringVar")
+        mocker.patch("arrangeit.options.tk.Label")
+        options = OptionsDialog(mocker.MagicMock())
+        options.message = None
+        options.setup_widgets()
+        assert options.message is not None
+        assert options.message == mocked.return_value
+
+    def test_OptionsDialog_setup_widgets_calls_setup_appearance(self, mocker):
+        mocked_for_options_setup_widgets(mocker)
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.setup_appearance")
+        options = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        options.setup_widgets()
         mocked.assert_called_once()
+
+    def test_OptionsDialog_setup_widgets_calls_LabelFrame_pack(self, mocker):
+        mocked_for_options_setup_widgets(mocker, without_appear=True)
+        mocker.patch("arrangeit.options.OptionsDialog.create_widget")
+        mocked = mocker.patch("arrangeit.options.ttk.LabelFrame")
+        options = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        options.setup_widgets()
+        mocked.return_value.pack.assert_called_once()
+        mocked.return_value.pack.assert_called_with(fill=tk.BOTH, expand=True)
+
+    def test_OptionsDialog_setup_widgets_sets_label_for_message(self, mocker):
+        mocked_for_options_setup_widgets(mocker)
+        mocker.patch("arrangeit.options.tk.StringVar")
+        mocked = mocker.patch("arrangeit.options.tk.Label")
+        options = OptionsDialog(mocker.MagicMock())
+        options.setup_widgets()
+        calls = [mocker.call(options, textvariable=options.message, anchor="center")]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_OptionsDialog_setup_widgets_calls_label_pack(self, mocker):
+        mocked_for_options_setup_widgets(mocker)
+        mocked = mocker.patch("arrangeit.options.tk.Label")
+        options = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        options.setup_widgets()
+        assert mocked.return_value.pack.call_count == 1
+
+    def test_OptionsDialog_setup_widgets_sets_quit_button(self, mocker):
+        mocked_for_options_setup_widgets(mocker)
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        options = OptionsDialog(mocker.MagicMock())
+        options.setup_widgets()
+        calls = [
+            mocker.call(
+                options,
+                text=_("Continue"),
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
+                command=options.destroy,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_OptionsDialog_setup_widgets_calls_button_pack(self, mocker):
+        mocked_for_options_setup_widgets(mocker)
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        options = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        options.setup_widgets()
+        assert mocked.return_value.pack.call_count == 1
+
+    ## OptionsDialog.widget_class_from_name
+    @pytest.mark.parametrize(
+        "name,typ",
+        [
+            ("ROOT_ALPHA", "FloatScale"),
+            ("TRANSPARENCY_IS_ON", "Check"),
+            ("SNAP_PIXELS", "Scale"),
+            ("MAIN_BG", "Choice"),
+        ],
+    )
+    def test_OptionsDialog_widget_class_from_name_returns_related_class(
+        self, mocker, name, typ
+    ):
+        mocked_for_options(mocker)
+        dialog = OptionsDialog(mocker.MagicMock())
+        returned = dialog.widget_class_from_name(name)
+        assert returned == getattr(options, "{}Option".format(typ))
 
     ## OptionsDialog.change_setting
     def test_OptionsDialog_change_setting_calls_controller_change_setting(self, mocker):
@@ -403,6 +465,20 @@ class TestOptionsDialog(object):
         mocked = mocker.patch("arrangeit.options.OptionsDialog.change_setting")
         OptionsDialog(tk.Frame(tk.Frame()))
         mocked.assert_not_called()
+
+    ## OptionsDialog.on_destroy_options
+    def test_OptionsDialog_on_destroy_options_shows_root(self, mocker):
+        mocked_for_options(mocker)
+        options = OptionsDialog(mocker.MagicMock())
+        options.on_destroy_options(mocker.MagicMock())
+        options.master.show_root.assert_called_once()
+
+    def test_OptionsDialog_on_destroy_options_destroys_options(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.destroy")
+        options = OptionsDialog(mocker.MagicMock())
+        options.on_destroy_options(mocker.MagicMock())
+        mocked.assert_called_once()
 
 
 class TestScaleOption(object):
@@ -512,14 +588,21 @@ class TestScaleOption(object):
         assert returned == "break"
 
 
-
-
 class TestFloatScaleOption(object):
     """Unit testing class for :class:`FloatScaleOption` class."""
 
     ## FloatScaleOption
     def test_FloatScaleOption_issubclass_of_ScaleOption(self):
         assert issubclass(FloatScaleOption, ScaleOption)
+
+    ## FloatScaleOption.__init__
+    def test_FloatScaleOption_init_multiplies_initial_by_100(self, mocker):
+        mocked = mocker.patch("arrangeit.options.ScaleOption.__init__")
+        master = mocker.MagicMock()
+        INITIAL = 2
+        FloatScaleOption(master, initial=INITIAL)
+        mocked.assert_called_once()
+        mocked.assert_called_with(master, initial=INITIAL * 100)
 
     ## FloatScaleOption.on_update_value
     def test_FloatScaleOption_on_update_value_calls_master_change_setting(self, mocker):
@@ -529,10 +612,12 @@ class TestFloatScaleOption(object):
         callback = mocker.MagicMock()
         NAME = "ROOT_ALPHA"
         VALUE = 84
-        scale = FloatScaleOption(mocker.MagicMock(), change_callback=callback, name=NAME)
+        scale = FloatScaleOption(
+            mocker.MagicMock(), change_callback=callback, name=NAME
+        )
         scale.on_update_value(VALUE)
         callback.assert_called_once()
-        callback.assert_called_with(name=NAME, value=float(VALUE)/100.0)
+        callback.assert_called_with(name=NAME, value=float(VALUE) / 100.0)
 
     def test_ScaleOption_on_update_value_returns_break(self, mocker):
         mocker.patch("arrangeit.options.tk.Scale.__init__")

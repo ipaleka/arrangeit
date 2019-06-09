@@ -9,23 +9,21 @@ from arrangeit.settings import Settings
 MESSAGES = {
     "options_title": _("arrangeit options"),
     "appearance": _("Appearance"),
-    "TRANSPARENCY_IS_ON": _("Transparent window"),
-    "ROOT_ALPHA": _("Main window transparency"),
+    "TRANSPARENCY_IS_ON": _("Use transparency"),
+    "ROOT_ALPHA": _("Main window opacity [%]"),
     "SCREENSHOT_TO_GRAYSCALE": _("Convert screenshot to grayscale"),
-    "SCREENSHOT_BLUR_PIXELS": _("Blur size in pixels"),
-    "SNAPPING_IS_ON": _("Windows snapping"),
+    "SCREENSHOT_BLUR_PIXELS": _("Screenshot blur size [pixels]"),
+    "SNAPPING_IS_ON": _("Use snapping"),
     "SNAP_INCLUDE_SELF": _("Include itself in snapping"),
-    "SHIFT_CURSOR": _("Cursor shift from a corner in pixels"),
+    "SHIFT_CURSOR": _("Corner cursor shift [pixels]"),
     # "SNAPPING_IS_ON": _(""),
-    "SNAP_PIXELS": _("Snapping size in pixels"),
+    "SNAP_PIXELS": _("Snapping size [pixels]"),
     "MAIN_BG": _("Background color"),
     "setting_changed": _(
         "Setting is changed, please restart program in order for the change to take effect."
     ),
 }
-
-OPTIONS = {"HIGHLIGHTED_COLOR": (str, "red")}
-
+CLASSES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Choice"}
 WIDGETS = {
     "appearance": (
         ("TRANSPARENCY_IS_ON", {}),
@@ -50,43 +48,29 @@ WIDGETS = {
         ),
     )
 }
-WIDGETS_TYPES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Choice"}
-
-
-class OptionsMetaclass(type):
-    """Meta class needed to access Options class attributes by names."""
-
-    def __getattr__(self, name):
-        """Returns value for provided attribute name."""
-        return OPTIONS.get(name, [None, None])[1]
-
-
-class Options(metaclass=OptionsMetaclass):
-    """Class holding all the program's constants and Options."""
-
-    COLORS = (
-        "white",
-        "gray",
-        "slate gray",
-        "gray25",
-        "gray75",
-        "light blue",
-        "blue",
-        "royal blue",
-        "cyan",
-        "orange",
-        "salmon",
-        "indian red",
-        "red",
-        "orchid",
-        "pink",
-        "green",
-        "olive drab",
-        "wheat",
-        "khaki",
-        "tan",
-        "yellow",
-    )
+COLORS = (
+    "white",
+    "gray",
+    "slate gray",
+    "gray25",
+    "gray75",
+    "light blue",
+    "blue",
+    "royal blue",
+    "cyan",
+    "orange",
+    "salmon",
+    "indian red",
+    "red",
+    "orchid",
+    "pink",
+    "green",
+    "olive drab",
+    "wheat",
+    "khaki",
+    "tan",
+    "yellow",
+)
 
 
 class OptionsDialog(tk.Toplevel):
@@ -112,9 +96,83 @@ class OptionsDialog(tk.Toplevel):
             "+{}+{}".format(self.master.master.winfo_x(), self.master.master.winfo_y())
         )
 
+    ## CONFIGURATION
+    def create_frame(self, master):
+        """Creates and returns frame that will holds pair of widgets.
+
+        :param master: parent widget
+        :type master: Tkinter widget
+        """
+        return ttk.Frame(master)
+
+    def create_separator(self, master, vertical=False):
+        """Creates and returns default horizontal separator of vertical if argument set.
+
+        :param master: parent widget
+        :type master: Tkinter widget
+        :param vertical: is separator oriented vertical instead default horizontal
+        :type vertical: Booleand
+        """
+        return ttk.Separator(master, orient=tk.VERTICAL if vertical else tk.HORIZONTAL)
+
+    def create_widget(self, master, name, **kwargs):
+        """Creates and returns presentation widget for setting with provided name.
+
+        :param master: parent widget
+        :type master: :class:`ttk.LabelFrame`
+        :param name: setting name
+        :type name: str
+        :returns: Tkinter widget instance
+        """
+        return self.widget_class_from_name(name)(
+            master,
+            name=name,
+            change_callback=self.change_setting,
+            initial=getattr(Settings, name),
+            text=MESSAGES[name],
+            **kwargs
+        )
+
+    def setup_appearance(self):
+        """Creates and places widgets related to program appearance."""
+        appearance = ttk.LabelFrame(self, text="Appearance")
+
+        for i, (name, kwargs) in enumerate(WIDGETS["appearance"]):
+            if not i % 4:
+                if i > 0:
+                    separator = self.create_separator(frame, vertical=True)
+                    separator.pack(fill=tk.Y, expand=True)
+                frame = self.create_frame(appearance)
+                frame.pack(fill=tk.X, side=tk.LEFT, expand=True)
+            else:
+                separator = self.create_separator(frame)
+                separator.pack(fill=tk.X, expand=True)
+            widget = self.create_widget(frame, name, **kwargs)
+            widget.pack(fill=tk.X, side=tk.TOP)
+
+        return appearance
+
     def setup_bindings(self):
         """Binds relevant events to related callback."""
         self.bind("<Destroy>", self.on_destroy_options)
+
+    def setup_widgets(self):
+        """Creates and places all the options' widgets."""
+        self.message = tk.StringVar()
+
+        appearance = self.setup_appearance()
+        appearance.pack(fill=tk.BOTH, expand=True)
+
+        message = tk.Label(self, textvariable=self.message, anchor="center")
+        message.pack()
+
+        quit_button = tk.Button(
+            self,
+            text=_("Continue"),
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
+            command=self.destroy,
+        )
+        quit_button.pack()
 
     def widget_class_from_name(self, name):
         """Returns related widget class from provided setting name.
@@ -123,87 +181,9 @@ class OptionsDialog(tk.Toplevel):
         :type name: str
         :returns: custom Tkinter widget instance
         """
-        return getattr(options, "{}Option".format(WIDGETS_TYPES[Settings.setting_type(name)]))
+        return getattr(options, "{}Option".format(CLASSES[Settings.setting_type(name)]))
 
-    def create_widget(self, master, name, **kwargs):
-        """Creates widget with provided master for setting with provided name.
-
-        :param master: parent widget
-        :type master: :class:`ttk.LabelFrame`
-        :param name: setting name
-        :type name: str
-        """
-        widget_class = self.widget_class_from_name(name)
-        initial = getattr(Settings, name)
-        widget = widget_class(
-            master,
-            name=name,
-            change_callback=self.change_setting,
-            initial=int(initial * 100)
-            if Settings.setting_type(name) == float
-            else initial,
-            text=MESSAGES[name],
-            **kwargs
-        )
-        widget.pack(fill=tk.X, side=tk.TOP)
-        return widget
-
-    def frame_placeholder(self, master):
-        """Returns frame that will holds pair of widgets."""
-        frame = ttk.Frame(master)
-        frame.pack(fill=tk.X, side=tk.LEFT, expand=True)
-        return frame
-
-    def add_separator(self, master, vertical=False):
-        """Adds separator with horizontal orientation or vertical for provided Boolean.
-
-        :param master: parent widget
-        :type master: Tkinter widget
-        :param vertical: is separator oriented vertical instead default horizontal
-        :type vertical: Booleand
-        """
-        fill, orient = (tk.X, tk.HORIZONTAL) if not vertical else (tk.Y, tk.VERTICAL)
-        separator = ttk.Separator(master, orient=orient)
-        separator.pack(fill=fill, expand=True)
-
-    def setup_appearance(self):
-        """Creates and places widgets related to program appearance."""
-        appearance = ttk.LabelFrame(self, text="Appearance")
-        appearance.pack(fill=tk.BOTH, expand=True)
-
-        for i, (name, kwargs) in enumerate(WIDGETS["appearance"]):
-            if not i % 4:
-                if i > 0:
-                    self.add_separator(frame, vertical=True)
-                frame = self.frame_placeholder(appearance)
-            else:
-                self.add_separator(frame)
-            self.create_widget(frame, name, **kwargs)
-
-        return appearance
-
-    def setup_widgets(self):
-        """Creates and places all the options' widgets."""
-        self.message = tk.StringVar()
-
-        self.setup_appearance()
-
-        message = tk.Label(self, textvariable=self.message, anchor="center")
-        message.pack()
-
-        quit_button = tk.Button(
-            self,
-            text=_("Continue"),
-            activeforeground=Options.HIGHLIGHTED_COLOR,
-            command=self.destroy,
-        )
-        quit_button.pack()
-
-    def on_destroy_options(self, event):
-        """Brings back root window and destroys options dialog."""
-        self.master.show_root()
-        self.destroy()
-
+    ## COMMANDS
     def change_setting(self, name="", value=None):
         """Calls sontroller's change setting method and updates message log.
 
@@ -214,6 +194,12 @@ class OptionsDialog(tk.Toplevel):
         """
         self.master.controller.change_setting(name, value)
         self.message.set(MESSAGES["setting_changed"])
+
+    ## EVENTS CALLBACKS
+    def on_destroy_options(self, event):
+        """Brings back root window and destroys options dialog."""
+        self.master.show_root()
+        self.destroy()
 
 
 class ScaleOption(tk.Scale):
@@ -291,6 +277,11 @@ class ScaleOption(tk.Scale):
 
 class FloatScaleOption(ScaleOption):
     """Tkinter widget for showing and changing float range settings values."""
+
+    def __init__(self, master, **kwargs):
+        """Calls super class with initial multiplied by 100."""
+        kwargs.update(initial=kwargs.get("initial", 0) * 100)
+        super().__init__(master, **kwargs)
 
     def on_update_value(self, value):
         self.change_callback(name=self.name, value=float(value) / 100.0)
