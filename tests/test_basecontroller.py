@@ -107,7 +107,9 @@ class TestBaseController(object):
 
     def test_BaseController_setup_root_window_not_calling_alpha(self, mocker):
         mocked_settings = mocker.patch("arrangeit.base.Settings")
-        type(mocked_settings).TRANSPARENCY_IS_ON = mocker.PropertyMock(return_value=False)
+        type(mocked_settings).TRANSPARENCY_IS_ON = mocker.PropertyMock(
+            return_value=False
+        )
         mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.get_tkinter_root")
         controller = base.BaseController(None)
@@ -122,15 +124,27 @@ class TestBaseController(object):
         root.config.assert_has_calls(calls, any_order=True)
 
     ## BaseController.set_default_geometry
+    def test_BaseController_set_default_geometry_calls_get_smallest_monitor_size(
+        self, mocker
+    ):
+        root = mocker.MagicMock()
+        mocker.patch(
+            "arrangeit.base.quarter_by_smaller", return_value=(100, 100)
+        )
+        controller = controller_mocked_app(mocker)
+        controller.app.collector.get_smallest_monitor_size.return_value = (100, 100)
+        controller.set_default_geometry(root)
+        assert controller.app.collector.get_smallest_monitor_size.call_count == 1
+        controller.app.collector.get_smallest_monitor_size.assert_called_with()
+
     def test_BaseController_set_default_geometry_calls_quarter_by_smaller(self, mocker):
         root = mocker.MagicMock()
         mocked = mocker.patch(
             "arrangeit.base.quarter_by_smaller", return_value=(100, 100)
         )
         w, h = 1001, 1002
-        root.winfo_screenwidth.return_value = w
-        root.winfo_screenheight.return_value = h
-        controller = base.BaseController(None)
+        controller = controller_mocked_app(mocker)
+        controller.app.collector.get_smallest_monitor_size.return_value = (w, h)
         controller.default_size = None
         controller.set_default_geometry(root)
         assert mocked.call_count == 1
@@ -140,10 +154,7 @@ class TestBaseController(object):
         root = mocker.MagicMock()
         SAMPLE = (244, 145)
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=SAMPLE)
-        w, h = 1001, 1002
-        root.winfo_screenwidth.return_value = w
-        root.winfo_screenheight.return_value = h
-        controller = base.BaseController(None)
+        controller = controller_mocked_app(mocker)
         controller.default_size = None
         controller.set_default_geometry(root)
         assert controller.default_size == SAMPLE
@@ -173,7 +184,8 @@ class TestBaseController(object):
         root = mocker.MagicMock()
         w, h = 1003, 1004
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(w, h))
-        base.BaseController(None).set_default_geometry(root)
+        controller = controller_mocked_app(mocker)
+        controller.set_default_geometry(root)
         assert root.geometry.call_count == 1
         root.geometry.assert_called_with("{}x{}".format(w, h))
 

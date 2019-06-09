@@ -306,7 +306,7 @@ class BaseController(object):
         """
         if self.default_size is None:
             width, height = quarter_by_smaller(
-                root.winfo_screenwidth(), root.winfo_screenheight()
+                *self.app.collector.get_smallest_monitor_size()
             )
             self.default_size = (width, height)
         root.geometry("{}x{}".format(*self.default_size))
@@ -1001,6 +1001,10 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def get_monitors_rects(self):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def get_smallest_monitor_size(self):
         """Method must be overridden."""
         raise NotImplementedError
 

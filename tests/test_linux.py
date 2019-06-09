@@ -861,3 +861,63 @@ class TestLinuxCollector(object):
         rects = collector.get_monitors_rects()
         assert isinstance(rects, list)
         assert rects == [(10, 20, 100, 200)]
+
+
+
+
+
+    ## LinuxCollector.get_smallest_monitor_size
+    def test_LinuxCollector_get_smallest_monitor_size_calls_GDK_display_get_default(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_default")
+        collector = Collector()
+        collector.get_smallest_monitor_size()
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_get_smallest_monitor_size_calls_GDK_display_get_n_monitors(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_n_monitors")
+        collector = Collector()
+        collector.get_smallest_monitor_size()
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_get_smallest_monitor_size_calls_GDK_display_get_monitor(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
+        )
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_monitor")
+        collector = Collector()
+        collector.get_smallest_monitor_size()
+        mocked.assert_called_once()
+        mocked.assert_called_with(0)
+
+    def test_LinuxCollector_get_smallest_monitor_size_calls_GDK_monitor_get_workarea(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
+        )
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_monitor")
+        collector = Collector()
+        collector.get_smallest_monitor_size()
+        mocked.return_value.get_workarea.assert_called_once()
+
+    def test_LinuxCollector_get_smallest_monitor_size_returns_tuple(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
+        )
+        mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_monitor")
+        WIDTH, HEIGHT = 800, 600
+        rect = mocker.MagicMock()
+        rect.width = WIDTH
+        rect.height = HEIGHT
+        mocked.return_value.get_workarea.return_value = rect
+        collector = Collector()
+        returned = collector.get_smallest_monitor_size()
+        assert returned == (WIDTH, HEIGHT)

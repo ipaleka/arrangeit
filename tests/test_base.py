@@ -678,6 +678,11 @@ class TestBaseCollector(object):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().get_monitors_rects()
 
+    ## BaseCollector.get_smallest_monitor_size
+    def test_BaseCollector_get_smallest_monitor_size_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().get_smallest_monitor_size()
+
     ## BaseCollector.run
     def test_BaseCollector_run_calls_get_windows(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseCollector.get_windows")
