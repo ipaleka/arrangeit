@@ -98,9 +98,10 @@ class ViewApplication(tk.Frame):
         NOTE master is None check exists solely because unit tests.
         """
         self.unbind_all("<Button-1>")
-        self.bind("<Button-1>", self.controller.on_mouse_left_down)
+
         if self.master is not None:
             self.master.bind("<Button-1>", self.controller.on_mouse_left_down)
+        self.bind("<Button-1>", self.controller.on_mouse_left_down)
         self.title_label.bind("<Button-1>", self.controller.on_mouse_left_down)
         self.bind_all("<Button-2>", self.controller.on_mouse_middle_down)
         self.bind_all("<Button-3>", self.controller.on_mouse_right_down)

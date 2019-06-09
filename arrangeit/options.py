@@ -50,6 +50,7 @@ WIDGETS = {
         ),
     )
 }
+WIDGETS_TYPES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Choice"}
 
 
 class OptionsMetaclass(type):
@@ -122,12 +123,7 @@ class OptionsDialog(tk.Toplevel):
         :type name: str
         :returns: custom Tkinter widget instance
         """
-        typ = "Scale"
-        if Settings.setting_type(name) == bool:
-            typ = "Check"
-        elif Settings.setting_type(name) == str:
-            typ = "Choice"
-        return getattr(options, "{}Option".format(typ))
+        return getattr(options, "{}Option".format(WIDGETS_TYPES[Settings.setting_type(name)]))
 
     def create_widget(self, master, name, **kwargs):
         """Creates widget with provided master for setting with provided name.
@@ -154,9 +150,21 @@ class OptionsDialog(tk.Toplevel):
 
     def frame_placeholder(self, master):
         """Returns frame that will holds pair of widgets."""
-        frame = tk.Frame(master)
+        frame = ttk.Frame(master)
         frame.pack(fill=tk.X, side=tk.LEFT, expand=True)
         return frame
+
+    def add_separator(self, master, vertical=False):
+        """Adds separator with horizontal orientation or vertical for provided Boolean.
+
+        :param master: parent widget
+        :type master: Tkinter widget
+        :param vertical: is separator oriented vertical instead default horizontal
+        :type vertical: Booleand
+        """
+        fill, orient = (tk.X, tk.HORIZONTAL) if not vertical else (tk.Y, tk.VERTICAL)
+        separator = ttk.Separator(master, orient=orient)
+        separator.pack(fill=fill, expand=True)
 
     def setup_appearance(self):
         """Creates and places widgets related to program appearance."""
@@ -165,7 +173,11 @@ class OptionsDialog(tk.Toplevel):
 
         for i, (name, kwargs) in enumerate(WIDGETS["appearance"]):
             if not i % 4:
+                if i > 0:
+                    self.add_separator(frame, vertical=True)
                 frame = self.frame_placeholder(appearance)
+            else:
+                self.add_separator(frame)
             self.create_widget(frame, name, **kwargs)
 
         return appearance
@@ -200,10 +212,7 @@ class OptionsDialog(tk.Toplevel):
         :param value: value for given name setting
         :type name: str/int/float
         """
-        self.master.controller.change_setting(
-            name,
-            float(value) / 100.0 if Settings.setting_type(name) == float else value,
-        )
+        self.master.controller.change_setting(name, value)
         self.message.set(MESSAGES["setting_changed"])
 
 
@@ -224,13 +233,13 @@ class ScaleOption(tk.Scale):
         master=None,
         name="",
         change_callback=None,
-        initial=0.0,
+        initial=0,
         text="",
-        from_=0.0,
-        to=1.0,
-        resolution=0.05,
-        tickinterval=0.2,
-        digits=3,
+        from_=0,
+        to=10,
+        resolution=1,
+        tickinterval=1,
+        digits=1,
     ):
         """Sets master attribute and configs scale widget from provided arguments
 
@@ -271,12 +280,20 @@ class ScaleOption(tk.Scale):
             tickinterval=tickinterval,
             digits=digits,
             orient=tk.HORIZONTAL,
-            command=self.on_update_value,
         )
         self.set(initial)
+        self.config(command=self.on_update_value)
 
     def on_update_value(self, value):
-        self.change_callback(name=self.name, value=value)
+        self.change_callback(name=self.name, value=int(value))
+        return "break"
+
+
+class FloatScaleOption(ScaleOption):
+    """Tkinter widget for showing and changing float range settings values."""
+
+    def on_update_value(self, value):
+        self.change_callback(name=self.name, value=float(value) / 100.0)
         return "break"
 
 

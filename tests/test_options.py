@@ -13,6 +13,7 @@ from arrangeit.options import (
     Options,
     OptionsDialog,
     ScaleOption,
+    FloatScaleOption,
     CheckOption,
     ChoiceOption,
 )
@@ -86,7 +87,7 @@ class TestOptionsDialog(object):
     def test_OptionsDialog_issubclass_of_Toplevel(self):
         assert issubclass(OptionsDialog, tk.Toplevel)
 
-    @pytest.mark.parametrize("attr,value", [("master", None), ])
+    @pytest.mark.parametrize("attr,value", [("master", None)])
     def test_OptionsDialog_inits_attributes(self, attr, value):
         assert getattr(OptionsDialog, attr) == value
 
@@ -133,7 +134,6 @@ class TestOptionsDialog(object):
                 master.master.winfo_x.return_value, master.master.winfo_y.return_value
             )
         )
-
 
     ## OptionsDialog.setup_bindings
     @pytest.mark.parametrize("event,callback", [("<Destroy>", "on_destroy_options")])
@@ -212,7 +212,7 @@ class TestOptionsDialog(object):
     @pytest.mark.parametrize(
         "name,typ",
         [
-            ("ROOT_ALPHA", "Scale"),
+            ("ROOT_ALPHA", "FloatScale"),
             ("TRANSPARENCY_IS_ON", "Check"),
             ("SNAP_PIXELS", "Scale"),
             ("MAIN_BG", "Choice"),
@@ -260,13 +260,7 @@ class TestOptionsDialog(object):
         INITIAL = 4
         mocked_settings = mocker.patch("arrangeit.options.Settings")
         type(mocked_settings).SHIFT_CURSOR = mocker.PropertyMock(return_value=INITIAL)
-        KWARGS = {
-            "from_": 1,
-            "to": 15,
-            "resolution": 1,
-            "tickinterval": 2,
-            "digits": 1,
-        }
+        KWARGS = {"from_": 1, "to": 15, "resolution": 1, "tickinterval": 2, "digits": 1}
         dialog.create_widget(None, NAME, **KWARGS)
         assert mocked.return_value.call_count == 1
         calls = [
@@ -394,7 +388,7 @@ class TestOptionsDialog(object):
         options.message = mocker.MagicMock()
         options.change_setting(name=NAME, value=VALUE)
         master.controller.change_setting.assert_called_once()
-        master.controller.change_setting.assert_called_with(NAME, VALUE / 100.0)
+        master.controller.change_setting.assert_called_with(NAME, VALUE)
 
     def test_OptionsDialog_change_setting_changes_message_var(self, mocker):
         mocked_for_options(mocker)
@@ -404,6 +398,12 @@ class TestOptionsDialog(object):
         options.message = mocker.PropertyMock(return_value=SAMPLE)
         options.change_setting(name="foo", value=1)
         assert options.message != "foobar"
+
+    def test_OptionsDialog_change_setting_not_called_upon_startup(self, mocker):
+        mocked = mocker.patch("arrangeit.options.OptionsDialog.change_setting")
+        OptionsDialog(tk.Frame(tk.Frame()))
+        mocked.assert_not_called()
+
 
 class TestScaleOption(object):
     """Unit testing class for :class:`ScaleOption` class."""
@@ -454,25 +454,20 @@ class TestScaleOption(object):
         mocked = mocker.patch("arrangeit.options.tk.Scale.config")
         master = mocker.MagicMock()
         scale = ScaleOption(
-            master,
-            text="foo",
-            from_=0.2,
-            to=0.8,
-            resolution=0.1,
-            tickinterval=0.3,
-            digits=2,
+            master, text="foo", from_=1, to=10, resolution=1, tickinterval=3, digits=2
         )
-        mocked.assert_called_once()
-        mocked.assert_called_with(
-            label="foo",
-            from_=0.2,
-            to=0.8,
-            resolution=0.1,
-            tickinterval=0.3,
-            digits=2,
-            orient=tk.HORIZONTAL,
-            command=scale.on_update_value,
-        )
+        calls = [
+            mocker.call(
+                label="foo",
+                from_=1,
+                to=10,
+                resolution=1,
+                tickinterval=3,
+                digits=2,
+                orient=tk.HORIZONTAL,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
 
     def test_ScaleOption_init_sets_initial(self, mocker):
         mocker.patch("arrangeit.options.tk.Scale.__init__")
@@ -484,14 +479,25 @@ class TestScaleOption(object):
         mocked.assert_called_once()
         mocked.assert_called_with(INITIAL)
 
+    def test_ScaleOption_init_configs_command(self, mocker):
+        mocker.patch("arrangeit.options.tk.Scale.__init__")
+        mocker.patch("arrangeit.options.tk.Scale.set")
+        mocked = mocker.patch("arrangeit.options.tk.Scale.config")
+        master = mocker.MagicMock()
+        scale = ScaleOption(
+            master, text="foo", from_=1, to=10, resolution=1, tickinterval=3, digits=2
+        )
+        calls = [mocker.call(command=scale.on_update_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+
     ## ScaleOption.on_update_value
     def test_ScaleOption_on_update_value_calls_master_change_setting(self, mocker):
         mocker.patch("arrangeit.options.tk.Scale.config")
         mocker.patch("arrangeit.options.tk.Scale.set")
         mocker.patch("arrangeit.options.tk.Scale.__init__")
         callback = mocker.MagicMock()
-        NAME = "ROOT_ALPHA"
-        VALUE = 0.4
+        NAME = "SNAP_PIXELS"
+        VALUE = 4
         scale = ScaleOption(mocker.MagicMock(), change_callback=callback, name=NAME)
         scale.on_update_value(VALUE)
         callback.assert_called_once()
@@ -503,6 +509,37 @@ class TestScaleOption(object):
         mocker.patch("arrangeit.options.tk.Scale.config")
         scale = ScaleOption(mocker.MagicMock(), change_callback=mocker.MagicMock())
         returned = scale.on_update_value(0.4)
+        assert returned == "break"
+
+
+
+
+class TestFloatScaleOption(object):
+    """Unit testing class for :class:`FloatScaleOption` class."""
+
+    ## FloatScaleOption
+    def test_FloatScaleOption_issubclass_of_ScaleOption(self):
+        assert issubclass(FloatScaleOption, ScaleOption)
+
+    ## FloatScaleOption.on_update_value
+    def test_FloatScaleOption_on_update_value_calls_master_change_setting(self, mocker):
+        mocker.patch("arrangeit.options.tk.Scale.config")
+        mocker.patch("arrangeit.options.tk.Scale.set")
+        mocker.patch("arrangeit.options.tk.Scale.__init__")
+        callback = mocker.MagicMock()
+        NAME = "ROOT_ALPHA"
+        VALUE = 84
+        scale = FloatScaleOption(mocker.MagicMock(), change_callback=callback, name=NAME)
+        scale.on_update_value(VALUE)
+        callback.assert_called_once()
+        callback.assert_called_with(name=NAME, value=float(VALUE)/100.0)
+
+    def test_ScaleOption_on_update_value_returns_break(self, mocker):
+        mocker.patch("arrangeit.options.tk.Scale.__init__")
+        mocker.patch("arrangeit.options.tk.Scale.set")
+        mocker.patch("arrangeit.options.tk.Scale.config")
+        scale = FloatScaleOption(mocker.MagicMock(), change_callback=mocker.MagicMock())
+        returned = scale.on_update_value(45)
         assert returned == "break"
 
 
