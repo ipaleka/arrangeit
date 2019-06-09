@@ -32,6 +32,7 @@ SETTINGS = {
     "SELECTED_COLOR": (str, "blue"),
     "HIGHLIGHTED_COLOR": (str, "red"),
     "MAIN_BG": (str, "white"),
+    "MAIN_FG": (str, "black"),
     "TITLE_LABEL_RELHEIGHT": (float, 0.25),
     "TITLE_LABEL_RELWIDTH": (float, 0.75),
     "TITLE_LABEL_ANCHOR": (str, "w"),
@@ -99,6 +100,8 @@ SETTINGS = {
     "QUIT_BUTTON_RELHEIGHT": (float, 0.7),
     "QUIT_BUTTON_RELWIDTH": (float, 0.45),
     "QUIT_BUTTON_ANCHOR": (str, "nw"),
+    "OPTIONS_WIDGETS_PADX": (int, 4),
+    "OPTIONS_WIDGETS_PADY": (int, 2),
 }
 
 

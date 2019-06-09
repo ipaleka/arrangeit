@@ -7,8 +7,9 @@ from arrangeit.settings import Settings
 
 
 MESSAGES = {
-    "options_title": _("arrangeit options"),
+    "options_title": _("Options dialog for arrangeit"),
     "appearance": _("Appearance"),
+    "colors": _("Colors"),
     "TRANSPARENCY_IS_ON": _("Use transparency"),
     "ROOT_ALPHA": _("Main window opacity [%]"),
     "SCREENSHOT_TO_GRAYSCALE": _("Convert screenshot to grayscale"),
@@ -16,20 +17,23 @@ MESSAGES = {
     "SNAPPING_IS_ON": _("Use snapping"),
     "SNAP_INCLUDE_SELF": _("Include itself in snapping"),
     "SHIFT_CURSOR": _("Corner cursor shift [pixels]"),
-    # "SNAPPING_IS_ON": _(""),
     "SNAP_PIXELS": _("Snapping size [pixels]"),
     "MAIN_BG": _("Background color"),
+    "SELECTED_COLOR": _("Selected color"),
+    "HIGHLIGHTED_COLOR": _("Highlighted color"),
+    "_BG": _("Background color"),
+    "_FG": _("Foreground color"),
     "setting_changed": _(
         "Setting is changed, please restart program in order for the change to take effect."
     ),
 }
-CLASSES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Choice"}
+CLASSES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Color"}
 WIDGETS = {
     "appearance": (
         ("TRANSPARENCY_IS_ON", {}),
         (
             "ROOT_ALPHA",
-            {"from_": 50, "to": 99, "resolution": 5, "tickinterval": 20, "digits": 3},
+            {"from_": 50, "to": 99, "resolution": 2, "tickinterval": 20, "digits": 3},
         ),
         ("SCREENSHOT_TO_GRAYSCALE", {}),
         (
@@ -44,9 +48,15 @@ WIDGETS = {
         ("SNAP_INCLUDE_SELF", {}),
         (
             "SHIFT_CURSOR",
-            {"from_": 1, "to": 15, "resolution": 1, "tickinterval": 3, "digits": 1},
+            {"from_": 1, "to": 12, "resolution": 1, "tickinterval": 3, "digits": 1},
         ),
-    )
+    ),
+    "colors": (
+        ("SELECTED_COLOR", {}),
+        ("HIGHLIGHTED_COLOR", {}),
+        ("_BG", {}),
+        ("_FG", {}),
+    ),
 }
 COLORS = (
     "white",
@@ -129,42 +139,46 @@ class OptionsDialog(tk.Toplevel):
             name=name,
             change_callback=self.change_setting,
             initial=getattr(Settings, name),
-            text=MESSAGES[name],
+            label=MESSAGES[name],
             **kwargs
         )
-
-    def setup_appearance(self):
-        """Creates and places widgets related to program appearance."""
-        appearance = ttk.LabelFrame(self, text="Appearance")
-
-        for i, (name, kwargs) in enumerate(WIDGETS["appearance"]):
-            if not i % 4:
-                if i > 0:
-                    separator = self.create_separator(frame, vertical=True)
-                    separator.pack(fill=tk.Y, expand=True)
-                frame = self.create_frame(appearance)
-                frame.pack(fill=tk.X, side=tk.LEFT, expand=True)
-            else:
-                separator = self.create_separator(frame)
-                separator.pack(fill=tk.X, expand=True)
-            widget = self.create_widget(frame, name, **kwargs)
-            widget.pack(fill=tk.X, side=tk.TOP)
-
-        return appearance
 
     def setup_bindings(self):
         """Binds relevant events to related callback."""
         self.bind("<Destroy>", self.on_destroy_options)
 
+    def setup_section(self, name="appearance", denominator=4, labelanchor="nw"):
+        """Creates and places widgets for section with provided name."""
+        section = ttk.LabelFrame(self, text=MESSAGES[name], labelanchor=labelanchor)
+
+        for i, (name, kwargs) in enumerate(WIDGETS[name]):
+            if not i % denominator:
+                frame = self.create_frame(section)
+                frame.pack(fill=tk.X, side=tk.LEFT, expand=True)
+            separator = self.create_separator(frame)
+            separator.pack(fill=tk.X, expand=True)
+            widget = self.create_widget(frame, name, **kwargs)
+            widget.pack(
+                fill=tk.X,
+                side=tk.TOP,
+                padx=Settings.OPTIONS_WIDGETS_PADX,
+                pady=Settings.OPTIONS_WIDGETS_PADY,
+            )
+
+        return section
+
     def setup_widgets(self):
         """Creates and places all the options' widgets."""
         self.message = tk.StringVar()
 
-        appearance = self.setup_appearance()
+        appearance = self.setup_section()
         appearance.pack(fill=tk.BOTH, expand=True)
 
+        colors = self.setup_section(name="colors", denominator=2, labelanchor="ne")
+        colors.pack(fill=tk.BOTH, expand=True)
+
         message = tk.Label(self, textvariable=self.message, anchor="center")
-        message.pack()
+        message.pack(fill=tk.X, expand=True)
 
         quit_button = tk.Button(
             self,
@@ -181,7 +195,10 @@ class OptionsDialog(tk.Toplevel):
         :type name: str
         :returns: custom Tkinter widget instance
         """
-        return getattr(options, "{}Option".format(CLASSES[Settings.setting_type(name)]))
+        typ = Settings.setting_type(name)
+        if typ is None:
+            return getattr(options, "ThemeOption")
+        return getattr(options, "{}Option".format(CLASSES[typ]))
 
     ## COMMANDS
     def change_setting(self, name="", value=None):
@@ -220,9 +237,9 @@ class ScaleOption(tk.Scale):
         name="",
         change_callback=None,
         initial=0,
-        text="",
+        label="",
         from_=0,
-        to=10,
+        to=8,
         resolution=1,
         tickinterval=1,
         digits=1,
@@ -241,8 +258,8 @@ class ScaleOption(tk.Scale):
         :param change_callback: method
         :param initial: starting value
         :param initial: float/int
-        :param text: explanation text/label for this scale
-        :param text: str
+        :param label: explanation text/label for this scale
+        :param label: str
         :param from_: starting value
         :param from_: float/int
         :param to: ending value
@@ -259,7 +276,7 @@ class ScaleOption(tk.Scale):
         self.name = name
         self.change_callback = change_callback
         self.config(
-            label=text,
+            label=label,
             from_=from_,
             to=to,
             resolution=resolution,
@@ -304,7 +321,7 @@ class CheckOption(tk.Checkbutton):
     var = None
 
     def __init__(
-        self, master=None, name="", change_callback=None, initial=False, text=""
+        self, master=None, name="", change_callback=None, initial=False, label=""
     ):
         """Sets master attribute and configs check button widget from provided arguments
 
@@ -320,15 +337,15 @@ class CheckOption(tk.Checkbutton):
         :param change_callback: method
         :param initial: starting value
         :param initial: bool
-        :param text: explanation text for this check button
-        :param text: str
+        :param label: explanation text for this check button
+        :param label: str
         """
         super().__init__(master)
         self.master = master
         self.name = name
         self.change_callback = change_callback
         self.var = tk.IntVar()
-        self.config(text=text, variable=self.var, command=self.on_update_value)
+        self.config(text=label, variable=self.var, command=self.on_update_value)
         self.select() if initial else self.deselect()
 
     def on_update_value(self, *args):
@@ -336,15 +353,15 @@ class CheckOption(tk.Checkbutton):
         return "break"
 
 
-class ChoiceOption(tk.OptionMenu):
+class ColorOption(tk.OptionMenu):
     """Tkinter widget for showing and changing Boolean values.
 
-    :var ChoiceOption.master: master widget
-    :type ChoiceOption.master: :class:`.tk.Toplevel`
-    :var ChoiceOption.name: setting name to change
-    :type ChoiceOption.name: str
-    :var ChoiceOption.var: variable holding the choice value
-    :type ChoiceOption.var: :class:`tk.StringVar`
+    :var ColorOption.master: master widget
+    :type ColorOption.master: :class:`.tk.Toplevel`
+    :var ColorOption.name: setting name to change
+    :type ColorOption.name: str
+    :var ColorOption.var: variable holding the choice value
+    :type ColorOption.var: :class:`tk.StringVar`
     """
 
     master = None
@@ -352,7 +369,13 @@ class ChoiceOption(tk.OptionMenu):
     var = None
 
     def __init__(
-        self, master=None, name="", change_callback=None, initial="", choices=()
+        self,
+        master=None,
+        name="",
+        change_callback=None,
+        initial="",
+        label="",
+        choices=COLORS,
     ):
         """Sets master attribute and configs choice widget from provided arguments
 
@@ -368,12 +391,16 @@ class ChoiceOption(tk.OptionMenu):
         :param change_callback: method
         :param initial: starting value
         :param initial: str
+        :param label: explanation text for this check button
+        :param label: str
         :param choices: collection of available text values
         :param choices: tuple
         """
         self.var = tk.StringVar()
         self.var.set(initial)
-        super().__init__(master, self.var, *choices, command=self.on_update_value)
+        super().__init__(
+            master, self.var, initial, *choices, command=self.on_update_value
+        )
         self.master = master
         self.name = name
         self.change_callback = change_callback
@@ -381,3 +408,10 @@ class ChoiceOption(tk.OptionMenu):
     def on_update_value(self, *args):
         self.change_callback(name=self.name, value=self.var.get())
         return "break"
+
+
+class ThemeOption(ColorOption):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.update(initial=getattr(Settings, "MAIN{}".format(kwargs.get("name"))))
+        super().__init__(*args, **kwargs)

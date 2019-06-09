@@ -60,6 +60,7 @@ def controller_mocked_next(mocker):
     controller.state = Settings.LOCATE
     return controller
 
+
 def mocked_for_options(mocker):
     mocker.patch("arrangeit.options.OptionsDialog.setup_widgets")
     mocker.patch("arrangeit.options.OptionsDialog.setup_bindings")
@@ -68,15 +69,17 @@ def mocked_for_options(mocker):
     mocker.patch("arrangeit.options.OptionsDialog.title")
     mocker.patch("arrangeit.options.OptionsDialog.destroy")
 
-def mocked_for_options_setup_widgets(mocker, without_appear=False):
-    if not without_appear:
-        mocker.patch("arrangeit.options.OptionsDialog.setup_appearance")
+
+def mocked_for_options_setup(mocker, without_section=False):
+    if not without_section:
+        mocker.patch("arrangeit.options.OptionsDialog.setup_section")
     mocker.patch("arrangeit.options.OptionsDialog.setup_bindings")
     mocker.patch("arrangeit.options.OptionsDialog.geometry")
     mocker.patch("arrangeit.options.tk.Toplevel.__init__")
     mocker.patch("arrangeit.options.OptionsDialog.title")
     mocker.patch("arrangeit.options.OptionsDialog.destroy")
     mocker.patch("arrangeit.options.tk.StringVar")
+    mocker.patch("arrangeit.options.tk.IntVar")
     mocker.patch("arrangeit.options.tk.Label")
     mocker.patch("arrangeit.options.tk.Button")
 
