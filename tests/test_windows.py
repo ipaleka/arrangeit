@@ -8,7 +8,7 @@ from win32con import (
 import pytest
 from arrangeit.windows.collector import TITLEBARINFO, WINDOWINFO, Collector
 from arrangeit.windows.controller import Controller
-from arrangeit.linux.utils import user_data_path
+from arrangeit.windows.utils import user_data_path
 
 SAMPLE_HWND = 1001
 

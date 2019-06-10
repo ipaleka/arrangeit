@@ -260,3 +260,17 @@ class Collector(BaseCollector):
         :returns: str
         """
         return [(0, "")]
+
+    def get_monitors_rects(self):
+        """Returns list of available monitors position and size rectangles.
+
+        :returns: list [(x,y,w,h)]
+        """
+        return [(0, 0, 1024, 768)]
+
+    def get_smallest_monitor_size(self):
+        """Returns size of the smallest monitor.
+
+        :returns: tuple (w,h)
+        """
+        return (1024, 768)

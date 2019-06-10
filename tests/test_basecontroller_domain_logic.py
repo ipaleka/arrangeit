@@ -163,11 +163,9 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_listed_window_activated_calls_windows_clear_list(
         self, mocker
     ):
-        mocker.patch("arrangeit.base.BaseController.next")
-        view = mocker.patch("arrangeit.base.ViewApplication")
-        controller = base.BaseController(mocker.MagicMock())
+        controller = controller_mocked_next(mocker)
         controller.listed_window_activated(90192)
-        assert view.return_value.windows.clear_list.call_count == 1
+        assert controller.view.windows.clear_list.call_count == 1
 
     def test_BaseController_listed_window_activated_calls_windowslist_add_windows(
         self, mocker

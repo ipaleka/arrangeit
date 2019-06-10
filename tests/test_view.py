@@ -262,9 +262,9 @@ class TestWorkspacesCollection(object):
     def test_WorkspacesCollection_issubclass_of_Frame(self):
         assert issubclass(WorkspacesCollection, tk.Frame)
 
-    @pytest.mark.parametrize("attr", ["master", "active"])
-    def test_WorkspacesCollection_inits_attr_as_None(self, attr):
-        assert getattr(WorkspacesCollection, attr) is None
+    @pytest.mark.parametrize("attr,value", [("master",None), ("active", 0)])
+    def test_WorkspacesCollection_inits_attributes(self, attr, value):
+        assert getattr(WorkspacesCollection, attr) is value
 
     ## WorkspacesCollection.__init__
     def test_WorkspacesCollection_init_calls_super_with_master_arg(self, mocker):

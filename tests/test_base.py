@@ -347,6 +347,7 @@ class TestBaseApp(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_BaseApp__save_setting_calls_json_load_once(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.os.path.join", return_value="foo")
         mocker.patch("arrangeit.base.os.path.exists", return_value=True)
         mocker.patch("arrangeit.base.open")
@@ -356,6 +357,7 @@ class TestBaseApp(object):
         mocked.assert_called_once()
 
     def test_BaseApp__save_setting_catches_exception_and_continues(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         SAMPLE = "barfoo"
         mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
         mocker.patch("arrangeit.base.os.path.exists", return_value=True)
@@ -365,6 +367,7 @@ class TestBaseApp(object):
         assert returned is False
 
     def test_BaseApp__save_setting_writes_to_settings_file(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         SAMPLE = "barfoo"
         mocker.patch("arrangeit.base.json.load", return_value={})
         mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
@@ -379,6 +382,7 @@ class TestBaseApp(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_BaseApp__save_setting_updates_settings_file(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         SAMPLE = "barfoo"
         VALUES = {"MAIN_FG": "white", "MAIN_BG": "black"}
         mocker.patch("arrangeit.base.json.load", return_value=copy.deepcopy(VALUES))
@@ -392,6 +396,7 @@ class TestBaseApp(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_BaseApp__save_setting_overwrites_settings_file_values(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         SAMPLE = "barfoo"
         VALUES = {"MAIN_FG": "white", "MAIN_BG": "black"}
         mocker.patch("arrangeit.base.json.load", return_value=copy.deepcopy(VALUES))
@@ -493,7 +498,7 @@ class TestBaseApp(object):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         collection = WindowsCollection()
-        collection.add(WindowModel(rect=SAMPLE_RECT, workspace=1))
+        collection.add(WindowModel(rect=SAMPLE_RECT, workspace=0))
         mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
         base.BaseApp().create_snapping_sources(WindowModel())
         mocked.assert_called()

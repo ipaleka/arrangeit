@@ -377,7 +377,7 @@ class WorkspacesCollection(tk.Frame):
     """
 
     master = None
-    active = None
+    active = 0
 
     def __init__(self, master=None):
         """Sets master attribute from provided argument

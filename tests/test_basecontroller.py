@@ -118,6 +118,7 @@ class TestBaseController(object):
         assert mocked.return_value.wm_attributes.call_count == 1
 
     def test_BaseController_setup_root_window_calls_config_background(self, mocker):
+        mocked_setup(mocker)
         root = mocker.MagicMock()
         base.BaseController(None).setup_root_window(root)
         calls = [mocker.call(background=Settings.MAIN_BG)]
