@@ -298,13 +298,12 @@ class CornerWidget(object):
         self.background = background
         self.setup_widgets()
 
-    def setup_widgets(self):
-        """Creates all three frames and places them in default corner."""
-        common = {"master": self.master, "bg": self.background, "borderwidth": 0}
-        self.horizontal = tk.Frame(**common, width=self.length, height=self.width)
-        self.vertical = tk.Frame(**common, width=self.width, height=self.length)
-        self.box = tk.Frame(**common, width=self.box_size, height=self.box_size)
-        self.set_corner()
+    def anchor(self, corner=0):
+        """Returns anchor for provided corner.
+
+        :returns: str
+        """
+        return {0: "nw", 1: "ne", 2: "se", 3: "sw"}.get(corner)
 
     def get_place_parameters(self, corner, size_property):
         """Returns parameters for place method for given corner and size method.
@@ -326,21 +325,11 @@ class CornerWidget(object):
             parameters["x"] = -parameters["x"]
         return parameters
 
-    def set_corner(self, corner=0):
+    def hide_corner(self):
         """Places widget frames in provided corner."""
-        params = self.get_place_parameters(corner, self.max_xy)
-        self.horizontal.place(**params)
-        self.vertical.place(**params)
-
-        params = self.get_place_parameters(corner, self.max_box)
-        self.box.place(**params)
-
-    def anchor(self, corner=0):
-        """Returns anchor for provided corner.
-
-        :returns: str
-        """
-        return {0: "nw", 1: "ne", 2: "se", 3: "sw"}.get(corner)
+        self.horizontal.place(relx=0.0, rely=0.0, y=-self.width * 2)
+        self.vertical.place(relx=0.0, rely=0.0, x=-self.width * 2)
+        self.box.place(relx=0.0, rely=0.0, x=-self.box_size * 2)
 
     @property
     def max_xy(self):
@@ -357,6 +346,23 @@ class CornerWidget(object):
         :returns: int
         """
         return max(self.width, self.shift)
+
+    def set_corner(self, corner=0):
+        """Places widget frames in provided corner."""
+        params = self.get_place_parameters(corner, self.max_xy)
+        self.horizontal.place(**params)
+        self.vertical.place(**params)
+
+        params = self.get_place_parameters(corner, self.max_box)
+        self.box.place(**params)
+
+    def setup_widgets(self):
+        """Creates all three frames and places them in default corner."""
+        common = {"master": self.master, "bg": self.background, "borderwidth": 0}
+        self.horizontal = tk.Frame(**common, width=self.length, height=self.width)
+        self.vertical = tk.Frame(**common, width=self.width, height=self.length)
+        self.box = tk.Frame(**common, width=self.box_size, height=self.box_size)
+        self.set_corner()
 
 
 class WorkspacesCollection(tk.Frame):

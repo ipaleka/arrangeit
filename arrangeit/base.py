@@ -664,7 +664,7 @@ class BaseController(object):
                 self.state = self.state + 1 if (self.state + 1) % 4 != 0 else 0
             else:
                 self.state = self.state - 1 if self.state > 0 else 3
-            self.setup_corner()
+            self.move_to_corner()
 
     def get_root_rect(self, x, y):
         """Returns current root position and size calculated from provided x, y.
@@ -700,17 +700,36 @@ class BaseController(object):
         if len(windows) >= number:
             self.listed_window_activated(windows[number - 1].wid)
 
+    def move_to_corner(self):
+        """Configures mouse pointer and moves cursor to calculated corner position.
+
+        :var x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :var y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
+        x = self.view.master.winfo_x() + Settings.SHIFT_CURSOR
+        y = self.view.master.winfo_y() + Settings.SHIFT_CURSOR
+
+        if self.state % 3:
+            x += self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
+
+        if self.state // 2:
+            y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
+
+        move_cursor(x, y)
+        self.setup_corner()
+
     def place_on_top_left(self):
         """Changes and moves cursor to model's top left position.
 
         Cursor is changed to default config. Also calls `on_mouse_move` to force
         moving if the app is just instantiated.
         """
-        self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
         move_cursor(
             self.model.x + Settings.SHIFT_CURSOR, self.model.y + Settings.SHIFT_CURSOR
         )
-        self.view.corner.set_corner(self.state % 10)
+        self.setup_corner()
 
     def place_on_opposite_corner(self):
         """Changes and moves cursor to model windows corner opposite to positioning phase
@@ -722,8 +741,6 @@ class BaseController(object):
         :var top: y-axis part of the cursor position
         :type top: int
         """
-        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
-
         left = max(self.model.changed_x - self.model.w, 0) + Settings.SHIFT_CURSOR
         top = max(self.model.changed_y - self.model.h, 0) + Settings.SHIFT_CURSOR
 
@@ -745,8 +762,7 @@ class BaseController(object):
             )
 
         move_cursor(left, top)
-
-        self.view.corner.set_corner(self.state % 10)
+        self.setup_corner()
 
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.
@@ -768,6 +784,7 @@ class BaseController(object):
         """Stops positioning/resizing routine and releases mouse."""
         self.view.reset_bindings()
         self.view.master.config(cursor="left_ptr")
+        self.view.corner.hide_corner()
         self.state = Settings.OTHER
         self.listener.stop()
 
@@ -775,12 +792,12 @@ class BaseController(object):
         """Creates and starts mouse listener and starts positioning/resizing routine."""
         self.view.setup_bindings()
         self.state = Settings.LOCATE
-        self.view.master.config(cursor=Settings.CORNER_CURSOR[0])
         self.set_default_geometry(self.view.master)
         move_cursor(
             self.view.master.winfo_x() + Settings.SHIFT_CURSOR,
             self.view.master.winfo_y() + Settings.SHIFT_CURSOR,
         )
+        self.setup_corner()
         self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
         self.listener.start()
 
@@ -792,6 +809,11 @@ class BaseController(object):
         """Stops mouse listener and destroys Tkinter root window."""
         self.listener.stop()
         self.view.master.destroy()
+
+    def setup_corner(self):
+        """Configures mouse pointer and background to current corner."""
+        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
+        self.view.corner.set_corner(self.state % 10)
 
     def set_minimum_size(self, x, y):
         """Sets root window size to minimum size defined in settings
@@ -806,29 +828,6 @@ class BaseController(object):
         self.view.master.geometry(
             "{}x{}+{}+{}".format(Settings.MIN_WIDTH, Settings.MIN_HEIGHT, x, y)
         )
-
-    def setup_corner(self):
-        """Configures mouse pointer and moves cursor to calculated corner position.
-
-        :var x: absolute horizontal axis mouse position in pixels
-        :type x: int
-        :var y: absolute vertical axis mouse position in pixels
-        :type y: int
-        """
-        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state])
-
-        x = self.view.master.winfo_x() + Settings.SHIFT_CURSOR
-        y = self.view.master.winfo_y() + Settings.SHIFT_CURSOR
-
-        if self.state % 3:
-            x += self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
-
-        if self.state // 2:
-            y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
-
-        move_cursor(x, y)
-
-        self.view.corner.set_corner(self.state)
 
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""
