@@ -10,10 +10,12 @@ MESSAGES = {
     "options_title": _("arrangeit options"),
     "appearance": _("Appearance"),
     "colors": _("Colors"),
+    "files": _("Files"),
     "setting_changed": _(
         "Setting is changed - some settings may require\n"
         "program restart in order for the change to take effect."
     ),
+    "save_default": _("Collected windows data saved to default file."),
     "TRANSPARENCY_IS_ON": _("Use transparency"),
     "ROOT_ALPHA": _("Main window opacity [%]:"),
     "SCREENSHOT_TO_GRAYSCALE": _("Convert screenshot to grayscale"),
@@ -92,9 +94,15 @@ class OptionsDialog(tk.Toplevel):
 
     :var OptionsDialog.master: master widget
     :type OptionsDialog.master: :class:`.tk.Tk`
+    :var message: variable holding message log
+    :type message: :class:`tk.StringVar`
+    :var timer: id of active timer
+    :type timer: int
     """
 
     master = None
+    message = None
+    timer = None
 
     def __init__(self, master=None):
         """Sets master attribute, position dialog on former master position
@@ -151,8 +159,29 @@ class OptionsDialog(tk.Toplevel):
         """Binds relevant events to related callback."""
         self.bind("<Destroy>", self.on_destroy_options)
 
+    def setup_files_section(self):
+        """Creates and places widgets for section dealing with files.
+
+        :returns: :class:`ttk.LabelFrame`
+        """
+        files = ttk.LabelFrame(self, text=MESSAGES["files"], labelanchor="nw")
+        tk.Button(
+            files,
+            text=_("Save data to default file"),
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
+            command=self.on_save_default,
+        ).pack(
+            side=tk.LEFT,
+            padx=Settings.OPTIONS_WIDGETS_PADX,
+            pady=Settings.OPTIONS_WIDGETS_PADY,
+        )
+        return files
+
     def setup_section(self, name, denominator=4):
-        """Creates and places widgets for section with provided name."""
+        """Creates and places widgets for section with provided name.
+
+        :returns: :class:`ttk.LabelFrame`
+        """
         section = ttk.LabelFrame(self, text=MESSAGES[name], labelanchor="nw")
 
         for i, (name, kwargs) in enumerate(WIDGETS[name]):
@@ -181,18 +210,16 @@ class OptionsDialog(tk.Toplevel):
         """Creates and places all the options' widgets."""
         self.message = tk.StringVar()
 
-        self.setup_section("appearance").pack(
-            fill=tk.BOTH,
-            padx=Settings.OPTIONS_WIDGETS_PADX,
-            pady=Settings.OPTIONS_WIDGETS_PADY,
-            expand=True,
-        )
-        self.setup_section("colors", denominator=2).pack(
-            fill=tk.BOTH,
-            padx=Settings.OPTIONS_WIDGETS_PADX,
-            pady=Settings.OPTIONS_WIDGETS_PADY,
-            expand=True,
-        )
+        section_pack_kwargs = {
+            "fill": tk.BOTH,
+            "padx": Settings.OPTIONS_WIDGETS_PADX,
+            "pady": Settings.OPTIONS_WIDGETS_PADY,
+            "expand": True,
+        }
+
+        self.setup_section("appearance").pack(**section_pack_kwargs)
+        self.setup_section("colors", denominator=2).pack(**section_pack_kwargs)
+        self.setup_files_section().pack(**section_pack_kwargs)
 
         tk.Label(
             self,
@@ -228,6 +255,8 @@ class OptionsDialog(tk.Toplevel):
     def change_setting(self, name="", value=None):
         """Calls sontroller's change setting method and updates message log.
 
+        Also cancels previous timer if it exists and create a new one.
+
         :param name: setting name
         :type name: str
         :param value: value for given name setting
@@ -235,12 +264,25 @@ class OptionsDialog(tk.Toplevel):
         """
         self.master.controller.change_setting(name, value)
         self.message.set(MESSAGES["setting_changed"])
+        self.set_timer()
+
+    def set_timer(self):
+        """Cancels previous timer if it exists and creates a new one."""
+        if self.timer is not None:
+            self.after_cancel(self.timer)
+        self.timer = self.after(Settings.OPTIONS_TIMER_DELAY, self.message.set, "")
 
     ## EVENTS CALLBACKS
     def on_destroy_options(self, event):
         """Brings back root window and destroys options dialog."""
         self.master.show_root()
         self.destroy()
+
+    def on_save_default(self):
+        """Saves windows collection data to default file."""
+        self.master.controller.save()
+        self.message.set(MESSAGES["save_default"])
+        self.set_timer()
 
 
 class ScaleOption(tk.Scale):

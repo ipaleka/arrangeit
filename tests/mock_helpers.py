@@ -70,14 +70,17 @@ def mocked_for_options(mocker):
     mocker.patch("arrangeit.options.OptionsDialog.destroy")
 
 
-def mocked_for_options_setup(mocker, without_section=False):
+def mocked_for_options_setup(mocker, without_section=False, without_files=False):
     if not without_section:
         mocker.patch("arrangeit.options.OptionsDialog.setup_section")
+    if not without_files:
+        mocker.patch("arrangeit.options.OptionsDialog.setup_files_section")
     mocker.patch("arrangeit.options.OptionsDialog.setup_bindings")
     mocker.patch("arrangeit.options.OptionsDialog.geometry")
     mocker.patch("arrangeit.options.tk.Toplevel.__init__")
     mocker.patch("arrangeit.options.OptionsDialog.title")
     mocker.patch("arrangeit.options.OptionsDialog.destroy")
+    mocker.patch("arrangeit.options.ttk.LabelFrame")
     mocker.patch("arrangeit.options.tk.StringVar")
     mocker.patch("arrangeit.options.tk.IntVar")
     mocker.patch("arrangeit.options.tk.Label")

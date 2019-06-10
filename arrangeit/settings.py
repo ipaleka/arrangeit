@@ -12,7 +12,7 @@ DO NOT EDIT SETTINGS IN THIS FILE FOR USER SIDE CONFIGURATION - for such purpose
 user_settings.json file created and located in arrangeit user data directory.
 """
 
-MESSAGES = {"default_saved": _("Finished: saving to default file...")}
+MESSAGES = {"default_saved": _("Collected windows data saved to default file.")}
 
 SETTINGS = {
     "MIN_WIDTH": (int, 100),
@@ -103,6 +103,7 @@ SETTINGS = {
     "OPTIONS_WIDGETS_PADX": (int, 4),
     "OPTIONS_WIDGETS_PADY": (int, 2),
     "OPTIONS_MESSAGE_HEIGHT": (int, 2),
+    "OPTIONS_TIMER_DELAY": (int, 5000),
 }
 
 

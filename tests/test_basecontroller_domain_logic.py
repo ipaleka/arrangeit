@@ -241,15 +241,16 @@ class TestBaseControllerDomainLogic(object):
         controller.next(True)
         controller.generator.__next__.assert_called_once()
 
-    def test_BaseController_next_calls_run_task_save_default_on_StopIteration(
+    def test_BaseController_next_calls_save_on_StopIteration(
         self, mocker
     ):
         controller = controller_mocked_for_next(mocker)
         controller.generator.__next__.side_effect = StopIteration()
         mocker.patch("arrangeit.base.BaseController.shutdown")
+        mocked = mocker.patch("arrangeit.base.BaseController.save")
         controller.next()
-        controller.app.run_task.assert_called_once()
-        controller.app.run_task.assert_called_with("save_default")
+        mocked.assert_called_once()
+        mocked.assert_called_with()
 
     def test_BaseController_next_calls_shutdown_on_StopIteration(self, mocker):
         controller = controller_mocked_for_next(mocker)

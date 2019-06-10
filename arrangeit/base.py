@@ -86,7 +86,7 @@ class BaseApp(object):
             return True
 
         setattr(Settings, name, value)
-        return self._save_setting([name, ], value)
+        return self._save_setting([name], value)
 
     def change_settings_color_group(self, group="", value=None):
         """Changes values for all settings ending with provided `group`
@@ -422,7 +422,7 @@ class BaseController(object):
         try:
             self.model = next(self.generator)
         except StopIteration:
-            self.app.run_task("save_default")
+            self.save()
             self.shutdown()
             return True
 
@@ -779,6 +779,10 @@ class BaseController(object):
         )
         self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
         self.listener.start()
+
+    def save(self):
+        """Runs task for saving windows collection data to default file."""
+        self.app.run_task("save_default")
 
     def shutdown(self):
         """Stops mouse listener and destroys Tkinter root window."""

@@ -872,6 +872,17 @@ class TestBaseController(object):
         controller.recapture_mouse()
         assert mocked.return_value.start.call_count == 1
 
+
+    ## BaseController.save
+    def test_BaseController_save_runs_related_task(self, mocker):
+        mocked_setup(mocker)
+        controller = controller_mocked_app(mocker)
+        controller.listener = mocker.MagicMock()
+        controller.save()
+        assert controller.app.run_task.call_count == 1
+        calls = [mocker.call("save_default")]
+        controller.app.run_task.assert_has_calls(calls, any_order=True)
+
     ## BaseController.shutdown
     def test_BaseController_shutdown_stops_listener(self, mocker):
         mocked_setup(mocker)
