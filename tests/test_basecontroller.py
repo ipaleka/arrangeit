@@ -128,9 +128,7 @@ class TestBaseController(object):
         self, mocker
     ):
         root = mocker.MagicMock()
-        mocker.patch(
-            "arrangeit.base.quarter_by_smaller", return_value=(100, 100)
-        )
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         controller = controller_mocked_app(mocker)
         controller.app.collector.get_smallest_monitor_size.return_value = (100, 100)
         controller.set_default_geometry(root)
@@ -634,6 +632,7 @@ class TestBaseController(object):
         mocker.patch("arrangeit.base.BaseController.on_mouse_move")
         controller = controller_mocked_app(mocker)
         controller.model = base.WindowModel(rect=(50, 50, 100, 100))
+        controller.state = Settings.LOCATE
         controller.place_on_top_left()
         calls = [mocker.call(cursor=Settings.CORNER_CURSOR[0])]
         view.return_value.master.config.assert_has_calls(calls, any_order=True)
@@ -647,9 +646,23 @@ class TestBaseController(object):
         SHIFT = 10
         type(mocked_settings).SHIFT_CURSOR = mocker.PropertyMock(return_value=SHIFT)
         controller = controller_mocked_app(mocker)
+        controller.state = Settings.LOCATE
         controller.model = data.WindowModel(rect=(x, y, 100, 100))
         controller.place_on_top_left()
         mocked.assert_called_with(x + SHIFT, y + SHIFT)
+
+    def test_BaseController_place_on_top_left_calls_view_corner_set_corner(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        mocker.patch("arrangeit.base.move_cursor")
+        controller = controller_mocked_app(mocker)
+        controller.model = data.WindowModel(rect=(101, 202, 100, 100))
+        controller.state = Settings.LOCATE + 2
+        controller.place_on_top_left()
+        controller.view.corner.set_corner.assert_called_once()
+        controller.view.corner.set_corner.assert_called_with(2)
 
     ## BaseController.place_on_opposite_corner
     def test_BaseController_place_on_opposite_corner_calls_cursor_config(self, mocker):
@@ -725,6 +738,20 @@ class TestBaseController(object):
         controller.state = state
         controller.place_on_opposite_corner()
         mocked.assert_called_with(expected_x, expected_y)
+
+    def test_BaseController_place_on_opposite_corner_calls_view_corner_set_corner(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.move_cursor")
+        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        controller = controller_mocked_app(mocker)
+        controller.default_size = (2000, 2000)
+        controller.model = base.WindowModel(rect=(50, 50, 100, 100))
+        controller.state = Settings.RESIZE
+        controller.place_on_opposite_corner()
+        controller.view.corner.set_corner.assert_called_once()
+        controller.view.corner.set_corner.assert_called_with(controller.state % 10)
 
     ## BaseController.remove_listed_window
     def test_BaseController_remove_listed_window_calls_widget_destroy(self, mocker):
@@ -872,7 +899,6 @@ class TestBaseController(object):
         controller.recapture_mouse()
         assert mocked.return_value.start.call_count == 1
 
-
     ## BaseController.save
     def test_BaseController_save_runs_related_task(self, mocker):
         mocked_setup(mocker)
@@ -977,6 +1003,16 @@ class TestBaseController(object):
         mocked.assert_called_with(
             x + Settings.SHIFT_CURSOR, y + h - Settings.SHIFT_CURSOR
         )
+
+    def test_BaseController_setup_corner_calls_view_corner_set_corner(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = controller_mocked_app(mocker)
+        CORNER = 3
+        controller.state = CORNER
+        mocker.patch("arrangeit.base.move_cursor")
+        controller.setup_corner()
+        view.return_value.corner.set_corner.assert_called_once()
+        view.return_value.corner.set_corner.assert_called_with(CORNER)
 
     ## BaseController.skip_current_window
     def test_BaseController_skip_current_window_calls_model_clear_changed(self, mocker):

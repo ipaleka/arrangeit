@@ -10,6 +10,7 @@ from arrangeit.view import (
     get_mouse_listener,
     move_cursor,
     cursor_position,
+    CornerWidget,
     WorkspacesCollection,
     WindowsList,
     Workspace,
@@ -87,6 +88,155 @@ class TestViewFunctions(object):
         mocked = mocker.patch("pynput.mouse.Controller")
         returned = cursor_position()
         assert returned == mocked.return_value.position
+
+
+class TestCornerWidget(object):
+    """Unit testing class for :class:`CornerWidget` class."""
+
+    ## CornerWidget
+    def test_CornerWidget_issubclass_of_object(self):
+        assert issubclass(CornerWidget, object)
+
+    @pytest.mark.parametrize(
+        "attr,value",
+        [
+            ("master", None),
+            ("shift", 0),
+            ("background", "red"),
+            ("length", 20),
+            ("width", 4),
+            ("box_size", 8),
+        ],
+    )
+    def test_CornerWidget_inits_attributes(self, attr, value):
+        assert getattr(CornerWidget, attr) == value
+
+    ## CornerWidget.__init__
+    @pytest.mark.parametrize("attr", ["master", "shift", "background"])
+    def test_CornerWidget_init_sets_attributes(self, mocker, attr):
+        mocker.patch("arrangeit.view.CornerWidget.setup_widgets")
+        mocked = mocker.MagicMock()
+        kwargs = {attr: mocked}
+        widget = CornerWidget(**kwargs)
+        assert getattr(widget, attr) == mocked
+
+    def test_CornerWidget_init_calls_setup_widgets(self, mocker):
+        mocked = mocker.patch("arrangeit.view.CornerWidget.setup_widgets")
+        CornerWidget()
+        mocked.assert_called_once()
+
+    ## CornerWidget.setup_widgets
+    @pytest.mark.parametrize(
+        "attr,width,height", [("horizontal", 20, 4), ("vertical", 4, 20), ("box", 8, 8)]
+    )
+    def test_CornerWidget_setup_widgets_instantiates_frame_and_sets_attribute_for_it(
+        self, mocker, attr, width, height
+    ):
+        mocker.patch("arrangeit.view.CornerWidget.set_corner")
+        mocked = mocker.patch("arrangeit.view.tk.Frame")
+        master = mocker.MagicMock()
+        BG = "yellow"
+        widget = CornerWidget(master, background=BG)
+        mocked.reset_mock()
+        widget.setup_widgets()
+        calls = [mocker.call(master=master, bg=BG, width=width, height=height, borderwidth=0)]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert widget.horizontal == mocked.return_value
+
+    def test_CornerWidget_setup_widgets_calls_set_corner(self, mocker):
+        mocker.patch("arrangeit.view.tk.Frame")
+        mocked = mocker.patch("arrangeit.view.CornerWidget.set_corner")
+        widget = CornerWidget(mocker.MagicMock())
+        mocked.reset_mock()
+        widget.setup_widgets()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    ## CornerWidget.get_place_parameters
+    @pytest.mark.parametrize(
+        "corner,size,expected",
+        [
+            (0, 11, {"relx": 0.0, "rely": 0.0, "x": 11, "y": 11, "anchor": "nw"}),
+            (0, 1, {"relx": 0.0, "rely": 0.0, "x": 1, "y": 1, "anchor": "nw"}),
+            (1, 11, {"relx": 1.0, "rely": 0.0, "x": -11, "y": 11, "anchor": "ne"}),
+            (1, 1, {"relx": 1.0, "rely": 0.0, "x": -1, "y": 1, "anchor": "ne"}),
+            (2, 11, {"relx": 1.0, "rely": 1.0, "x": -11, "y": -11, "anchor": "se"}),
+            (2, 1, {"relx": 1.0, "rely": 1.0, "x": -1, "y": -1, "anchor": "se"}),
+            (3, 11, {"relx": 0.0, "rely": 1.0, "x": 11, "y": -11, "anchor": "sw"}),
+            (3, 1, {"relx": 0.0, "rely": 1.0, "x": 1, "y": -1, "anchor": "sw"}),
+        ],
+    )
+    def test_CornerWidget_get_place_parameters_functionality(
+        self, mocker, corner, size, expected
+    ):
+        mocker.patch("arrangeit.view.CornerWidget.setup_widgets")
+        widget = CornerWidget(mocker.MagicMock())
+        assert widget.get_place_parameters(corner, size) == expected
+
+    ## CornerWidget.set_corner
+    def test_CornerWidget_set_corner_calls_get_place_parameters_with_max_xy(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.view.CornerWidget.get_place_parameters")
+        widget = CornerWidget(mocker.MagicMock())
+        mocked.reset_mock()
+        CORNER = 0
+        widget.set_corner(CORNER)
+        calls = [mocker.call(CORNER, widget.max_xy)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_CornerWidget_set_corner_calls_get_place_parameters_with_max_box(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.view.CornerWidget.get_place_parameters")
+        widget = CornerWidget(mocker.MagicMock())
+        mocked.reset_mock()
+        CORNER = 1
+        widget.set_corner(CORNER)
+        calls = [mocker.call(CORNER, widget.max_box)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_CornerWidget_set_corner_calls_frame_place(self, mocker):
+        SAMPLE = {"bg": "red"}
+        mocker.patch(
+            "arrangeit.view.CornerWidget.get_place_parameters", return_value=SAMPLE
+        )
+        mocked = mocker.patch("arrangeit.view.tk.Frame.place")
+        widget = CornerWidget(mocker.MagicMock())
+        mocked.reset_mock()
+        widget.set_corner(0)
+        calls = [mocker.call(**SAMPLE)]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert mocked.call_count == 3
+
+    ## CornerWidget.anchor
+    @pytest.mark.parametrize(
+        "corner,expected", [(0, "nw"), (1, "ne"), (2, "se"), (3, "sw")]
+    )
+    def test_CornerWidget_anchor_functionality(self, mocker, corner, expected):
+        mocker.patch("arrangeit.view.CornerWidget.setup_widgets")
+        widget = CornerWidget()
+        assert widget.anchor(corner) == expected
+
+    ## CornerWidget.max_xy
+    def test_CornerWidget_max_xy_is_property(self):
+        assert isinstance(type(CornerWidget()).max_xy, property)
+
+    @pytest.mark.parametrize("shift,expected", [(0, 0), (4, 0), (8, 4), (5, 1)])
+    def test_CornerWidget_max_xy_functionality(self, mocker, shift, expected):
+        mocker.patch("arrangeit.view.CornerWidget.setup_widgets")
+        widget = CornerWidget(shift=shift)
+        assert widget.max_xy == expected
+
+    ## CornerWidget.max_box
+    def test_CornerWidget_max_box_is_property(self):
+        assert isinstance(type(CornerWidget()).max_box, property)
+
+    @pytest.mark.parametrize("shift,expected", [(0, 4), (3, 4), (6, 6), (8, 8), (12, 12)])
+    def test_CornerWidget_max_box_functionality(self, mocker, shift, expected):
+        mocker.patch("arrangeit.view.CornerWidget.setup_widgets")
+        widget = CornerWidget(shift=shift)
+        assert widget.max_box == expected
 
 
 class TestWorkspacesCollection(object):

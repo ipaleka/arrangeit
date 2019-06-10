@@ -80,14 +80,26 @@ class ViewApplication(tk.Frame):
         self.setup_widgets()
         self.setup_bindings()
 
-    def setup_widgets(self):
-        """Calls all the frame's widgets creation and placement methods."""
-        self.setup_title()
-        self.setup_name()
-        self.setup_icon()
-        self.setup_workspaces()
-        self.setup_windows()
-        self.setup_toolbar()
+    def hide_root(self):
+        """Hides master/root window."""
+        self.master.withdraw()
+
+    def reset_bindings(self):
+        """Unbinds all relevant events and binds those for positioning routine."""
+        self.unbind_all("<Button-1>")
+        self.unbind_all("<Button-2>")
+        self.unbind_all("<Button-3>")
+        self.unbind_all("<Key>")
+
+        self.title_label.bind("<Button-1>", self.controller.on_continue)
+        self.icon.bind("<Button-1>", self.controller.on_continue)
+        self.windows.bind("<Button-1>", self.controller.on_continue)
+        self.workspaces.bind("<Button-1>", self.controller.on_continue)
+
+    def show_root(self):
+        """Shows master/root window."""
+        self.master.update()
+        self.master.deiconify()
 
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
@@ -108,41 +120,12 @@ class ViewApplication(tk.Frame):
         self.bind_all("<Key>", self.controller.on_key_pressed)
         self.bind("<Enter>", self.controller.on_focus)
 
-    def reset_bindings(self):
-        """Unbinds all relevant events and binds those for positioning routine."""
-        self.unbind_all("<Button-1>")
-        self.unbind_all("<Button-2>")
-        self.unbind_all("<Button-3>")
-        self.unbind_all("<Key>")
-
-        self.title_label.bind("<Button-1>", self.controller.on_continue)
-        self.icon.bind("<Button-1>", self.controller.on_continue)
-        self.windows.bind("<Button-1>", self.controller.on_continue)
-        self.workspaces.bind("<Button-1>", self.controller.on_continue)
-
-    def setup_title(self):
-        """Sets and places title label widget."""
-        self.title = tk.StringVar()
-        self.title_label = tk.Label(
-            self,
-            textvariable=self.title,
-            font=(
-                "TkDefaultFont",
-                increased_by_fraction(
-                    nametofont("TkDefaultFont")["size"],
-                    Settings.TITLE_LABEL_FONT_INCREASE,
-                ),
-            ),
-            height=Settings.TITLE_LABEL_HEIGHT,
-            foreground=Settings.TITLE_LABEL_FG,
-            background=Settings.TITLE_LABEL_BG,
-            anchor=Settings.TITLE_LABEL_ANCHOR,
-            padx=Settings.TITLE_LABEL_PADX,
-            pady=Settings.TITLE_LABEL_PADY,
-        )
-        self.title_label.place(
-            relheight=Settings.TITLE_LABEL_RELHEIGHT,
-            relwidth=Settings.TITLE_LABEL_RELWIDTH,
+    def setup_corner(self):
+        """Creates and places corner widget in the default corner 0."""
+        self.corner = CornerWidget(
+            self.master,
+            shift=Settings.SHIFT_CURSOR,
+            background=Settings.HIGHLIGHTED_COLOR,
         )
 
     def setup_icon(self):
@@ -180,23 +163,29 @@ class ViewApplication(tk.Frame):
             relwidth=Settings.NAME_LABEL_RELWIDTH,
         )
 
-    def setup_workspaces(self):
-        """Creates and places `workspaces` widget and sets corresponding variable."""
-        self.workspaces = WorkspacesCollection(self)
-        self.workspaces.place(
-            rely=Settings.NAME_LABEL_RELHEIGHT,
-            relx=Settings.TITLE_LABEL_RELWIDTH,
-            relheight=Settings.WORKSPACES_FRAME_RELHEIGHT,
-            relwidth=Settings.WORKSPACES_FRAME_RELWIDTH,
+    def setup_title(self):
+        """Sets and places title label widget."""
+        self.title = tk.StringVar()
+        self.title_label = tk.Label(
+            self,
+            textvariable=self.title,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    Settings.TITLE_LABEL_FONT_INCREASE,
+                ),
+            ),
+            height=Settings.TITLE_LABEL_HEIGHT,
+            foreground=Settings.TITLE_LABEL_FG,
+            background=Settings.TITLE_LABEL_BG,
+            anchor=Settings.TITLE_LABEL_ANCHOR,
+            padx=Settings.TITLE_LABEL_PADX,
+            pady=Settings.TITLE_LABEL_PADY,
         )
-
-    def setup_windows(self):
-        """Creates and places `windows` widget and sets corresponding variable."""
-        self.windows = WindowsList(self)
-        self.windows.place(
-            rely=Settings.TITLE_LABEL_RELHEIGHT,
-            relheight=Settings.WINDOWS_LIST_RELHEIGHT,
-            relwidth=Settings.WINDOWS_LIST_RELWIDTH,
+        self.title_label.place(
+            relheight=Settings.TITLE_LABEL_RELHEIGHT,
+            relwidth=Settings.TITLE_LABEL_RELWIDTH,
         )
 
     def setup_toolbar(self):
@@ -209,14 +198,34 @@ class ViewApplication(tk.Frame):
             relwidth=Settings.TOOLBAR_RELWIDTH,
         )
 
-    def hide_root(self):
-        """Hides master/root window."""
-        self.master.withdraw()
+    def setup_widgets(self):
+        """Calls all the frame's widgets creation and placement methods."""
+        self.setup_title()
+        self.setup_name()
+        self.setup_icon()
+        self.setup_workspaces()
+        self.setup_windows()
+        self.setup_toolbar()
+        self.setup_corner()
 
-    def show_root(self):
-        """Shows up master/root window."""
-        self.master.update()
-        self.master.deiconify()
+    def setup_windows(self):
+        """Creates and places `windows` widget and sets corresponding variable."""
+        self.windows = WindowsList(self)
+        self.windows.place(
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
+            relheight=Settings.WINDOWS_LIST_RELHEIGHT,
+            relwidth=Settings.WINDOWS_LIST_RELWIDTH,
+        )
+
+    def setup_workspaces(self):
+        """Creates and places `workspaces` widget and sets corresponding variable."""
+        self.workspaces = WorkspacesCollection(self)
+        self.workspaces.place(
+            rely=Settings.NAME_LABEL_RELHEIGHT,
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.WORKSPACES_FRAME_RELHEIGHT,
+            relwidth=Settings.WORKSPACES_FRAME_RELWIDTH,
+        )
 
     def startup(self):
         """Shows master and then calculates and sets now visible parameters.
@@ -246,6 +255,108 @@ class ViewApplication(tk.Frame):
         self.icon.config(image=self.icon_image)
         self.name.set(model.name)
         self.workspaces.select_active(model.workspace)
+
+
+class CornerWidget(object):
+    """Widget holding three frames for emphasizing current corner.
+
+    :var CornerWidget.master: parent widget
+    :type CornerWidget.master: :class:`.tk.Tk`
+    :var shift: cursor shift from corner in pixels
+    :type shift: int
+    :var background: widget background color
+    :type background: str
+    :var length: axes frame length (long side) in pixels
+    :type length: int
+    :var width: axes frame width (small side) in pixels
+    :type width: int
+    :var box_size: box frame width/height in pixels
+    :type box_size: int
+    """
+
+    master = None
+    shift = 0
+    background = "red"
+    length = 20
+    width = 4
+    box_size = 8
+
+    def __init__(self, master=None, shift=0, background="red"):
+        """Creates and places widget frames and sets master and shift attributes
+
+        from provided arguments.
+
+        :param master: parent widget
+        :type master: :class:`.tk.Frame`
+        :var shift: cursor shift from corner in pixels
+        :type shift: int
+        :var background: widget background color
+        :type background: str
+        """
+        self.master = master
+        self.shift = shift
+        self.background = background
+        self.setup_widgets()
+
+    def setup_widgets(self):
+        """Creates all three frames and places them in default corner."""
+        common = {"master": self.master, "bg": self.background, "borderwidth": 0}
+        self.horizontal = tk.Frame(**common, width=self.length, height=self.width)
+        self.vertical = tk.Frame(**common, width=self.width, height=self.length)
+        self.box = tk.Frame(**common, width=self.box_size, height=self.box_size)
+        self.set_corner()
+
+    def get_place_parameters(self, corner, size_property):
+        """Returns parameters for place method for given corner and size method.
+
+        :returns: dict
+        """
+        parameters = {
+            "relx": 0.0,
+            "rely": 0.0,
+            "x": size_property,
+            "y": size_property,
+            "anchor": self.anchor(corner),
+        }
+        if corner // 2:
+            parameters["rely"] = 1.0
+            parameters["y"] = -parameters["y"]
+        if corner % 3:
+            parameters["relx"] = 1.0
+            parameters["x"] = -parameters["x"]
+        return parameters
+
+    def set_corner(self, corner=0):
+        """Places widget frames in provided corner."""
+        params = self.get_place_parameters(corner, self.max_xy)
+        self.horizontal.place(**params)
+        self.vertical.place(**params)
+
+        params = self.get_place_parameters(corner, self.max_box)
+        self.box.place(**params)
+
+    def anchor(self, corner=0):
+        """Returns anchor for provided corner.
+
+        :returns: str
+        """
+        return {0: "nw", 1: "ne", 2: "se", 3: "sw"}.get(corner)
+
+    @property
+    def max_xy(self):
+        """Returns placement on axis related to shift.
+
+        :returns: int
+        """
+        return max(0, self.shift - self.width)
+
+    @property
+    def max_box(self):
+        """Returns box placement on axis related to shift.
+
+        :returns: int
+        """
+        return max(self.width, self.shift)
 
 
 class WorkspacesCollection(tk.Frame):

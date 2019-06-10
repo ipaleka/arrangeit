@@ -49,227 +49,78 @@ class TestViewApplication(object):
         ViewApplication(None, mocker.MagicMock())
         assert mocked.call_count == 1
 
-    ## ViewApplication.setup_title
-    @pytest.mark.parametrize("name,typ", [("title", tk.StringVar)])
-    def test_ViewApplication_setup_title_sets_tk_variable(self, mocker, name, typ):
-        view = ViewApplication(None, mocker.MagicMock())
-        setattr(view, name, None)
-        view.setup_title()
-        assert isinstance(getattr(view, name), typ)
+    ## ViewApplication.reset_bindings
+    @pytest.mark.parametrize(
+        "event", ["<Button-1>", "<Button-2>", "<Button-3>", "<Key>"]
+    )
+    def test_ViewApplication_reset_bindings_unbind_all(self, mocker, event):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        mocked = mocker.patch("arrangeit.view.ViewApplication.unbind_all")
+        view.reset_bindings()
+        calls = [mocker.call(event)]
+        mocked.assert_has_calls(calls, any_order=True)
 
-    def test_ViewApplication_setup_title_sets_title_label(self, mocker):
-        mocked = mocker.patch("arrangeit.view.tk.Label")
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_title()
-        mocked.assert_called_with(
-            view,
-            textvariable=view.title,
-            font=(
-                "TkDefaultFont",
-                increased_by_fraction(
-                    nametofont("TkDefaultFont")["size"],
-                    Settings.TITLE_LABEL_FONT_INCREASE,
-                ),
-            ),
-            height=Settings.TITLE_LABEL_HEIGHT,
-            foreground=Settings.TITLE_LABEL_FG,
-            background=Settings.TITLE_LABEL_BG,
-            anchor=Settings.TITLE_LABEL_ANCHOR,
-            padx=Settings.TITLE_LABEL_PADX,
-            pady=Settings.TITLE_LABEL_PADY,
-        )
-
-    def test_ViewApplication_setup_title_calls_label_place(self, mocker):
-        mocked = mocker.patch("arrangeit.view.tk.Label")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.reset_mock()
-        view.setup_title()
-        assert mocked.return_value.place.call_count == 1
-        mocked.return_value.place.assert_called_with(
-            relheight=Settings.TITLE_LABEL_RELHEIGHT,
-            relwidth=Settings.TITLE_LABEL_RELWIDTH,
-        )
-
-    ## ViewApplication.setup_icon
-    def test_ViewApplication_setup_icon_sets_icon_label(self, mocker):
-        mocked = mocker.patch("arrangeit.view.tk.Label")
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_icon()
-        mocked.assert_called_with(
-            view,
-            bitmap="hourglass",
-            background=Settings.ICON_LABEL_BG,
-            anchor=Settings.ICON_LABEL_ANCHOR,
-            padx=Settings.ICON_LABEL_PADX,
-            pady=Settings.ICON_LABEL_PADY,
-        )
-
-    def test_ViewApplication_setup_icon_calls_label_place(self, mocker):
-        mocked = mocker.patch("arrangeit.view.tk.Label")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.reset_mock()
-        view.setup_icon()
-        assert mocked.return_value.place.call_count == 1
-        mocked.return_value.place.assert_called_with(
-            relx=Settings.TITLE_LABEL_RELWIDTH + Settings.NAME_LABEL_RELWIDTH / 2,
-            anchor=Settings.ICON_LABEL_ANCHOR,
-            y=Settings.ICON_LABEL_PADY,
-        )
-
-    ## ViewApplication.setup_name
-    def test_ViewApplication_setup_name_sets_tk_variable(self, mocker):
-        view = ViewApplication(None, mocker.MagicMock())
-        view.name = None
-        view.setup_name()
-        assert isinstance(view.name, tk.StringVar)
-
-    def test_ViewApplication_setup_name_sets_name_label(self, mocker):
-        mocked = mocker.patch("arrangeit.view.tk.Label")
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_name()
-        mocked.assert_called_with(
-            view,
-            textvariable=view.name,
-            height=Settings.NAME_LABEL_HEIGHT,
-            foreground=Settings.NAME_LABEL_FG,
-            background=Settings.NAME_LABEL_BG,
-            anchor=Settings.NAME_LABEL_ANCHOR,
-            padx=Settings.NAME_LABEL_PADX,
-            pady=Settings.NAME_LABEL_PADY,
-        )
-
-    def test_ViewApplication_setup_name_calls_label_place(self, mocker):
-        mocked = mocker.patch("arrangeit.view.tk.Label")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.reset_mock()
-        view.setup_name()
-        assert mocked.return_value.place.call_count == 1
-        mocked.return_value.place.assert_called_with(
-            relx=Settings.TITLE_LABEL_RELWIDTH,
-            relheight=Settings.NAME_LABEL_RELHEIGHT,
-            relwidth=Settings.NAME_LABEL_RELWIDTH,
-        )
-
-    ## ViewApplication.setup_workspaces
-    def test_ViewApplication_setup_workspaces_initializes_WorkspacesCollection(
-        self, mocker
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
+    def test_ViewApplication_reset_bindings_labels_bind_callback(
+        self, mocker, event, method
     ):
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_workspaces()
-        assert isinstance(view.workspaces, WorkspacesCollection)
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.tk.Label.bind")
+        view.reset_bindings()
+        calls = [mocker.call(event, callback)]
+        assert mocked.call_count == 2
+        mocked.assert_has_calls(calls, any_order=True)
 
-    def test_ViewApplication_setup_workspaces_sets_viewapp_as_master(self, mocker):
-        mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_workspaces()
-        mocked.assert_called_with(view)
-
-    def test_ViewApplication_setup_workspaces_calls_WorkspacesCollection_place(
-        self, mocker
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
+    def test_ViewApplication_reset_bindings_windowslist_bind_callback(
+        self, mocker, event, method
     ):
-        mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.reset_mock()
-        view.setup_workspaces()
-        assert mocked.return_value.place.call_count == 1
-        mocked.return_value.place.assert_called_with(
-            rely=Settings.NAME_LABEL_RELHEIGHT,
-            relx=Settings.TITLE_LABEL_RELWIDTH,
-            relheight=Settings.WORKSPACES_FRAME_RELHEIGHT,
-            relwidth=Settings.WORKSPACES_FRAME_RELWIDTH,
-        )
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.WindowsList.bind")
+        view.reset_bindings()
+        calls = [mocker.call(event, callback)]
+        assert mocked.call_count == 1
+        mocked.assert_has_calls(calls, any_order=True)
 
-    ## ViewApplication.setup_windows
-    def test_ViewApplication_setup_windows_initializes_WindowsList(self, mocker):
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_windows()
-        assert isinstance(view.windows, WindowsList)
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
+    def test_ViewApplication_reset_bindings_workspaces_bind_callback(
+        self, mocker, event, method
+    ):
+        controller = mocker.MagicMock()
+        view = ViewApplication(None, controller)
+        callback = getattr(controller, method)
+        mocked = mocker.patch("arrangeit.view.WorkspacesCollection.bind")
+        view.reset_bindings()
+        calls = [mocker.call(event, callback)]
+        assert mocked.call_count == 1
+        mocked.assert_has_calls(calls, any_order=True)
 
-    def test_ViewApplication_setup_windows_sets_viewapp_as_master(self, mocker):
-        mocked = mocker.patch("arrangeit.view.WindowsList")
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_windows()
-        mocked.assert_called_with(view)
-
-    def test_ViewApplication_setup_windows_calls_WindowsList_place(self, mocker):
-        mocked = mocker.patch("arrangeit.view.WindowsList")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.reset_mock()
-        view.setup_windows()
-        assert mocked.return_value.place.call_count == 1
-        mocked.return_value.place.assert_called_with(
-            rely=Settings.TITLE_LABEL_RELHEIGHT,
-            relheight=Settings.WINDOWS_LIST_RELHEIGHT,
-            relwidth=Settings.WINDOWS_LIST_RELWIDTH,
-        )
-
-    def test_ViewApplication_setup_widgets_calls_setup_title(self, mocker):
+    ## ViewApplication.hide_root
+    @pytest.mark.parametrize("method", ["withdraw"])
+    def test_ViewApplication_hide_root_calls_master_hiding_up_method(
+        self, mocker, method
+    ):
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
         mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
-        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_title")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.reset_mock()
-        view.setup_widgets()
-        assert mocked.call_count == 1
+        master = mocker.MagicMock()
+        ViewApplication(master, mocker.MagicMock()).hide_root()
+        assert getattr(master, method).call_count == 1
 
-    def test_ViewApplication_setup_widgets_calls_setup_icon(self, mocker):
-        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_icon")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.reset_mock()
-        view.setup_widgets()
-        assert mocked.call_count == 1
-
-    def test_ViewApplication_setup_widgets_calls_setup_name(self, mocker):
-        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_name")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.reset_mock()
-        view.setup_widgets()
-        assert mocked.call_count == 1
-
-    def test_ViewApplication_setup_widgets_calls_setup_workspaces(self, mocker):
-        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_workspaces")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.reset_mock()
-        view.setup_widgets()
-        assert mocked.call_count == 1
-
-    def test_ViewApplication_setup_widgets_calls_setup_toolbar(self, mocker):
-        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_toolbar")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.reset_mock()
-        view.setup_widgets()
-        assert mocked.call_count == 1
-
-    def test_ViewApplication_setup_widgets_calls_setup_windows(self, mocker):
-        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_windows")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.reset_mock()
-        view.setup_widgets()
-        assert mocked.call_count == 1
-
-    ## ViewApplication.setup_toolbar
-    def test_ViewApplication_setup_toolbar_initializes_Toolbar(self, mocker):
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_toolbar()
-        assert isinstance(view.toolbar, Toolbar)
-
-    def test_ViewApplication_setup_toolbar_sets_viewapp_as_master(self, mocker):
-        mocked = mocker.patch("arrangeit.view.Toolbar")
-        view = ViewApplication(None, mocker.MagicMock())
-        view.setup_toolbar()
-        mocked.assert_called_with(view)
-
-    def test_ViewApplication_setup_toolbar_calls_Toolbar_place(self, mocker):
-        mocked = mocker.patch("arrangeit.view.Toolbar")
-        view = ViewApplication(None, mocker.MagicMock())
-        mocked.return_value.place.reset_mock()
-        view.setup_toolbar()
-        assert mocked.return_value.place.call_count == 1
-        mocked.return_value.place.assert_called_with(
-            rely=Settings.TITLE_LABEL_RELHEIGHT + Settings.WORKSPACES_FRAME_RELHEIGHT,
-            relx=Settings.WINDOWS_LIST_RELWIDTH,
-            relheight=Settings.TOOLBAR_RELHEIGHT,
-            relwidth=Settings.TOOLBAR_RELWIDTH,
-        )
+    ## ViewApplication.show_root
+    @pytest.mark.parametrize("method", ["update", "deiconify"])
+    def test_ViewApplication_show_root_calls_master_showing_up_method(
+        self, mocker, method
+    ):
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        master = mocker.MagicMock()
+        ViewApplication(master, mocker.MagicMock()).show_root()
+        assert getattr(master, method).call_count == 1
 
     ## ViewApplication.setup_bindings
     def test_ViewApplication_setup_bindings_unbinds_all_button_1(self, mocker):
@@ -338,78 +189,251 @@ class TestViewApplication(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    ## ViewApplication.reset_bindings
-    @pytest.mark.parametrize(
-        "event", ["<Button-1>", "<Button-2>", "<Button-3>", "<Key>"]
-    )
-    def test_ViewApplication_reset_bindings_unbind_all(self, mocker, event):
-        controller = mocker.MagicMock()
-        view = ViewApplication(None, controller)
-        mocked = mocker.patch("arrangeit.view.ViewApplication.unbind_all")
-        view.reset_bindings()
-        calls = [mocker.call(event)]
-        mocked.assert_has_calls(calls, any_order=True)
+    ## ViewApplication.setup_corner
+    def test_ViewApplication_setup_corner_instantiates_CornerWidget(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked = mocker.patch("arrangeit.view.CornerWidget")
+        view.setup_corner()
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            view.master, shift=Settings.SHIFT_CURSOR, background=Settings.HIGHLIGHTED_COLOR
+        )
 
-    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
-    def test_ViewApplication_reset_bindings_labels_bind_callback(
-        self, mocker, event, method
-    ):
-        controller = mocker.MagicMock()
-        view = ViewApplication(None, controller)
-        callback = getattr(controller, method)
-        mocked = mocker.patch("arrangeit.view.tk.Label.bind")
-        view.reset_bindings()
-        calls = [mocker.call(event, callback)]
-        assert mocked.call_count == 2
-        mocked.assert_has_calls(calls, any_order=True)
+    def test_ViewApplication_setup_corner_sets_corner_attribute(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked = mocker.patch("arrangeit.view.CornerWidget")
+        view.setup_corner()
+        assert view.corner == mocked.return_value
 
-    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
-    def test_ViewApplication_reset_bindings_windowslist_bind_callback(
-        self, mocker, event, method
-    ):
-        controller = mocker.MagicMock()
-        view = ViewApplication(None, controller)
-        callback = getattr(controller, method)
-        mocked = mocker.patch("arrangeit.view.WindowsList.bind")
-        view.reset_bindings()
-        calls = [mocker.call(event, callback)]
-        assert mocked.call_count == 1
-        mocked.assert_has_calls(calls, any_order=True)
+    ## ViewApplication.setup_icon
+    def test_ViewApplication_setup_icon_sets_icon_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_icon()
+        mocked.assert_called_with(
+            view,
+            bitmap="hourglass",
+            background=Settings.ICON_LABEL_BG,
+            anchor=Settings.ICON_LABEL_ANCHOR,
+            padx=Settings.ICON_LABEL_PADX,
+            pady=Settings.ICON_LABEL_PADY,
+        )
 
-    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_continue")])
-    def test_ViewApplication_reset_bindings_workspaces_bind_callback(
-        self, mocker, event, method
-    ):
-        controller = mocker.MagicMock()
-        view = ViewApplication(None, controller)
-        callback = getattr(controller, method)
-        mocked = mocker.patch("arrangeit.view.WorkspacesCollection.bind")
-        view.reset_bindings()
-        calls = [mocker.call(event, callback)]
-        assert mocked.call_count == 1
-        mocked.assert_has_calls(calls, any_order=True)
+    def test_ViewApplication_setup_icon_calls_label_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.reset_mock()
+        view.setup_icon()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            relx=Settings.TITLE_LABEL_RELWIDTH + Settings.NAME_LABEL_RELWIDTH / 2,
+            anchor=Settings.ICON_LABEL_ANCHOR,
+            y=Settings.ICON_LABEL_PADY,
+        )
 
-    ## ViewApplication.hide_root
-    @pytest.mark.parametrize("method", ["withdraw",])
-    def test_ViewApplication_hide_root_calls_master_hiding_up_method(
-        self, mocker, method
-    ):
-        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
+    ## ViewApplication.setup_name
+    def test_ViewApplication_setup_name_sets_tk_variable(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.name = None
+        view.setup_name()
+        assert isinstance(view.name, tk.StringVar)
+
+    def test_ViewApplication_setup_name_sets_name_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_name()
+        mocked.assert_called_with(
+            view,
+            textvariable=view.name,
+            height=Settings.NAME_LABEL_HEIGHT,
+            foreground=Settings.NAME_LABEL_FG,
+            background=Settings.NAME_LABEL_BG,
+            anchor=Settings.NAME_LABEL_ANCHOR,
+            padx=Settings.NAME_LABEL_PADX,
+            pady=Settings.NAME_LABEL_PADY,
+        )
+
+    def test_ViewApplication_setup_name_calls_label_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.reset_mock()
+        view.setup_name()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.NAME_LABEL_RELHEIGHT,
+            relwidth=Settings.NAME_LABEL_RELWIDTH,
+        )
+
+    ## ViewApplication.setup_title
+    @pytest.mark.parametrize("name,typ", [("title", tk.StringVar)])
+    def test_ViewApplication_setup_title_sets_tk_variable(self, mocker, name, typ):
+        view = ViewApplication(None, mocker.MagicMock())
+        setattr(view, name, None)
+        view.setup_title()
+        assert isinstance(getattr(view, name), typ)
+
+    def test_ViewApplication_setup_title_sets_title_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_title()
+        mocked.assert_called_with(
+            view,
+            textvariable=view.title,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    Settings.TITLE_LABEL_FONT_INCREASE,
+                ),
+            ),
+            height=Settings.TITLE_LABEL_HEIGHT,
+            foreground=Settings.TITLE_LABEL_FG,
+            background=Settings.TITLE_LABEL_BG,
+            anchor=Settings.TITLE_LABEL_ANCHOR,
+            padx=Settings.TITLE_LABEL_PADX,
+            pady=Settings.TITLE_LABEL_PADY,
+        )
+
+    def test_ViewApplication_setup_title_calls_label_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.reset_mock()
+        view.setup_title()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            relheight=Settings.TITLE_LABEL_RELHEIGHT,
+            relwidth=Settings.TITLE_LABEL_RELWIDTH,
+        )
+
+    ## ViewApplication.setup_toolbar
+    def test_ViewApplication_setup_toolbar_initializes_Toolbar(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_toolbar()
+        assert isinstance(view.toolbar, Toolbar)
+
+    def test_ViewApplication_setup_toolbar_sets_viewapp_as_master(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Toolbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_toolbar()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_toolbar_calls_Toolbar_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Toolbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.reset_mock()
+        view.setup_toolbar()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            rely=Settings.TITLE_LABEL_RELHEIGHT + Settings.WORKSPACES_FRAME_RELHEIGHT,
+            relx=Settings.WINDOWS_LIST_RELWIDTH,
+            relheight=Settings.TOOLBAR_RELHEIGHT,
+            relwidth=Settings.TOOLBAR_RELWIDTH,
+        )
+
+    ## ViewApplication.setup_widgets
+    def test_ViewApplication_setup_widgets_calls_setup_title(self, mocker):
         mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
-        master = mocker.MagicMock()
-        ViewApplication(master, mocker.MagicMock()).hide_root()
-        assert getattr(master, method).call_count == 1
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_title")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
 
-    ## ViewApplication.show_root
-    @pytest.mark.parametrize("method", ["update", "deiconify"])
-    def test_ViewApplication_show_root_calls_master_showing_up_method(
-        self, mocker, method
+    def test_ViewApplication_setup_widgets_calls_setup_icon(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_icon")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_name(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_name")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_workspaces(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_workspaces")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_toolbar(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_toolbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_windows(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_windows")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_corner(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_corner")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    ## ViewApplication.setup_windows
+    def test_ViewApplication_setup_windows_initializes_WindowsList(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_windows()
+        assert isinstance(view.windows, WindowsList)
+
+    def test_ViewApplication_setup_windows_sets_viewapp_as_master(self, mocker):
+        mocked = mocker.patch("arrangeit.view.WindowsList")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_windows()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_windows_calls_WindowsList_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.WindowsList")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.reset_mock()
+        view.setup_windows()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
+            relheight=Settings.WINDOWS_LIST_RELHEIGHT,
+            relwidth=Settings.WINDOWS_LIST_RELWIDTH,
+        )
+
+    ## ViewApplication.setup_workspaces
+    def test_ViewApplication_setup_workspaces_initializes_WorkspacesCollection(
+        self, mocker
     ):
-        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
-        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
-        master = mocker.MagicMock()
-        ViewApplication(master, mocker.MagicMock()).show_root()
-        assert getattr(master, method).call_count == 1
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_workspaces()
+        assert isinstance(view.workspaces, WorkspacesCollection)
+
+    def test_ViewApplication_setup_workspaces_sets_viewapp_as_master(self, mocker):
+        mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_workspaces()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_workspaces_calls_WorkspacesCollection_place(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.view.WorkspacesCollection")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.reset_mock()
+        view.setup_workspaces()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            rely=Settings.NAME_LABEL_RELHEIGHT,
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            relheight=Settings.WORKSPACES_FRAME_RELHEIGHT,
+            relwidth=Settings.WORKSPACES_FRAME_RELWIDTH,
+        )
 
     ## ViewApplication.startup
     def test_ViewApplication_startup_calls_show_root(self, mocker):

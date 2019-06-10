@@ -288,6 +288,7 @@ class BaseController(object):
         """
         if Settings.TRANSPARENCY_IS_ON:
             root.wm_attributes("-alpha", Settings.ROOT_ALPHA)
+
         root.wm_attributes("-topmost", True)
         root.config(background=Settings.MAIN_BG)
 
@@ -709,6 +710,7 @@ class BaseController(object):
         move_cursor(
             self.model.x + Settings.SHIFT_CURSOR, self.model.y + Settings.SHIFT_CURSOR
         )
+        self.view.corner.set_corner(self.state % 10)
 
     def place_on_opposite_corner(self):
         """Changes and moves cursor to model windows corner opposite to positioning phase
@@ -743,6 +745,8 @@ class BaseController(object):
             )
 
         move_cursor(left, top)
+
+        self.view.corner.set_corner(self.state % 10)
 
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.
@@ -823,6 +827,8 @@ class BaseController(object):
             y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
 
         move_cursor(x, y)
+
+        self.view.corner.set_corner(self.state)
 
     def skip_current_window(self):
         """Calls `next` and then destroys that new window from the windows list."""

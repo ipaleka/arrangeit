@@ -17,7 +17,7 @@ MESSAGES = {"default_saved": _("Collected windows data saved to default file.")}
 SETTINGS = {
     "MIN_WIDTH": (int, 100),
     "MIN_HEIGHT": (int, 40),
-    "SHIFT_CURSOR": (int, 8),
+    "SHIFT_CURSOR": (int, 6),
     "SNAP_PIXELS": (int, 2),
     "SNAPPING_IS_ON": (bool, True),
     "SNAP_INCLUDE_SELF": (bool, False),
