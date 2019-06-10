@@ -31,8 +31,8 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.view` -- Module with classes and functions holding graphical presentation data
-----------------------------------------------------------------------------------------------
+:mod:`arrangeit.view` -- Module with classes and functions holding visual presentation data
+-------------------------------------------------------------------------------------------
 
 .. automodule:: arrangeit.view
   :members:
@@ -40,9 +40,9 @@
   :show-inheritance:
 
 
- (without ViewApplication)tions for options dialog
- (without ViewApplication)------------------------
- (without ViewApplication)
+:mod:`arrangeit.options` -- Module with classes and functions for options dialog
+--------------------------------------------------------------------------------
+
 .. automodule:: arrangeit.options
   :members:
   :undoc-members:

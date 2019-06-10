@@ -7,25 +7,27 @@ from arrangeit.settings import Settings
 
 
 MESSAGES = {
-    "options_title": _("Options dialog for arrangeit"),
+    "options_title": _("arrangeit options"),
     "appearance": _("Appearance"),
     "colors": _("Colors"),
+    "setting_changed": _(
+        "Setting is changed - some settings may require\n"
+        "program restart in order for the change to take effect."
+    ),
     "TRANSPARENCY_IS_ON": _("Use transparency"),
-    "ROOT_ALPHA": _("Main window opacity [%]"),
+    "ROOT_ALPHA": _("Main window opacity [%]:"),
     "SCREENSHOT_TO_GRAYSCALE": _("Convert screenshot to grayscale"),
-    "SCREENSHOT_BLUR_PIXELS": _("Screenshot blur size [pixels]"),
+    "SCREENSHOT_BLUR_PIXELS": _("Screenshot blur size [pixels]:"),
     "SNAPPING_IS_ON": _("Use snapping"),
     "SNAP_INCLUDE_SELF": _("Include itself in snapping"),
-    "SHIFT_CURSOR": _("Corner cursor shift [pixels]"),
-    "SNAP_PIXELS": _("Snapping size [pixels]"),
-    "MAIN_BG": _("Background color"),
-    "SELECTED_COLOR": _("Selected color"),
-    "HIGHLIGHTED_COLOR": _("Highlighted color"),
-    "_BG": _("Background color"),
-    "_FG": _("Foreground color"),
-    "setting_changed": _(
-        "Setting is changed, please restart program in order for the change to take effect."
-    ),
+    "SHIFT_CURSOR": _("Corner cursor shift [pixels]:"),
+    "SNAP_PIXELS": _("Snapping size [pixels]:"),
+    "SELECTED_COLOR": _("Selected:"),
+    "HIGHLIGHTED_COLOR": _("Highlighted:"),
+    "_BG": _("Background:"),
+    "_FG": _("Foreground:"),
+    "TITLE_LABEL_BG": _("Title background:"),
+    "TITLE_LABEL_FG": _("Title foreground:"),
 }
 CLASSES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Color"}
 WIDGETS = {
@@ -52,10 +54,12 @@ WIDGETS = {
         ),
     ),
     "colors": (
-        ("SELECTED_COLOR", {}),
-        ("HIGHLIGHTED_COLOR", {}),
         ("_BG", {}),
         ("_FG", {}),
+        ("TITLE_LABEL_BG", {}),
+        ("TITLE_LABEL_FG", {}),
+        ("SELECTED_COLOR", {}),
+        ("HIGHLIGHTED_COLOR", {}),
     ),
 }
 COLORS = (
@@ -147,17 +151,23 @@ class OptionsDialog(tk.Toplevel):
         """Binds relevant events to related callback."""
         self.bind("<Destroy>", self.on_destroy_options)
 
-    def setup_section(self, name="appearance", denominator=4, labelanchor="nw"):
+    def setup_section(self, name, denominator=4):
         """Creates and places widgets for section with provided name."""
-        section = ttk.LabelFrame(self, text=MESSAGES[name], labelanchor=labelanchor)
+        section = ttk.LabelFrame(self, text=MESSAGES[name], labelanchor="nw")
 
         for i, (name, kwargs) in enumerate(WIDGETS[name]):
             if not i % denominator:
                 frame = self.create_frame(section)
                 frame.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
             separator = self.create_separator(frame)
             separator.pack(fill=tk.X, expand=True)
+
             widget = self.create_widget(frame, name, **kwargs)
+            if hasattr(widget, "label"):
+                widget.label.pack(
+                    fill=tk.X, side=tk.TOP, padx=Settings.OPTIONS_WIDGETS_PADX, pady=0
+                )
             widget.pack(
                 fill=tk.X,
                 side=tk.TOP,
@@ -171,22 +181,36 @@ class OptionsDialog(tk.Toplevel):
         """Creates and places all the options' widgets."""
         self.message = tk.StringVar()
 
-        appearance = self.setup_section()
-        appearance.pack(fill=tk.BOTH, expand=True)
+        self.setup_section("appearance").pack(
+            fill=tk.BOTH,
+            padx=Settings.OPTIONS_WIDGETS_PADX,
+            pady=Settings.OPTIONS_WIDGETS_PADY,
+            expand=True,
+        )
+        self.setup_section("colors", denominator=2).pack(
+            fill=tk.BOTH,
+            padx=Settings.OPTIONS_WIDGETS_PADX,
+            pady=Settings.OPTIONS_WIDGETS_PADY,
+            expand=True,
+        )
 
-        colors = self.setup_section(name="colors", denominator=2, labelanchor="ne")
-        colors.pack(fill=tk.BOTH, expand=True)
+        tk.Label(
+            self,
+            textvariable=self.message,
+            height=Settings.OPTIONS_MESSAGE_HEIGHT,
+            anchor="center",
+        ).pack(fill=tk.X, pady=Settings.OPTIONS_WIDGETS_PADY)
 
-        message = tk.Label(self, textvariable=self.message, anchor="center")
-        message.pack(fill=tk.X, expand=True)
-
-        quit_button = tk.Button(
+        tk.Button(
             self,
             text=_("Continue"),
             activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.destroy,
+        ).pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+            anchor="se",
         )
-        quit_button.pack()
 
     def widget_class_from_name(self, name):
         """Returns related widget class from provided setting name.
@@ -367,6 +391,7 @@ class ColorOption(tk.OptionMenu):
     master = None
     name = ""
     var = None
+    label = None
 
     def __init__(
         self,
@@ -404,6 +429,7 @@ class ColorOption(tk.OptionMenu):
         self.master = master
         self.name = name
         self.change_callback = change_callback
+        self.label = tk.Label(self.master, text=label, anchor="sw")
 
     def on_update_value(self, *args):
         self.change_callback(name=self.name, value=self.var.get())
@@ -411,7 +437,6 @@ class ColorOption(tk.OptionMenu):
 
 
 class ThemeOption(ColorOption):
-
     def __init__(self, *args, **kwargs):
         kwargs.update(initial=getattr(Settings, "MAIN{}".format(kwargs.get("name"))))
         super().__init__(*args, **kwargs)

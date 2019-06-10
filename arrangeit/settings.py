@@ -102,6 +102,7 @@ SETTINGS = {
     "QUIT_BUTTON_ANCHOR": (str, "nw"),
     "OPTIONS_WIDGETS_PADX": (int, 4),
     "OPTIONS_WIDGETS_PADY": (int, 2),
+    "OPTIONS_MESSAGE_HEIGHT": (int, 2),
 }
 
 
