@@ -109,6 +109,14 @@ class WindowModel(object):
         self.changed_ws = None
 
     @property
+    def is_changed(self):
+        """Checks if model rect has been changed.
+
+        :returns: Boolean
+        """
+        return self.changed != () and self.changed != self.rect
+
+    @property
     def is_ws_changed(self):
         """Checks if workspace has been changed.
 

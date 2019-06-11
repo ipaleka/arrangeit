@@ -14,12 +14,9 @@ from arrangeit.utils import get_prepared_screenshot
 class App(BaseApp):
     """Main app class with GNU/Linux specific code."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     ## TASKS
     def activate_root(self, wid):
-        """Activates/focuses root window.
+        """Activates/focuses root window identified by provided `wid`.
 
         FIXME possible nasty hack wid+1
         """
@@ -45,7 +42,7 @@ class App(BaseApp):
         return self.move_and_resize(wid)
 
     def move_and_resize(self, wid):
-        """Moves and resizes window having provided wid.
+        """Moves and resizes window identified by provided wid.
 
         Gravity stays the same (Wnck.WindowGravity.CURRENT) and the other arguments
         are calculated/retrieved from model where `changed` attribute holds needed data.
@@ -110,7 +107,7 @@ class App(BaseApp):
         if workspace:
             win = self.collector.get_window_by_wid(wid)
             win.move_to_workspace(workspace)
-            # TODO X.CurrentTime/0 activates with a warning
+            # FIXME X.CurrentTime/0 activates with a warning
             win.activate(X.CurrentTime)
             return False
         return True
@@ -136,7 +133,7 @@ class App(BaseApp):
         We can't include window decoration in image so offset in pixels
         for both axes is returned.
 
-        :param model: model of the window we want screenshot form
+        :param model: model of the window we want screenshot from
         :type model: :class:`WindowModel`
         :param window: model window instance
         :type window: :class:`Gdk.Window`

@@ -1,5 +1,9 @@
+from PIL import Image
+
 import ctypes
 import ctypes.wintypes
+
+from win32api import EnumDisplayMonitors
 
 from win32con import (
     GA_ROOTOWNER,
@@ -11,7 +15,10 @@ from win32con import (
     WS_THICKFRAME,
 )
 from win32gui import (
+    DrawIcon,
     EnumWindows,
+    GetClassLong,
+    GetDC,
     GetClassName,
     GetWindowLong,
     GetWindowRect,
@@ -20,11 +27,14 @@ from win32gui import (
     IsWindowEnabled,
     IsWindowVisible,
 )
+from win32ui import CreateDCFromHandle, CreateBitmap
 
 from arrangeit.settings import Settings
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
 from arrangeit.utils import append_to_collection
+
+GCL_HICON = -14
 
 
 class TITLEBARINFO(ctypes.Structure):
@@ -217,13 +227,36 @@ class Collector(BaseCollector):
         return GetClassName(hwnd)
 
     def _get_application_icon(self, hwnd):
-        """
+        """Returns application icon of the windows with provided hwnd.
 
         :param hwnd: window id
         :type hwnd: int
-        :returns: str
+        :var icon_handle: handle to windows icon in window instance
+        :type icon_handle: int
+        :var source_hdc: handle to root device context
+        :type source_hdc: int
+        :var bitmap: PyGdiHANDLE of icon bitmap
+        :type bitmap: int
+        :var main_hdc: handle to icon device context
+        :type main_hdc: int
+        :var buffer: string of bitmap bits
+        :type buffer: str
+        :returns: :class:`PIL.Image` instance
         """
-        return Settings.BLANK_ICON
+        size = Settings.ICON_WIDTH
+        icon_handle = GetClassLong(hwnd, GCL_HICON)
+
+        source_hdc = CreateDCFromHandle(GetDC(0))
+
+        bitmap = CreateBitmap()
+        bitmap.CreateCompatibleBitmap(source_hdc, size, size)
+        main_hdc = source_hdc.CreateCompatibleDC()
+
+        main_hdc.SelectObject(bitmap)
+        main_hdc.DrawIcon((0, 0), icon_handle)
+
+        buffer = bitmap.GetBitmapBits(True)
+        return Image.frombuffer("RGBA", (size, size), buffer, "raw", "BGRA", 0, 1)
 
     def add_window(self, hwnd):
         """Creates WindowModel instance from provided hwnd and adds it to collection.
@@ -266,11 +299,11 @@ class Collector(BaseCollector):
 
         :returns: list [(x,y,w,h)]
         """
-        return [(0, 0, 1024, 768)]
+        return [rect for (_a, _b, rect) in EnumDisplayMonitors(None, None)]
 
     def get_smallest_monitor_size(self):
         """Returns size of the smallest monitor.
 
         :returns: tuple (w,h)
         """
-        return (1024, 768)
+        return min((rect[2], rect[3]) for rect in self.get_monitors_rects())

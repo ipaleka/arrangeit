@@ -205,6 +205,25 @@ class TestWindowModel(object):
         model.clear_changed()
         assert model.changed_ws == None
 
+    ## WindowModel.is_changed
+    @pytest.mark.parametrize(
+        "changed,expected",
+        [
+            ((), False),
+            ((50, 60, 700, 800), False),
+            ((51, 60, 700, 800), True),
+            ((50, 61, 700, 800), True),
+            ((50, 60, 701, 800), True),
+            ((50, 60, 700, 801), True),
+            ((51, 61, 701, 801), True),
+        ],
+    )
+    def test_WindowModel_is_changed_functionality(self, changed, expected):
+        SAMPLE = (50, 60, 700, 800)
+        model = WindowModel(rect=SAMPLE)
+        model.set_changed(rect=changed)
+        assert model.is_changed is expected
+
     ## WindowModel.is_ws_changed
     @pytest.mark.parametrize(
         "changed_ws,ws,expected",

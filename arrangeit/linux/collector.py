@@ -124,13 +124,6 @@ class Collector(BaseCollector):
 
         :returns: :class:`PIL.Image` instance
         """
-        # data = pixbuf.get_pixels()
-        # w = pixbuf.props.width
-        # h = pixbuf.props.height
-        # stride = pixbuf.props.rowstride
-        # mode = "RGBA" if pixbuf.props.has_alpha else "RGB"
-        # image = Image.frombytes(mode, (w, h), data, "raw", mode, stride)
-        # return image
         mode = "RGBA" if pixbuf.props.has_alpha else "RGB"
         return Image.frombytes(
             mode,

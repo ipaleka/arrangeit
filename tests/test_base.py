@@ -94,12 +94,14 @@ class TestBaseApp(object):
 
     def test_BaseApp_run_calls_WindowsCollection_generator(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.{}.collector.Collector.add_window".format(utils.platform_path()))        
         mocked = mocker.patch("arrangeit.base.WindowsCollection")
         base.BaseApp().run()
         assert mocked.return_value.generator.call_count == 1
 
     def test_BaseApp_run_calls_controller_run(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
         )
@@ -108,8 +110,10 @@ class TestBaseApp(object):
 
     def test_BaseApp_run_calls_controller_run_with_valid_argument(self, mocker):
         mocked_setup(mocker)
+        path = utils.platform_path()
+        mocker.patch("arrangeit.{}.collector.Collector.add_window".format(path))
         mocked = mocker.patch(
-            "arrangeit.{}.controller.Controller".format(utils.platform_path())
+            "arrangeit.{}.controller.Controller".format(path)
         )
         generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
         base.BaseApp().run()
@@ -145,6 +149,7 @@ class TestBaseApp(object):
     def test_BaseApp_change_setting_returns_change_settings_color_group_BG(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp.change_settings_color_group")
         mocked_is_setting = mocker.patch("arrangeit.base.Settings.is_setting")
         returned = base.BaseApp().change_setting("_BG", "white")
@@ -156,6 +161,7 @@ class TestBaseApp(object):
     def test_BaseApp_change_setting_returns_change_settings_color_group_FG(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp.change_settings_color_group")
         mocked_is_setting = mocker.patch("arrangeit.base.Settings.is_setting")
         returned = base.BaseApp().change_setting("_FG", "black")
@@ -165,6 +171,7 @@ class TestBaseApp(object):
         mocked_is_setting.assert_not_called()
 
     def test_BaseApp_change_setting_calls_is_setting(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.Settings.is_setting")
         returned = base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
         mocked.assert_called_once()
@@ -172,6 +179,7 @@ class TestBaseApp(object):
         assert returned is not True
 
     def test_BaseApp_change_setting_calls_is_setting_invalid(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.Settings.is_setting", return_value=False)
         returned = base.BaseApp().change_setting("ROOT_ALPHA1", 0.95)
         mocked.assert_called_once()
@@ -182,6 +190,7 @@ class TestBaseApp(object):
         import time
         from random import seed, random
 
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         alpha = int(Settings.ROOT_ALPHA * 10000)
         seed(int(time.time()))
         SAMPLE = random()
@@ -191,6 +200,7 @@ class TestBaseApp(object):
         base.BaseApp().change_setting("ROOT_ALPHA", alpha / 10000)
 
     def test_BaseApp_change_setting_calls__save_setting(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp._save_setting")
         base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
         mocked.assert_called_once()
@@ -248,6 +258,7 @@ class TestBaseApp(object):
 
     ## BaseApp.rerun_from_window
     def test_BaseApp_rerun_from_window_calls_repopulate_for_wid(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.data.WindowsCollection.repopulate_for_wid")
         app = base.BaseApp()
         app.rerun_from_window(45221, 75300)

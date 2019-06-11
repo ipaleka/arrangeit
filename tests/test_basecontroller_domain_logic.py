@@ -170,8 +170,8 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_listed_window_activated_calls_windowslist_add_windows(
         self, mocker
     ):
+        view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
-        view = mocker.patch("arrangeit.base.ViewApplication")
         windows_list = [0, 1, 2]
         controller = base.BaseController(mocker.MagicMock())
         controller.app.collector.collection.get_windows_list.return_value = windows_list
@@ -182,8 +182,8 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_listed_window_activated_calls_recapture_mouse_for_OTHER(
         self, mocker
     ):
+        mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.OTHER
@@ -194,8 +194,8 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_listed_window_activated_not_calling_recapture_not_OTHER(
         self, mocker, state
     ):
+        mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = state
@@ -203,15 +203,15 @@ class TestBaseControllerDomainLogic(object):
         mocked.assert_not_called()
 
     def test_BaseController_listed_window_activated_initializes_generator(self, mocker):
+        mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90147)
         controller.app.collector.collection.generator.assert_called()
 
     def test_BaseController_listed_window_activated_sets_generator_attr(self, mocker):
+        mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90152)
         assert (
@@ -220,8 +220,8 @@ class TestBaseControllerDomainLogic(object):
         )
 
     def test_BaseController_listed_window_activated_calls_next(self, mocker):
+        mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.next")
-        mocker.patch("arrangeit.base.ViewApplication")
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90423)
         mocked.assert_called_once()
@@ -339,24 +339,38 @@ class TestBaseControllerDomainLogic(object):
         controller.next(True)
         mocked.assert_called_once()
 
-    def test_BaseController_next_calls_on_mouse_move_for_first_time_True(self, mocker):
+    def test_BaseController_next_calls_get_root_rect_for_first_time_True(self, mocker):
         controller = controller_mocked_for_next(mocker)
         x, y = 120, 130
         controller.generator.__next__.return_value = base.WindowModel(
             rect=(x, y, 100, 100)
         )
-        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        mocked = mocker.patch("arrangeit.base.BaseController.get_root_rect", return_value=(0, 0, 100, 100))
         controller.next(True)
         mocked.assert_called_once()
         mocked.assert_called_with(x + Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR)
 
-    def test_BaseController_next_not_calling_on_mouse_move_for_first_time_False(
+    def test_BaseController_next_calls_root_geometry_for_first_time_True(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        x, y = 220, 230
+        controller.generator.__next__.return_value = base.WindowModel(
+            rect=(0, 0, 100, 100)
+        )
+        mocker.patch("arrangeit.base.BaseController.get_root_rect", return_value=(x, y, 100, 100))        
+        controller.next(True)
+        controller.view.master.geometry.assert_called_once()
+        controller.view.master.geometry.assert_called_with("+{}+{}".format(x, y))
+
+    def test_BaseController_next_not_calling_root_geometry_for_first_time_False(
         self, mocker
     ):
         controller = controller_mocked_for_next(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        controller.generator.__next__.return_value = base.WindowModel(
+            rect=(0, 0, 100, 100)
+        )
+        mocker.patch("arrangeit.base.BaseController.get_root_rect", return_value=(0, 0, 100, 100))        
         controller.next(False)
-        mocked.assert_not_called()
+        controller.view.master.geometry.assert_not_called()
 
     def test_BaseController_next_returns_False(self, mocker):
         controller = controller_mocked_for_next(mocker)
@@ -627,7 +641,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_workspace_activated_calls_task_move_to_workspace(
         self, mocker
     ):
-        view = mocker.patch("arrangeit.base.ViewApplication")
+        view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         controller = base.BaseController(mocker.MagicMock())
         SAMPLE = 1003
@@ -637,6 +651,7 @@ class TestBaseControllerDomainLogic(object):
         )
 
     def test_BaseController_workspace_activated_calls_set_changed(self, mocker):
+        mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
         mocked = mocker.patch("arrangeit.data.WindowModel.set_changed")
         controller = base.BaseController(mocker.MagicMock())
@@ -647,8 +662,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_workspace_activated_calls_recapture_mouse_for_OTHER(
         self, mocker
     ):
-        mocker.patch("arrangeit.base.ViewApplication")
-        mocker.patch("arrangeit.data.WindowModel.set_changed")
+        mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.OTHER
@@ -659,6 +673,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_workspace_activated_not_calling_recapture_mouse_not_OTHER(
         self, mocker, state
     ):
+        mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")

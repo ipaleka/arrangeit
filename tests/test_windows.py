@@ -6,38 +6,137 @@ from win32con import (
 )
 
 import pytest
-from arrangeit.windows.collector import TITLEBARINFO, WINDOWINFO, Collector
+from arrangeit.settings import Settings
+from arrangeit.windows.app import App
+from arrangeit.windows.collector import TITLEBARINFO, WINDOWINFO, Collector, GCL_HICON
 from arrangeit.windows.controller import Controller
 from arrangeit.windows.utils import user_data_path
 
 SAMPLE_HWND = 1001
 
 
-class TestWindowsUtils(object):
-    """Testing class for `arrangeit.windows.utils` module."""
+## arrangeit.windows.app
+class TestWindowsApp(object):
+    """Testing class for :class:`arrangeit.windowe.app.App` class."""
 
-    ## WindowsUtils.user_data_path
-    def test_windows_utils_module_user_data_path(self, mocker):
-        mocker.patch(
-            "os.path.expanduser",
-            side_effect=lambda e: "C:\\Users\\tempuser{}".format(e).replace("~", ""),
+    ## WindowsApp.activate_root
+    def test_WindowsApp_activate_root_calls_SetActiveWindow(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.windows.app.SetActiveWindow")
+        app = App()
+        app.activate_root(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND)
+
+    ## WindowsApp.move
+    def test_WindowsApp_move_calls_move_and_resize(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.windows.app.App.move_and_resize")
+        app = App()
+        app.move(SAMPLE_HWND)
+        mocked.assert_called()
+        mocked.assert_called_with(SAMPLE_HWND)
+
+    ## WindowsApp.move_and_resize
+    def test_WindowsApp_move_and_resize_calls_get_model_by_wid(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked.return_value).is_changed = mocker.PropertyMock(return_value=False)
+        app = App()
+        SAMPLE = 8001
+        app.move_and_resize(SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE)
+
+    def test_WindowsApp_move_and_resize_calls_move_to_workspace(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=True
         )
-        assert user_data_path() == "C:\\Users\\tempuser\\arrangeit"
+        type(mocked_model.return_value).is_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        SAMPLE_WS, SAMPLE_WID = 1005, 7002
+        type(mocked_model.return_value).changed_ws = mocker.PropertyMock(
+            return_value=SAMPLE_WS
+        )
+        app = App()
+        app.move_and_resize(SAMPLE_WID)
+        mocked.assert_called_with(SAMPLE_WID, SAMPLE_WS)
+
+    def test_WindowsApp_move_and_resize_not_calling_move_to_workspace(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_model.return_value).is_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        mocked.assert_not_called()
+
+    def test_WindowsApp_move_and_resize_calls_MoveWindow(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        CHANGED = (71, 81, 501, 501)
+        # type(mocked_model.return_value).is_changed = mocker.PropertyMock(
+        #     return_value=True
+        # )
+        type(mocked_model.return_value).changed = mocker.PropertyMock(
+            return_value=CHANGED
+        )
+        mocked = mocker.patch("arrangeit.windows.app.MoveWindow")
+        app = App()
+        SAMPLE = 7401
+        app.move_and_resize(SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE, *CHANGED, True)
+
+    def test_WindowsApp_move_and_resize_not_calling_MoveWindow(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        mocked = mocker.patch("arrangeit.windows.app.MoveWindow")
+        app = App()
+        app.move_and_resize(100)
+        mocked.assert_not_called()
+
+    def test_WindowsApp_move_and_resize_returns_False(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        mocker.patch("arrangeit.windows.app.MoveWindow")
+        app = App()
+        assert app.move_and_resize(100) is False
+
+    def test_WindowsApp_move_and_resize_returns_True(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        assert app.move_and_resize(100) is True
+
+    ## WindowsApp.move_to_workspace
+    @pytest.mark.skip("Research how to deal with workspaces in MS Windows")
+    def test_WindowsApp_move_to_workspace_(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+
+    ## WindowsApp.grab_window_screen
+    @pytest.mark.skip("Research how to deal with black screen for some apps")
+    def test_WindowsApp_grab_window_screen(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        # https://stackoverflow.com/questions/20601813/trouble-capturing-window-with-winapi-bitblt-for-some-applications-only
 
 
-class TestWindowsController(object):
-    """Testing class for :py:class:`arrangeit.windows.controller.Controller` class."""
-
-    ## Controller.setup_root_window
-    def test_WindowsController_setup_root_window_calls_overrideredirect(self, mocker):
-        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-        root = mocker.patch("arrangeit.base.get_tkinter_root")
-        mocker.patch("arrangeit.base.ViewApplication")
-        Controller(mocker.MagicMock()).setup_root_window(root)
-        assert root.overrideredirect.call_count == 1
-        root.overrideredirect.assert_called_with(True)
-
-
+## arrangeit.windows.collector
 class TestTITLEBARINFO(object):
     """Testing class for :py:class:`arrangeit.windows.collector.TITLEBARINFO` class."""
 
@@ -325,12 +424,137 @@ class TestWindowsCollector(object):
         mocker.patch("arrangeit.windows.collector.GetClassName", return_value=value)
         assert Collector()._get_class_name(SAMPLE_HWND) == value
 
+    ## WindowsCollector._get_application_icon
+    def test_WindowsCollector__get_application_icon_calls_GetClassLong(self, mocker):
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked = mocker.patch("arrangeit.windows.collector.GetClassLong")
+        SAMPLE = 108
+        Collector()._get_application_icon(SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE, GCL_HICON)
+
+    def test_WindowsCollector__get_application_icon_calls_GetDC(self, mocker):
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocked = mocker.patch("arrangeit.windows.collector.GetDC")
+        Collector()._get_application_icon(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(0)
+
+    def test_WindowsCollector__get_application_icon_calls_CreateDCFromHandle(
+        self, mocker
+    ):
+        SAMPLE = 4545
+        mocker.patch("arrangeit.windows.collector.GetDC", return_value=SAMPLE)
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        Collector()._get_application_icon(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE)
+
+    def test_WindowsCollector__get_application_icon_calls_CreateBitmap(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        Collector()._get_application_icon(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_WindowsCollector__get_application_icon_calls_bitmap_CreateCompatibleBitmap(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocked_create = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        Collector()._get_application_icon(100)
+        mocked.return_value.CreateCompatibleBitmap.assert_called_once()
+        mocked.return_value.CreateCompatibleBitmap.assert_called_with(
+            mocked_create.return_value, Settings.ICON_WIDTH, Settings.ICON_WIDTH
+        )
+
+    def test_WindowsCollector__get_application_icon_calls_dc_CreateCompatibleDC(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        Collector()._get_application_icon(100)
+        mocked.return_value.CreateCompatibleDC.assert_called_once()
+        mocked.return_value.CreateCompatibleDC.assert_called_with()
+
+    def test_WindowsCollector__get_application_icon_calls_dc_SelectObject(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocked_bitmap = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked_hdc = mocked.return_value.CreateCompatibleDC.return_value
+        Collector()._get_application_icon(100)
+        mocked_hdc.SelectObject.assert_called_once()
+        mocked_hdc.SelectObject.assert_called_with(mocked_bitmap.return_value)
+
+    def test_WindowsCollector__get_application_icon_calls_dc_DrawIcon(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocked_class = mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked_hdc = mocked.return_value.CreateCompatibleDC.return_value
+        Collector()._get_application_icon(100)
+        mocked_hdc.DrawIcon.assert_called_once()
+        mocked_hdc.DrawIcon.assert_called_with((0, 0), mocked_class.return_value)
+
+    def test_WindowsCollector__get_application_icon_calls_bitmap_GetBitmapBits(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")        
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        Collector()._get_application_icon(100)
+        mocked.return_value.GetBitmapBits.assert_called_once()
+        mocked.return_value.GetBitmapBits.assert_called_with(True)
+
+    def test_WindowsCollector__get_application_icon_calls_Image_frombuffer(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocked_bitmap = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked = mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        Collector()._get_application_icon(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            "RGBA",
+            (Settings.ICON_WIDTH, Settings.ICON_WIDTH),
+            mocked_bitmap.return_value.GetBitmapBits.return_value,
+            "raw",
+            "BGRA",
+            0,
+            1,
+        )
+
     ## WindowsCollector.add_window
     def test_WindowsCollector_add_window_calls_WindowsCollection_add(self, mocker):
         mocked = mocker.patch("arrangeit.data.WindowsCollection.add")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
         mocker.patch("arrangeit.windows.collector.Collector._get_class_name")
+        mocker.patch("arrangeit.windows.collector.Collector._get_application_icon")
         Collector().add_window(SAMPLE_HWND)
         mocked.assert_called_once()
 
@@ -339,6 +563,7 @@ class TestWindowsCollector(object):
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
         mocker.patch("arrangeit.windows.collector.Collector._get_class_name")
+        mocker.patch("arrangeit.windows.collector.Collector._get_application_icon")
         mocked = mocker.patch("arrangeit.windows.collector.WindowModel")
         Collector().add_window(SAMPLE_HWND)
         mocked.assert_called_once()
@@ -358,6 +583,7 @@ class TestWindowsCollector(object):
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
         mocker.patch("arrangeit.windows.collector.Collector._get_class_name")
+        mocker.patch("arrangeit.windows.collector.Collector._get_application_icon")
         mocked = mocker.patch("arrangeit.windows.collector.Collector.{}".format(method))
         Collector().add_window(SAMPLE_HWND)
         mocked.assert_called_once()
@@ -380,6 +606,7 @@ class TestWindowsCollector(object):
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
         mocker.patch("arrangeit.windows.collector.Collector._get_class_name")
+        mocker.patch("arrangeit.windows.collector.Collector._get_application_icon")
         mocker.patch(
             "arrangeit.windows.collector.Collector.get_windows",
             return_value=(mocker.MagicMock(), mocker.MagicMock()),
@@ -395,3 +622,100 @@ class TestWindowsCollector(object):
         collector = Collector()
         collector.run()
         assert collector.collection.size == value
+
+    ## WindowsCollector.get_workspace_number_for_window
+    @pytest.mark.skip("Research how to deal with workspaces in MS Windows")
+    def test_WindowsCollector_get_workspace_number_for_window_(self, mocker):
+        pass
+
+    ## WindowsCollector.get_available_workspaces
+    @pytest.mark.skip("Research how to deal with workspaces in MS Windows")
+    def test_WindowsCollector_get_available_workspaces_(self, mocker):
+        pass
+
+    ## WindowsCollector.get_monitors_rects
+    def test_WindowsCollector_get_monitors_rects_calls_EnumDisplayMonitors(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.windows.collector.EnumDisplayMonitors")
+        Collector().get_monitors_rects()
+        mocked.assert_called_once()
+        mocked.assert_called_with(None, None)
+
+    def test_WindowsCollector_get_monitors_rects_returns_list_of_rect_parts(
+        self, mocker
+    ):
+        RECT1, RECT2 = (0, 0, 1920, 1280), (1920, 0, 1280, 1080)
+        SAMPLE = [
+            (mocker.MagicMock(), mocker.MagicMock(), RECT1),
+            (mocker.MagicMock(), mocker.MagicMock(), RECT2),
+        ]
+        mocker.patch(
+            "arrangeit.windows.collector.EnumDisplayMonitors", return_value=SAMPLE
+        )
+        returned = Collector().get_monitors_rects()
+        assert returned == [RECT1, RECT2]
+
+    ## WindowsCollector.get_smallest_monitor_size
+    def test_WindowsCollector_get_smallest_monitor_size_calls_get_monitors_rects(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.windows.collector.Collector.get_monitors_rects",
+            return_value=[(0, 0, 1920, 1280)],
+        )
+        Collector().get_smallest_monitor_size()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_WindowsCollector_get_smallest_monitor_size_returns_two_tuple(self, mocker):
+        RECT1, RECT2 = (0, 0, 1920, 1280), (1920, 0, 1280, 1080)
+        SAMPLE = [RECT1, RECT2]
+        mocker.patch(
+            "arrangeit.windows.collector.Collector.get_monitors_rects",
+            return_value=SAMPLE,
+        )
+        returned = Collector().get_smallest_monitor_size()
+        assert returned == (RECT2[2], RECT2[3])
+
+
+## arrangeit.windows.controller
+class TestWindowsController(object):
+    """Testing class for :py:class:`arrangeit.windows.controller.Controller` class."""
+
+    ## Controller.setup_root_window
+    def test_WindowsController_setup_root_window_calls_root_overrideredirect(
+        self, mocker
+    ):
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocker.patch("arrangeit.base.ViewApplication")
+        Controller(mocker.MagicMock()).setup_root_window(root)
+        root.overrideredirect.assert_called_once()
+        calls = [mocker.call(True)]
+        root.overrideredirect.assert_has_calls(calls, any_order=True)
+
+    def test_WindowsController_setup_root_window_calls_super(self, mocker):
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocker.patch("arrangeit.base.ViewApplication")
+        mocked = mocker.patch("arrangeit.base.BaseController.setup_root_window")
+        controller = Controller(mocker.MagicMock())
+        mocked.reset_mock()
+        controller.setup_root_window(root)
+        mocked.assert_called_once()
+        calls = [mocker.call(root)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+
+## arrangeit.windows.utils
+class TestWindowsUtils(object):
+    """Testing class for `arrangeit.windows.utils` module."""
+
+    ## WindowsUtils.user_data_path
+    def test_windows_utils_module_user_data_path(self, mocker):
+        mocker.patch(
+            "os.path.expanduser",
+            side_effect=lambda e: "C:\\Users\\tempuser{}".format(e).replace("~", ""),
+        )
+        assert user_data_path() == "C:\\Users\\tempuser\\arrangeit"

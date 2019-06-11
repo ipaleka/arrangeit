@@ -5,7 +5,7 @@ import gi
 gi.require_version("Wnck", "3.0")
 gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import Wnck, GdkPixbuf
-from PIL import Image, ImageTk
+from PIL import Image
 from Xlib import X
 import pytest
 
@@ -17,50 +17,333 @@ from arrangeit.linux.controller import Controller
 from arrangeit.linux.utils import user_data_path
 
 
-class TestLinuxUtils(object):
-    """Testing class for `arrangeit.linux.utils` module."""
-
-    ## LinuxUtils.user_data_path
-    def test_linux_utils_module_user_data_path_checks_local_share_first(self, mocker):
-        mocked_expand = mocker.patch(
-            "os.path.expanduser",
-            side_effect=lambda e: "/home/tempuser/{}".format(e).replace("~/", ""),
-        )
-        mocked_exists = mocker.patch("arrangeit.base.os.path.exists")
-        user_data_path()
-        calls = [mocker.call("/home/tempuser/.local/share")]
-        mocked_exists.assert_has_calls(calls, any_order=True)
-        calls = [mocker.call("~/.local/share/arrangeit")]
-        mocked_expand.assert_has_calls(calls, any_order=True)
-
-    def test_linux_utils_module__user_data_path_for_local_share_not_exists(
-        self, mocker
-    ):
-        mocker.patch(
-            "os.path.expanduser",
-            side_effect=lambda e: "/home/tempuser/{}".format(e).replace("~/", ""),
-        )
-        mocker.patch("arrangeit.base.os.path.exists", return_value=False)
-        assert user_data_path() == "/home/tempuser/.arrangeit"
-
-
+## arrangeit.linux.app
 class TestLinuxApp(object):
     """Testing class for :class:`arrangeit.linux.app.App` class."""
 
+    ## LinuxApp.activate_root
+    def test_LinuxApp_activate_root_calls_get_window_stack(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
+        App().activate_root(100)
+        mocked.return_value.get_window_stack.assert_called_once()
+
+    def test_LinuxApp_activate_root_calls_window_focus(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_screen = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
+        SAMPLE = 100
+        window = mocker.MagicMock()
+        window.get_xid.return_value = SAMPLE + 1
+        mocked_screen.return_value.get_window_stack.return_value = [window]
+        App().activate_root(SAMPLE)
+        window.focus.assert_called_once()
+        window.focus.assert_called_with(X.CurrentTime)
+
+    def test_LinuxApp_activate_root_not_calling_window_focus(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_screen = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
+        SAMPLE = 100
+        window = mocker.MagicMock()
+        window.get_xid.return_value = 8000
+        mocked_screen.return_value.get_window_stack.return_value = [window]
+        App().activate_root(SAMPLE)
+        window.focus.assert_not_called()
+
+    ## LinuxApp.move
+    def test_LinuxApp_move_calls_move_and_resize(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.app.App.move_and_resize")
+        app = App()
+        SAMPLE = 500
+        app.move(SAMPLE)
+        mocked.assert_called()
+        mocked.assert_called_with(SAMPLE)
+
+    ## LinuxApp.move_and_resize
+    def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        SAMPLE = 8001
+        with pytest.raises(AttributeError):
+            app.move_and_resize(SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE)
+
+    def test_LinuxApp_move_and_resize_calls__move_window_to_workspace(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.app.App._move_window_to_workspace")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=True
+        )
+        SAMPLE_WS, SAMPLE_WID = 1005, 7002
+        type(mocked_model.return_value).changed_ws = mocker.PropertyMock(
+            return_value=SAMPLE_WS
+        )
+        app = App()
+        with pytest.raises(AttributeError):
+            app.move_and_resize(SAMPLE_WID)
+        mocked.assert_called_with(SAMPLE_WID, SAMPLE_WS)
+
+    def test_LinuxApp_move_and_resize_not_calling__move_window_to_workspace(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.app.App._move_window_to_workspace")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        with pytest.raises(AttributeError):
+            app.move_and_resize(100)
+        mocked.assert_not_called()
+
+    def test_LinuxApp_move_and_resize_calls_get_window_move_resize_mask(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask"
+        )
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        with pytest.raises(AttributeError):
+            app.move_and_resize(100)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_and_resize_not_calling_get_window_by_wid(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        app.move_and_resize(100)
+        assert mocked.return_value.set_geometry.call_count == 0
+
+    def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        app.move_and_resize(100)
+        assert mocked.return_value.set_geometry.call_count == 1
+
+    def test_LinuxApp_move_and_resize_checks_maximized(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        app.move_and_resize(100)
+        assert mocked.return_value.is_maximized.call_count == 1
+
+    def test_LinuxApp_move_and_resize_calls_unmaximize(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        mocked.return_value.is_maximized.return_value = True
+        app = App()
+        app.move_and_resize(100)
+        mocked.return_value.unmaximize.assert_called_once()
+
+    def test_LinuxApp_move_and_resize_not_calling_unmaximize(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        mocked.return_value.is_maximized.return_value = False
+        app = App()
+        app.move_and_resize(100)
+        mocked.return_value.unmaximize.assert_not_called()
+
+    def test_LinuxApp_move_and_resize_not_calling_WnckWindow_set_geometry(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        app.move_and_resize(100)
+        assert mocked.return_value.set_geometry.call_count == 0
+
+    def test_LinuxApp_move_and_resize_returns_False(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        assert app.move_and_resize(100) is False
+
+    def test_LinuxApp_move_and_resize_returns_True(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        app = App()
+        assert app.move_and_resize(100) is True
+
+    ## LinuxApp._activate_workspace
+    def test_LinuxApp__activate_workspace_calls__get_wnck_workspace_for_custom(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        app = App()
+        app._activate_workspace(1000)
+        mocked.assert_called()
+        mocked.assert_called_with(1000)
+
+    def test_LinuxApp__activate_workspace_calls_Wnck_Workspace_activate(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        app = App()
+        app._activate_workspace(1000)
+        assert mocked.return_value.activate.call_count == 1
+
+    def test_LinuxApp__activate_workspace_returns_True(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        mocked.return_value = False
+        app = App()
+        returned = app._activate_workspace(1000)
+        assert returned is True
+
+    def test_LinuxApp__activate_workspace_returns_workspace(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
+        )
+        app = App()
+        returned = app._activate_workspace(1000)
+        assert returned == mocked.return_value
+
+    ## LinuxApp.move_to_workspace
+    def test_LinuxApp_move_to_workspace_calls__move_window_to_workspace(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.app.App._move_window_to_workspace")
+        app = App()
+        WID = 100
+        app.move_to_workspace(WID, 1001)
+        mocked.assert_called()
+        mocked.assert_called_with(WID + 1, 1001)
+
+    ## LinuxApp._move_window_to_workspace
+    def test_LinuxApp__move_window_to_workspace_calls_Wnck_shutdown(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_ws = mocker.patch("arrangeit.linux.app.App._activate_workspace")
+        mocked_ws.return_value = False
+        mocked = mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        app = App()
+        app._move_window_to_workspace(500, 1000)
+        mocked.assert_called()
+
+    def test_LinuxApp__move_window_to_workspace_calls_Wnck_Workspace_activate(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocked = mocker.patch("arrangeit.linux.app.App._activate_workspace")
+        app = App()
+        app._move_window_to_workspace(500, 1000)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(1000)
+
+    def test_LinuxApp__move_window_to_workspace_calls_get_window_by_wid(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.app.App._activate_workspace")
+        app = App()
+        app._move_window_to_workspace(500, 1000)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(500)
+
+    def test_LinuxApp__move_window_to_workspace_calls_win_move_to_workspace(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocked_ws = mocker.patch("arrangeit.linux.app.App._activate_workspace")
+        app = App()
+        app._move_window_to_workspace(500, 1000)
+        assert mocked.return_value.move_to_workspace.call_count == 1
+        mocked.return_value.move_to_workspace.assert_called_with(mocked_ws.return_value)
+
+    def test_LinuxApp__move_window_to_workspace_calls_win_activate(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.app.App._activate_workspace")
+        app = App()
+        app._move_window_to_workspace(500, 1000)
+        assert mocked.return_value.activate.call_count == 1
+        mocked.return_value.activate.assert_called_with(X.CurrentTime)
+
+    def test_LinuxApp__move_window_to_workspace_returns_False(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocker.patch("arrangeit.linux.app.App._activate_workspace")
+        app = App()
+        returned = app._move_window_to_workspace(500, 1000)
+        assert returned is False
+
+    def test_LinuxApp__move_window_to_workspace_returns_True(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
+        mocked = mocker.patch("arrangeit.linux.app.App._activate_workspace")
+        mocked.return_value = False
+        app = App()
+        returned = app._move_window_to_workspace(500, 1000)
+        assert returned is True
+
     ## LinuxApp.grab_window_screen
     def test_LinuxApp_grab_window_screen_calls_get_window_stack(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.linux.app.ImageTk")
         mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
         App().grab_window_screen(mocker.MagicMock())
         mocked.return_value.get_window_stack.assert_called_once()
 
     def test_LinuxApp_grab_window_screen_for_no_window_returns_empty_icon(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_image = mocker.patch("arrangeit.linux.app.ImageTk")
         mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
         mocked.return_value.get_window_stack.return_value = [mocker.MagicMock()]
         returned = App().grab_window_screen(mocker.MagicMock())
-        assert isinstance(returned[0], ImageTk.PhotoImage)
+        assert returned[0] == mocked_image.PhotoImage.return_value
         assert returned[1] == (0, 0)
 
     def test_LinuxApp_grab_window_screen_calls_pixbuf_get_from_window(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.linux.collector.Collector.get_image_from_pixbuf")
         mocker.patch("arrangeit.linux.app.ImageTk.PhotoImage")
         mocked_default = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
@@ -73,7 +356,10 @@ class TestLinuxApp(object):
         App().grab_window_screen(mocked_model)
         mocked.assert_called_once()
 
-    def test_LinuxApp_grab_window_screen_returns_get_prepared_screenshot_image(self, mocker):
+    def test_LinuxApp_grab_window_screen_returns_get_prepared_screenshot_image(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.linux.collector.Collector.get_image_from_pixbuf")
         mocked_photo = mocker.patch("arrangeit.linux.app.get_prepared_screenshot")
         mocked_default = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
@@ -91,292 +377,8 @@ class TestLinuxApp(object):
         assert returned[0] == mocked_photo.return_value
         assert returned[1] == (50, 60)
 
-    ## LinuxApp.move_and_resize
-    def test_LinuxApp_move_and_resize_calls_get_model_by_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        app = App()
-        with pytest.raises(AttributeError):
-            app.move_and_resize(100)
-        mocked.assert_called()
 
-    def test_LinuxApp_move_and_resize_calls__move_window_to_workspace(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.app.App._move_window_to_workspace")
-        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
-            return_value=True
-        )
-        type(mocked_model.return_value).changed_ws = mocker.PropertyMock(
-            return_value=1005
-        )
-        app = App()
-        with pytest.raises(AttributeError):
-            app.move_and_resize(100)
-        mocked.assert_called_with(100, 1005)
-
-    def test_LinuxApp_move_and_resize_not_calling__move_window_to_workspace(
-        self, mocker
-    ):
-        mocked = mocker.patch("arrangeit.linux.app.App._move_window_to_workspace")
-        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
-            return_value=False
-        )
-        app = App()
-        with pytest.raises(AttributeError):
-            app.move_and_resize(100)
-        mocked.assert_not_called()
-
-    def test_LinuxApp_move_and_resize_calls_get_window_move_resize_mask(self, mocker):
-        mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_window_move_resize_mask"
-        )
-        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
-            return_value=False
-        )
-        app = App()
-        with pytest.raises(AttributeError):
-            app.move_and_resize(100)
-        mocked.assert_called()
-
-    def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
-            return_value=False
-        )
-        app = App()
-        app.move_and_resize(100)
-        mocked.assert_called()
-
-    def test_LinuxApp_move_and_resize_not_calling_get_window_by_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch(
-            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
-            return_value=False,
-        )
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        app = App()
-        app.move_and_resize(100)
-        assert mocked.return_value.set_geometry.call_count == 0
-
-    def test_LinuxApp_move_and_resize_calls_WnckWindow_set_geometry(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        app = App()
-        app.move_and_resize(100)
-        assert mocked.return_value.set_geometry.call_count == 1
-
-    def test_LinuxApp_move_and_resize_checks_maximized(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        app = App()
-        app.move_and_resize(100)
-        assert mocked.return_value.is_maximized.call_count == 1
-
-    def test_LinuxApp_move_and_resize_calls_unmaximize(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        mocked.return_value.is_maximized.return_value = True
-        app = App()
-        app.move_and_resize(100)
-        mocked.return_value.unmaximize.assert_called_once()
-
-    def test_LinuxApp_move_and_resize_not_calling_unmaximize(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        mocked.return_value.is_maximized.return_value = False
-        app = App()
-        app.move_and_resize(100)
-        mocked.return_value.unmaximize.assert_not_called()
-
-    def test_LinuxApp_move_and_resize_not_calling_WnckWindow_set_geometry(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch(
-            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
-            return_value=False,
-        )
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        app = App()
-        app.move_and_resize(100)
-        assert mocked.return_value.set_geometry.call_count == 0
-
-    def test_LinuxApp_move_and_resize_returns_False(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        app = App()
-        assert app.move_and_resize(100) is False
-
-    def test_LinuxApp_move_and_resize_returns_True(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch(
-            "arrangeit.linux.collector.Collector.get_window_move_resize_mask",
-            return_value=False,
-        )
-        mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        app = App()
-        assert app.move_and_resize(100) is True
-
-    ## LinuxApp.move
-    def test_LinuxApp_move_calls_move_and_resize(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.app.App.move_and_resize")
-        app = App()
-        app.move(100)
-        mocked.assert_called()
-        mocked.assert_called_with(100)
-
-    ## LinuxApp._activate_workspace
-    def test_LinuxApp__activate_workspace_calls__get_wnck_workspace_for_custom(
-        self, mocker
-    ):
-        mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
-        )
-        app = App()
-        app._activate_workspace(1000)
-        mocked.assert_called()
-        mocked.assert_called_with(1000)
-
-    def test_LinuxApp__activate_workspace_calls_Wnck_Workspace_activate(self, mocker):
-        mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
-        )
-        app = App()
-        app._activate_workspace(1000)
-        assert mocked.return_value.activate.call_count == 1
-
-    def test_LinuxApp__activate_workspace_returns_True(self, mocker):
-        mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
-        )
-        mocked.return_value = False
-        app = App()
-        returned = app._activate_workspace(1000)
-        assert returned is True
-
-    def test_LinuxApp__activate_workspace_returns_workspace(self, mocker):
-        mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_wnck_workspace_for_custom_number"
-        )
-        app = App()
-        returned = app._activate_workspace(1000)
-        assert returned == mocked.return_value
-
-    ## LinuxApp._move_window_to_workspace
-    def test_LinuxApp__move_window_to_workspace_calls_Wnck_shutdown(self, mocker):
-        mocked_ws = mocker.patch("arrangeit.linux.app.App._activate_workspace")
-        mocked_ws.return_value = False
-        mocked = mocker.patch("arrangeit.linux.app.Wnck.shutdown")
-        app = App()
-        app._move_window_to_workspace(500, 1000)
-        mocked.assert_called()
-
-    def test_LinuxApp__move_window_to_workspace_calls_Wnck_Workspace_activate(
-        self, mocker
-    ):
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocked = mocker.patch("arrangeit.linux.app.App._activate_workspace")
-        app = App()
-        app._move_window_to_workspace(500, 1000)
-        assert mocked.call_count == 1
-        mocked.assert_called_with(1000)
-
-    def test_LinuxApp__move_window_to_workspace_calls_get_window_by_wid(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.app.App._activate_workspace")
-        app = App()
-        app._move_window_to_workspace(500, 1000)
-        assert mocked.call_count == 1
-        mocked.assert_called_with(500)
-
-    def test_LinuxApp__move_window_to_workspace_calls_win_move_to_workspace(
-        self, mocker
-    ):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocked_ws = mocker.patch("arrangeit.linux.app.App._activate_workspace")
-        app = App()
-        app._move_window_to_workspace(500, 1000)
-        assert mocked.return_value.move_to_workspace.call_count == 1
-        mocked.return_value.move_to_workspace.assert_called_with(mocked_ws.return_value)
-
-    def test_LinuxApp__move_window_to_workspace_calls_win_activate(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.app.App._activate_workspace")
-        app = App()
-        app._move_window_to_workspace(500, 1000)
-        assert mocked.return_value.activate.call_count == 1
-        mocked.return_value.activate.assert_called_with(X.CurrentTime)
-
-    def test_LinuxApp__move_window_to_workspace_returns_False(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocker.patch("arrangeit.linux.app.App._activate_workspace")
-        app = App()
-        returned = app._move_window_to_workspace(500, 1000)
-        assert returned is False
-
-    def test_LinuxApp__move_window_to_workspace_returns_True(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
-        mocked = mocker.patch("arrangeit.linux.app.App._activate_workspace")
-        mocked.return_value = False
-        app = App()
-        returned = app._move_window_to_workspace(500, 1000)
-        assert returned is True
-
-    ## LinuxApp.move_to_workspace
-    def test_LinuxApp_activate_root_calls_get_window_stack(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
-        App().activate_root(100)
-        mocked.return_value.get_window_stack.assert_called_once()
-
-    def test_LinuxApp_activate_root_calls_window_focus(self, mocker):
-        mocked_screen = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
-        SAMPLE = 100
-        window = mocker.MagicMock()
-        window.get_xid.return_value = SAMPLE + 1
-        mocked_screen.return_value.get_window_stack.return_value = [window, ]
-        App().activate_root(SAMPLE)
-        window.focus.assert_called_once()
-        window.focus.assert_called_with(X.CurrentTime)
-
-    def test_LinuxApp_activate_root_not_calling_window_focus(self, mocker):
-        mocked_screen = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
-        SAMPLE = 100
-        window = mocker.MagicMock()
-        window.get_xid.return_value = 8000
-        mocked_screen.return_value.get_window_stack.return_value = [window, ]
-        App().activate_root(SAMPLE)
-        window.focus.assert_not_called()
-
-
-    ## LinuxApp.activate_root
-    def test_LinuxApp_activate_root_calls__move_window_to_workspace(self, mocker):
-        mocked = mocker.patch("arrangeit.linux.app.App._move_window_to_workspace")
-        app = App()
-        app.move_to_workspace(100, 1001)
-        mocked.assert_called()
-        mocked.assert_called_with(101, 1001)
-
-
-class TestLinuxController(object):
-    """Testing class for :py:class:`arrangeit.linux.controller.Controller` class."""
-
-    ## Controller.setup_root_window
-    def test_LinuxController_setup_root_window_calls_type_splash(self, mocker):
-        root = mocker.patch("arrangeit.base.get_tkinter_root")
-        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-        mocker.patch("arrangeit.base.ViewApplication")
-        Controller(mocker.MagicMock()).setup_root_window(root)
-        root.wm_attributes.assert_called()
-        calls = [mocker.call("-type", "splash")]
-        root.wm_attributes.assert_has_calls(calls, any_order=True)
-
-
+## arrangeit.linux.collector
 class TestLinuxCollector(object):
     """Testing class for :py:class:`arrangeit.linux.collector.Collector` class."""
 
@@ -853,18 +855,22 @@ class TestLinuxCollector(object):
             "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
         )
         mocked = mocker.patch("arrangeit.linux.collector.Gdk.Display.get_monitor")
-        type(mocked.return_value.get_workarea.return_value).x = mocker.PropertyMock(return_value=10)
-        type(mocked.return_value.get_workarea.return_value).y = mocker.PropertyMock(return_value=20)
-        type(mocked.return_value.get_workarea.return_value).width = mocker.PropertyMock(return_value=100)
-        type(mocked.return_value.get_workarea.return_value).height = mocker.PropertyMock(return_value=200)
+        type(mocked.return_value.get_workarea.return_value).x = mocker.PropertyMock(
+            return_value=10
+        )
+        type(mocked.return_value.get_workarea.return_value).y = mocker.PropertyMock(
+            return_value=20
+        )
+        type(mocked.return_value.get_workarea.return_value).width = mocker.PropertyMock(
+            return_value=100
+        )
+        type(
+            mocked.return_value.get_workarea.return_value
+        ).height = mocker.PropertyMock(return_value=200)
         collector = Collector()
         rects = collector.get_monitors_rects()
         assert isinstance(rects, list)
         assert rects == [(10, 20, 100, 200)]
-
-
-
-
 
     ## LinuxCollector.get_smallest_monitor_size
     def test_LinuxCollector_get_smallest_monitor_size_calls_GDK_display_get_default(
@@ -906,9 +912,7 @@ class TestLinuxCollector(object):
         collector.get_smallest_monitor_size()
         mocked.return_value.get_workarea.assert_called_once()
 
-    def test_LinuxCollector_get_smallest_monitor_size_returns_tuple(
-        self, mocker
-    ):
+    def test_LinuxCollector_get_smallest_monitor_size_returns_tuple(self, mocker):
         mocker.patch(
             "arrangeit.linux.collector.Gdk.Display.get_n_monitors", return_value=1
         )
@@ -921,3 +925,46 @@ class TestLinuxCollector(object):
         collector = Collector()
         returned = collector.get_smallest_monitor_size()
         assert returned == (WIDTH, HEIGHT)
+
+
+## arrangeit.linux.controller
+class TestLinuxController(object):
+    """Testing class for :py:class:`arrangeit.linux.controller.Controller` class."""
+
+    ## LinuxController.setup_root_window
+    def test_LinuxController_setup_root_window_calls_type_splash(self, mocker):
+        root = mocker.patch("arrangeit.base.get_tkinter_root")
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        mocker.patch("arrangeit.base.ViewApplication")
+        Controller(mocker.MagicMock()).setup_root_window(root)
+        root.wm_attributes.assert_called()
+        calls = [mocker.call("-type", "splash")]
+        root.wm_attributes.assert_has_calls(calls, any_order=True)
+
+
+## arrangeit.linux.utils
+class TestLinuxUtils(object):
+    """Testing class for `arrangeit.linux.utils` module."""
+
+    ## LinuxUtils.user_data_path
+    def test_linux_utils_module_user_data_path_checks_local_share_first(self, mocker):
+        mocked_expand = mocker.patch(
+            "os.path.expanduser",
+            side_effect=lambda e: "/home/tempuser/{}".format(e).replace("~/", ""),
+        )
+        mocked_exists = mocker.patch("arrangeit.base.os.path.exists")
+        user_data_path()
+        calls = [mocker.call("/home/tempuser/.local/share")]
+        mocked_exists.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call("~/.local/share/arrangeit")]
+        mocked_expand.assert_has_calls(calls, any_order=True)
+
+    def test_linux_utils_module__user_data_path_for_local_share_not_exists(
+        self, mocker
+    ):
+        mocker.patch(
+            "os.path.expanduser",
+            side_effect=lambda e: "/home/tempuser/{}".format(e).replace("~/", ""),
+        )
+        mocker.patch("arrangeit.base.os.path.exists", return_value=False)
+        assert user_data_path() == "/home/tempuser/.arrangeit"

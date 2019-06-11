@@ -438,11 +438,14 @@ class BaseController(object):
         self.view.update_widgets(self.model)
         self.place_on_top_left()
         if first_time:
-            self.on_mouse_move(
-                self.model.x + Settings.SHIFT_CURSOR,
-                self.model.y + Settings.SHIFT_CURSOR,
+            self.view.master.geometry(
+                "+{}+{}".format(
+                    *self.get_root_rect(
+                        self.model.x + Settings.SHIFT_CURSOR,
+                        self.model.y + Settings.SHIFT_CURSOR,
+                    )[:2]
+                )
             )
-
         return False
 
     def run(self, generator):

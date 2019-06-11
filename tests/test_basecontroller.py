@@ -96,6 +96,7 @@ class TestBaseController(object):
 
     ## BaseController.setup_root_window
     def test_BaseController_setup_root_window_calls_wm_attributes(self, mocker):
+        mocked_setup(mocker)
         root = mocker.MagicMock()
         base.BaseController(None).setup_root_window(root)
         assert root.wm_attributes.call_count == 2
@@ -128,6 +129,7 @@ class TestBaseController(object):
     def test_BaseController_set_default_geometry_calls_get_smallest_monitor_size(
         self, mocker
     ):
+        mocked_setup(mocker)
         root = mocker.MagicMock()
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         controller = controller_mocked_app(mocker)
@@ -137,6 +139,7 @@ class TestBaseController(object):
         controller.app.collector.get_smallest_monitor_size.assert_called_with()
 
     def test_BaseController_set_default_geometry_calls_quarter_by_smaller(self, mocker):
+        mocked_setup(mocker)
         root = mocker.MagicMock()
         mocked = mocker.patch(
             "arrangeit.base.quarter_by_smaller", return_value=(100, 100)
@@ -150,6 +153,7 @@ class TestBaseController(object):
         mocked.assert_called_with(w, h)
 
     def test_BaseController_set_default_geometry_sets_default_size(self, mocker):
+        mocked_setup(mocker)
         root = mocker.MagicMock()
         SAMPLE = (244, 145)
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=SAMPLE)
@@ -161,6 +165,7 @@ class TestBaseController(object):
     def test_BaseController_set_default_geometry_not_calling_quarter_by_smaller(
         self, mocker
     ):
+        mocked_setup(mocker)
         root = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.base.quarter_by_smaller")
         controller = base.BaseController(None)
@@ -171,8 +176,9 @@ class TestBaseController(object):
     def test_BaseController_set_default_geometry_not_changing_default_size(
         self, mocker
     ):
-        root = mocker.MagicMock()
+        mocked_setup(mocker)
         mocker.patch("arrangeit.base.quarter_by_smaller")
+        root = mocker.MagicMock()
         controller = base.BaseController(None)
         SAMPLE = (1002, 1003)
         controller.default_size = SAMPLE
@@ -180,6 +186,7 @@ class TestBaseController(object):
         assert controller.default_size == SAMPLE
 
     def test_BaseController_set_default_geometry_calls_geometry(self, mocker):
+        mocked_setup(mocker)
         root = mocker.MagicMock()
         w, h = 1003, 1004
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(w, h))
@@ -215,6 +222,7 @@ class TestBaseController(object):
 
     ## BaseController.set_screenshot
     def test_BaseController_set_screenshot_calls_grab_window_screen(self, mocker):
+        mocked_setup(mocker)
         app = mocker.MagicMock()
         app.grab_window_screen.return_value = (None, (0, 0))
         controller = base.BaseController(app)
