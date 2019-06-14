@@ -10,6 +10,7 @@ from arrangeit.view import (
     get_mouse_listener,
     move_cursor,
     cursor_position,
+    Resizable,
     CornerWidget,
     WorkspacesCollection,
     WindowsList,
@@ -88,6 +89,150 @@ class TestViewFunctions(object):
         mocked = mocker.patch("pynput.mouse.Controller")
         returned = cursor_position()
         assert returned == mocked.return_value.position
+
+
+class TestResizable(object):
+    """Unit testing class for :class:`Resizable` class."""
+
+    ## Resizable
+    def test_Resizable_issubclass_of_Label(self):
+        assert issubclass(Resizable, tk.Label)
+
+    @pytest.mark.parametrize("attr,value", [("master", None)])
+    def test_Resizable_inits_attr_as_empty(self, attr, value):
+        assert getattr(Resizable, attr) == value
+
+    ## Resizable.__init__
+    def test_Resizable_init_calls_super_with_master_arg(self, mocker):
+        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        mocker.patch("arrangeit.view.Resizable.setup_bindings")
+        master = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.tk.Label.__init__")
+        Resizable(master=master)
+        mocked.assert_called_with(master)
+
+    @pytest.mark.parametrize("attr", ["master"])
+    def test_Resizable_init_sets_attributes(self, mocker, attr):
+        mocker.patch("arrangeit.view.Resizable.setup_bindings")
+        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        mocked = mocker.MagicMock()
+        kwargs = {attr: mocked}
+        resizable = Resizable(**kwargs)
+        assert getattr(resizable, attr) == mocked
+
+    def test_Resizable_init_calls_setup_widgets(self, mocker):
+        master = mocker.MagicMock()
+        mocker.patch("arrangeit.view.Resizable.setup_bindings")
+        mocked = mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        Resizable(master=master)
+        mocked.assert_called_once()
+
+    def test_Resizable_init_calls_setup_bindings(self, mocker):
+        master = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.Resizable.setup_bindings")
+        Resizable(master=master)
+        mocked.assert_called_once()
+
+    ## Resizable.set_value
+    def test_Resizable_set_value_calls_config(self, mocker):
+        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        mocked.reset_mock()
+        resizable.set_value(True)
+        mocked.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "value,expected", [(True, _("RESIZABLE")), (False, _("NON-RESIZABLE"))]
+    )
+    def test_Resizable_set_value_sets_correct_value(self, mocker, value, expected):
+        mocker.patch("arrangeit.view.Resizable.setup_bindings")
+        resizable = Resizable(None)
+        resizable.set_value(value)
+        assert resizable["text"] == expected
+
+    ## Resizable.setup_widgets
+    def test_Resizable_setup_widgets_configs_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        resizable.setup_widgets()
+        calls = [
+            mocker.call(
+                text=_("RESIZABLE"),
+                font=(
+                    "TkDefaultFont",
+                    increased_by_fraction(
+                        nametofont("TkDefaultFont")["size"],
+                        Settings.RESIZABLE_LABEL_FONT_INCREASE,
+                    ),
+                ),
+                height=1,
+                foreground=Settings.RESIZABLE_LABEL_FG,
+                background=Settings.RESIZABLE_LABEL_BG,
+                padx=Settings.RESIZABLE_LABEL_PADX,
+                pady=Settings.RESIZABLE_LABEL_PADY,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    ## Resizable.setup_bindings
+    @pytest.mark.parametrize(
+        "event,method", [("<Enter>", "on_widget_enter"), ("<Leave>", "on_widget_leave")]
+    )
+    def test_Resizable_setup_bindings_callbacks(self, mocker, event, method):
+        mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        callback = getattr(resizable, method)
+        mocked = mocker.patch("arrangeit.view.Resizable.bind")
+        resizable.setup_bindings()
+        calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_resizable_click")])
+    def test_Resizable_setup_bindings_labels_master_callbacks(
+        self, mocker, event, method
+    ):
+        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        callback = getattr(resizable.master.controller, method)
+        mocked = mocker.patch("arrangeit.view.tk.Label.bind")
+        resizable.setup_bindings()
+        calls = [mocker.call(event, callback)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    ## Resizable.on_widget_enter
+    def test_Resizable_on_widget_enter_sets_foreground(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        mocked.reset_mock()
+        resizable.on_widget_enter(mocker.MagicMock())
+        assert mocked.call_count == 1
+        calls = [mocker.call(foreground=Settings.HIGHLIGHTED_COLOR)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Resizable_on_widget_enter_returns_break(self, mocker):
+        mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        returned = resizable.on_widget_enter(mocker.MagicMock())
+        assert returned == "break"
+
+    ## Resizable.on_widget_leave
+    def test_Resizable_on_widget_leave_sets_foreground(self, mocker):
+        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        mocked.reset_mock()
+        resizable.on_widget_leave(mocker.MagicMock())
+        assert mocked.call_count == 1
+        calls = [mocker.call(foreground=Settings.RESIZABLE_LABEL_FG)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Resizable_on_widget_leave_returns_break(self, mocker):
+        mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        returned = resizable.on_widget_leave(mocker.MagicMock())
+        assert returned == "break"
 
 
 class TestCornerWidget(object):
@@ -262,7 +407,7 @@ class TestWorkspacesCollection(object):
     def test_WorkspacesCollection_issubclass_of_Frame(self):
         assert issubclass(WorkspacesCollection, tk.Frame)
 
-    @pytest.mark.parametrize("attr,value", [("master",None), ("active", 0)])
+    @pytest.mark.parametrize("attr,value", [("master", None), ("active", 0)])
     def test_WorkspacesCollection_inits_attributes(self, attr, value):
         assert getattr(WorkspacesCollection, attr) is value
 

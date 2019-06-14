@@ -958,6 +958,11 @@ class BaseController(object):
             self.app.run_task("activate_root", self.view.master.winfo_id())
             return "break"
 
+    def on_resizable_click(self, event):
+        """Switches model resizable attribute."""
+        self.model.resizable = not self.model.resizable
+        self.view.resizable.set_value(self.model.resizable)
+
     ## MAIN LOOP
     def mainloop(self):
         self.view.mainloop()

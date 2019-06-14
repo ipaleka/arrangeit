@@ -163,6 +163,13 @@ class ViewApplication(tk.Frame):
             relwidth=Settings.NAME_LABEL_RELWIDTH,
         )
 
+    def setup_resizable(self):
+        """Sets and places resizable label widget."""
+        self.resizable = Resizable(self)
+        self.resizable.place(
+            x=200
+        )
+
     def setup_title(self):
         """Sets and places title label widget."""
         self.title = tk.StringVar()
@@ -207,6 +214,7 @@ class ViewApplication(tk.Frame):
         self.setup_windows()
         self.setup_toolbar()
         self.setup_corner()
+        self.setup_resizable()
 
     def setup_windows(self):
         """Creates and places `windows` widget and sets corresponding variable."""
@@ -251,10 +259,73 @@ class ViewApplication(tk.Frame):
         :type model: :class:`WindowModel` instance
         """
         self.title.set(model.title)
+        self.resizable.set_value(model.resizable)
         self.icon_image = ImageTk.PhotoImage(model.icon)
         self.icon.config(image=self.icon_image)
         self.name.set(model.name)
         self.workspaces.select_active(model.workspace)
+
+
+class Resizable(tk.Label):
+    """Tkinter label holding resizable/non-resizable image.
+
+    :var Resizable.master: master widget
+    :type Resizable.master: :class:`.tk.Frame`
+    """
+
+    master = None
+
+    def __init__(self, master=None):
+        """Sets master attribute from provided argument
+
+        after super __init__ is called.
+        """
+        super().__init__(master)
+        self.master = master
+        self.setup_widgets()
+        self.setup_bindings()
+
+    def setup_widgets(self):
+        """Creates and places all the frame's variables and widgets."""
+        self.config(
+            text=_("RESIZABLE"),
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    Settings.RESIZABLE_LABEL_FONT_INCREASE,
+                ),
+            ),
+            height=1,
+            foreground=Settings.RESIZABLE_LABEL_FG,
+            background=Settings.RESIZABLE_LABEL_BG,
+            padx=Settings.RESIZABLE_LABEL_PADX,
+            pady=Settings.RESIZABLE_LABEL_PADY,
+        )
+
+    def setup_bindings(self):
+        """Binds relevant events to related callback."""
+        self.bind("<Enter>", self.on_widget_enter)
+        self.bind("<Leave>", self.on_widget_leave)
+        self.bind("<Button-1>", self.master.controller.on_resizable_click)
+
+    def set_value(self, resizable):
+        """Sets label value in relation to provided `resizable`.
+
+        :param resizable: is window resizable or not
+        :type resizable: Boolean
+        """
+        self.config(text=_("RESIZABLE") if resizable else _("NON-RESIZABLE"))
+
+    def on_widget_enter(self, event):
+        """Highlights widget by changing foreground color."""
+        self.config(foreground=Settings.HIGHLIGHTED_COLOR)
+        return "break"
+
+    def on_widget_leave(self, event):
+        """Resets widget foreground color."""
+        self.config(foreground=Settings.RESIZABLE_LABEL_FG)
+        return "break"
 
 
 class CornerWidget(object):

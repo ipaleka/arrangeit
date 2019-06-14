@@ -4,7 +4,13 @@ from tkinter.font import nametofont
 import pytest
 
 from arrangeit.data import WindowModel
-from arrangeit.view import ViewApplication, WorkspacesCollection, WindowsList, Toolbar
+from arrangeit.view import (
+    ViewApplication,
+    Resizable,
+    WorkspacesCollection,
+    WindowsList,
+    Toolbar,
+)
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
 
@@ -196,7 +202,9 @@ class TestViewApplication(object):
         view.setup_corner()
         mocked.assert_called_once()
         mocked.assert_called_with(
-            view.master, shift=Settings.SHIFT_CURSOR, background=Settings.HIGHLIGHTED_COLOR
+            view.master,
+            shift=Settings.SHIFT_CURSOR,
+            background=Settings.HIGHLIGHTED_COLOR,
         )
 
     def test_ViewApplication_setup_corner_sets_corner_attribute(self, mocker):
@@ -264,6 +272,26 @@ class TestViewApplication(object):
             relheight=Settings.NAME_LABEL_RELHEIGHT,
             relwidth=Settings.NAME_LABEL_RELWIDTH,
         )
+
+    ## ViewApplication.setup_resizable
+    def test_ViewApplication_setup_resizable_initializes_Resizable(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_resizable()
+        assert isinstance(view.resizable, Resizable)
+
+    def test_ViewApplication_setup_resizable_sets_viewapp_as_master(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Toolbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_resizable()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_resizable_calls_label_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label.place")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_resizable()
+        assert mocked.call_count == 1
+        mocked.assert_called_with(x=200)
 
     ## ViewApplication.setup_title
     @pytest.mark.parametrize("name,typ", [("title", tk.StringVar)])
@@ -334,7 +362,17 @@ class TestViewApplication(object):
     ## ViewApplication.setup_widgets
     def test_ViewApplication_setup_widgets_calls_setup_title(self, mocker):
         mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        mocker.patch("arrangeit.view.ViewApplication.setup_resizable")
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_title")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_resizable(self, mocker):
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        mocker.patch("arrangeit.view.ViewApplication.setup_title")
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_resizable")
         view = ViewApplication(None, mocker.MagicMock())
         mocked.reset_mock()
         view.setup_widgets()
@@ -474,7 +512,9 @@ class TestViewApplication(object):
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
         master = mocker.MagicMock()
         master.winfo_width.return_value = 100
-        ViewApplication(master, mocker.MagicMock()).startup()
+        view = ViewApplication(master, mocker.MagicMock())
+        mocked.reset_mock()
+        view.startup()
         assert mocked.call_count == 2
         calls = [
             mocker.call(wraplength=int(100 * Settings.TITLE_LABEL_RELWIDTH)),

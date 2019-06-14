@@ -1310,6 +1310,24 @@ class TestBaseController(object):
         returned = base.BaseController(app).on_focus(mocker.MagicMock())
         assert returned == None
 
+    ## BaseController.on_resizable_click
+    @pytest.mark.parametrize("resizable,expected", [(False, True), (True, False),])
+    def test_BaseController_on_resizable_click_functionality(self, mocker, resizable,expected):
+        mocked_setup(mocker)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.model.resizable = resizable
+        controller.on_resizable_click(mocker.MagicMock())
+        assert controller.model.resizable == expected
+
+    def test_BaseController_on_resizable_calls_widget_set_value(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = base.BaseController(mocker.MagicMock())
+        VALUE = False
+        controller.model.resizable = VALUE
+        controller.on_resizable_click(mocker.MagicMock())
+        view.return_value.resizable.set_value.assert_called_once()
+        view.return_value.resizable.set_value.assert_called_with(not VALUE)
+
     ## BaseController.mainloop
     def test_BaseController_mainloop_calls_Tkinter_mainloop(self, mocker):
         view = mocked_setup_view(mocker)
