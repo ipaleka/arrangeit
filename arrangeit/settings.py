@@ -4,7 +4,7 @@ from gettext import gettext as _
 
 from PIL import Image
 
-from arrangeit.utils import platform_user_data_path
+from arrangeit.utils import platform_user_data_path, open_image
 
 
 """
@@ -42,12 +42,9 @@ SETTINGS = {
     "TITLE_LABEL_HEIGHT": (int, 3),
     "TITLE_LABEL_PADX": (int, 12),
     "TITLE_LABEL_PADY": (int, 6),
-    "RESIZABLE_LABEL_ANCHOR": (str, "se"),
-    "RESIZABLE_LABEL_BG": (str, "white"),
-    "RESIZABLE_LABEL_FG": (str, "black"),
-    "RESIZABLE_LABEL_FONT_INCREASE": (float, -0.1),
-    "RESIZABLE_LABEL_PADX": (int, 0),
-    "RESIZABLE_LABEL_PADY": (int, 0),
+    "RESIZABLE_SIZE": (int, 16),
+    "RESIZABLE_PADX": (int, 4),
+    "RESIZABLE_PADY": (int, 4),
     "ICON_LABEL_ANCHOR": (str, "n"),
     "ICON_LABEL_BG": (str, "white"),
     "ICON_LABEL_PADX": (int, 2),
@@ -171,10 +168,8 @@ class Settings(metaclass=SettingsMetaclass):
         "workspace": int,
     }
     WINDOW_MODEL_RECT_ELEMENTS = ("x", "y", "w", "h")
-    ICON_WIDTH = 32
-    BLANK_ICON = Image.open(
-        os.path.join(os.path.dirname(__file__), "resources", "blank.png")
-    )
+    ICON_SIZE = 32
+    BLANK_ICON = open_image("blank.png")
 
     @classmethod
     def is_setting(cls, name, value):

@@ -1,5 +1,6 @@
+import os
 import pytest
-from PIL import ImageFilter
+from PIL import ImageFilter, Image
 
 from arrangeit import utils
 from arrangeit.settings import Settings
@@ -74,6 +75,22 @@ class TestUtils(object):
 
     def test_append_to_collection_returns_True(self):
         assert utils.append_to_collection(1, [])
+
+
+    ## open_image
+    def test_open_image_returns_Image(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        returned = utils.open_image("resize.png")
+        assert returned == mocked.return_value
+
+    def test_open_image_calls_Image_open(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        PATH = "resize.png"
+        utils.open_image(PATH)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            os.path.join(os.path.dirname(utils.__file__), "resources", PATH)
+        )
 
     ## get_value_if_valid_type
     @pytest.mark.parametrize(

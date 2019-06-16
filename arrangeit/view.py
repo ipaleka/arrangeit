@@ -7,7 +7,7 @@ from pynput import mouse
 
 from arrangeit.settings import Settings
 from arrangeit.options import OptionsDialog
-from arrangeit.utils import increased_by_fraction
+from arrangeit.utils import increased_by_fraction, open_image
 
 
 def get_tkinter_root():
@@ -165,9 +165,12 @@ class ViewApplication(tk.Frame):
 
     def setup_resizable(self):
         """Sets and places resizable label widget."""
-        self.resizable = Resizable(self)
+        self.resizable = Resizable(self, background=Settings.TITLE_LABEL_BG)
         self.resizable.place(
-            x=200
+            x=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADX),
+            y=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADY),
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
         )
 
     def setup_title(self):
@@ -271,37 +274,37 @@ class Resizable(tk.Label):
 
     :var Resizable.master: master widget
     :type Resizable.master: :class:`.tk.Frame`
+    :var images: collection of two possible images
+    :type images: dict
+    :var Resizable.background: main background color
+    :type Resizable.background: str
+    :var Resizable.value: current widget value
+    :type Resizable.value: Boolean
     """
 
     master = None
+    images = {True: None, False: None}
+    background = "white"
+    value = True
 
-    def __init__(self, master=None):
+    def __init__(self, master=None, background="white"):
         """Sets master attribute from provided argument
 
         after super __init__ is called.
+        :param background: label background
+        :type background: str
         """
         super().__init__(master)
         self.master = master
+        self.background = background
         self.setup_widgets()
         self.setup_bindings()
 
     def setup_widgets(self):
-        """Creates and places all the frame's variables and widgets."""
-        self.config(
-            text=_("RESIZABLE"),
-            font=(
-                "TkDefaultFont",
-                increased_by_fraction(
-                    nametofont("TkDefaultFont")["size"],
-                    Settings.RESIZABLE_LABEL_FONT_INCREASE,
-                ),
-            ),
-            height=1,
-            foreground=Settings.RESIZABLE_LABEL_FG,
-            background=Settings.RESIZABLE_LABEL_BG,
-            padx=Settings.RESIZABLE_LABEL_PADX,
-            pady=Settings.RESIZABLE_LABEL_PADY,
-        )
+        """Configures widgets images and sets current image."""
+        self.images[True] = ImageTk.PhotoImage(open_image("resize.png"))
+        self.images[False] = ImageTk.PhotoImage(open_image("move.png"))
+        self.config(background=self.background, image=self.images[True])
 
     def setup_bindings(self):
         """Binds relevant events to related callback."""
@@ -310,21 +313,24 @@ class Resizable(tk.Label):
         self.bind("<Button-1>", self.master.controller.on_resizable_click)
 
     def set_value(self, resizable):
-        """Sets label value in relation to provided `resizable`.
+        """Sets label image in relation to provided `resizable`.
 
         :param resizable: is window resizable or not
         :type resizable: Boolean
         """
-        self.config(text=_("RESIZABLE") if resizable else _("NON-RESIZABLE"))
+        self.value = resizable
+        self.config(image=self.images[self.value])
 
     def on_widget_enter(self, event):
-        """Highlights widget by changing foreground color."""
-        self.config(foreground=Settings.HIGHLIGHTED_COLOR)
+        # """Highlights widget by changing foreground color."""
+        # self.config(foreground=Settings.HIGHLIGHTED_COLOR)
+        self.config(image=self.images[not self.value])
         return "break"
 
     def on_widget_leave(self, event):
-        """Resets widget foreground color."""
-        self.config(foreground=Settings.RESIZABLE_LABEL_FG)
+        # """Resets widget foreground color."""
+        # self.config(foreground=Settings.RESIZABLE_LABEL_FG)
+        self.config(image=self.images[self.value])
         return "break"
 
 
@@ -751,7 +757,7 @@ class ListedWindow(tk.Frame):
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
         return ImageTk.PhotoImage(
-            icon.resize((int(Settings.ICON_WIDTH / 2), int(Settings.ICON_WIDTH / 2))),
+            icon.resize((int(Settings.ICON_SIZE / 2), int(Settings.ICON_SIZE / 2))),
             Image.ANTIALIAS,
         )
 
@@ -774,7 +780,7 @@ class ListedWindow(tk.Frame):
             pady=Settings.LISTED_WINDOW_LABEL_PADY,
         )
         self.title_label.place(
-            x=Settings.ICON_WIDTH / 2 + Settings.LISTED_ICON_LABEL_PADX,
+            x=Settings.ICON_SIZE / 2 + Settings.LISTED_ICON_LABEL_PADX,
             relheight=1.0,
             relwidth=Settings.LISTED_WINDOW_RELWIDTH,
         )

@@ -481,7 +481,7 @@ class TestWindowsCollector(object):
         Collector()._get_application_icon(100)
         mocked.return_value.CreateCompatibleBitmap.assert_called_once()
         mocked.return_value.CreateCompatibleBitmap.assert_called_with(
-            mocked_create.return_value, Settings.ICON_WIDTH, Settings.ICON_WIDTH
+            mocked_create.return_value, Settings.ICON_SIZE, Settings.ICON_SIZE
         )
 
     def test_WindowsCollector__get_application_icon_calls_dc_CreateCompatibleDC(
@@ -540,7 +540,7 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
         mocked.assert_called_with(
             "RGBA",
-            (Settings.ICON_WIDTH, Settings.ICON_WIDTH),
+            (Settings.ICON_SIZE, Settings.ICON_SIZE),
             mocked_bitmap.return_value.GetBitmapBits.return_value,
             "raw",
             "BGRA",

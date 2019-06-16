@@ -98,7 +98,13 @@ class TestResizable(object):
     def test_Resizable_issubclass_of_Label(self):
         assert issubclass(Resizable, tk.Label)
 
-    @pytest.mark.parametrize("attr,value", [("master", None)])
+    @pytest.mark.parametrize("attr,value", [("master", None),
+    ("master", None),
+    ("images", {True: None, False: None}),
+    ("background", "white"),
+    ("value", True),
+
+     ])
     def test_Resizable_inits_attr_as_empty(self, attr, value):
         assert getattr(Resizable, attr) == value
 
@@ -111,7 +117,7 @@ class TestResizable(object):
         Resizable(master=master)
         mocked.assert_called_with(master)
 
-    @pytest.mark.parametrize("attr", ["master"])
+    @pytest.mark.parametrize("attr", ["master", "background"])
     def test_Resizable_init_sets_attributes(self, mocker, attr):
         mocker.patch("arrangeit.view.Resizable.setup_bindings")
         mocker.patch("arrangeit.view.Resizable.setup_widgets")
@@ -133,44 +139,36 @@ class TestResizable(object):
         Resizable(master=master)
         mocked.assert_called_once()
 
-    ## Resizable.set_value
-    def test_Resizable_set_value_calls_config(self, mocker):
-        mocker.patch("arrangeit.view.Resizable.setup_widgets")
-        mocked = mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
-        mocked.reset_mock()
-        resizable.set_value(True)
-        mocked.assert_called_once()
-
-    @pytest.mark.parametrize(
-        "value,expected", [(True, _("RESIZABLE")), (False, _("NON-RESIZABLE"))]
-    )
-    def test_Resizable_set_value_sets_correct_value(self, mocker, value, expected):
-        mocker.patch("arrangeit.view.Resizable.setup_bindings")
-        resizable = Resizable(None)
-        resizable.set_value(value)
-        assert resizable["text"] == expected
 
     ## Resizable.setup_widgets
+    @pytest.mark.parametrize("value,path", [
+        (True, "resize.png"),
+        (False, "move.png"),
+    ])
+    def test_Resizable_setup_widgets_sets_image(self, mocker, value, path):
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocked_image = mocker.patch("arrangeit.view.open_image")
+        mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        resizable = Resizable(mocker.MagicMock())
+        mocked.reset_mock()
+        mocked_image.reset_mock()
+        resizable.setup_widgets()
+        calls = [mocker.call(path)]
+        mocked_image.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call(mocked_image.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert resizable.images[True] == mocked.return_value
+
     def test_Resizable_setup_widgets_configs_label(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
+        SAMPLE = "yellow"
+        resizable = Resizable(mocker.MagicMock(), background=SAMPLE)
+        mocked.reset_mock()
         resizable.setup_widgets()
         calls = [
             mocker.call(
-                text=_("RESIZABLE"),
-                font=(
-                    "TkDefaultFont",
-                    increased_by_fraction(
-                        nametofont("TkDefaultFont")["size"],
-                        Settings.RESIZABLE_LABEL_FONT_INCREASE,
-                    ),
-                ),
-                height=1,
-                foreground=Settings.RESIZABLE_LABEL_FG,
-                background=Settings.RESIZABLE_LABEL_BG,
-                padx=Settings.RESIZABLE_LABEL_PADX,
-                pady=Settings.RESIZABLE_LABEL_PADY,
+                background=SAMPLE,
+                image=resizable.images[True]
             )
         ]
         mocked.assert_has_calls(calls, any_order=True)
@@ -201,15 +199,46 @@ class TestResizable(object):
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    ## Resizable.on_widget_enter
-    def test_Resizable_on_widget_enter_sets_foreground(self, mocker):
+
+    ## Resizable.set_value
+    def test_Resizable_set_value_sets_value_attribute(self, mocker):
+        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        resizable = Resizable(mocker.MagicMock())
+        VALUE = False
+        resizable.set_value(VALUE)
+        assert resizable.value == VALUE
+
+    def test_Resizable_set_value_calls_config(self, mocker):
+        mocker.patch("arrangeit.view.Resizable.setup_widgets")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
         resizable = Resizable(mocker.MagicMock())
         mocked.reset_mock()
+        VALUE = True
+        resizable.set_value(VALUE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(image=resizable.images[VALUE])
+
+    ## Resizable.on_widget_enter
+    def test_Resizable_on_widget_enter_configures_image(self, mocker):
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        mocked = mocker.patch("arrangeit.view.tk.Label.config")
+        resizable = Resizable(mocker.MagicMock())
+        VALUE = False
+        resizable.value = VALUE
+        mocked.reset_mock()
         resizable.on_widget_enter(mocker.MagicMock())
         assert mocked.call_count == 1
-        calls = [mocker.call(foreground=Settings.HIGHLIGHTED_COLOR)]
+        calls = [mocker.call(image=resizable.images[not VALUE])]
         mocked.assert_has_calls(calls, any_order=True)
+
+    # def test_Resizable_on_widget_enter_sets_foreground(self, mocker):
+    #     mocked = mocker.patch("arrangeit.view.tk.Label.config")
+    #     resizable = Resizable(mocker.MagicMock())
+    #     mocked.reset_mock()
+    #     resizable.on_widget_enter(mocker.MagicMock())
+    #     assert mocked.call_count == 1
+    #     calls = [mocker.call(foreground=Settings.HIGHLIGHTED_COLOR)]
+    #     mocked.assert_has_calls(calls, any_order=True)
 
     def test_Resizable_on_widget_enter_returns_break(self, mocker):
         mocker.patch("arrangeit.view.tk.Label.config")
@@ -218,15 +247,27 @@ class TestResizable(object):
         assert returned == "break"
 
     ## Resizable.on_widget_leave
-    def test_Resizable_on_widget_leave_sets_foreground(self, mocker):
-        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+    def test_Resizable_on_widget_leave_configures_image(self, mocker):
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
         resizable = Resizable(mocker.MagicMock())
+        VALUE = False
+        resizable.value = VALUE
         mocked.reset_mock()
         resizable.on_widget_leave(mocker.MagicMock())
         assert mocked.call_count == 1
-        calls = [mocker.call(foreground=Settings.RESIZABLE_LABEL_FG)]
+        calls = [mocker.call(image=resizable.images[VALUE])]
         mocked.assert_has_calls(calls, any_order=True)
+
+    # def test_Resizable_on_widget_leave_sets_foreground(self, mocker):
+    #     mocker.patch("arrangeit.view.Resizable.setup_widgets")
+    #     mocked = mocker.patch("arrangeit.view.tk.Label.config")
+    #     resizable = Resizable(mocker.MagicMock())
+    #     mocked.reset_mock()
+    #     resizable.on_widget_leave(mocker.MagicMock())
+    #     assert mocked.call_count == 1
+    #     calls = [mocker.call(foreground=Settings.RESIZABLE_LABEL_FG)]
+    #     mocked.assert_has_calls(calls, any_order=True)
 
     def test_Resizable_on_widget_leave_returns_break(self, mocker):
         mocker.patch("arrangeit.view.tk.Label.config")
@@ -1075,7 +1116,7 @@ class TestListedWindow(object):
         assert mocked.call_count == 2
         calls = [
             mocker.call(
-                x=Settings.ICON_WIDTH / 2 + Settings.LISTED_ICON_LABEL_PADX,
+                x=Settings.ICON_SIZE / 2 + Settings.LISTED_ICON_LABEL_PADX,
                 relheight=1.0,
                 relwidth=Settings.LISTED_WINDOW_RELWIDTH,
             ),

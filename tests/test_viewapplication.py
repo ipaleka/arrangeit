@@ -291,7 +291,12 @@ class TestViewApplication(object):
         mocked.reset_mock()
         view.setup_resizable()
         assert mocked.call_count == 1
-        mocked.assert_called_with(x=200)
+        mocked.assert_called_with(
+            x=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADX),
+            y=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADY),
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
+        )
 
     ## ViewApplication.setup_title
     @pytest.mark.parametrize("name,typ", [("title", tk.StringVar)])
@@ -527,6 +532,7 @@ class TestViewApplication(object):
         "attr,val,typ", [("title", "foo", tk.StringVar), ("name", "bar", tk.StringVar)]
     )
     def test_ViewApplication_update_widgets_sets_attr(self, mocker, attr, val, typ):
+        mocker.patch("arrangeit.view.Resizable")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(**{attr: val}, icon=Settings.BLANK_ICON)
         view.update_widgets(model)
@@ -534,7 +540,19 @@ class TestViewApplication(object):
         assert instance.get() == getattr(model, attr)
         assert isinstance(instance, typ)
 
+    def test_ViewApplication_update_widgets_calls_resizable_set_value(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        VALUE = False
+        model = WindowModel(resizable=VALUE)
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        mocked = mocker.patch("arrangeit.view.Resizable.set_value")
+        view.update_widgets(model)
+        mocked.call_count == 1
+        mocked.assert_called_with(VALUE)
+
     def test_ViewApplication_update_widgets_calls_ImageTk_PhotoImage(self, mocker):
+        mocker.patch("arrangeit.view.Resizable")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.config")
@@ -544,6 +562,7 @@ class TestViewApplication(object):
         mocked.assert_called_with(model.icon)
 
     def test_ViewApplication_update_widgets_sets_icon_image(self, mocker):
+        mocker.patch("arrangeit.view.Resizable")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.config")
@@ -552,6 +571,7 @@ class TestViewApplication(object):
         assert view.icon_image == mocked.return_value
 
     def test_ViewApplication_update_widgets_sets_icon(self, mocker):
+        mocker.patch("arrangeit.view.Resizable")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
         mocked = mocker.patch("arrangeit.view.tk.Label")
@@ -561,6 +581,7 @@ class TestViewApplication(object):
     def test_ViewApplication_update_widgets_calls_workspaces_select_active(
         self, mocker
     ):
+        mocker.patch("arrangeit.view.Resizable")
         mocker.patch("arrangeit.view.tk.Label.config")
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.WorkspacesCollection")

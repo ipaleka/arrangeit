@@ -133,7 +133,7 @@ class TestSettingsModule(object):
             "OTHER",
             "WINDOW_MODEL_TYPES",
             "WINDOW_MODEL_RECT_ELEMENTS",
-            "ICON_WIDTH",
+            "ICON_SIZE",
             "BLANK_ICON",
         ],
     )
@@ -190,7 +190,7 @@ class TestSettings(object):
                 },
             ),
             ("WINDOW_MODEL_RECT_ELEMENTS", ("x", "y", "w", "h")),
-            ("ICON_WIDTH", 32),
+            ("ICON_SIZE", 32),
         ],
     )
     def test_Settings_initializes_unchangeable_core_program_constant(

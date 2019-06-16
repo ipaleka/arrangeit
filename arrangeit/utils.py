@@ -1,3 +1,4 @@
+import os
 import sys
 from platform import system
 from gettext import gettext as _
@@ -5,7 +6,7 @@ from importlib import import_module
 from itertools import islice, chain, product
 
 
-from PIL import ImageFilter, ImageTk
+from PIL import ImageFilter, ImageTk, Image
 
 MESSAGES = {"platform_error": _("arrangeit can't run on your platform. :(")}
 
@@ -56,6 +57,18 @@ def get_component_class(name, platform=None):
     :returns: class with provided `name` from the platform specific package
     """
     return get_class(name, platform=platform)
+
+
+def open_image(path):
+    """Returns Pillow image instance from provided path.
+
+    :param path: image path
+    :type path: str
+    :returns: :class:`PIL.Image`
+    """
+    return Image.open(
+        os.path.join(os.path.dirname(__file__), "resources", path)
+    )
 
 
 def get_value_if_valid_type(value, typ):

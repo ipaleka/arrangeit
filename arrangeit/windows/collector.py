@@ -243,7 +243,7 @@ class Collector(BaseCollector):
         :type buffer: str
         :returns: :class:`PIL.Image` instance
         """
-        size = Settings.ICON_WIDTH
+        size = Settings.ICON_SIZE
         icon_handle = GetClassLong(hwnd, GCL_HICON)
 
         source_hdc = CreateDCFromHandle(GetDC(0))
