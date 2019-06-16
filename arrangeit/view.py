@@ -167,8 +167,8 @@ class ViewApplication(tk.Frame):
         """Sets and places resizable label widget."""
         self.resizable = Resizable(self, background=Settings.TITLE_LABEL_BG)
         self.resizable.place(
-            x=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADX),
-            y=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADY),
+            x=-(Settings.RESIZABLE_SIZE + Settings.RESIZABLE_PADX),
+            y=-(Settings.RESIZABLE_SIZE + Settings.RESIZABLE_PADY),
             relx=Settings.TITLE_LABEL_RELWIDTH,
             rely=Settings.TITLE_LABEL_RELHEIGHT,
         )
@@ -276,6 +276,8 @@ class Resizable(tk.Label):
     :type Resizable.master: :class:`.tk.Frame`
     :var images: collection of two possible images
     :type images: dict
+    :var colorized: collection of two highlighted images
+    :type colorized: dict
     :var Resizable.background: main background color
     :type Resizable.background: str
     :var Resizable.value: current widget value
@@ -284,6 +286,7 @@ class Resizable(tk.Label):
 
     master = None
     images = {True: None, False: None}
+    colorized = {True: None, False: None}
     background = "white"
     value = True
 
@@ -302,15 +305,35 @@ class Resizable(tk.Label):
 
     def setup_widgets(self):
         """Configures widgets images and sets current image."""
-        self.images[True] = ImageTk.PhotoImage(open_image("resize.png"))
-        self.images[False] = ImageTk.PhotoImage(open_image("move.png"))
-        self.config(background=self.background, image=self.images[True])
+        self.images[True] = ImageTk.PhotoImage(
+            open_image("resize.png", background=self.background)
+        )
+        self.images[False] = ImageTk.PhotoImage(
+            open_image("move.png", background=self.background)
+        )
+        self.colorized[True] = ImageTk.PhotoImage(
+            open_image(
+                "resize.png",
+                background=self.background,
+                colorized=True,
+                foreground=Settings.HIGHLIGHTED_COLOR,
+            )
+        )
+        self.colorized[False] = ImageTk.PhotoImage(
+            open_image(
+                "move.png",
+                background=self.background,
+                colorized=True,
+                foreground=Settings.HIGHLIGHTED_COLOR,
+            )
+        )
+        self.config(image=self.images[True])
 
     def setup_bindings(self):
         """Binds relevant events to related callback."""
         self.bind("<Enter>", self.on_widget_enter)
         self.bind("<Leave>", self.on_widget_leave)
-        self.bind("<Button-1>", self.master.controller.on_resizable_click)
+        self.bind("<Button-1>", self.master.controller.on_resizable_change)
 
     def set_value(self, resizable):
         """Sets label image in relation to provided `resizable`.
@@ -322,14 +345,12 @@ class Resizable(tk.Label):
         self.config(image=self.images[self.value])
 
     def on_widget_enter(self, event):
-        # """Highlights widget by changing foreground color."""
-        # self.config(foreground=Settings.HIGHLIGHTED_COLOR)
-        self.config(image=self.images[not self.value])
+        """Highlights widget by changing image and its foreground."""
+        self.config(image=self.colorized[not self.value])
         return "break"
 
     def on_widget_leave(self, event):
-        # """Resets widget foreground color."""
-        # self.config(foreground=Settings.RESIZABLE_LABEL_FG)
+        """Resets widget image and its foreground color."""
         self.config(image=self.images[self.value])
         return "break"
 

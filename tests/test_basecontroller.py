@@ -1030,6 +1030,26 @@ class TestBaseController(object):
         controller_mocked_app(mocker).skip_current_window()
         assert mocked.call_count == 1
 
+
+    ## BaseController.switch_resizable
+    @pytest.mark.parametrize("resizable,expected", [(False, True), (True, False),])
+    def test_BaseController_switch_resizable_functionality(self, mocker, resizable,expected):
+        mocked_setup(mocker)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.model.resizable = resizable
+        controller.switch_resizable()
+        assert controller.model.resizable == expected
+
+    def test_BaseController_switch_resizable_calls_widget_set_value(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = base.BaseController(mocker.MagicMock())
+        VALUE = False
+        controller.model.resizable = VALUE
+        controller.switch_resizable()
+        view.return_value.resizable.set_value.assert_called_once()
+        view.return_value.resizable.set_value.assert_called_with(not VALUE)
+
+
     ## BaseController.switch_workspace
     def test_BaseController_switch_workspace_calls_winfo_id(self, mocker):
         view = mocked_setup_view(mocker)
@@ -1103,6 +1123,13 @@ class TestBaseController(object):
     def test_BaseController_on_key_pressed_calls_skip_current_window(self, mocker, key):
         mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.skip_current_window")
+        controller_mocked_key_press(mocker, key)
+        assert mocked.call_count == 1
+
+    @pytest.mark.parametrize("key", ["R", "r"])
+    def test_BaseController_on_key_pressed_calls_switch_resizable(self, mocker, key):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.switch_resizable")
         controller_mocked_key_press(mocker, key)
         assert mocked.call_count == 1
 
@@ -1310,23 +1337,35 @@ class TestBaseController(object):
         returned = base.BaseController(app).on_focus(mocker.MagicMock())
         assert returned == None
 
-    ## BaseController.on_resizable_click
-    @pytest.mark.parametrize("resizable,expected", [(False, True), (True, False),])
-    def test_BaseController_on_resizable_click_functionality(self, mocker, resizable,expected):
+    ## BaseController.on_resizable_change
+    def test_BaseController_on_resizable_calls_switch_resizable(self, mocker):
         mocked_setup(mocker)
-        controller = base.BaseController(mocker.MagicMock())
-        controller.model.resizable = resizable
-        controller.on_resizable_click(mocker.MagicMock())
-        assert controller.model.resizable == expected
+        mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        mocked = mocker.patch("arrangeit.base.BaseController.switch_resizable")
+        base.BaseController(mocker.MagicMock()).on_resizable_change(
+            mocker.MagicMock()
+        )
+        mocked.assert_called_once()
+        mocked.assert_called_with()
 
-    def test_BaseController_on_resizable_calls_widget_set_value(self, mocker):
-        view = mocked_setup_view(mocker)
-        controller = base.BaseController(mocker.MagicMock())
-        VALUE = False
-        controller.model.resizable = VALUE
-        controller.on_resizable_click(mocker.MagicMock())
-        view.return_value.resizable.set_value.assert_called_once()
-        view.return_value.resizable.set_value.assert_called_with(not VALUE)
+    def test_BaseController_on_resizable_calls_recapture_mouse(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.switch_resizable")
+        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        base.BaseController(mocker.MagicMock()).on_resizable_change(
+            mocker.MagicMock()
+        )
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseController_on_resizable_returns_break(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        mocker.patch("arrangeit.base.BaseController.switch_resizable")
+        returned = base.BaseController(mocker.MagicMock()).on_resizable_change(
+            mocker.MagicMock()
+        )
+        assert returned == "break"
 
     ## BaseController.mainloop
     def test_BaseController_mainloop_calls_Tkinter_mainloop(self, mocker):

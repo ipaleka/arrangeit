@@ -6,7 +6,7 @@ from importlib import import_module
 from itertools import islice, chain, product
 
 
-from PIL import ImageFilter, ImageTk, Image
+from PIL import Image, ImageOps, ImageFilter, ImageTk
 
 MESSAGES = {"platform_error": _("arrangeit can't run on your platform. :(")}
 
@@ -59,15 +59,26 @@ def get_component_class(name, platform=None):
     return get_class(name, platform=platform)
 
 
-def open_image(path):
-    """Returns Pillow image instance from provided path.
+def open_image(path, background="white", colorized=False, foreground="red"):
+    """Returns Pillow image instance from provided path and colorizes it if set.
+
+    Provided `black` and `white` are used for colorize filter.
 
     :param path: image path
     :type path: str
+    :param background: image background color
+    :type background: str
+    :param colorized: should return image be highlighted
+    :type colorized: Boolean
+    :param foreground: image foreground color
+    :type foreground: str
     :returns: :class:`PIL.Image`
     """
-    return Image.open(
+    image = Image.open(
         os.path.join(os.path.dirname(__file__), "resources", path)
+    ).convert("L")
+    return ImageOps.colorize(
+        image, foreground if colorized else "black", background
     )
 
 

@@ -76,20 +76,49 @@ class TestUtils(object):
     def test_append_to_collection_returns_True(self):
         assert utils.append_to_collection(1, [])
 
-
     ## open_image
     def test_open_image_returns_Image(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.Image.open")
+        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
+        mocker.patch("arrangeit.utils.Image.open")
         returned = utils.open_image("resize.png")
         assert returned == mocked.return_value
 
     def test_open_image_calls_Image_open(self, mocker):
+        mocker.patch("arrangeit.utils.ImageOps.colorize")
+        mocker.patch("PIL.Image.Image.convert")
         mocked = mocker.patch("arrangeit.utils.Image.open")
         PATH = "resize.png"
         utils.open_image(PATH)
         mocked.assert_called_once()
         mocked.assert_called_with(
             os.path.join(os.path.dirname(utils.__file__), "resources", PATH)
+        )
+
+    def test_open_image_calls_Image_convert(self, mocker):
+        mocker.patch("arrangeit.utils.ImageOps.colorize")
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        utils.open_image("resize.png")
+        mocked.return_value.convert.assert_called_once()
+        mocked.return_value.convert.assert_called_with("L")
+
+    def test_open_image_calls_ImageOps_colorize(self, mocker):
+        mocked_image = mocker.patch("arrangeit.utils.Image.open")
+        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
+        BACKGROUND = "yelow"
+        utils.open_image("resize.png", background=BACKGROUND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            mocked_image.return_value.convert.return_value, "black", BACKGROUND
+        )
+
+    def test_open_image_calls_different_ImageOps_colorize_if_colorized_set(self, mocker):
+        mocked_image = mocker.patch("arrangeit.utils.Image.open")
+        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
+        PATH, FOREGROUND, BACKGROUND = "resize.png", "red", "yelow"
+        utils.open_image(PATH, background=BACKGROUND, colorized=True, foreground=FOREGROUND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            mocked_image.return_value.convert.return_value, FOREGROUND, BACKGROUND
         )
 
     ## get_value_if_valid_type
@@ -217,7 +246,10 @@ class TestUtils(object):
         mocker.patch("PIL.ImageFilter.BoxBlur")
         mocker.patch("PIL.Image.Image.filter")
         mocked = mocker.patch("PIL.Image.Image.convert")
-        assert utils.get_prepared_screenshot(image, grayscale=True) == mocked_photo.return_value
+        assert (
+            utils.get_prepared_screenshot(image, grayscale=True)
+            == mocked_photo.return_value
+        )
         mocked.assert_called_once()
         mocked.assert_called_with("L")
 
@@ -311,17 +343,13 @@ class TestUtils(object):
             ((240, 10, 260, 50), (490, 90, 510, 230)),
         )
 
-    @pytest.mark.parametrize(
-        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
-    )
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
     def test_check_intersections_single_functionality_for_full_sources(
         self, sources, targets, expected
     ):
         assert utils.check_intersections(sources, targets) == expected[0]
 
-    @pytest.mark.parametrize(
-        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
-    )
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
     def test_check_intersections_single_functionality_for_two_sources_corner_0(
         self, sources, targets, expected
     ):
@@ -329,9 +357,7 @@ class TestUtils(object):
             utils.check_intersections((sources[0], sources[3]), targets) == expected[1]
         )
 
-    @pytest.mark.parametrize(
-        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
-    )
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
     def test_check_intersections_single_functionality_for_two_sources_corner_1(
         self, sources, targets, expected
     ):
@@ -339,9 +365,7 @@ class TestUtils(object):
             utils.check_intersections((sources[0], sources[1]), targets) == expected[2]
         )
 
-    @pytest.mark.parametrize(
-        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
-    )
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
     def test_check_intersections_single_functionality_for_two_sources_corner_2(
         self, sources, targets, expected
     ):
@@ -349,9 +373,7 @@ class TestUtils(object):
             utils.check_intersections((sources[2], sources[1]), targets) == expected[3]
         )
 
-    @pytest.mark.parametrize(
-        "sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS
-    )
+    @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
     def test_check_intersections_single_functionality_for_two_sources_corner_3(
         self, sources, targets, expected
     ):

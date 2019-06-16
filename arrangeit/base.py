@@ -843,6 +843,11 @@ class BaseController(object):
             "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
         )
 
+    def switch_resizable(self):
+        """Changes current model resizable Boolean value and updates view."""
+        self.model.resizable = not self.model.resizable
+        self.view.resizable.set_value(self.model.resizable)
+
     def workspace_activated_by_digit(self, number):
         """Activates workspace with humanized number equal to provided number.
 
@@ -870,6 +875,9 @@ class BaseController(object):
 
         elif event.keysym in ("Space", "Tab"):
             self.skip_current_window()
+
+        elif event.keysym in ("R", "r"):
+            self.switch_resizable()
 
         elif event.keysym in ("Alt_L", "Alt_R", "Shift_L", "Shift_R"):
             self.release_mouse()
@@ -958,10 +966,11 @@ class BaseController(object):
             self.app.run_task("activate_root", self.view.master.winfo_id())
             return "break"
 
-    def on_resizable_click(self, event):
+    def on_resizable_change(self, event):
         """Switches model resizable attribute."""
-        self.model.resizable = not self.model.resizable
-        self.view.resizable.set_value(self.model.resizable)
+        self.switch_resizable()
+        self.recapture_mouse()
+        return "break"
 
     ## MAIN LOOP
     def mainloop(self):
