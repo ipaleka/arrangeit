@@ -31,6 +31,15 @@
   :show-inheritance:
 
 
+:mod:`arrangeit.mouse` -- Module with class dealing with system-wide mouse events
+---------------------------------------------------------------------------------
+
+.. automodule:: arrangeit.mouse
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`arrangeit.view` -- Module with classes and functions holding visual presentation data
 -------------------------------------------------------------------------------------------
 

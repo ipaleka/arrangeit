@@ -1,6 +1,6 @@
 import pytest
 
-from arrangeit import base, data
+from arrangeit import base, data, mouse
 from arrangeit.settings import Settings
 
 from .mock_helpers import (
@@ -23,7 +23,7 @@ class TestBaseController(object):
             "model",
             "generator",
             "view",
-            "listener",
+            "mouse",
             "state",
             "default_size",
             "screenshot_widget",
@@ -46,6 +46,12 @@ class TestBaseController(object):
         controller = base.BaseController(None)
         assert getattr(controller, "model", None) is not None
         assert isinstance(getattr(controller, "model"), data.WindowModel)
+
+    def test_BaseController_initialization_instantiates_Mouse(self, mocker):
+        mocker.patch("arrangeit.base.BaseController.setup")
+        controller = base.BaseController(None)
+        assert getattr(controller, "mouse", None) is not None
+        assert isinstance(getattr(controller, "mouse"), mouse.Mouse)
 
     def test_BaseController_initialization_calls_setup(self, mocker):
         mocked = mocker.patch("arrangeit.base.BaseController.setup")
@@ -634,11 +640,116 @@ class TestBaseController(object):
         controller.listed_window_activated_by_digit(3)
         mocked.assert_not_called()
 
+    ## BaseController.mouse_move
+    def test_BaseController_mouse_move_calls_change_position_for_LOCATE(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.change_position")
+        x, y = 100, 200
+        controller = controller_mocked_app(mocker)
+        controller.state = Settings.LOCATE
+        controller.mouse_move(x, y)
+        mocked.assert_called_with(x, y)
+
+    def test_BaseController_mouse_move_calls_change_size_for_RESIZE(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.change_size")
+        x, y = 100, 200
+        controller = controller_mocked_app(mocker)
+        controller.state = Settings.RESIZE
+        controller.mouse_move(x, y)
+        mocked.assert_called_with(x, y)
+
+    ## BaseController.mouse_scroll
+    def test_BaseController_on_mouse_scroll_calls_counter_true_cycle_corners(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")
+        base.BaseController(mocker.MagicMock()).mouse_scroll(counter=True)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(counter=True)
+
+    def test_BaseController_mouse_scroll_calls_counter_false_cycle_corners(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")
+        base.BaseController(mocker.MagicMock()).mouse_scroll(counter=False)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(counter=False)
+
+    ## BaseController.move_to_corner
+    def test_BaseController_move_to_corner_calls_setup_corner(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.Mouse.move_cursor")
+        mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
+        controller = controller_mocked_app(mocker)
+        controller.state = 2
+        controller.move_to_corner()
+        mocked.assert_called_once()
+
+    def test_BaseController_move_to_corner_calls_move_cursor_state_0(self, mocker):
+        view = mocked_setup_view(mocker)
+        x, y = 170, 171
+        view.return_value.master.winfo_x.return_value = x
+        view.return_value.master.winfo_y.return_value = y
+        controller = controller_mocked_app(mocker)
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
+        controller.state = 0
+        controller.move_to_corner()
+        mocked.assert_called_once()
+        mocked.assert_called_with(x + Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR)
+
+    def test_BaseController_move_to_corner_calls_move_cursor_state_1(self, mocker):
+        view = mocked_setup_view(mocker)
+        x, y, w = 172, 173, 405
+        view.return_value.master.winfo_x.return_value = x
+        view.return_value.master.winfo_y.return_value = y
+        view.return_value.master.winfo_width.return_value = w
+        controller = controller_mocked_app(mocker)
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
+        controller.state = 1
+        controller.move_to_corner()
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            x + w - Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR
+        )
+
+    def test_BaseController_move_to_corner_calls_move_cursor_state_2(self, mocker):
+        view = mocked_setup_view(mocker)
+        x, y, w, h = 174, 175, 406, 507
+        view.return_value.master.winfo_x.return_value = x
+        view.return_value.master.winfo_y.return_value = y
+        view.return_value.master.winfo_width.return_value = w
+        view.return_value.master.winfo_height.return_value = h
+        controller = controller_mocked_app(mocker)
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
+        controller.state = 2
+        controller.move_to_corner()
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            x + w - Settings.SHIFT_CURSOR, y + h - Settings.SHIFT_CURSOR
+        )
+
+    def test_BaseController_move_to_corner_calls_move_cursor_state_3(self, mocker):
+        view = mocked_setup_view(mocker)
+        x, y, h = 176, 177, 508
+        view.return_value.master.winfo_x.return_value = x
+        view.return_value.master.winfo_y.return_value = y
+        view.return_value.master.winfo_height.return_value = h
+        controller = controller_mocked_app(mocker)
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
+        controller.state = 3
+        controller.move_to_corner()
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            x + Settings.SHIFT_CURSOR, y + h - Settings.SHIFT_CURSOR
+        )
+
     ## BaseController.place_on_top_left
     def test_BaseController_place_on_top_left_calls_move_cursor(self, mocker):
         mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
-        mocked = mocker.patch("arrangeit.base.move_cursor")
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
         x, y = 101, 202
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         SHIFT = 10
@@ -651,8 +762,7 @@ class TestBaseController(object):
 
     def test_BaseController_place_on_top_left_calls_setup_corner(self, mocker):
         mocked_setup(mocker)
-        mocker.patch("arrangeit.base.move_cursor")
-        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        mocker.patch("arrangeit.base.Mouse.move_cursor")
         mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
         controller = controller_mocked_app(mocker)
         controller.model = base.WindowModel(rect=(50, 50, 100, 100))
@@ -677,7 +787,7 @@ class TestBaseController(object):
         screen_w, screen_h = 2000, 2000
         view.return_value.master.winfo_screenwidth.return_value = screen_w
         view.return_value.master.winfo_screenheight.return_value = screen_h
-        mocked = mocker.patch("arrangeit.base.move_cursor")
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
         model = mocker.patch("arrangeit.base.WindowModel")
         type(model.return_value).changed_x = mocker.PropertyMock(return_value=x)
         type(model.return_value).changed_y = mocker.PropertyMock(return_value=y)
@@ -708,7 +818,7 @@ class TestBaseController(object):
         screen_w, screen_h = 1000, 1010
         view.return_value.master.winfo_screenwidth.return_value = screen_w
         view.return_value.master.winfo_screenheight.return_value = screen_h
-        mocked = mocker.patch("arrangeit.base.move_cursor")
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
         model = mocker.patch("arrangeit.base.WindowModel")
         type(model.return_value).changed_x = mocker.PropertyMock(return_value=x)
         type(model.return_value).changed_y = mocker.PropertyMock(return_value=y)
@@ -725,8 +835,7 @@ class TestBaseController(object):
 
     def test_BaseController_place_on_opposite_corner_calls_setup_corner(self, mocker):
         mocked_setup(mocker)
-        mocker.patch("arrangeit.base.move_cursor")
-        mocker.patch("arrangeit.base.BaseController.on_mouse_move")
+        mocker.patch("arrangeit.base.Mouse.move_cursor")
         mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
         controller = controller_mocked_app(mocker)
         controller.default_size = (2000, 2000)
@@ -768,6 +877,7 @@ class TestBaseController(object):
     ## BaseController.release_mouse
     def test_BaseController_release_mouse_calls_reset_bindings(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.Mouse")
         controller = controller_mocked_app(mocker)
         controller.listener = mocker.MagicMock()
         controller.release_mouse()
@@ -775,6 +885,7 @@ class TestBaseController(object):
 
     def test_BaseController_release_mouse_calls_cursor_config(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.Mouse")
         controller = controller_mocked_app(mocker)
         controller.listener = mocker.MagicMock()
         controller.release_mouse()
@@ -783,6 +894,7 @@ class TestBaseController(object):
 
     def test_BaseController_release_mouse_calls_view_corner_hide_corner(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.Mouse")
         controller = controller_mocked_app(mocker)
         controller.listener = mocker.MagicMock()
         controller.release_mouse()
@@ -790,34 +902,33 @@ class TestBaseController(object):
 
     def test_BaseController_release_mouse_changes_state_to_OTHER(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.Mouse")
         controller = controller_mocked_app(mocker)
         controller.listener = mocker.MagicMock()
         controller.state = 5
         controller.release_mouse()
         assert controller.state == Settings.OTHER
 
-    def test_BaseController_release_mouse_stops_listener(self, mocker):
+    def test_BaseController_release_mouse_stops_mouse_listener(self, mocker):
         mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.Mouse.stop")
         controller = controller_mocked_app(mocker)
-        controller.listener = mocker.MagicMock()
         controller.release_mouse()
-        assert controller.listener.stop.call_count == 1
+        mocked.assert_called_once()
+        mocked.assert_called_with()
 
     ## BaseController.recapture_mouse
     def test_BaseController_recapture_mouse_calls_view_setup_bindings(self, mocker):
         view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
-        mocker.patch("arrangeit.base.move_cursor")
-        mocker.patch("arrangeit.base.get_mouse_listener")
+        mocker.patch("arrangeit.base.Mouse")
         controller = controller_mocked_app(mocker)
         controller.recapture_mouse()
         assert view.return_value.setup_bindings.call_count == 1
 
-
     def test_BaseController_recapture_mouse_calls_set_default_geometry(self, mocker):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.move_cursor")
-        mocker.patch("arrangeit.base.get_mouse_listener")
+        mocker.patch("arrangeit.base.Mouse")
         mocked = mocker.patch("arrangeit.base.BaseController.set_default_geometry")
         controller = controller_mocked_app(mocker)
         controller.recapture_mouse()
@@ -827,8 +938,7 @@ class TestBaseController(object):
     def test_BaseController_recapture_mouse_changes_state_to_LOCATE(self, mocker):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
-        mocker.patch("arrangeit.base.move_cursor")
-        mocker.patch("arrangeit.base.get_mouse_listener")
+        mocker.patch("arrangeit.base.Mouse")
         controller = controller_mocked_app(mocker)
         controller.state = 5
         controller.recapture_mouse()
@@ -837,8 +947,8 @@ class TestBaseController(object):
     def test_BaseController_recapture_mouse_calls_move_cursor(self, mocker):
         view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
-        mocker.patch("arrangeit.base.get_mouse_listener")
-        mocked = mocker.patch("arrangeit.base.move_cursor")
+        mocker.patch("arrangeit.base.Mouse.start")
+        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
         mocked_setting = mocker.patch("arrangeit.base.Settings")
         SHIFT = 10
         type(mocked_setting).SHIFT_CURSOR = mocker.PropertyMock(return_value=SHIFT)
@@ -850,45 +960,24 @@ class TestBaseController(object):
             view.return_value.master.winfo_y.return_value + SHIFT,
         )
 
-
     def test_BaseController_recapture_mouse_calls_setup_corner(self, mocker):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
-        mocker.patch("arrangeit.base.move_cursor")
-        mocker.patch("arrangeit.base.get_mouse_listener")
+        mocker.patch("arrangeit.base.Mouse")
         mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
         controller = controller_mocked_app(mocker)
         controller.recapture_mouse()
         mocked.assert_called_once()
 
-    def test_BaseController_recapture_mouse_calls_get_mouse_listener(self, mocker):
+    def test_BaseController_recapture_mouse_calls_mouse_start(self, mocker):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
-        mocker.patch("arrangeit.base.move_cursor")
-        mocked = mocker.patch("arrangeit.base.get_mouse_listener")
+        mocker.patch("arrangeit.base.Mouse.move_cursor")
+        mocked = mocker.patch("arrangeit.base.Mouse.start")
         controller = controller_mocked_app(mocker)
         controller.recapture_mouse()
         mocked.assert_called_once()
-        mocked.assert_called_with(controller.on_mouse_move, controller.on_mouse_scroll)
-
-    def test_BaseController_recapture_mouse_sets_listener_attribute(self, mocker):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.set_default_geometry")
-        mocker.patch("arrangeit.base.move_cursor")
-        listener = mocker.MagicMock()
-        mocker.patch("arrangeit.base.get_mouse_listener", return_value=listener)
-        controller = controller_mocked_app(mocker)
-        controller.recapture_mouse()
-        assert controller.listener == listener
-
-    def test_BaseController_recapture_mouse_starts_listener(self, mocker):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.set_default_geometry")
-        mocker.patch("arrangeit.base.move_cursor")
-        mocked = mocker.patch("pynput.mouse.Listener")
-        controller = controller_mocked_app(mocker)
-        controller.recapture_mouse()
-        assert mocked.return_value.start.call_count == 1
+        mocked.assert_called_with()
 
     ## BaseController.save
     def test_BaseController_save_runs_related_task(self, mocker):
@@ -901,15 +990,17 @@ class TestBaseController(object):
         controller.app.run_task.assert_has_calls(calls, any_order=True)
 
     ## BaseController.shutdown
-    def test_BaseController_shutdown_stops_listener(self, mocker):
+    def test_BaseController_shutdown_stops_mouse(self, mocker):
         mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.Mouse.stop")
         controller = controller_mocked_app(mocker)
-        controller.listener = mocker.MagicMock()
         controller.shutdown()
-        assert controller.listener.stop.call_count == 1
+        mocked.assert_called_once()
+        mocked.assert_called_with()
 
     def test_BaseController_shutdown_calls_master_destroy(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.Mouse")
         controller = controller_mocked_app(mocker)
         controller.listener = mocker.MagicMock()
         controller.shutdown()
@@ -926,80 +1017,11 @@ class TestBaseController(object):
             "{}x{}+{}+{}".format(Settings.MIN_WIDTH, Settings.MIN_HEIGHT, x, y)
         )
 
-    ## BaseController.move_to_corner
-    def test_BaseController_move_to_corner_calls_setup_corner(self, mocker):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.move_cursor")
-        mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
-        controller = controller_mocked_app(mocker)
-        controller.state = 2
-        controller.move_to_corner()
-        mocked.assert_called_once()
-
-    def test_BaseController_move_to_corner_calls_move_cursor_state_0(self, mocker):
-        view = mocked_setup_view(mocker)
-        x, y = 170, 171
-        view.return_value.master.winfo_x.return_value = x
-        view.return_value.master.winfo_y.return_value = y
-        controller = controller_mocked_app(mocker)
-        mocked = mocker.patch("arrangeit.base.move_cursor")
-        controller.state = 0
-        controller.move_to_corner()
-        mocked.assert_called_once()
-        mocked.assert_called_with(x + Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR)
-
-    def test_BaseController_move_to_corner_calls_move_cursor_state_1(self, mocker):
-        view = mocked_setup_view(mocker)
-        x, y, w = 172, 173, 405
-        view.return_value.master.winfo_x.return_value = x
-        view.return_value.master.winfo_y.return_value = y
-        view.return_value.master.winfo_width.return_value = w
-        controller = controller_mocked_app(mocker)
-        mocked = mocker.patch("arrangeit.base.move_cursor")
-        controller.state = 1
-        controller.move_to_corner()
-        mocked.assert_called_once()
-        mocked.assert_called_with(
-            x + w - Settings.SHIFT_CURSOR, y + Settings.SHIFT_CURSOR
-        )
-
-    def test_BaseController_move_to_corner_calls_move_cursor_state_2(self, mocker):
-        view = mocked_setup_view(mocker)
-        x, y, w, h = 174, 175, 406, 507
-        view.return_value.master.winfo_x.return_value = x
-        view.return_value.master.winfo_y.return_value = y
-        view.return_value.master.winfo_width.return_value = w
-        view.return_value.master.winfo_height.return_value = h
-        controller = controller_mocked_app(mocker)
-        mocked = mocker.patch("arrangeit.base.move_cursor")
-        controller.state = 2
-        controller.move_to_corner()
-        mocked.assert_called_once()
-        mocked.assert_called_with(
-            x + w - Settings.SHIFT_CURSOR, y + h - Settings.SHIFT_CURSOR
-        )
-
-    def test_BaseController_move_to_corner_calls_move_cursor_state_3(self, mocker):
-        view = mocked_setup_view(mocker)
-        x, y, h = 176, 177, 508
-        view.return_value.master.winfo_x.return_value = x
-        view.return_value.master.winfo_y.return_value = y
-        view.return_value.master.winfo_height.return_value = h
-        controller = controller_mocked_app(mocker)
-        mocked = mocker.patch("arrangeit.base.move_cursor")
-        controller.state = 3
-        controller.move_to_corner()
-        mocked.assert_called_once()
-        mocked.assert_called_with(
-            x + Settings.SHIFT_CURSOR, y + h - Settings.SHIFT_CURSOR
-        )
-
-
     ## BaseController.setup_corner
     @pytest.mark.parametrize("state", [0, 1, 2, 3])
     def test_BaseController_setup_corner_calls_cursor_config(self, mocker, state):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.move_cursor")
+        mocker.patch("arrangeit.base.Mouse.move_cursor")
         controller = controller_mocked_app(mocker)
         controller.state = state
         controller.setup_corner()
@@ -1011,7 +1033,7 @@ class TestBaseController(object):
         controller = controller_mocked_app(mocker)
         CORNER = 3
         controller.state = CORNER
-        mocker.patch("arrangeit.base.move_cursor")
+        mocker.patch("arrangeit.base.Mouse.move_cursor")
         controller.setup_corner()
         view.return_value.corner.set_corner.assert_called_once()
         view.return_value.corner.set_corner.assert_called_with(CORNER)
@@ -1030,10 +1052,11 @@ class TestBaseController(object):
         controller_mocked_app(mocker).skip_current_window()
         assert mocked.call_count == 1
 
-
     ## BaseController.switch_resizable
-    @pytest.mark.parametrize("resizable,expected", [(False, True), (True, False),])
-    def test_BaseController_switch_resizable_functionality(self, mocker, resizable,expected):
+    @pytest.mark.parametrize("resizable,expected", [(False, True), (True, False)])
+    def test_BaseController_switch_resizable_functionality(
+        self, mocker, resizable, expected
+    ):
         mocked_setup(mocker)
         controller = base.BaseController(mocker.MagicMock())
         controller.model.resizable = resizable
@@ -1048,7 +1071,6 @@ class TestBaseController(object):
         controller.switch_resizable()
         view.return_value.resizable.set_value.assert_called_once()
         view.return_value.resizable.set_value.assert_called_with(not VALUE)
-
 
     ## BaseController.switch_workspace
     def test_BaseController_switch_workspace_calls_winfo_id(self, mocker):
@@ -1114,7 +1136,7 @@ class TestBaseController(object):
         x, y = 204, 205
         view.return_value.master.winfo_pointerx.return_value = x
         view.return_value.master.winfo_pointery.return_value = y
-        mocker.patch("arrangeit.base.cursor_position", return_value=(x, y))
+        mocker.patch("arrangeit.base.Mouse.cursor_position", return_value=(x, y))
         mocked = mocker.patch("arrangeit.base.BaseController.update")
         controller_mocked_key_press(mocker, key)
         mocked.assert_called_with(x, y)
@@ -1190,34 +1212,13 @@ class TestBaseController(object):
         )
         assert returned == "break"
 
-    ## BaseController.on_mouse_move
-    def test_BaseController_on_mouse_move_calls_change_position_for_LOCATE(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.change_position")
-        x, y = 100, 200
-        controller = controller_mocked_app(mocker)
-        controller.state = Settings.LOCATE
-        controller.on_mouse_move(x, y)
-        mocked.assert_called_with(x, y)
-
-    def test_BaseController_on_mouse_move_calls_change_size_for_RESIZE(self, mocker):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.change_size")
-        x, y = 100, 200
-        controller = controller_mocked_app(mocker)
-        controller.state = Settings.RESIZE
-        controller.on_mouse_move(x, y)
-        mocked.assert_called_with(x, y)
-
     ## BaseController.on_mouse_left_down
     def test_BaseController_on_mouse_left_down_calls_update(self, mocker):
         view = mocked_setup_view(mocker)
         x, y = 507, 508
         view.return_value.master.winfo_pointerx.return_value = x
         view.return_value.master.winfo_pointery.return_value = y
-        mocker.patch("arrangeit.base.cursor_position", return_value=(x, y))
+        mocker.patch("arrangeit.base.Mouse.cursor_position", return_value=(x, y))
         mocked = mocker.patch("arrangeit.base.BaseController.update")
         base.BaseController(mocker.MagicMock()).on_mouse_left_down(mocker.MagicMock())
         mocked.assert_called_with(x, y)
@@ -1258,31 +1259,6 @@ class TestBaseController(object):
         returned = base.BaseController(mocker.MagicMock()).on_mouse_right_down(
             mocker.MagicMock()
         )
-        assert returned == "break"
-
-    ## BaseController.on_mouse_scroll
-    def test_BaseController_on_mouse_scroll_calls_counter_true_cycle_corners(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")
-        base.BaseController(mocker.MagicMock()).on_mouse_scroll(0, 0, 0, 1)
-        assert mocked.call_count == 1
-        mocked.assert_called_with(counter=True)
-
-    def test_BaseController_on_mouse_scroll_calls_counter_false_cycle_corners(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.cycle_corners")
-        base.BaseController(mocker.MagicMock()).on_mouse_scroll(0, 0, 0, -1)
-        assert mocked.call_count == 1
-        mocked.assert_called_with(counter=False)
-
-    def test_BaseController_on_mouse_scroll_returns_break(self, mocker):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.cycle_corners")
-        returned = base.BaseController(mocker.MagicMock()).on_mouse_scroll(0, 0, 0, 1)
         assert returned == "break"
 
     ## BaseController.on_continue
@@ -1342,9 +1318,7 @@ class TestBaseController(object):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         mocked = mocker.patch("arrangeit.base.BaseController.switch_resizable")
-        base.BaseController(mocker.MagicMock()).on_resizable_change(
-            mocker.MagicMock()
-        )
+        base.BaseController(mocker.MagicMock()).on_resizable_change(mocker.MagicMock())
         mocked.assert_called_once()
         mocked.assert_called_with()
 
@@ -1352,9 +1326,7 @@ class TestBaseController(object):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.switch_resizable")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
-        base.BaseController(mocker.MagicMock()).on_resizable_change(
-            mocker.MagicMock()
-        )
+        base.BaseController(mocker.MagicMock()).on_resizable_change(mocker.MagicMock())
         mocked.assert_called_once()
         mocked.assert_called_with()
 
@@ -1367,7 +1339,58 @@ class TestBaseController(object):
         )
         assert returned == "break"
 
+    ## BaseController.check_mouse
+    def test_BaseController_check_mouse_calls_mouse_get_item(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.Mouse.get_item", return_value=None)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.check_mouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseController_check_mouse_calls_after_idle_with_mouse_scroll(self, mocker):
+        view = mocked_setup_view(mocker)
+        VALUE = True
+        mocker.patch("arrangeit.base.Mouse.get_item", side_effect=[VALUE, None])
+        controller = base.BaseController(mocker.MagicMock())
+        controller.check_mouse()
+        view.return_value.master.after_idle.assert_called_once()
+        view.return_value.master.after_idle.assert_called_with(
+            controller.mouse_scroll, VALUE
+        )
+
+    def test_BaseController_check_mouse_calls_after_idle_with_mouse_move(self, mocker):
+        view = mocked_setup_view(mocker)
+        VALUE = (10, 10)
+        mocker.patch("arrangeit.base.Mouse.get_item", side_effect=[VALUE, None])
+        controller = base.BaseController(mocker.MagicMock())
+        controller.check_mouse()
+        view.return_value.master.after_idle.assert_called_once()
+        view.return_value.master.after_idle.assert_called_with(
+            controller.mouse_move, *VALUE
+        )
+
+    def test_BaseController_check_mouse_calls_after_with_itself(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.Mouse.get_item", return_value=None)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.check_mouse()
+        view.return_value.master.after_idle.assert_not_called()
+        view.return_value.master.after.assert_called_once()
+        view.return_value.master.after.assert_called_with(
+            Settings.MOUSE_CHECK_INTERVAL, controller.check_mouse
+        )
+
     ## BaseController.mainloop
+    def test_BaseController_mainloop_calls_after_for_check_mouse(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = base.BaseController(mocker.MagicMock())
+        controller.mainloop()
+        view.return_value.master.after.assert_called_once()
+        view.return_value.master.after.assert_called_with(
+            Settings.MOUSE_CHECK_INTERVAL, controller.check_mouse
+        )
+
     def test_BaseController_mainloop_calls_Tkinter_mainloop(self, mocker):
         view = mocked_setup_view(mocker)
         base.BaseController(mocker.MagicMock()).mainloop()

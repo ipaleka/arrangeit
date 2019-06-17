@@ -7,9 +7,6 @@ import pytest
 from arrangeit.view import (
     get_tkinter_root,
     get_screenshot_widget,
-    get_mouse_listener,
-    move_cursor,
-    cursor_position,
     Resizable,
     CornerWidget,
     WorkspacesCollection,
@@ -52,43 +49,6 @@ class TestViewFunctions(object):
     def test_get_screenshot_widget_returns_label_instance(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
         assert get_screenshot_widget(mocker.MagicMock()) == mocked.return_value
-
-    ## get_mouse_listener
-    def test_get_mouse_listener_initializes_Listener(self, mocker):
-        mocked = mocker.patch("arrangeit.view.mouse.Listener")
-        mocked_on_move = mocker.MagicMock()
-        mocked_on_scroll = mocker.MagicMock()
-        get_mouse_listener(mocked_on_move, mocked_on_scroll)
-        mocked.assert_called_once()
-        mocked.assert_called_with(on_move=mocked_on_move, on_scroll=mocked_on_scroll)
-
-    def test_get_mouse_listener_returns_listener_instance(self, mocker):
-        mocked = mocker.patch("pynput.mouse.Listener")
-        returned = get_mouse_listener(mocker.MagicMock(), mocker.MagicMock())
-        assert returned == mocked.return_value
-
-    ## move_cursor
-    def test_move_cursor_initializes_Controller(self, mocker):
-        mocked = mocker.patch("arrangeit.view.mouse.Controller")
-        move_cursor(0, 0)
-        mocked.assert_called()
-
-    def test_move_cursor_calls_position_with_provided_x_and_y(self, mocker):
-        mocked = mocker.patch("pynput.mouse.Controller")
-        xy = (101, 202)
-        move_cursor(*xy)
-        assert mocked.return_value.position == xy
-
-    ## cursor_position
-    def test_cursor_position_initializes_Controller(self, mocker):
-        mocked = mocker.patch("arrangeit.view.mouse.Controller")
-        cursor_position()
-        mocked.assert_called_once()
-
-    def test_cursor_position_returns_position(self, mocker):
-        mocked = mocker.patch("pynput.mouse.Controller")
-        returned = cursor_position()
-        assert returned == mocked.return_value.position
 
 
 class TestResizable(object):

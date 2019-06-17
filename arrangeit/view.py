@@ -3,7 +3,7 @@ from tkinter.font import nametofont
 from gettext import gettext as _
 
 from PIL import ImageTk, Image
-from pynput import mouse
+
 
 from arrangeit.settings import Settings
 from arrangeit.options import OptionsDialog
@@ -28,31 +28,6 @@ def get_screenshot_widget(root):
     label = tk.Label(root)
     label.place(x=Settings.SCREENSHOT_SHIFT_PIXELS, y=Settings.SCREENSHOT_SHIFT_PIXELS)
     return label
-
-
-# NOTE following 3 functions probably should be moved somewhere else
-
-
-def get_mouse_listener(on_move_callback, on_scroll_callback):
-    """Initializes mouse listener by binding it to provided callbacks and returns it.
-
-    :returns: :class:`mouse.Listener` instance
-    """
-    return mouse.Listener(on_move=on_move_callback, on_scroll=on_scroll_callback)
-
-
-def move_cursor(x, y):
-    """Moves cursor position to a point defined by provided x and y."""
-    controller = mouse.Controller()
-    controller.position = (x, y)
-
-
-def cursor_position():
-    """Returns current cursor position.
-
-    :returns: (int, int)
-    """
-    return mouse.Controller().position
 
 
 class ViewApplication(tk.Frame):

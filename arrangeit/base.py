@@ -2,6 +2,7 @@ import os
 import json
 
 from arrangeit.data import WindowModel, WindowsCollection
+from arrangeit.mouse import Mouse
 from arrangeit.settings import Settings, MESSAGES
 from arrangeit.utils import (
     get_component_class,
@@ -11,14 +12,7 @@ from arrangeit.utils import (
     check_intersections,
     offset_for_intersections,
 )
-from arrangeit.view import (
-    get_mouse_listener,
-    cursor_position,
-    move_cursor,
-    get_tkinter_root,
-    get_screenshot_widget,
-    ViewApplication,
-)
+from arrangeit.view import get_tkinter_root, get_screenshot_widget, ViewApplication
 
 
 class BaseApp(object):
@@ -231,8 +225,8 @@ class BaseController(object):
     :type BaseController.generator: Generator[WindowModel, None, None]
     :var BaseController.view: Tkinter application showing main window
     :type BaseController.view: :class:`ViewApplication` instance
-    :var listener: Tkinter application showing main window
-    :type listener: :class:`ViewApplication` instance
+    :var mouse: class responsible for mouse events and queuw
+    :type mouse: :class:`Mouse`
     :var state: controller's state (LOCATE+0..3, RESIZE+0..3 or OTHER)
     :type state: int
     :var default_size: available screen size (width, height)
@@ -249,7 +243,7 @@ class BaseController(object):
     model = None
     generator = None
     view = None
-    listener = None
+    mouse = None
     state = None
     default_size = None
     screenshot_widget = None
@@ -263,6 +257,7 @@ class BaseController(object):
         """
         self.app = app
         self.model = WindowModel()
+        self.mouse = Mouse()
         self.setup()
 
     ## CONFIGURATION
@@ -377,7 +372,7 @@ class BaseController(object):
             )
 
             if offset and offset != (0, 0):
-                move_cursor(x + offset[0], y + offset[1])
+                self.mouse.move_cursor(x + offset[0], y + offset[1])
                 return True
 
         return False
@@ -449,7 +444,7 @@ class BaseController(object):
         return False
 
     def run(self, generator):
-        """Prepares view, syncs data, starts listener and enters main loop.
+        """Prepares view, syncs data, starts mouse listener and enters main loop.
 
         Calls `prepare_view` to create workspaces and windows list widgets.
         Sets generator attribute to provided generator and sets window data
@@ -463,8 +458,7 @@ class BaseController(object):
         self.generator = generator
         self.next(first_time=True)
 
-        self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
-        self.listener.start()
+        self.mouse.start()
 
         self.view.startup()
 
@@ -703,6 +697,28 @@ class BaseController(object):
         if len(windows) >= number:
             self.listed_window_activated(windows[number - 1].wid)
 
+    def mouse_move(self, x, y):
+        """Moves root Tkinter window to provided mouse coordinates.
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
+        if self.state < Settings.RESIZE:
+            self.change_position(x, y)
+
+        elif self.state < Settings.OTHER:
+            self.change_size(x, y)
+
+    def mouse_scroll(self, counter=False):
+        """Cycles through window corners in both directions.
+
+        :param counter: is scroll in counter direction
+        :type counter: Boolean
+        """
+        self.cycle_corners(counter=counter)
+
     def move_to_corner(self):
         """Configures mouse pointer and moves cursor to calculated corner position.
 
@@ -720,16 +736,15 @@ class BaseController(object):
         if self.state // 2:
             y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
 
-        move_cursor(x, y)
+        self.mouse.move_cursor(x, y)
         self.setup_corner()
 
     def place_on_top_left(self):
-        """Changes and moves cursor to model's top left position.
+        """Moves cursor to model's top left position and setups that corner
 
-        Cursor is changed to default config. Also calls `on_mouse_move` to force
-        moving if the app is just instantiated.
+        widget and cursor.
         """
-        move_cursor(
+        self.mouse.move_cursor(
             self.model.x + Settings.SHIFT_CURSOR, self.model.y + Settings.SHIFT_CURSOR
         )
         self.setup_corner()
@@ -764,7 +779,7 @@ class BaseController(object):
                 - Settings.SHIFT_CURSOR
             )
 
-        move_cursor(left, top)
+        self.mouse.move_cursor(left, top)
         self.setup_corner()
 
     def remove_listed_window(self, wid):
@@ -789,20 +804,19 @@ class BaseController(object):
         self.view.master.config(cursor="left_ptr")
         self.view.corner.hide_corner()
         self.state = Settings.OTHER
-        self.listener.stop()
+        self.mouse.stop()
 
     def recapture_mouse(self):
-        """Creates and starts mouse listener and starts positioning/resizing routine."""
+        """Starts mouse listener and positioning/resizing routine."""
         self.view.setup_bindings()
         self.state = Settings.LOCATE
         self.set_default_geometry(self.view.master)
-        move_cursor(
+        self.mouse.move_cursor(
             self.view.master.winfo_x() + Settings.SHIFT_CURSOR,
             self.view.master.winfo_y() + Settings.SHIFT_CURSOR,
         )
         self.setup_corner()
-        self.listener = get_mouse_listener(self.on_mouse_move, self.on_mouse_scroll)
-        self.listener.start()
+        self.mouse.start()
 
     def save(self):
         """Runs task for saving windows collection data to default file."""
@@ -810,7 +824,7 @@ class BaseController(object):
 
     def shutdown(self):
         """Stops mouse listener and destroys Tkinter root window."""
-        self.listener.stop()
+        self.mouse.stop()
         self.view.master.destroy()
 
     def setup_corner(self):
@@ -871,7 +885,7 @@ class BaseController(object):
             self.shutdown()
 
         elif event.keysym in ("Return", "KP_Enter"):
-            self.update(*cursor_position())
+            self.update(*self.mouse.cursor_position())
 
         elif event.keysym in ("Space", "Tab"):
             self.skip_current_window()
@@ -896,27 +910,13 @@ class BaseController(object):
 
         return "break"
 
-    def on_mouse_move(self, x, y):
-        """Moves root Tkinter window to provided mouse coordinates.
-
-        :param x: absolute horizontal axis mouse position in pixels
-        :type x: int
-        :param y: absolute vertical axis mouse position in pixels
-        :type y: int
-        """
-        if self.state < Settings.RESIZE:
-            self.change_position(x, y)
-
-        elif self.state < Settings.OTHER:
-            self.change_size(x, y)
-
     def on_mouse_left_down(self, event):
         """Calls :class:`BaseController.update` with current cursor position
 
         :param event: catched event
         :type event: Tkinter event
         """
-        self.update(*cursor_position())
+        self.update(*self.mouse.cursor_position())
         return "break"
 
     def on_mouse_middle_down(self, event):
@@ -937,24 +937,6 @@ class BaseController(object):
         self.skip_current_window()
         return "break"
 
-    def on_mouse_scroll(self, x, y, dx, dy):
-        """Cycles through window corners in both directions.
-
-        We are interested only in in dy that holds either +1 or -1 value, so we
-        converted that to Boolean value.
-
-        :param x: absolute horizontal axis mouse position in pixels
-        :type x: int
-        :param y: absolute vertical axis mouse position in pixels
-        :type y: int
-        :param dx: scroll vector on x axis
-        :type dx: int
-        :param dy: scroll vector on y axis
-        :type dy: int
-        """
-        self.cycle_corners(counter=dy > 0)
-        return "break"
-
     def on_continue(self, event):
         """Restarts positioning routine."""
         self.recapture_mouse()
@@ -972,8 +954,29 @@ class BaseController(object):
         self.recapture_mouse()
         return "break"
 
-    ## MAIN LOOP
+    ## MAIN LOOPS
+    def check_mouse(self):
+        """Runs method that corresponds to retrieved item from mouse queue.
+
+        There are only two possibilities for item type: Boolean (scroll direction)
+        or tuple (mouse position).
+
+        Method calls itself in regular interval defined in settings.
+        """
+        while True:
+            item = self.mouse.get_item()
+            if item is None:
+                break
+            elif isinstance(item, bool):
+                self.view.master.after_idle(self.mouse_scroll, item)
+            else:
+                self.view.master.after_idle(self.mouse_move, *item)
+
+        self.view.master.after(Settings.MOUSE_CHECK_INTERVAL, self.check_mouse)
+
     def mainloop(self):
+        """Tkinter main loop."""
+        self.view.master.after(Settings.MOUSE_CHECK_INTERVAL, self.check_mouse)
         self.view.mainloop()
 
 

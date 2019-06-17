@@ -49,6 +49,15 @@
   :show-inheritance:
 
 
+:mod:`tests.test_mouse` -- Unit tests for mouse class
+-----------------------------------------------------
+
+.. automodule:: tests.test_mouse
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.test_view` -- Unit tests for view classes and functions (without ViewApplication)
 ---------------------------------------------------------------------------------------------
 
