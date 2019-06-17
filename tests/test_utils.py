@@ -111,11 +111,15 @@ class TestUtils(object):
             mocked_image.return_value.convert.return_value, "black", BACKGROUND
         )
 
-    def test_open_image_calls_different_ImageOps_colorize_if_colorized_set(self, mocker):
+    def test_open_image_calls_different_ImageOps_colorize_if_colorized_set(
+        self, mocker
+    ):
         mocked_image = mocker.patch("arrangeit.utils.Image.open")
         mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
         PATH, FOREGROUND, BACKGROUND = "resize.png", "red", "yelow"
-        utils.open_image(PATH, background=BACKGROUND, colorized=True, foreground=FOREGROUND)
+        utils.open_image(
+            PATH, background=BACKGROUND, colorized=True, foreground=FOREGROUND
+        )
         mocked.assert_called_once()
         mocked.assert_called_with(
             mocked_image.return_value.convert.return_value, FOREGROUND, BACKGROUND
@@ -313,6 +317,26 @@ class TestUtils(object):
     def test_intersects_functionality(self, source, target, expected):
         assert utils._intersects(source, target) == expected
 
+    ## _offset_for_intersecting_pair
+    def test_offset_for_intersecting_pair_returns_False(self, mocker):
+        assert utils._offset_for_intersecting_pair(False, 10) == (0, 0)
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
+    def test_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[1])
+    def test_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[2])
+    def test_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+
+    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
+    def test_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
+        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+
     ## check_intersections
     def test_check_intersections_single_calls_intersects_and_returns_False(
         self, mocker
@@ -381,22 +405,39 @@ class TestUtils(object):
             utils.check_intersections((sources[2], sources[3]), targets) == expected[4]
         )
 
-    ## _offset_for_intersecting_pair
-    def test_offset_for_intersecting_pair_returns_False(self, mocker):
-        assert utils._offset_for_intersecting_pair(False, 10) == (0, 0)
+    ## offset_for_intersections
+    def test_offset_for_intersections_returns_empty_tuple_for_no_rectangles(
+        self, mocker
+    ):
+        assert utils.offset_for_intersections(False, 10) == (0, 0)
 
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
-    def test_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
-        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+    def test_offset_for_intersections_calls__offset_once_for_single_pair(self, mocker):
+        mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
+        RECTS, SNAP = [(1732, 36, 1752, 316), (1725, 22, 1745, 868)], 10
+        utils.offset_for_intersections(RECTS, SNAP)
+        mocked.assert_called_once()
+        mocked.assert_called_with(RECTS, SNAP)
 
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[1])
-    def test_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
-        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+    def test_offset_for_intersections_calls__offset_twice_for_two_pairs(self, mocker):
+        mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
+        RECTS = [
+            ((1732, 36, 1752, 316), (1725, 22, 1745, 868)),
+            ((257, 52, 747, 72), (169, 51, 1123, 71)),
+        ]
+        SNAP = 10
+        utils.offset_for_intersections(RECTS, SNAP)
+        calls = [mocker.call(RECTS[1], SNAP)]
+        mocked.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call(RECTS[0], SNAP)]
+        mocked.assert_has_calls(calls, any_order=True)
 
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[2])
-    def test_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
-        assert utils._offset_for_intersecting_pair(pair, 10) == offset
-
-    @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
-    def test_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
-        assert utils._offset_for_intersecting_pair(pair, 10) == offset
+    def test_offset_for_intersections_returns_opposite_tuple_element(self, mocker):
+        SAMPLE = (7, 5)
+        mocker.patch("arrangeit.utils._offset_for_intersecting_pair", return_value=SAMPLE)
+        RECTS = [
+            ((1732, 36, 1752, 316), (1725, 22, 1745, 868)),
+            ((257, 52, 747, 72), (169, 51, 1123, 71)),
+        ]
+        SNAP = 10
+        returned = utils.offset_for_intersections(RECTS, SNAP)
+        assert returned == (SAMPLE[0], SAMPLE[1])

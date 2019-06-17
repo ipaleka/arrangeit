@@ -134,14 +134,12 @@ class ViewApplication(tk.Frame):
             self,
             bitmap="hourglass",
             background=Settings.ICON_LABEL_BG,
-            anchor=Settings.ICON_LABEL_ANCHOR,
             padx=Settings.ICON_LABEL_PADX,
             pady=Settings.ICON_LABEL_PADY,
         )
         self.icon.place(
             relx=Settings.TITLE_LABEL_RELWIDTH + Settings.NAME_LABEL_RELWIDTH / 2,
             anchor=Settings.ICON_LABEL_ANCHOR,
-            y=Settings.ICON_LABEL_PADY,
         )
 
     def setup_name(self):
@@ -211,13 +209,13 @@ class ViewApplication(tk.Frame):
     def setup_widgets(self):
         """Calls all the frame's widgets creation and placement methods."""
         self.setup_title()
+        self.setup_resizable()
         self.setup_name()
         self.setup_icon()
         self.setup_workspaces()
         self.setup_windows()
         self.setup_toolbar()
         self.setup_corner()
-        self.setup_resizable()
 
     def setup_windows(self):
         """Creates and places `windows` widget and sets corresponding variable."""

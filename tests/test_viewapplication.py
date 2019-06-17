@@ -222,7 +222,6 @@ class TestViewApplication(object):
             view,
             bitmap="hourglass",
             background=Settings.ICON_LABEL_BG,
-            anchor=Settings.ICON_LABEL_ANCHOR,
             padx=Settings.ICON_LABEL_PADX,
             pady=Settings.ICON_LABEL_PADY,
         )
@@ -236,7 +235,6 @@ class TestViewApplication(object):
         mocked.return_value.place.assert_called_with(
             relx=Settings.TITLE_LABEL_RELWIDTH + Settings.NAME_LABEL_RELWIDTH / 2,
             anchor=Settings.ICON_LABEL_ANCHOR,
-            y=Settings.ICON_LABEL_PADY,
         )
 
     ## ViewApplication.setup_name

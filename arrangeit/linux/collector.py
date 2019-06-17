@@ -51,6 +51,11 @@ class Collector(BaseCollector):
                 window_state & Wnck.WindowState.HIDDEN
                 and not window_state & Wnck.WindowState.MINIMIZED
             )
+            or (
+                window_state & Wnck.WindowState.SKIP_TASKLIST
+                and window_state & Wnck.WindowState.SKIP_PAGER
+                and window_state & Wnck.WindowState.BELOW
+            )
         )
 
     def is_resizable(self, window_type):
