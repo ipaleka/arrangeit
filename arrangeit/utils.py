@@ -77,9 +77,7 @@ def open_image(path, background="white", colorized=False, foreground="red"):
     image = Image.open(
         os.path.join(os.path.dirname(__file__), "resources", path)
     ).convert("L")
-    return ImageOps.colorize(
-        image, foreground if colorized else "black", background
-    )
+    return ImageOps.colorize(image, foreground if colorized else "black", background)
 
 
 def get_value_if_valid_type(value, typ):
