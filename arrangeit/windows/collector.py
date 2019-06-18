@@ -7,23 +7,22 @@ from win32api import EnumDisplayMonitors
 from win32con import (
     GA_ROOTOWNER,
     GCL_HICON,
+    GWL_STYLE,
     GWL_EXSTYLE,
     NULL,
     STATE_SYSTEM_INVISIBLE,
     WM_GETICON,
     WS_EX_TOOLWINDOW,
     WS_EX_NOACTIVATE,
-    WS_VISIBLE,
     WS_THICKFRAME,
 )
 from win32gui import (
-    DrawIcon,
     EnumWindows,
     GetClassLong,
     GetDC,
     GetClassName,
     GetWindowLong,
-    GetWindowRect,
+    GetWindowPlacement,
     GetWindowText,
     IsWindow,
     IsWindowEnabled,
@@ -36,7 +35,7 @@ from win32ui import CreateDCFromHandle, CreateBitmap
 from arrangeit.settings import Settings
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
-from arrangeit.utils import append_to_collection
+from arrangeit.utils import append_to_collection, open_image
 
 DWMWA_CLOAKED = 14
 
@@ -97,7 +96,7 @@ class Collector(BaseCollector):
             icon_handle = GetClassLong(hwnd, GCL_HICON)
             if icon_handle == 0:
                 print("no icon", GetWindowText(hwnd))
-                return Settings.BLANK_ICON
+                return open_image("white.png")
 
                 # buf=create_unicode_buffer(256)
                 # ctypes.windll.shlwapi.SHLoadIndirectString(s,buf,256,None)
@@ -113,10 +112,10 @@ class Collector(BaseCollector):
         try:
             main_hdc.DrawIcon((0, 0), icon_handle)
         except win32ui.error:
-            # TODO check this, if return BLANK_ICON then this shouldn't happen
+            # TODO check this - with white.png from above this shouldn't be reached
             pass
 
-        buffer = bitmap.GetBitmapBits(True)
+        buffer = bitmap.GetBitmapBits(True)  # TODO this is deprecated, use GetDIBits
         image = Image.frombuffer("RGBA", (size, size), buffer, "raw", "BGRA", 0, 1)
         return image
 
@@ -138,7 +137,7 @@ class Collector(BaseCollector):
         :type hwnd: int
         :returns: (int, int, int, int)
         """
-        left, top, right, bottom = GetWindowRect(hwnd)
+        left, top, right, bottom = GetWindowPlacement(hwnd)[-1]
         return (left, top, right - left, bottom - top)
 
     def _get_window_title(self, hwnd):
@@ -332,7 +331,7 @@ class Collector(BaseCollector):
         :type hwnd: int
         :returns: Boolean
         """
-        return GetWindowLong(hwnd, GWL_EXSTYLE) & WS_THICKFRAME != 0
+        return GetWindowLong(hwnd, GWL_STYLE) & WS_THICKFRAME != 0
 
     def is_valid_state(self, hwnd):
         """Checks if provided hwnd represents window with valid state for collecting.

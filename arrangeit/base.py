@@ -225,8 +225,8 @@ class BaseController(object):
     :type BaseController.generator: Generator[WindowModel, None, None]
     :var BaseController.view: Tkinter application showing main window
     :type BaseController.view: :class:`ViewApplication` instance
-    :var mouse: class responsible for mouse events and queuw
-    :type mouse: :class:`Mouse`
+    :var BaseController.mouse: class responsible for mouse events and queuw
+    :type BaseController.mouse: :class:`Mouse`
     :var state: controller's state (LOCATE+0..3, RESIZE+0..3 or OTHER)
     :type state: int
     :var default_size: available screen size (width, height)
@@ -887,7 +887,7 @@ class BaseController(object):
         elif event.keysym in ("Return", "KP_Enter"):
             self.update(*self.mouse.cursor_position())
 
-        elif event.keysym in ("Space", "Tab"):
+        elif event.keysym in ("space", "Tab"):
             self.skip_current_window()
 
         elif event.keysym in ("R", "r"):

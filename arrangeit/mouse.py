@@ -69,9 +69,7 @@ class Mouse(object):
 
     def start(self):
         """Initializes and starts listener for move and scroll events."""
-        self.listener = Listener(
-            on_move=self.on_move, on_scroll=self.on_scroll
-        )
+        self.listener = Listener(on_move=self.on_move, on_scroll=self.on_scroll)
         self.listener.start()
 
     def stop(self):

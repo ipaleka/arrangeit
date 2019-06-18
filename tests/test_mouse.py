@@ -70,7 +70,7 @@ class TestMouse(object):
 
 
     ## Mouse.on_move
-    def test_Mouse_on_scroll_puts_in_queue(self, mocker):
+    def test_Mouse_on_move_puts_in_queue(self, mocker):
         mocked = mocker.patch("arrangeit.mouse.queue.Queue.put")
         mouse = Mouse()
         SAMPLE = (10, 20)
@@ -88,7 +88,6 @@ class TestMouse(object):
         mouse.on_scroll(0, 0, 0, dy)
         mocked.assert_called_once()
         mocked.assert_called_with(expected)
-
 
     ## Mouse.start
     def test_Mouse_start_calls_mouse_Listener(self, mocker):

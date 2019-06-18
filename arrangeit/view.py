@@ -335,8 +335,8 @@ class CornerWidget(object):
     :type CornerWidget.master: :class:`.tk.Tk`
     :var shift: cursor shift from corner in pixels
     :type shift: int
-    :var background: widget background color
-    :type background: str
+    :var CornerWidget.background: widget background color
+    :type CornerWidget.background: str
     :var length: axes frame length (long side) in pixels
     :type length: int
     :var width: axes frame width (small side) in pixels

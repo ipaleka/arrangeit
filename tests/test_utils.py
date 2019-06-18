@@ -1,6 +1,6 @@
 import os
 import pytest
-from PIL import ImageFilter, Image
+from PIL import ImageFilter
 
 from arrangeit import utils
 from arrangeit.settings import Settings

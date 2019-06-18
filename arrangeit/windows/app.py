@@ -1,5 +1,6 @@
 from PIL import ImageTk
-from win32gui import MoveWindow, SetActiveWindow
+from win32con import SW_RESTORE
+from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 
 from arrangeit.settings import Settings
 from arrangeit.base import BaseApp
@@ -9,42 +10,41 @@ class App(BaseApp):
     """Main app class with MS Windows specific code."""
 
     ## TASKS
-    def activate_root(self, wid):
-        """Activates/focuses root window identified by provided `wid`."""
-        SetActiveWindow(wid)
+    def activate_root(self, hwnd):
+        """Activates/focuses root window identified by provided `hwnd`."""
+        SetActiveWindow(hwnd)
 
-    def move(self, wid):
+    def move(self, hwnd):
         """Just calls `move_and_resize` as the same method moves and resizes
 
         under MS Windows.
 
-        :param wid: windows id
-        :type wid: int
+        :param hwnd: windows id
+        :type hwnd: int
         """
-        return self.move_and_resize(wid)
+        return self.move_and_resize(hwnd)
 
-    def move_and_resize(self, wid):
-        """Moves and resizes window identified by provided wid.
+    def move_and_resize(self, hwnd):
+        """Moves and resizes window identified by provided hwnd.
 
-        :param wid: root id got from Tkinter
-        :type wid: int
+        :param hwnd: root id got from Tkinter
+        :type hwnd: int
         :var model: collected window data
         :type model: :class:`WindowModel`
         :returns: Boolean
         """
-        model = self.collector.collection.get_model_by_wid(wid)
+        model = self.collector.collection.get_model_by_wid(hwnd)
         if model.is_ws_changed:
-            self.move_to_workspace(wid, model.changed_ws)
+            self.move_to_workspace(hwnd, model.changed_ws)
         if model.is_changed:
-            MoveWindow(wid, *model.changed, True)
-            # if win.is_maximized():
-            #     win.unmaximize()
+            if IsIconic(hwnd):
+                ShowWindow(hwnd, SW_RESTORE)
+            MoveWindow(hwnd, *model.changed, True)
             return False
         return True
-        # http://timgolden.me.uk/pywin32-docs/win32gui__MoveWindow_meth.html
-        # https://stackoverflow.com/questions/2335721/how-can-i-get-the-window-focused-on-windows-and-re-size-it
 
-    def move_to_workspace(self, wid, number):
+    def move_to_workspace(self, hwnd, number):
+        """TODO implement"""
         pass
 
     ## COMMANDS

@@ -16,10 +16,10 @@ with open("LICENSE") as f:
 setup(
     name="arrangeit",
     version=__version__,
-    description="Cross-platform desktop utility for easy placement of the visible windows",
+    description="Cross-platform desktop utility for easy windows management",
     long_description=readme,
     packages=["arrangeit"],
-    python_requires="~=3.5",
+    python_requires="~=3.4",
     install_requires=[
         "pynput",
         'pywin32; platform_system == "Windows"',
