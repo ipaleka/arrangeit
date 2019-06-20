@@ -100,7 +100,7 @@ class ViewApplication(tk.Frame):
         self.corner = CornerWidget(
             self.master,
             shift=Settings.SHIFT_CURSOR,
-            background=Settings.HIGHLIGHTED_COLOR,
+            background=Settings.CORNER_COLOR,
         )
 
     def setup_icon(self):

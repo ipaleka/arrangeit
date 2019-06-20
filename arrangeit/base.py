@@ -1,8 +1,10 @@
 import os
 import json
+import queue
+
+import pynput
 
 from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.mouse import Mouse
 from arrangeit.settings import Settings, MESSAGES
 from arrangeit.utils import (
     get_component_class,
@@ -226,7 +228,7 @@ class BaseController(object):
     :var BaseController.view: Tkinter application showing main window
     :type BaseController.view: :class:`ViewApplication` instance
     :var BaseController.mouse: class responsible for mouse events and queuw
-    :type BaseController.mouse: :class:`Mouse`
+    :type BaseController.mouse: :class:`BaseMouse`
     :var state: controller's state (LOCATE+0..3, RESIZE+0..3 or OTHER)
     :type state: int
     :var default_size: available screen size (width, height)
@@ -257,7 +259,7 @@ class BaseController(object):
         """
         self.app = app
         self.model = WindowModel()
-        self.mouse = Mouse()
+        self.mouse = BaseMouse()
         self.setup()
 
     ## CONFIGURATION
@@ -1052,3 +1054,80 @@ class BaseCollector(object):
                 self.add_window(win)
         win = None
         self.collection.sort()
+
+class BaseMouse(object):
+    """Class responsible for listening and controlling system-wide mouse events.
+
+    :var queue: mouse events queue
+    :type queue: :class:`queue.Queue`
+    :var listener: class as separate thread listening for mouse events
+    :type listener: :class:`pynput.mouse.Listener`
+    :var control: class for retrieving and setting cursor position
+    :type control: :class:`pynput.mouse.Controller`
+    """
+
+    queue = None
+    listener = None
+    control = None
+
+    def __init__(self):
+        """Instatiates and sets queue."""
+        self.queue = queue.Queue()
+        self.control = pynput.mouse.Controller()
+
+    def cursor_position(self):
+        """Returns current cursor position.
+
+        :returns: (int, int)
+        """
+        return self.control.position
+
+    def get_item(self):
+        """Gets next item in queue and returns it.
+
+        :returns: (x,y) or bool or None
+        """
+        try:
+            return self.queue.get(block=False)
+        except queue.Empty:
+            return None
+
+    def move_cursor(self, x, y):
+        """Moves cursor position to a point defined by provided x and y."""
+        self.control.position = (x, y)
+
+    def on_move(self, x, y):
+        """Puts provided x and y in queue as position tuple.
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        """
+        self.queue.put((x, y))
+
+    def on_scroll(self, x, y, dx, dy):
+        """Puts scroll direction as Boolean value in queue.
+
+        We are interested only in in dy that holds either +1 or -1 value, so we
+        converted that to Boolean value.
+
+        :param x: absolute horizontal axis mouse position in pixels
+        :type x: int
+        :param y: absolute vertical axis mouse position in pixels
+        :type y: int
+        :param dx: scroll vector on x axis
+        :type dx: int
+        :param dy: scroll vector on y axis
+        :type dy: int
+        """
+        self.queue.put(dy > 0)
+
+    def start(self):
+        """Initializes and starts listener for move and scroll events."""
+        self.listener = pynput.mouse.Listener(on_move=self.on_move, on_scroll=self.on_scroll)
+        self.listener.start()
+
+    def stop(self):
+        """Stops listener."""
+        self.listener.stop()

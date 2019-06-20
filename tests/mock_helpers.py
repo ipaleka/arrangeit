@@ -53,7 +53,7 @@ def controller_mocked_next(mocker):
     mocked_setup(mocker)
     mocker.patch("arrangeit.base.BaseController.next")
     mocker.patch("arrangeit.base.WindowModel")
-    mocker.patch("arrangeit.base.Mouse")
+    mocker.patch("arrangeit.base.BaseMouse")
     controller = base.BaseController(mocker.MagicMock())
     controller.model = base.WindowModel(rect=(50, 50, 100, 100), workspace=1)
     controller.state = Settings.LOCATE

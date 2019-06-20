@@ -29,7 +29,7 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_check_snapping_calls_get_root_rect(self, mocker):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.Mouse")
+        mocker.patch("arrangeit.base.BaseMouse")
         mocker.patch("arrangeit.base.check_intersections")
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
@@ -47,7 +47,7 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_check_snapping_calls_get_snapping_sources_for(self, mocker):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.Mouse")
+        mocker.patch("arrangeit.base.BaseMouse")
         mocker.patch("arrangeit.base.check_intersections")
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
@@ -69,7 +69,7 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_check_snapping_calls_check_intersection(self, mocker):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.Mouse")
+        mocker.patch("arrangeit.base.BaseMouse")
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
         type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
@@ -88,7 +88,7 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_check_snapping_calls_offset_for_intersections(self, mocker):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.Mouse")
+        mocker.patch("arrangeit.base.BaseMouse")
         mocked_settings = mocker.patch("arrangeit.base.Settings")
         type(mocked_settings).SNAPPING_IS_ON = mocker.PropertyMock(return_value=True)
         type(mocked_settings).LOCATE = mocker.PropertyMock(return_value=0)
@@ -115,7 +115,7 @@ class TestBaseControllerDomainLogic(object):
         mocker.patch("arrangeit.base.check_intersections")
         offset = (10, 12)
         mocker.patch("arrangeit.base.offset_for_intersections", return_value=offset)
-        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
+        mocked = mocker.patch("arrangeit.base.BaseMouse.move_cursor")
         view.return_value.workspaces.active = 1001
         controller = controller_mocked_app(mocker)
         SAMPLE = ["foo"]
@@ -137,7 +137,7 @@ class TestBaseControllerDomainLogic(object):
         mocker.patch("arrangeit.base.check_intersections")
         offset = (0, 0)
         mocker.patch("arrangeit.base.offset_for_intersections", return_value=offset)
-        mocked = mocker.patch("arrangeit.base.Mouse.move_cursor")
+        mocked = mocker.patch("arrangeit.base.BaseMouse.move_cursor")
         view.return_value.workspaces.active = 1001
         controller = controller_mocked_app(mocker)
         SAMPLE = ["foo"]
@@ -398,7 +398,7 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_run_calls_mouse_start(self, mocker):
         controller = controller_mocked_for_run(mocker)
-        mocked = mocker.patch("arrangeit.base.Mouse.start")
+        mocked = mocker.patch("arrangeit.base.BaseMouse.start")
         controller.run(mocker.MagicMock())
         mocked.assert_called_once()
         mocked.assert_called_with()

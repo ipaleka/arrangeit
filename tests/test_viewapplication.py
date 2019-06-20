@@ -204,7 +204,7 @@ class TestViewApplication(object):
         mocked.assert_called_with(
             view.master,
             shift=Settings.SHIFT_CURSOR,
-            background=Settings.HIGHLIGHTED_COLOR,
+            background=Settings.CORNER_COLOR,
         )
 
     def test_ViewApplication_setup_corner_sets_corner_attribute(self, mocker):

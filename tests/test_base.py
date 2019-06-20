@@ -94,7 +94,9 @@ class TestBaseApp(object):
 
     def test_BaseApp_run_calls_WindowsCollection_generator(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.{}.collector.Collector.add_window".format(utils.platform_path()))        
+        mocker.patch(
+            "arrangeit.{}.collector.Collector.add_window".format(utils.platform_path())
+        )
         mocked = mocker.patch("arrangeit.base.WindowsCollection")
         base.BaseApp().run()
         assert mocked.return_value.generator.call_count == 1
@@ -112,9 +114,7 @@ class TestBaseApp(object):
         mocked_setup(mocker)
         path = utils.platform_path()
         mocker.patch("arrangeit.{}.collector.Collector.add_window".format(path))
-        mocked = mocker.patch(
-            "arrangeit.{}.controller.Controller".format(path)
-        )
+        mocked = mocker.patch("arrangeit.{}.controller.Controller".format(path))
         generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
         base.BaseApp().run()
         mocked.return_value.run.assert_called_with(generator.return_value)
@@ -732,3 +732,123 @@ class TestBaseCollector(object):
         mocked = mocker.patch("arrangeit.data.WindowsCollection.sort")
         base.BaseCollector().run()
         mocked.assert_called_once()
+
+
+class TestBaseMouse(object):
+    """Testing class for Mouse class methods."""
+
+    ## BaseMouse
+    @pytest.mark.parametrize("attr", ["queue", "listener", "control"])
+    def test_BaseMouse_inits_attr_as_None(self, attr):
+        assert getattr(base.BaseMouse, attr) is None
+
+    ## BaseMouse.__init__
+    def test_BaseMouse_init_instantiates_Queue(self, mocker):
+        mocked = mocker.patch("arrangeit.base.queue.Queue")
+        base.BaseMouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseMouse_init_sets_queue_attribute(self, mocker):
+        mocked = mocker.patch("arrangeit.base.queue.Queue")
+        assert base.BaseMouse().queue == mocked.return_value
+
+    def test_BaseMouse_init_instantiates_Controller(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        base.BaseMouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseMouse_init_sets_control_attribute(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        assert base.BaseMouse().control == mocked.return_value
+
+    ## BaseMouse.cursor_position
+    def test_BaseMouse_cursor_position_calls_Controller_position(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        SAMPLE = (10, 20)
+        type(mocked.return_value).position = mocker.PropertyMock(return_value=SAMPLE)
+        returned = base.BaseMouse().cursor_position()
+        assert returned == SAMPLE
+
+    def test_BaseMouse_cursor_position_returns_position(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        returned = base.BaseMouse().cursor_position()
+        assert returned == mocked.return_value.position
+
+    ## BaseMouse.get_item
+    def test_BaseMouse_get_item_calls_queue_get(self, mocker):
+        mocked = mocker.patch("arrangeit.base.queue.Queue.get")
+        base.BaseMouse().get_item()
+        mocked.assert_called_once()
+        mocked.assert_called_with(block=False)
+
+    def test_BaseMouse_get_item_returns_item(self, mocker):
+        mocked = mocker.patch("arrangeit.base.queue.Queue.get")
+        returned = base.BaseMouse().get_item()
+        assert returned == mocked.return_value
+
+    def test_BaseMouse_get_item_returns_None_for_Empty(self, mocker):
+        assert base.BaseMouse().get_item() is None
+
+    ## BaseMouse.move_cursor
+    def test_BaseMouse_move_cursor_calls_Controller_position(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        SAMPLE = (11, 22)
+        type(mocked.return_value).position = mocker.PropertyMock(return_value=SAMPLE)
+        base.BaseMouse().move_cursor(*SAMPLE)
+        mocked.return_value.position == SAMPLE
+
+    def test_BaseMouse_move_cursor_calls_position_with_provided_x_and_y(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Controller")
+        xy = (101, 202)
+        base.BaseMouse().move_cursor(*xy)
+        assert mocked.return_value.position == xy
+
+    ## BaseMouse.on_move
+    def test_BaseMouse_on_move_puts_in_queue(self, mocker):
+        mocked = mocker.patch("arrangeit.base.queue.Queue.put")
+        mouse = base.BaseMouse()
+        SAMPLE = (10, 20)
+        mouse.on_move(*SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE)
+
+    ## BaseMouse.on_scroll
+    @pytest.mark.parametrize("dy,expected", [(-1, False), (1, True)])
+    def test_BaseMouse_on_scroll_puts_in_queue(self, mocker, dy, expected):
+        mocked = mocker.patch("arrangeit.base.queue.Queue.put")
+        mouse = base.BaseMouse()
+        mouse.on_scroll(0, 0, 0, dy)
+        mocked.assert_called_once()
+        mocked.assert_called_with(expected)
+
+    ## BaseMouse.start
+
+    def test_BaseMouse_start_instantiates_Listener(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Listener")
+        mouse = base.BaseMouse()
+        mouse.start()
+        mocked.assert_called_once()
+        mocked.assert_called_with(on_move=mouse.on_move, on_scroll=mouse.on_scroll)
+
+    def test_BaseMouse_start_sets_listener_attribute(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Listener")
+        mouse = base.BaseMouse()
+        mouse.start()
+        assert mouse.listener == mocked.return_value
+
+    def test_BaseMouse_start_starts_listener(self, mocker):
+        mocked = mocker.patch("pynput.mouse.Listener")
+        mouse = base.BaseMouse()
+        mouse.start()
+        mocked.return_value.start.assert_called_once()
+        mocked.return_value.start.assert_called_with()
+
+    ## BaseMouse.stop
+    def test_BaseMouse_stop_stops_listener(self, mocker):
+        mouse = base.BaseMouse()
+        mouse.listener = mocker.MagicMock()
+        mouse.stop()
+        mouse.listener.stop.assert_called_once()
+        mouse.listener.stop.assert_called_with()
