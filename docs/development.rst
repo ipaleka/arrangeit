@@ -25,6 +25,13 @@ To build latexpdf documentation:
   sudo apt-get install texlive texlive-latex-extra latexmk
 
 
+Darwin
+^^^^^^
+
+Download official installer from https://www.python.org/downloads/, download and install Python by executing .pkg file 
+and finally run post-install script `install_certificates.command`.
+
+
 Tools
 -----
 
