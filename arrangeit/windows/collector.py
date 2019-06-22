@@ -27,6 +27,7 @@ from win32gui import (
     IsWindow,
     IsWindowEnabled,
     IsWindowVisible,
+    LoadIcon,
     SendMessageTimeout,
 )
 import win32ui
@@ -95,6 +96,7 @@ class Collector(BaseCollector):
         if icon_handle == 0:
             icon_handle = GetClassLong(hwnd, GCL_HICON)
             if icon_handle == 0:
+                # hicon = LoadIcon(hwnd, icon_handle)
                 print("no icon", GetWindowText(hwnd))
                 return open_image("white.png")
 
@@ -261,7 +263,9 @@ class Collector(BaseCollector):
         return True
 
     def get_available_workspaces(self):
-        """TODO implement
+        """
+
+        TODO implement
 
         :param hwnd: window id
         :type hwnd: int
@@ -275,13 +279,6 @@ class Collector(BaseCollector):
         :returns: list [(x,y,w,h)]
         """
         return [rect for (_a, _b, rect) in EnumDisplayMonitors(None, None)]
-
-    def get_smallest_monitor_size(self):
-        """Returns size of the smallest monitor.
-
-        :returns: tuple (w,h)
-        """
-        return min((rect[2], rect[3]) for rect in self.get_monitors_rects())
 
     def get_windows(self):
         """Creates and returns list of all the windows hwnds

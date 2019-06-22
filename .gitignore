@@ -1,5 +1,6 @@
 .vscode/
 __pycache__
+*.pyc
 .pytest_cache
 arrangeit.code-workspace
 htmlcov/

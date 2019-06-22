@@ -266,19 +266,3 @@ class Collector(BaseCollector):
             area = display.get_monitor(i).get_workarea()
             rects.append((area.x, area.y, area.width, area.height))
         return rects
-
-    def get_smallest_monitor_size(self):
-        """Returns size of the smallest monitor.
-
-        :var display: default display
-        :type display: :class:`Gdk.Display`
-        :var rect: smallest monitor working area rect
-        :type rect: :class:`Gdk.Rectangle`
-        :returns: tuple (w,h)
-        """
-        display = Gdk.Display.get_default()
-        rect = min(
-            display.get_monitor(i).get_workarea()
-            for i in range(display.get_n_monitors())
-        )
-        return (rect.width, rect.height)

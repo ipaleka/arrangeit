@@ -98,9 +98,7 @@ class ViewApplication(tk.Frame):
     def setup_corner(self):
         """Creates and places corner widget in the default corner 0."""
         self.corner = CornerWidget(
-            self.master,
-            shift=Settings.SHIFT_CURSOR,
-            background=Settings.CORNER_COLOR,
+            self.master, shift=Settings.SHIFT_CURSOR, background=Settings.CORNER_COLOR
         )
 
     def setup_icon(self):

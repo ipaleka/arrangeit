@@ -695,9 +695,26 @@ class TestBaseCollector(object):
             base.BaseCollector().get_monitors_rects()
 
     ## BaseCollector.get_smallest_monitor_size
-    def test_BaseCollector_get_smallest_monitor_size_raises_NotImplementedError(self):
-        with pytest.raises(NotImplementedError):
-            base.BaseCollector().get_smallest_monitor_size()
+    def test_BaseCollector_get_smallest_monitor_size_calls_get_monitors_rects(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.base.BaseCollector.get_monitors_rects",
+            return_value=[(0, 0, 1920, 1280)],
+        )
+        base.BaseCollector().get_smallest_monitor_size()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseCollector_get_smallest_monitor_size_returns_two_tuple(self, mocker):
+        RECT1, RECT2 = (0, 0, 1920, 1280), (1920, 0, 1280, 1080)
+        SAMPLE = [RECT1, RECT2]
+        mocker.patch(
+            "arrangeit.base.BaseCollector.get_monitors_rects",
+            return_value=SAMPLE,
+        )
+        returned = base.BaseCollector().get_smallest_monitor_size()
+        assert returned == (RECT2[2], RECT2[3])
 
     ## BaseCollector.run
     def test_BaseCollector_run_calls_get_windows(self, mocker):

@@ -1036,8 +1036,11 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def get_smallest_monitor_size(self):
-        """Method must be overridden."""
-        raise NotImplementedError
+        """Returns size of the smallest monitor.
+
+        :returns: tuple (w,h)
+        """
+        return min((rect[2], rect[3]) for rect in self.get_monitors_rects())
 
     def run(self):
         """Populates ``collection`` with WindowModel instances
@@ -1045,6 +1048,7 @@ class BaseCollector(object):
         created from the windows list provided by :func:`get_windows`
         after they are checked for compliance with :func:`check_window`
         by calling :func:`add_window`.
+
 
         :var win: current window instance/handle in the loop
         :type win: platform specific window object or handle (Wnck.Window, hwnd, ...)
@@ -1054,6 +1058,7 @@ class BaseCollector(object):
                 self.add_window(win)
         win = None
         self.collection.sort()
+
 
 class BaseMouse(object):
     """Class responsible for listening and controlling system-wide mouse events.
@@ -1125,7 +1130,9 @@ class BaseMouse(object):
 
     def start(self):
         """Initializes and starts listener for move and scroll events."""
-        self.listener = pynput.mouse.Listener(on_move=self.on_move, on_scroll=self.on_scroll)
+        self.listener = pynput.mouse.Listener(
+            on_move=self.on_move, on_scroll=self.on_scroll
+        )
         self.listener.start()
 
     def stop(self):

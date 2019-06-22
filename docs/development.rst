@@ -29,7 +29,7 @@ Darwin
 ^^^^^^
 
 Download official installer from https://www.python.org/downloads/, download and install Python by executing .pkg file 
-and finally run post-install script `install_certificates.command`.
+and finally run post-install script `Install Certificates.command`.
 
 
 Tools

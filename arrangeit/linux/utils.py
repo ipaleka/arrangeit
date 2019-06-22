@@ -1,6 +1,6 @@
 import os
 
-import arrangeit
+from arrangeit import __appname__
 
 
 def user_data_path():
@@ -13,5 +13,5 @@ def user_data_path():
     """
     local = os.path.join("~", ".local", "share")
     if os.path.exists(os.path.expanduser(local)):
-        return os.path.expanduser(os.path.join(local, arrangeit.__appname__))
-    return os.path.expanduser(os.path.join("~", ".{}".format(arrangeit.__appname__)))
+        return os.path.expanduser(os.path.join(local, __appname__))
+    return os.path.expanduser(os.path.join("~", ".{}".format(__appname__)))
