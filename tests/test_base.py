@@ -710,8 +710,7 @@ class TestBaseCollector(object):
         RECT1, RECT2 = (0, 0, 1920, 1280), (1920, 0, 1280, 1080)
         SAMPLE = [RECT1, RECT2]
         mocker.patch(
-            "arrangeit.base.BaseCollector.get_monitors_rects",
-            return_value=SAMPLE,
+            "arrangeit.base.BaseCollector.get_monitors_rects", return_value=SAMPLE
         )
         returned = base.BaseCollector().get_smallest_monitor_size()
         assert returned == (RECT2[2], RECT2[3])
@@ -826,10 +825,10 @@ class TestBaseMouse(object):
     def test_BaseMouse_on_move_puts_in_queue(self, mocker):
         mocked = mocker.patch("arrangeit.base.queue.Queue.put")
         mouse = base.BaseMouse()
-        SAMPLE = (10, 20)
+        SAMPLE = (10.0, 20.0)
         mouse.on_move(*SAMPLE)
         mocked.assert_called_once()
-        mocked.assert_called_with(SAMPLE)
+        mocked.assert_called_with((int(SAMPLE[0]), int(SAMPLE[1])))
 
     ## BaseMouse.on_scroll
     @pytest.mark.parametrize("dy,expected", [(-1, False), (1, True)])
@@ -841,7 +840,6 @@ class TestBaseMouse(object):
         mocked.assert_called_with(expected)
 
     ## BaseMouse.start
-
     def test_BaseMouse_start_instantiates_Listener(self, mocker):
         mocked = mocker.patch("pynput.mouse.Listener")
         mouse = base.BaseMouse()

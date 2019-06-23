@@ -1109,7 +1109,7 @@ class BaseMouse(object):
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
         """
-        self.queue.put((x, y))
+        self.queue.put((int(x), int(y)))
 
     def on_scroll(self, x, y, dx, dy):
         """Puts scroll direction as Boolean value in queue.

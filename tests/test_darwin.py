@@ -29,6 +29,7 @@ class TestDarwinCollector(object):
         mocked.assert_called_with()
 
     def test_DarwinCollector__get_application_icon_calls_io_BytesIO(self, mocker):
+        mocker.patch("arrangeit.darwin.collector.Image.open")
         mocked = mocker.patch("arrangeit.darwin.collector.io.BytesIO")
         APP = mocker.MagicMock()
         SAMPLE = 10
@@ -93,7 +94,18 @@ class TestDarwinCollector(object):
     ):
         mocked_win = mocker.MagicMock()
         Collector()._get_window_geometry(mocked_win)
-        mocked_win.valueForKey_.return_value.valueForKey_.assert_called_with("element")
+        calls = [mocker.call(element)]
+        mocked_win.valueForKey_.return_value.valueForKey_.assert_has_calls(calls, any_order=True)
+
+    @pytest.mark.parametrize("element", ["X", "Y", "Width", "Height"])
+    def test_DarwinCollector__get_window_geometry_returns_tuple_of_ints(
+        self, mocker, element
+    ):
+        mocked_win = mocker.MagicMock()
+        mocked_win.valueForKey_.return_value.valueForKey_.return_value = 50
+        returned = Collector()._get_window_geometry(mocked_win)
+        assert len(returned) == 4
+        assert all(isinstance(returned[i], int) for i in range(4))
 
     ## DarwinCollector._get_window_id
     def test_DarwinCollector__get_window_id_calls_valueForKey_(self, mocker):
@@ -111,32 +123,28 @@ class TestDarwinCollector(object):
 
     ## DarwinCollector._running_apps_ids
     def test_DarwinCollector__running_apps_ids_calls_sharedWorkspace(self, mocker):
-        mocked = mocker.patch("arrangeit.darwin.collector.NSWorkspace.sharedWorkspace")
+        mocked = mocker.patch("arrangeit.darwin.collector.NSWorkspace")
         Collector()._running_apps_ids()
-        mocked.assert_called_once()
-        mocked.assert_called_with()
+        mocked.sharedWorkspace.assert_called_once()
+        mocked.sharedWorkspace.assert_called_with()
 
     def test_DarwinCollector__running_apps_ids_calls_runningApplications(self, mocker):
-        mocked = mocker.patch("arrangeit.darwin.collector.NSWorkspace.sharedWorkspace")
+        mocked = mocker.patch("arrangeit.darwin.collector.NSWorkspace")
         Collector()._running_apps_ids()
-        mocked.return_value.runningApplications.assert_called_once()
-        mocked.return_value.runningApplications.assert_called_with()
+        mocked.sharedWorkspace.return_value.runningApplications.assert_called_once()
+        mocked.sharedWorkspace.return_value.runningApplications.assert_called_with()
 
     def test_DarwinCollector__running_apps_ids_functionality(self, mocker):
         APP1 = mocker.MagicMock()
         APP2 = mocker.MagicMock()
         APP3 = mocker.MagicMock()
-        type(APP1).activationPolicy.return_value = mocker.PropertyMock(
-            return_value=NSApplicationActivationPolicyRegular
-        )
-        type(APP1).processIdentifier.return_value = mocker.PropertyMock(return_value=1)
-        type(APP2).activationPolicy.return_value = mocker.PropertyMock(return_value=500)
-        type(APP3).activationPolicy.return_value = mocker.PropertyMock(
-            return_value=NSApplicationActivationPolicyRegular
-        )
-        type(APP3).processIdentifier.return_value = mocker.PropertyMock(return_value=3)
-        mocked = mocker.patch("arrangeit.darwin.collector.NSWorkspace.sharedWorkspace")
-        mocked.return_value.runningApplications.return_value = [APP1, APP2, APP3]
+        APP1.activationPolicy.return_value = NSApplicationActivationPolicyRegular
+        APP1.processIdentifier.return_value = 1
+        APP2.activationPolicy.return_value = mocker.PropertyMock(return_value=500)
+        APP3.activationPolicy.return_value = NSApplicationActivationPolicyRegular
+        APP3.processIdentifier.return_value = 3
+        mocked = mocker.patch("arrangeit.darwin.collector.NSWorkspace")
+        mocked.sharedWorkspace.return_value.runningApplications.return_value = [APP1, APP2, APP3]
         returned = Collector()._running_apps_ids()
         assert returned == {1: APP1, 3: APP3}
 
@@ -242,7 +250,7 @@ class TestDarwinCollector(object):
     def test_DarwinCollector_get_monitors_rects_returns_list_of_rect_parts(
         self, mocker
     ):
-        RECT1, RECT2 = (0, 0, 1920, 1280), (1920, 0, 1280, 1080)
+        RECT1, RECT2 = (0.0, 0.0, 1920.0, 1280.0), (1920.0, 0.0, 1280.0, 1080.0)
         screen1 = mocker.MagicMock()
         screen1.frame.return_value.origin.x = RECT1[0]
         screen1.frame.return_value.origin.y = RECT1[1]
@@ -257,14 +265,17 @@ class TestDarwinCollector(object):
         mocked.screens.return_value = [screen1, screen2]
 
         returned = Collector().get_monitors_rects()
-        assert returned == [RECT1, RECT2]
+        assert returned == [
+            tuple([int(el) for el in RECT1]),
+            tuple([int(el) for el in RECT2]),
+        ]
 
     ## DarwinCollector.get_windows
     def test_DarwinCollector_get_windows_calls_CGWindowListCopyWindowInfo(self, mocker):
         mocked = mocker.patch("arrangeit.darwin.collector.CGWindowListCopyWindowInfo")
         Collector().get_windows()
-        mocked.screens.assert_called_once()
-        mocked.screens.assert_called_with(
+        mocked.assert_called_once()
+        mocked.assert_called_with(
             kCGWindowListExcludeDesktopElements, kCGNullWindowID
         )
 
@@ -285,8 +296,8 @@ class TestDarwinCollector(object):
     def test_DarwinCollector_is_applicable_calls__running_apps_ids(self, mocker):
         mocked = mocker.patch("arrangeit.darwin.collector.Collector._running_apps_ids")
         Collector().is_applicable(mocker.MagicMock())
-        mocked.screens.assert_called_once()
-        mocked.screens.assert_called_with()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
 
     def test_DarwinCollector_is_applicable_functionality_for_owner(self, mocker):
         VALUE = (10,)

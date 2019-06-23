@@ -27,7 +27,6 @@ from win32gui import (
     IsWindow,
     IsWindowEnabled,
     IsWindowVisible,
-    LoadIcon,
     SendMessageTimeout,
 )
 import win32ui

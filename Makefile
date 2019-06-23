@@ -1,5 +1,5 @@
 init:
-	python3 -m pip install -r requirements.txt
+	python3 -m pip install -r requirements/base.txt
 
 test:
 	python3 -m pytest

@@ -4,6 +4,8 @@ __pycache__
 .pytest_cache
 arrangeit.code-workspace
 htmlcov/
+dist
+arrangeit.egg-info
 .coverage
 tests/coverage*.xml
 docs/_build

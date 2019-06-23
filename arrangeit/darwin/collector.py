@@ -48,10 +48,10 @@ class Collector(BaseCollector):
         """
         bounds = win.valueForKey_("kCGWindowBounds")
         return (
-            bounds.valueForKey_("X"),
-            bounds.valueForKey_("Y"),
-            bounds.valueForKey_("Width"),
-            bounds.valueForKey_("Height"),
+            int(bounds.valueForKey_("X")),
+            int(bounds.valueForKey_("Y")),
+            int(bounds.valueForKey_("Width")),
+            int(bounds.valueForKey_("Height")),
         )
 
     def _get_window_id(self, win):
@@ -135,10 +135,10 @@ class Collector(BaseCollector):
         """
         return [
             (
-                screen.frame().origin.x,
-                screen.frame().origin.y,
-                screen.frame().size.width,
-                screen.frame().size.height,
+                int(screen.frame().origin.x),
+                int(screen.frame().origin.y),
+                int(screen.frame().size.width),
+                int(screen.frame().size.height),
             )
             for screen in NSScreen.screens()
         ]
