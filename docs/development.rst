@@ -25,6 +25,32 @@ To build latexpdf documentation:
   sudo apt-get install texlive texlive-latex-extra latexmk
 
 
+elementaryOS 5.0 (juno)
+"""""""""""""""""""""""
+
+.. code-block:: bash
+
+  apt-get install python3-venv gitk git-gui pkg-config \
+    python3-tk python3-dev libgirepository1.0-dev
+
+
+Debian stable (Stretch)
+"""""""""""""""""""""""
+
+.. code-block:: bash
+
+  apt-get install python3-dev python3-venv gitk git-gui python3-tk \
+    libcairo2-dev libgirepository1.0-dev gir1.2-gtk-3.0 gir1.2-wnck-3.0
+
+
+Manjaro 18.04 Xfce
+""""""""""""""""""
+
+.. code-block:: bash
+
+  sudo pacman -S gobject-introspection tk
+
+
 Darwin
 ^^^^^^
 

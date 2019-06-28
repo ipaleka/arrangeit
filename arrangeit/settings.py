@@ -18,6 +18,7 @@ SETTINGS = {
     "MIN_WIDTH": (int, 100),
     "MIN_HEIGHT": (int, 40),
     "MOUSE_CHECK_INTERVAL": (int, 5),
+    "SAVE_ON_EXIT": (bool, False),
     "SHIFT_CURSOR": (int, 6),
     "SNAP_PIXELS": (int, 2),
     "SNAPPING_IS_ON": (bool, True),

@@ -992,6 +992,7 @@ class TestBaseController(object):
     ## BaseController.shutdown
     def test_BaseController_shutdown_stops_mouse(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("sys.exit")
         mocked = mocker.patch("arrangeit.base.BaseMouse.stop")
         controller = controller_mocked_app(mocker)
         controller.shutdown()
@@ -1000,11 +1001,20 @@ class TestBaseController(object):
 
     def test_BaseController_shutdown_calls_master_destroy(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("sys.exit")
         mocker.patch("arrangeit.base.BaseMouse")
         controller = controller_mocked_app(mocker)
         controller.listener = mocker.MagicMock()
         controller.shutdown()
         assert view.return_value.master.destroy.call_count == 1
+
+    def test_BaseController_shutdown_raises_SystemExit(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseMouse")
+        controller = controller_mocked_app(mocker)
+        with pytest.raises(SystemExit) as exception:
+            controller.shutdown()
+        assert exception.value.code == 0
 
     ## BaseController.set_minimum_size
     def test_BaseController_set_minimum_size_functionality(self, mocker):

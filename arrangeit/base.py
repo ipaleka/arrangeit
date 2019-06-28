@@ -1,6 +1,7 @@
 import os
 import json
 import queue
+import sys
 
 import pynput
 
@@ -420,7 +421,8 @@ class BaseController(object):
         try:
             self.model = next(self.generator)
         except StopIteration:
-            self.save()
+            if Settings.SAVE_ON_EXIT:
+                self.save()
             self.shutdown()
             return True
 
@@ -825,9 +827,10 @@ class BaseController(object):
         self.app.run_task("save_default")
 
     def shutdown(self):
-        """Stops mouse listener and destroys Tkinter root window."""
+        """Stops mouse listener, destroys Tkinter root window and exits."""
         self.mouse.stop()
         self.view.master.destroy()
+        sys.exit(0)
 
     def setup_corner(self):
         """Configures mouse pointer and background to current corner."""

@@ -246,9 +246,23 @@ class TestBaseControllerDomainLogic(object):
         controller.generator.__next__.side_effect = StopIteration()
         mocker.patch("arrangeit.base.BaseController.shutdown")
         mocked = mocker.patch("arrangeit.base.BaseController.save")
+        mocked_setting = mocker.patch("arrangeit.base.Settings")
+        type(mocked_setting).SAVE_ON_EXIT = mocker.PropertyMock(return_value=True)
         controller.next()
         mocked.assert_called_once()
         mocked.assert_called_with()
+
+    def test_BaseController_next_not_calling_save_on_StopIteration(
+        self, mocker
+    ):
+        controller = controller_mocked_for_next(mocker)
+        controller.generator.__next__.side_effect = StopIteration()
+        mocker.patch("arrangeit.base.BaseController.shutdown")
+        mocked = mocker.patch("arrangeit.base.BaseController.save")
+        mocked_setting = mocker.patch("arrangeit.base.Settings")
+        type(mocked_setting).SAVE_ON_EXIT = mocker.PropertyMock(return_value=False)
+        controller.next()
+        mocked.assert_not_called()
 
     def test_BaseController_next_calls_shutdown_on_StopIteration(self, mocker):
         controller = controller_mocked_for_next(mocker)
