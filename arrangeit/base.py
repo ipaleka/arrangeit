@@ -1107,6 +1107,9 @@ class BaseMouse(object):
     def on_move(self, x, y):
         """Puts provided x and y in queue as position tuple.
 
+        NOTE: int(x) and int(y) are needed for Darwin - making a specific
+        platform mouse module just for that is avoided.
+
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
         :param y: absolute vertical axis mouse position in pixels
@@ -1139,5 +1142,8 @@ class BaseMouse(object):
         self.listener.start()
 
     def stop(self):
-        """Stops listener."""
-        self.listener.stop()
+        """Stops listener by raising an exception."""
+        try:
+            raise pynput.mouse.Listener.StopException
+        except:
+            pass
