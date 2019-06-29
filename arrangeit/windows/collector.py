@@ -17,6 +17,7 @@ from win32con import (
     WS_THICKFRAME,
 )
 from win32gui import (
+    EnumChildWindows,
     EnumWindows,
     GetClassLong,
     GetDC,
@@ -38,6 +39,71 @@ from arrangeit.data import WindowModel
 from arrangeit.utils import append_to_collection, open_image
 
 DWMWA_CLOAKED = 14
+
+
+class PACKAGE_SUBVERSION(ctypes.Structure):
+    """"""
+
+    _fields_ = [
+        ("Revision", ctypes.wintypes.ATOM),
+        ("Build", ctypes.wintypes.ATOM),
+        ("Minor", ctypes.wintypes.ATOM),
+        ("Major", ctypes.wintypes.ATOM),
+    ]
+
+
+class PACKAGE_VERSION(ctypes.Union):
+    """"""
+
+    _fields_ = [
+        ("Version", ctypes.c_uint64),
+        # ("Version", ctypes.wintypes.ULARGE_INTEGER),
+        ("DUMMYSTRUCTNAME", PACKAGE_SUBVERSION),
+    ]
+
+# class EnumProcessorArchitecture(IntEnum):
+#     x86 = 0
+#     Arm = 5
+#     x64 = 9
+#     Neutral = 11
+#     Arm64 = 12
+
+# class PACKAGE_ID(StructureWithEnums):
+class PACKAGE_ID(ctypes.Union):
+    """"""
+
+    _fields_ = [
+        # ("reserved", ctypes.wintypes.UINT),
+        # ("processorArchitecture", ctypes.wintypes.UINT),
+        ("reserved", ctypes.c_uint32),
+        ("processorArchitecture", ctypes.c_uint32),
+        ("version", PACKAGE_VERSION),
+        # ("VersionRevision", ctypes.wintypes.ATOM),
+        # ("VersionBuild", ctypes.wintypes.ATOM),
+        # ("VersionMinor", ctypes.wintypes.ATOM),
+        # ("VersionMajor", ctypes.wintypes.ATOM),
+        ("name", ctypes.wintypes.PWCHAR),
+        ("publisher", ctypes.wintypes.PWCHAR),
+        ("resourceId", ctypes.wintypes.PWCHAR),
+        ("publisherId", ctypes.wintypes.PWCHAR),
+    ]
+
+    # _map = {"processorArchitecture": EnumProcessorArchitecture}
+
+
+class PACKAGE_INFO(ctypes.Union):
+    """"""
+
+    _fields_ = [
+        # ("reserved", ctypes.wintypes.UINT),
+        # ("flags", ctypes.wintypes.UINT),
+        ("reserved", ctypes.c_uint32),
+        ("flags", ctypes.c_uint32),
+        ("path", ctypes.wintypes.PWCHAR),
+        ("packageFullName", ctypes.wintypes.PWCHAR),
+        ("packageFamilyName", ctypes.wintypes.PWCHAR),
+        ("packageId", PACKAGE_ID),
+    ]
 
 
 class TITLEBARINFO(ctypes.Structure):
@@ -70,6 +136,14 @@ class WINDOWINFO(ctypes.Structure):
 class Collector(BaseCollector):
     """Collecting windows class with MS Windows specific code."""
 
+    def _get_children(self, hwnd):
+        """
+        :returns: list of integers
+        """
+        children = []
+        EnumChildWindows(hwnd, append_to_collection, children)
+        return children
+
     def _get_application_icon(self, hwnd):
         """Returns application icon of the windows with provided hwnd.
 
@@ -95,8 +169,117 @@ class Collector(BaseCollector):
         if icon_handle == 0:
             icon_handle = GetClassLong(hwnd, GCL_HICON)
             if icon_handle == 0:
-                # hicon = LoadIcon(hwnd, icon_handle)
+
+                from win32api import OpenProcess, CloseHandle
+                from win32con import PROCESS_QUERY_INFORMATION  # , PROCESS_VM_READ
+                from win32process import GetWindowThreadProcessId, GetModuleFileNameEx
+
+                _, pid = GetWindowThreadProcessId(hwnd)
+                children = self._get_children(hwnd)
+                for child in children:
+                    _, child_pid = GetWindowThreadProcessId(child)
+                    if child_pid != pid:
+                        # hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, child_pid)
+                        hprocess = OpenProcess(
+                            PROCESS_QUERY_INFORMATION, False, child_pid
+                        )
+                        exe = GetModuleFileNameEx(hprocess, 0)
+                        print(exe)
+                        break
+                length = ctypes.c_uint()
+                buf = ctypes.windll.kernel32.GetPackageFullName(
+                    hprocess.handle, ctypes.byref(length), None
+                )
+                full_name = ctypes.create_unicode_buffer(buf)
+                ctypes.windll.kernel32.GetPackageFullName(
+                    hprocess.handle, ctypes.byref(length), full_name
+                )
+
+                # PACKAGE_INFORMATION_FULL = 0x00000100
+                # # PACKAGE_FILTER_HEAD = 0x00000010
+                # # PACKAGE_INFORMATION_BASIC = 0x00000000
+
+                # packageIdBufferSize = 100
+                # package_id_ref = ctypes.c_uint32()
+                # length0 = ctypes.c_uint32()
+                # length1 = ctypes.create_unicode_buffer(100)
+
+                # buf = (ctypes.c_byte * 100)()
+                # ctypes.memmove(buf, ctypes.byref(package_id_ref), ctypes.sizeof(package_id_ref))
+
+                
+                # ret = ctypes.windll.kernel32.PackageIdFromFullName(
+                #     ctypes.byref(full_name),
+                #     PACKAGE_FILTER_ALL_LOADED,
+                #     ctypes.byref(length0),
+                #     None
+                # )
+
+                # length0 = ctypes.sizeof(PACKAGE_ID)
+                # PACKAGE_FILTER_ALL_LOADED = 0x00000000
+
+                # buf = ctypes.windll.kernel32.PackageIdFromFullName(
+                #     ctypes.byref(full_name), 
+                #     PACKAGE_FILTER_ALL_LOADED,
+                #     ctypes.byref(length0), None
+                # )
+                # package_id_buffer = ctypes.create_string_buffer(buf)
+                # ctypes.windll.kernel32.PackageIdFromFullName(
+                #     ctypes.byref(full_name), 
+                #     PACKAGE_FILTER_ALL_LOADED,
+                #     ctypes.byref(length0), 
+                #     ctypes.byref(package_id_buffer)
+                # )
+
+
+                info_ref = PACKAGE_INFO()
+                ret = ctypes.windll.kernel32.OpenPackageInfoByFullName(
+                    ctypes.byref(full_name), 0, ctypes.byref(info_ref)
+                )
+                try:
+                    print(info_ref.packageId.name.contents)
+                except ValueError:
+                    print("   ERR:  NULL pointer access")
+
+                # PACKAGE_INFORMATION_FULL = 0x00000100
+                PACKAGE_FILTER_ALL_LOADED = 0x00000000
+                length = ctypes.c_uint()
+                count = ctypes.c_uint()
+                package = ctypes.windll.kernel32.GetPackageInfo(
+                    ctypes.byref(info_ref),
+                    PACKAGE_FILTER_ALL_LOADED,
+                    length,
+                    None,
+                    count,
+                )
+
+                # name, version = full_name.value.split("_")
+                print(ret, full_name.value)
+                CloseHandle(hprocess)
+                # TODO ClosePackageInfo
+
+                # // now this is a bit tricky. Modern apps are hosted inside ApplicationFrameHost process, so we need to find
+                # // child window which does NOT belong to this process. This should be the process we need
+                # var children = GetChildWindows(hwnd);
+                # foreach (var childHwnd in children) {
+                #     uint childPid = 0;
+                #     GetWindowThreadProcessId(childHwnd, out childPid);
+                #     if (childPid != pid) {
+                #         // here we are
+                #         Process childProc = Process.GetProcessById((int) childPid);
+                #         return childProc.MainModule.FileName;
+                #     }
+                # }
+
+                # hprocess = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
+                # exe = GetModuleFileNameEx(app_handle, 0)
+                # print(hwnd, exe)
+
+                # from win32process import GetWindowThreadProcessId
+                # tid, pid = GetWindowThreadProcessId(hwnd)
+
                 print("no icon", GetWindowText(hwnd))
+                # hicon = LoadIcon(hwnd, icon_handle)
                 return open_image("white.png")
 
                 # buf=create_unicode_buffer(256)
