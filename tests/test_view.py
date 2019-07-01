@@ -7,7 +7,9 @@ import pytest
 from arrangeit.view import (
     get_tkinter_root,
     get_screenshot_widget,
+    PropertyIcon,
     Resizable,
+    Restored,
     CornerWidget,
     WorkspacesCollection,
     WindowsList,
@@ -51,87 +53,95 @@ class TestViewFunctions(object):
         assert get_screenshot_widget(mocker.MagicMock()) == mocked.return_value
 
 
-class TestResizable(object):
-    """Unit testing class for :class:`Resizable` class."""
+class TestPropertyIcon(object):
+    """Unit testing class for :class:`PropertyIcon` class."""
 
-    ## Resizable
-    def test_Resizable_issubclass_of_Label(self):
-        assert issubclass(Resizable, tk.Label)
+    ## PropertyIcon
+    def test_PropertyIcon_issubclass_of_Label(self):
+        assert issubclass(PropertyIcon, tk.Label)
 
     @pytest.mark.parametrize(
         "attr,value",
         [
             ("master", None),
-            ("master", None),
             ("images", {True: None, False: None}),
             ("colorized", {True: None, False: None}),
             ("background", "white"),
             ("value", True),
+            ("on_name", None),
+            ("off_name", None),
+            ("callback", None),
         ],
     )
-    def test_Resizable_inits_attr_as_empty(self, attr, value):
-        assert getattr(Resizable, attr) == value
+    def test_PropertyIcon_inits_attr_as_empty(self, attr, value):
+        assert getattr(PropertyIcon, attr) == value
 
-    ## Resizable.__init__
-    def test_Resizable_init_calls_super_with_master_arg(self, mocker):
-        mocker.patch("arrangeit.view.Resizable.setup_widgets")
-        mocker.patch("arrangeit.view.Resizable.setup_bindings")
+    ## PropertyIcon.__init__
+    def test_PropertyIcon_init_calls_super_with_master_arg(self, mocker):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
+        mocker.patch("arrangeit.view.PropertyIcon.setup_bindings")
         master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Label.__init__")
-        Resizable(master=master)
+        PropertyIcon(master=master)
         mocked.assert_called_with(master)
 
-    @pytest.mark.parametrize("attr", ["master", "background"])
-    def test_Resizable_init_sets_attributes(self, mocker, attr):
-        mocker.patch("arrangeit.view.Resizable.setup_bindings")
-        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+    @pytest.mark.parametrize("attr", ["master", "background", "callback"])
+    def test_PropertyIcon_init_sets_attributes(self, mocker, attr):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_bindings")
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocked = mocker.MagicMock()
         kwargs = {attr: mocked}
-        resizable = Resizable(**kwargs)
-        assert getattr(resizable, attr) == mocked
+        property_icon = PropertyIcon(**kwargs)
+        assert getattr(property_icon, attr) == mocked
 
-    def test_Resizable_init_calls_setup_widgets(self, mocker):
+    def test_PropertyIcon_init_calls_setup_widgets(self, mocker):
         master = mocker.MagicMock()
-        mocker.patch("arrangeit.view.Resizable.setup_bindings")
-        mocked = mocker.patch("arrangeit.view.Resizable.setup_widgets")
-        Resizable(master=master)
+        mocker.patch("arrangeit.view.PropertyIcon.setup_bindings")
+        mocked = mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
+        PropertyIcon(master=master)
         mocked.assert_called_once()
 
-    def test_Resizable_init_calls_setup_bindings(self, mocker):
+    def test_PropertyIcon_init_calls_setup_bindings(self, mocker):
+        mocker.patch("arrangeit.view.open_image")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         master = mocker.MagicMock()
-        mocked = mocker.patch("arrangeit.view.Resizable.setup_bindings")
-        Resizable(master=master)
+        mocked = mocker.patch("arrangeit.view.PropertyIcon.setup_bindings")
+        PropertyIcon(master=master)
         mocked.assert_called_once()
 
-    ## Resizable.setup_widgets
+    ## PropertyIcon.setup_widgets
     @pytest.mark.parametrize("value,path", [(True, "resize.png"), (False, "move.png")])
-    def test_Resizable_setup_widgets_sets_image(self, mocker, value, path):
+    def test_PropertyIcon_setup_widgets_sets_image_for_resizable(
+        self, mocker, value, path
+    ):
         mocker.patch("arrangeit.view.tk.Label.config")
         mocked_image = mocker.patch("arrangeit.view.open_image")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
-        resizable = Resizable(mocker.MagicMock())
+        property_icon = Resizable(mocker.MagicMock())
         mocked.reset_mock()
         mocked_image.reset_mock()
-        resizable.setup_widgets()
-        calls = [mocker.call(path, background=resizable.background)]
+        property_icon.setup_widgets()
+        calls = [mocker.call(path, background=property_icon.background)]
         mocked_image.assert_has_calls(calls, any_order=True)
         calls = [mocker.call(mocked_image.return_value)]
         mocked.assert_has_calls(calls, any_order=True)
-        assert resizable.images[True] == mocked.return_value
+        assert property_icon.images[True] == mocked.return_value
 
     @pytest.mark.parametrize("value,path", [(True, "resize.png"), (False, "move.png")])
-    def test_Resizable_setup_widgets_sets_colorized(self, mocker, value, path):
+    def test_PropertyIcon_setup_widgets_sets_colorized_for_resizable(
+        self, mocker, value, path
+    ):
         mocker.patch("arrangeit.view.tk.Label.config")
         mocked_image = mocker.patch("arrangeit.view.open_image")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
-        resizable = Resizable(mocker.MagicMock())
+        property_icon = Resizable(mocker.MagicMock())
         mocked.reset_mock()
         mocked_image.reset_mock()
-        resizable.setup_widgets()
+        property_icon.setup_widgets()
         calls = [
             mocker.call(
                 path,
-                background=resizable.background,
+                background=property_icon.background,
                 colorized=True,
                 foreground=Settings.HIGHLIGHTED_COLOR,
             )
@@ -139,98 +149,212 @@ class TestResizable(object):
         mocked_image.assert_has_calls(calls, any_order=True)
         calls = [mocker.call(mocked_image.return_value)]
         mocked.assert_has_calls(calls, any_order=True)
-        assert resizable.colorized[value] == mocked.return_value
+        assert property_icon.colorized[value] == mocked.return_value
 
-    def test_Resizable_setup_widgets_configs_label(self, mocker):
+    @pytest.mark.parametrize(
+        "value,path", [(True, "restore.png"), (False, "minimize.png")]
+    )
+    def test_PropertyIcon_setup_widgets_sets_image_for_restored(
+        self, mocker, value, path
+    ):
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocked_image = mocker.patch("arrangeit.view.open_image")
+        mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        property_icon = Restored(mocker.MagicMock())
+        mocked.reset_mock()
+        mocked_image.reset_mock()
+        property_icon.setup_widgets()
+        calls = [mocker.call(path, background=property_icon.background)]
+        mocked_image.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call(mocked_image.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert property_icon.images[True] == mocked.return_value
+
+    @pytest.mark.parametrize(
+        "value,path", [(True, "restore.png"), (False, "minimize.png")]
+    )
+    def test_PropertyIcon_setup_widgets_sets_colorized_for_restored(
+        self, mocker, value, path
+    ):
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocked_image = mocker.patch("arrangeit.view.open_image")
+        mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        property_icon = Restored(mocker.MagicMock())
+        mocked.reset_mock()
+        mocked_image.reset_mock()
+        property_icon.setup_widgets()
+        calls = [
+            mocker.call(
+                path,
+                background=property_icon.background,
+                colorized=True,
+                foreground=Settings.HIGHLIGHTED_COLOR,
+            )
+        ]
+        mocked_image.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call(mocked_image.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert property_icon.colorized[value] == mocked.return_value
+
+    def test_PropertyIcon_setup_widgets_configs_label(self, mocker):
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        mocker.patch("arrangeit.view.open_image")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
         SAMPLE = "yellow"
-        resizable = Resizable(mocker.MagicMock(), background=SAMPLE)
+        property_icon = PropertyIcon(mocker.MagicMock(), background=SAMPLE)
         mocked.reset_mock()
-        resizable.setup_widgets()
-        calls = [mocker.call(image=resizable.images[True])]
+        property_icon.setup_widgets()
+        calls = [mocker.call(image=property_icon.images[True])]
         mocked.assert_has_calls(calls, any_order=True)
 
-    ## Resizable.setup_bindings
+    ## PropertyIcon.setup_bindings
     @pytest.mark.parametrize(
         "event,method", [("<Enter>", "on_widget_enter"), ("<Leave>", "on_widget_leave")]
     )
-    def test_Resizable_setup_bindings_callbacks(self, mocker, event, method):
+    def test_PropertyIcon_setup_bindings_callbacks(self, mocker, event, method):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
-        callback = getattr(resizable, method)
-        mocked = mocker.patch("arrangeit.view.Resizable.bind")
-        resizable.setup_bindings()
+        property_icon = PropertyIcon(mocker.MagicMock())
+        callback = getattr(property_icon, method)
+        mocked = mocker.patch("arrangeit.view.PropertyIcon.bind")
+        property_icon.setup_bindings()
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    @pytest.mark.parametrize("event,method", [("<Button-1>", "on_resizable_change")])
-    def test_Resizable_setup_bindings_labels_master_callbacks(
+    @pytest.mark.parametrize(
+        "event,method",
+        [("<Button-1>", "on_resizable_change"), ("<Button-1>", "on_restore_change")],
+    )
+    def test_PropertyIcon_setup_bindings_labels_master_callbacks(
         self, mocker, event, method
     ):
-        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
-        callback = getattr(resizable.master.controller, method)
+        master = mocker.MagicMock()
+        callback = getattr(master.controller, method)
+        property_icon = PropertyIcon(master, callback=callback)
         mocked = mocker.patch("arrangeit.view.tk.Label.bind")
-        resizable.setup_bindings()
+        property_icon.setup_bindings()
         calls = [mocker.call(event, callback)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    ## Resizable.set_value
-    def test_Resizable_set_value_sets_value_attribute(self, mocker):
-        mocker.patch("arrangeit.view.Resizable.setup_widgets")
-        resizable = Resizable(mocker.MagicMock())
+    ## PropertyIcon.set_value
+    def test_PropertyIcon_set_value_sets_value_attribute(self, mocker):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
+        property_icon = PropertyIcon(mocker.MagicMock())
         VALUE = False
-        resizable.set_value(VALUE)
-        assert resizable.value == VALUE
+        property_icon.set_value(VALUE)
+        assert property_icon.value == VALUE
 
-    def test_Resizable_set_value_calls_config(self, mocker):
-        mocker.patch("arrangeit.view.Resizable.setup_widgets")
+    def test_PropertyIcon_set_value_calls_config(self, mocker):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
+        property_icon = PropertyIcon(mocker.MagicMock())
         mocked.reset_mock()
         VALUE = True
-        resizable.set_value(VALUE)
+        property_icon.set_value(VALUE)
         mocked.assert_called_once()
-        mocked.assert_called_with(image=resizable.images[VALUE])
+        mocked.assert_called_with(image=property_icon.images[VALUE])
 
-    ## Resizable.on_widget_enter
-    def test_Resizable_on_widget_enter_configures_image(self, mocker):
+    ## PropertyIcon.on_widget_enter
+    def test_PropertyIcon_on_widget_enter_configures_image(self, mocker):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
+        property_icon = PropertyIcon(mocker.MagicMock())
         VALUE = False
-        resizable.value = VALUE
+        property_icon.value = VALUE
         mocked.reset_mock()
-        resizable.on_widget_enter(mocker.MagicMock())
+        property_icon.on_widget_enter(mocker.MagicMock())
         assert mocked.call_count == 1
-        calls = [mocker.call(image=resizable.colorized[not VALUE])]
+        calls = [mocker.call(image=property_icon.colorized[not VALUE])]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_Resizable_on_widget_enter_returns_break(self, mocker):
+    def test_PropertyIcon_on_widget_enter_returns_break(self, mocker):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
-        returned = resizable.on_widget_enter(mocker.MagicMock())
+        property_icon = PropertyIcon(mocker.MagicMock())
+        returned = property_icon.on_widget_enter(mocker.MagicMock())
         assert returned == "break"
 
-    ## Resizable.on_widget_leave
-    def test_Resizable_on_widget_leave_configures_image(self, mocker):
+    ## PropertyIcon.on_widget_leave
+    def test_PropertyIcon_on_widget_leave_configures_image(self, mocker):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
+        property_icon = PropertyIcon(mocker.MagicMock())
         VALUE = False
-        resizable.value = VALUE
+        property_icon.value = VALUE
         mocked.reset_mock()
-        resizable.on_widget_leave(mocker.MagicMock())
+        property_icon.on_widget_leave(mocker.MagicMock())
         assert mocked.call_count == 1
-        calls = [mocker.call(image=resizable.images[VALUE])]
+        calls = [mocker.call(image=property_icon.images[VALUE])]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_Resizable_on_widget_leave_returns_break(self, mocker):
+    def test_PropertyIcon_on_widget_leave_returns_break(self, mocker):
+        mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
         mocker.patch("arrangeit.view.tk.Label.config")
-        resizable = Resizable(mocker.MagicMock())
-        returned = resizable.on_widget_leave(mocker.MagicMock())
+        property_icon = PropertyIcon(mocker.MagicMock())
+        returned = property_icon.on_widget_leave(mocker.MagicMock())
         assert returned == "break"
+
+
+class TestResizable(object):
+    """Unit testing class for :class:`Resizable` class."""
+
+    ## Resizable
+    def test_Resizable_issubclass_of_PropertyIcon(self):
+        assert issubclass(Resizable, PropertyIcon)
+
+    @pytest.mark.parametrize("attr,value", [("callback", None)])
+    def test_Resizable_inits_attr_as_empty(self, attr, value):
+        assert getattr(Resizable, attr) == value
+
+    @pytest.mark.parametrize(
+        "attr,value", [("on_name", "resize.png"), ("off_name", "move.png")]
+    )
+    def test_Resizable_inits_image_name(self, attr, value):
+        assert getattr(Resizable, attr) == value
+
+    ## Resizable.__init__
+    def test_Resizable_init_calls_super_with_master_and_background_args(self, mocker):
+        mocked = mocker.patch("arrangeit.view.PropertyIcon.__init__")
+        master = mocker.MagicMock()
+        BACKGROUND = "yellow"
+        Resizable(master=master, background=BACKGROUND)
+        mocked.assert_called_with(
+            master,
+            background=BACKGROUND,
+            callback=master.controller.on_resizable_change,
+        )
+
+
+class TestRestored(object):
+    """Unit testing class for :class:`Restored` class."""
+
+    ## Restored
+    def test_Restored_issubclass_of_PropertyIcon(self):
+        assert issubclass(Restored, PropertyIcon)
+
+    @pytest.mark.parametrize("attr,value", [("callback", None)])
+    def test_Restored_inits_attr_as_empty(self, attr, value):
+        assert getattr(Restored, attr) == value
+
+    @pytest.mark.parametrize(
+        "attr,value", [("on_name", "restore.png"), ("off_name", "minimize.png")]
+    )
+    def test_Restored_inits_image_name(self, attr, value):
+        assert getattr(Restored, attr) == value
+
+    ## Restored.__init__
+    def test_Restored_init_calls_super_with_master_and_background_args(self, mocker):
+        mocked = mocker.patch("arrangeit.view.PropertyIcon.__init__")
+        master = mocker.MagicMock()
+        BACKGROUND = "yellow"
+        Restored(master=master, background=BACKGROUND)
+        mocked.assert_called_with(
+            master, background=BACKGROUND, callback=master.controller.on_restore_change
+        )
 
 
 class TestCornerWidget(object):

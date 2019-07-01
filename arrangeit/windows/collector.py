@@ -61,6 +61,7 @@ class PACKAGE_VERSION(ctypes.Union):
         ("DUMMYSTRUCTNAME", PACKAGE_SUBVERSION),
     ]
 
+
 # class EnumProcessorArchitecture(IntEnum):
 #     x86 = 0
 #     Arm = 5
@@ -207,7 +208,6 @@ class Collector(BaseCollector):
                 # buf = (ctypes.c_byte * 100)()
                 # ctypes.memmove(buf, ctypes.byref(package_id_ref), ctypes.sizeof(package_id_ref))
 
-                
                 # ret = ctypes.windll.kernel32.PackageIdFromFullName(
                 #     ctypes.byref(full_name),
                 #     PACKAGE_FILTER_ALL_LOADED,
@@ -219,18 +219,17 @@ class Collector(BaseCollector):
                 # PACKAGE_FILTER_ALL_LOADED = 0x00000000
 
                 # buf = ctypes.windll.kernel32.PackageIdFromFullName(
-                #     ctypes.byref(full_name), 
+                #     ctypes.byref(full_name),
                 #     PACKAGE_FILTER_ALL_LOADED,
                 #     ctypes.byref(length0), None
                 # )
                 # package_id_buffer = ctypes.create_string_buffer(buf)
                 # ctypes.windll.kernel32.PackageIdFromFullName(
-                #     ctypes.byref(full_name), 
+                #     ctypes.byref(full_name),
                 #     PACKAGE_FILTER_ALL_LOADED,
-                #     ctypes.byref(length0), 
+                #     ctypes.byref(length0),
                 #     ctypes.byref(package_id_buffer)
                 # )
-
 
                 info_ref = PACKAGE_INFO()
                 ret = ctypes.windll.kernel32.OpenPackageInfoByFullName(

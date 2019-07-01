@@ -1,5 +1,9 @@
+import os
 import logging
 
+import pytest
+
+import arrangeit
 from arrangeit import __main__, base
 from arrangeit.utils import get_component_class, platform_path
 
@@ -29,7 +33,9 @@ class TestSetup(object):
         mocked = mocker.patch("arrangeit.__main__.logging.basicConfig")
         __main__.main()
         mocked.assert_called_once()
-        mocked.assert_called_with(format='%(asctime)s - %(message)s', level=logging.INFO)
+        mocked.assert_called_with(
+            format="%(asctime)s - %(message)s", level=logging.INFO
+        )
 
     def test_main_calls_get_component_class_App(self, mocker):
         mocked = mocker.patch("arrangeit.__main__.get_component_class")
@@ -46,3 +52,38 @@ class TestSetup(object):
         mocked = mocker.patch("arrangeit.{}.app.App".format(platform_path()))
         __main__.main()
         assert mocked.return_value.run.call_count == 1
+
+
+class TestFiles(object):
+    """Testing class for program resources files."""
+
+    ## resources
+    @pytest.mark.parametrize(
+        "asset",
+        [
+            "resize.png",
+            "move.png",
+            "restore.png",
+            "minimize.png",
+            "blank.png",
+            "white.png",
+        ],
+    )
+    def test_resources_icon_file_exist(self, asset):
+        path = os.path.abspath(
+            os.path.join(os.path.dirname(arrangeit.__file__), "resources", asset)
+        )
+        assert os.path.exists(path)
+
+    @pytest.mark.parametrize(
+        "asset",
+        [
+            "icon32.png",
+            "logo.png",
+        ],
+    )
+    def test_resources_misc_file_exist(self, asset):
+        path = os.path.abspath(
+            os.path.join(os.path.dirname(arrangeit.__file__), "resources", asset)
+        )
+        assert os.path.exists(path)

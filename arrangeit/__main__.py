@@ -8,7 +8,7 @@ def main():
 
     Configures logger at the start.
     """
-    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+    logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
     app_class = get_component_class("App")
     app_class().run()
 

@@ -240,19 +240,25 @@ class ViewApplication(tk.Frame):
         self.workspaces.select_active(model.workspace)
 
 
-class Resizable(tk.Label):
-    """Tkinter label holding resizable/non-resizable image.
+class PropertyIcon(tk.Label):
+    """Tkinter label holding on/off image for a property.
 
-    :var Resizable.master: master widget
-    :type Resizable.master: :class:`.tk.Frame`
+    :var PropertyIcon.master: master widget
+    :type PropertyIcon.master: :class:`.tk.Frame`
     :var images: collection of two possible images
     :type images: dict
     :var colorized: collection of two highlighted images
     :type colorized: dict
-    :var Resizable.background: main background color
-    :type Resizable.background: str
-    :var Resizable.value: current widget value
-    :type Resizable.value: Boolean
+    :var PropertyIcon.background: main background color
+    :type PropertyIcon.background: str
+    :var PropertyIcon.value: current widget value
+    :type PropertyIcon.value: Boolean
+    :var PropertyIcon.on_name: image name when the property is on
+    :type PropertyIcon.on_name: str
+    :var PropertyIcon.off_name: image name when the property is off
+    :type PropertyIcon.off_name: str
+    :var PropertyIcon.callback: method to call on triggered event
+    :type PropertyIcon.callback: method
     """
 
     master = None
@@ -260,8 +266,11 @@ class Resizable(tk.Label):
     colorized = {True: None, False: None}
     background = "white"
     value = True
+    on_name = None
+    off_name = None
+    callback = None
 
-    def __init__(self, master=None, background="white"):
+    def __init__(self, master=None, background="white", callback=None):
         """Sets master attribute from provided argument
 
         after super __init__ is called.
@@ -271,20 +280,21 @@ class Resizable(tk.Label):
         super().__init__(master)
         self.master = master
         self.background = background
+        self.callback = callback
         self.setup_widgets()
         self.setup_bindings()
 
     def setup_widgets(self):
         """Configures widgets images and sets current image."""
         self.images[True] = ImageTk.PhotoImage(
-            open_image("resize.png", background=self.background)
+            open_image(self.on_name, background=self.background)
         )
         self.images[False] = ImageTk.PhotoImage(
-            open_image("move.png", background=self.background)
+            open_image(self.off_name, background=self.background)
         )
         self.colorized[True] = ImageTk.PhotoImage(
             open_image(
-                "resize.png",
+                self.on_name,
                 background=self.background,
                 colorized=True,
                 foreground=Settings.HIGHLIGHTED_COLOR,
@@ -292,7 +302,7 @@ class Resizable(tk.Label):
         )
         self.colorized[False] = ImageTk.PhotoImage(
             open_image(
-                "move.png",
+                self.off_name,
                 background=self.background,
                 colorized=True,
                 foreground=Settings.HIGHLIGHTED_COLOR,
@@ -304,15 +314,15 @@ class Resizable(tk.Label):
         """Binds relevant events to related callback."""
         self.bind("<Enter>", self.on_widget_enter)
         self.bind("<Leave>", self.on_widget_leave)
-        self.bind("<Button-1>", self.master.controller.on_resizable_change)
+        self.bind("<Button-1>", self.callback)
 
-    def set_value(self, resizable):
-        """Sets label image in relation to provided `resizable`.
+    def set_value(self, value):
+        """Sets label image in relation to provided `value`.
 
-        :param resizable: is window resizable or not
-        :type resizable: Boolean
+        :param value: is property on or not
+        :type value: Boolean
         """
-        self.value = resizable
+        self.value = value
         self.config(image=self.images[self.value])
 
     def on_widget_enter(self, event):
@@ -324,6 +334,62 @@ class Resizable(tk.Label):
         """Resets widget image and its foreground color."""
         self.config(image=self.images[self.value])
         return "break"
+
+
+class Resizable(PropertyIcon):
+    """Widget holding resizable/non-resizable image.
+
+    :var Resizable.on_name: image name when the property is on
+    :type Resizable.on_name: str
+    :var Resizable.off_name: image name when the property is off
+    :type Resizable.off_name: str
+    :var Resizable.callback: method to call on triggered event
+    :type Resizable.callback: method
+    """
+
+    on_name = "resize.png"
+    off_name = "move.png"
+    callback = None
+
+    def __init__(self, master=None, background="white"):
+        """Sets master attribute from provided argument
+
+        after super __init__ is called.
+        :param background: label background
+        :type background: str
+        """
+        super().__init__(
+            master,
+            background=background,
+            callback=master.controller.on_resizable_change,
+        )
+
+
+class Restored(PropertyIcon):
+    """Widget holding restored/minimized image.
+
+    :var Restored.on_name: image name when the property is on
+    :type Restored.on_name: str
+    :var Restored.off_name: image name when the property is off
+    :type Restored.off_name: str
+    :var Restored.callback: method to call on triggered event
+    :type Restored.callback: method
+    """
+
+    on_name = "restore.png"
+    off_name = "minimize.png"
+    callback = None
+
+    def __init__(self, master=None, background="white"):
+        """Sets master attribute from provided argument
+
+        after super __init__ is called.
+        :param background: label background
+        :type background: str
+        """
+        super().__init__(
+            master, background=background, callback=master.controller.on_restore_change
+        )
 
 
 class CornerWidget(object):
