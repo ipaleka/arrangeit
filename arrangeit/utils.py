@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 from platform import system
 from gettext import gettext as _
 from importlib import import_module
@@ -45,6 +46,7 @@ def get_class(name, platform):
             )
         )
     except ImportError:
+        logging.exception("Load module platform_error")
         sys.exit(MESSAGES["platform_error"])
     return getattr(module, name)
 

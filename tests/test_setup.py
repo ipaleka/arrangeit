@@ -1,3 +1,5 @@
+import logging
+
 from arrangeit import __main__, base
 from arrangeit.utils import get_component_class, platform_path
 
@@ -22,6 +24,13 @@ class TestSetup(object):
     """Testing class for main app initialization and configuration."""
 
     ## main
+    def test_main_calls_logging_basicConfig(self, mocker):
+        mocker.patch("arrangeit.__main__.get_component_class")
+        mocked = mocker.patch("arrangeit.__main__.logging.basicConfig")
+        __main__.main()
+        mocked.assert_called_once()
+        mocked.assert_called_with(format='%(asctime)s - %(message)s', level=logging.INFO)
+
     def test_main_calls_get_component_class_App(self, mocker):
         mocked = mocker.patch("arrangeit.__main__.get_component_class")
         __main__.main()

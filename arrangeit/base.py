@@ -2,6 +2,7 @@ import os
 import json
 import queue
 import sys
+import logging
 
 import pynput
 
@@ -83,6 +84,7 @@ class BaseApp(object):
             return True
 
         setattr(Settings, name, value)
+        logging.info("Settings {} changed.".format(name))
         return self._save_setting([name], value)
 
     def change_settings_color_group(self, group="", value=None):
@@ -127,7 +129,7 @@ class BaseApp(object):
 
         Creates application's user data directory if it not exists.
         """
-        print(MESSAGES["default_saved"])
+        logging.info(MESSAGES["default_saved"])
         directory = platform_user_data_path()
         if not os.path.exists(directory):
             os.mkdir(directory)
