@@ -101,25 +101,150 @@ class TestLinuxApp(object):
             app.move_and_resize(100)
         mocked.assert_not_called()
 
-    def test_LinuxApp_move_and_resize_calls_get_window_move_resize_mask(self, mocker):
-        mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocked = mocker.patch(
-            "arrangeit.linux.collector.Collector.get_window_move_resize_mask"
-        )
-        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
-        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
-            return_value=False
-        )
-        app = App()
-        with pytest.raises(AttributeError):
-            app.move_and_resize(100)
-        mocked.assert_called()
-
     def test_LinuxApp_move_and_resize_calls_get_window_by_wid(self, mocker):
         mocker.patch("arrangeit.linux.app.Wnck.shutdown")
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
         mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        mocked.assert_called()
+
+    def test_LinuxApp_move_and_resize_calls_is_minimized(self, mocker):
+        mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        win = mocker.MagicMock()
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid", return_value=win)
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        win.is_minimized.assert_called()
+
+    def test_LinuxApp_move_and_resize_calls_unminimize(self, mocker):
+        mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        win = mocker.MagicMock()
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid", return_value=win)
+        win.is_minimized.return_value = True
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=True
+        )
+        app = App()
+        app.move_and_resize(100)
+        win.unminimize.assert_called_once()
+        win.unminimize.assert_called_with(X.CurrentTime)
+
+    def test_LinuxApp_move_and_resize_not_calling_unminimize_not_minimized(self, mocker):
+        mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        win = mocker.MagicMock()
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid", return_value=win)
+        win.is_minimized.return_value = False
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=True
+        )
+        app = App()
+        app.move_and_resize(100)
+        win.unminimize.assert_not_called()
+
+    def test_LinuxApp_move_and_resize_not_calling_unminimize_not_restored(self, mocker):
+        mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        win = mocker.MagicMock()
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid", return_value=win)
+        win.is_minimized.return_value = True
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        win.unminimize.assert_not_called()
+
+
+    def test_LinuxApp_move_and_resize_calls_minimize(self, mocker):
+        mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        win = mocker.MagicMock()
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid", return_value=win)
+        win.is_minimized.return_value = False
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        win.minimize.assert_called_once()
+        win.minimize.assert_called_with()
+
+    def test_LinuxApp_move_and_resize_not_calling_minimize_not_minimized(self, mocker):
+        mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        win = mocker.MagicMock()
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid", return_value=win)
+        win.is_minimized.return_value = True
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=False
+        )
+        app = App()
+        app.move_and_resize(100)
+        win.minimize.assert_not_called()
+
+    def test_LinuxApp_move_and_resize_not_calling_minimize_not_restored(self, mocker):
+        mocker.patch("arrangeit.linux.app.Wnck.shutdown")
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        win = mocker.MagicMock()
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid", return_value=win)
+        win.is_minimized.return_value = False
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_move_resize_mask")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=True
+        )
+        app = App()
+        app.move_and_resize(100)
+        win.minimize.assert_not_called()
+
+    def test_LinuxApp_move_and_resize_calls_get_window_move_resize_mask(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_window_move_resize_mask"
+        )
+        mocker.patch("arrangeit.linux.collector.Collector.get_window_by_wid")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
             return_value=False
@@ -451,6 +576,13 @@ class TestLinuxCollector(object):
     def test_LinuxCollector_is_resizable(self, window_type, value):
         assert Collector().is_resizable(window_type) == value
 
+    ## Collector.is_restored
+    def test_LinuxCollector_is_restored(self, mocker):
+        win = mocker.MagicMock()
+        SAMPLE = False
+        win.is_minimized.return_value = SAMPLE
+        assert not Collector().is_restored(win) == SAMPLE
+
     ## LinuxCollector.get_windows
     @pytest.mark.parametrize("method", ["get_default", "force_update", "get_windows"])
     def test_LinuxCollector_get_windows_calls_Screen_methods(self, mocker, method):
@@ -527,11 +659,31 @@ class TestLinuxCollector(object):
         mocked.assert_called_once()
 
     def test_LinuxCollector_add_window_inits_WindowModel(self, mocker):
-        mocker.patch("arrangeit.linux.collector.Collector.get_image_from_pixbuf")
+        mocked_image = mocker.patch("arrangeit.linux.collector.Collector.get_image_from_pixbuf")
         mocker.patch("arrangeit.data.WindowsCollection.add")
+        mocked_resizable = mocker.patch(
+            "arrangeit.linux.collector.Collector.is_resizable"
+        )
+        mocked_restored = mocker.patch(
+            "arrangeit.linux.collector.Collector.is_restored"
+        )
+        mocked_ws = mocker.patch(
+            "arrangeit.linux.collector.Collector.get_workspace_number_for_window"
+        )
         mocked = mocker.patch("arrangeit.linux.collector.WindowModel")
-        Collector().add_window(mocker.MagicMock())
+        win = mocker.MagicMock()
+        Collector().add_window(win)
         mocked.assert_called_once()
+        mocked.assert_called_with(
+            wid=win.get_xid.return_value,
+            rect=tuple(win.get_geometry.return_value),
+            resizable=mocked_resizable.return_value,
+            restored=mocked_restored.return_value,
+            title=win.get_name.return_value,
+            name=win.get_class_group_name.return_value,
+            icon=mocked_image.return_value,
+            workspace=mocked_ws.return_value,
+        )
 
     @pytest.mark.parametrize(
         "method",
@@ -561,6 +713,12 @@ class TestLinuxCollector(object):
     def test_LinuxCollector_add_window_calls_is_resizable(self, mocker):
         mocker.patch("arrangeit.linux.collector.Collector.get_image_from_pixbuf")
         mocked = mocker.patch("arrangeit.linux.collector.Collector.is_resizable")
+        Collector().add_window(mocker.MagicMock())
+        mocked.assert_called_once()
+
+    def test_LinuxCollector_add_window_calls_is_restored(self, mocker):
+        mocker.patch("arrangeit.linux.collector.Collector.get_image_from_pixbuf")
+        mocked = mocker.patch("arrangeit.linux.collector.Collector.is_restored")
         Collector().add_window(mocker.MagicMock())
         mocked.assert_called_once()
 

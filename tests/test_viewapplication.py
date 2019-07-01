@@ -7,6 +7,7 @@ from arrangeit.data import WindowModel
 from arrangeit.view import (
     ViewApplication,
     Resizable,
+    Restored,
     WorkspacesCollection,
     WindowsList,
     Toolbar,
@@ -278,10 +279,10 @@ class TestViewApplication(object):
         assert isinstance(view.resizable, Resizable)
 
     def test_ViewApplication_setup_resizable_sets_viewapp_as_master(self, mocker):
-        mocked = mocker.patch("arrangeit.view.Toolbar")
+        mocked = mocker.patch("arrangeit.view.Resizable")
         view = ViewApplication(None, mocker.MagicMock())
         view.setup_resizable()
-        mocked.assert_called_with(view)
+        mocked.assert_called_with(view, background=Settings.TITLE_LABEL_BG)
 
     def test_ViewApplication_setup_resizable_calls_label_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
@@ -290,8 +291,34 @@ class TestViewApplication(object):
         view.setup_resizable()
         assert mocked.call_count == 1
         mocked.assert_called_with(
-            x=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADX),
-            y=-(Settings.RESIZABLE_SIZE+Settings.RESIZABLE_PADY),
+            x=-(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADX),
+            y=-(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADY),
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
+        )
+
+
+    ## ViewApplication.setup_restored
+    def test_ViewApplication_setup_restored_initializes_Restored(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_restored()
+        assert isinstance(view.restored, Restored)
+
+    def test_ViewApplication_setup_restored_sets_viewapp_as_master(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Restored")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_restored()
+        mocked.assert_called_with(view, background=Settings.TITLE_LABEL_BG)
+
+    def test_ViewApplication_setup_restored_calls_label_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label.place")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_restored()
+        assert mocked.call_count == 1
+        mocked.assert_called_with(
+            x=-2*(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADX),
+            y=-(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADY),
             relx=Settings.TITLE_LABEL_RELWIDTH,
             rely=Settings.TITLE_LABEL_RELHEIGHT,
         )
@@ -376,6 +403,15 @@ class TestViewApplication(object):
         mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
         mocker.patch("arrangeit.view.ViewApplication.setup_title")
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_resizable")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_restored(self, mocker):
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        mocker.patch("arrangeit.view.ViewApplication.setup_title")
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_restored")
         view = ViewApplication(None, mocker.MagicMock())
         mocked.reset_mock()
         view.setup_widgets()
@@ -531,6 +567,7 @@ class TestViewApplication(object):
     )
     def test_ViewApplication_update_widgets_sets_attr(self, mocker, attr, val, typ):
         mocker.patch("arrangeit.view.Resizable")
+        mocker.patch("arrangeit.view.Restored")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(**{attr: val}, icon=Settings.BLANK_ICON)
         view.update_widgets(model)
@@ -544,13 +581,27 @@ class TestViewApplication(object):
         model = WindowModel(resizable=VALUE)
         mocker.patch("arrangeit.view.tk.Label.config")
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        mocker.patch("arrangeit.view.Restored.set_value")
         mocked = mocker.patch("arrangeit.view.Resizable.set_value")
+        view.update_widgets(model)
+        mocked.call_count == 1
+        mocked.assert_called_with(VALUE)
+
+    def test_ViewApplication_update_widgets_calls_restored_set_value(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        VALUE = False
+        model = WindowModel(restored=VALUE)
+        mocker.patch("arrangeit.view.tk.Label.config")
+        mocker.patch("arrangeit.view.ImageTk.PhotoImage")
+        mocker.patch("arrangeit.view.Resizable.set_value")
+        mocked = mocker.patch("arrangeit.view.Restored.set_value")
         view.update_widgets(model)
         mocked.call_count == 1
         mocked.assert_called_with(VALUE)
 
     def test_ViewApplication_update_widgets_calls_ImageTk_PhotoImage(self, mocker):
         mocker.patch("arrangeit.view.Resizable")
+        mocker.patch("arrangeit.view.Restored")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.config")
@@ -561,6 +612,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_sets_icon_image(self, mocker):
         mocker.patch("arrangeit.view.Resizable")
+        mocker.patch("arrangeit.view.Restored")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
         mocker.patch("arrangeit.view.tk.Label.config")
@@ -570,6 +622,7 @@ class TestViewApplication(object):
 
     def test_ViewApplication_update_widgets_sets_icon(self, mocker):
         mocker.patch("arrangeit.view.Resizable")
+        mocker.patch("arrangeit.view.Restored")
         view = ViewApplication(None, mocker.MagicMock())
         model = WindowModel(icon=Settings.BLANK_ICON)
         mocked = mocker.patch("arrangeit.view.tk.Label")
@@ -580,6 +633,7 @@ class TestViewApplication(object):
         self, mocker
     ):
         mocker.patch("arrangeit.view.Resizable")
+        mocker.patch("arrangeit.view.Restored")
         mocker.patch("arrangeit.view.tk.Label.config")
         mocker.patch("arrangeit.view.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.view.WorkspacesCollection")

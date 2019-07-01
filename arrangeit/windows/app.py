@@ -1,5 +1,5 @@
 from PIL import ImageTk
-from win32con import SW_RESTORE
+from win32con import SW_MINIMIZE, SW_RESTORE
 from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 
 from arrangeit.settings import Settings
@@ -40,6 +40,8 @@ class App(BaseApp):
             if IsIconic(hwnd):
                 ShowWindow(hwnd, SW_RESTORE)
             MoveWindow(hwnd, *model.changed, True)
+            if not model.restored:
+                ShowWindow(hwnd, SW_MINIMIZE)
             return False
         return True
 

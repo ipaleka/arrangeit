@@ -183,6 +183,7 @@ class TestSettings(object):
                     "wid": int,
                     "rect": (int, int, int, int),
                     "resizable": bool,
+                    "restored": bool,
                     "title": str,
                     "name": str,
                     "icon": Image.Image,

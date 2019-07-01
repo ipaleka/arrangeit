@@ -192,6 +192,17 @@ class Collector(BaseCollector):
         """
         return True
 
+    def is_restored(self, win):
+        """
+
+        TODO implement
+
+        :param win: window object
+        :type win: dict
+        :returns: Boolean
+        """
+        return True
+
     def is_valid_state(self, win):
         """Checks if provided win is window with valid state for collecting.
 

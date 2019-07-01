@@ -25,6 +25,7 @@ from win32gui import (
     GetWindowLong,
     GetWindowPlacement,
     GetWindowText,
+    IsIconic,
     IsWindow,
     IsWindowEnabled,
     IsWindowVisible,
@@ -418,6 +419,7 @@ class Collector(BaseCollector):
                 wid=hwnd,
                 rect=self._get_window_geometry(hwnd),
                 resizable=self.is_resizable(hwnd),
+                restored=self.is_restored(hwnd),
                 title=self._get_window_title(hwnd),
                 name=self._get_class_name(hwnd),
                 icon=self._get_application_icon(hwnd),
@@ -510,6 +512,15 @@ class Collector(BaseCollector):
         :returns: Boolean
         """
         return GetWindowLong(hwnd, GWL_STYLE) & WS_THICKFRAME != 0
+
+    def is_restored(self, hwnd):
+        """Checks if provided hwnd represents window that is not minimized.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: Boolean
+        """
+        return not IsIconic(hwnd)
 
     def is_valid_state(self, hwnd):
         """Checks if provided hwnd represents window with valid state for collecting.

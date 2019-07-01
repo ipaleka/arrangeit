@@ -110,59 +110,26 @@ class TestPropertyIcon(object):
         mocked.assert_called_once()
 
     ## PropertyIcon.setup_widgets
-    @pytest.mark.parametrize("value,path", [(True, "resize.png"), (False, "move.png")])
-    def test_PropertyIcon_setup_widgets_sets_image_for_resizable(
-        self, mocker, value, path
-    ):
-        mocker.patch("arrangeit.view.tk.Label.config")
-        mocked_image = mocker.patch("arrangeit.view.open_image")
-        mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
-        property_icon = Resizable(mocker.MagicMock())
-        mocked.reset_mock()
-        mocked_image.reset_mock()
-        property_icon.setup_widgets()
-        calls = [mocker.call(path, background=property_icon.background)]
-        mocked_image.assert_has_calls(calls, any_order=True)
-        calls = [mocker.call(mocked_image.return_value)]
-        mocked.assert_has_calls(calls, any_order=True)
-        assert property_icon.images[True] == mocked.return_value
-
-    @pytest.mark.parametrize("value,path", [(True, "resize.png"), (False, "move.png")])
-    def test_PropertyIcon_setup_widgets_sets_colorized_for_resizable(
-        self, mocker, value, path
-    ):
-        mocker.patch("arrangeit.view.tk.Label.config")
-        mocked_image = mocker.patch("arrangeit.view.open_image")
-        mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
-        property_icon = Resizable(mocker.MagicMock())
-        mocked.reset_mock()
-        mocked_image.reset_mock()
-        property_icon.setup_widgets()
-        calls = [
-            mocker.call(
-                path,
-                background=property_icon.background,
-                colorized=True,
-                foreground=Settings.HIGHLIGHTED_COLOR,
-            )
-        ]
-        mocked_image.assert_has_calls(calls, any_order=True)
-        calls = [mocker.call(mocked_image.return_value)]
-        mocked.assert_has_calls(calls, any_order=True)
-        assert property_icon.colorized[value] == mocked.return_value
-
     @pytest.mark.parametrize(
-        "value,path", [(True, "restore.png"), (False, "minimize.png")]
+        "value,path",
+        [
+            (True, "resize.png"),
+            (False, "move.png"),
+            (True, "restore.png"),
+            (False, "minimize.png"),
+        ],
     )
-    def test_PropertyIcon_setup_widgets_sets_image_for_restored(
-        self, mocker, value, path
-    ):
+    def test_PropertyIcon_setup_widgets_sets_icon_image(self, mocker, value, path):
         mocker.patch("arrangeit.view.tk.Label.config")
         mocked_image = mocker.patch("arrangeit.view.open_image")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
-        property_icon = Restored(mocker.MagicMock())
+        property_icon = PropertyIcon(mocker.MagicMock())
         mocked.reset_mock()
         mocked_image.reset_mock()
+        if value:
+            property_icon.on_name = path
+        else:
+            property_icon.off_name = path
         property_icon.setup_widgets()
         calls = [mocker.call(path, background=property_icon.background)]
         mocked_image.assert_has_calls(calls, any_order=True)
@@ -171,17 +138,27 @@ class TestPropertyIcon(object):
         assert property_icon.images[True] == mocked.return_value
 
     @pytest.mark.parametrize(
-        "value,path", [(True, "restore.png"), (False, "minimize.png")]
+        "value,path",
+        [
+            (True, "resize.png"),
+            (False, "move.png"),
+            (True, "restore.png"),
+            (False, "minimize.png"),
+        ],
     )
-    def test_PropertyIcon_setup_widgets_sets_colorized_for_restored(
+    def test_PropertyIcon_setup_widgets_sets_colorized_icon_image(
         self, mocker, value, path
     ):
         mocker.patch("arrangeit.view.tk.Label.config")
         mocked_image = mocker.patch("arrangeit.view.open_image")
         mocked = mocker.patch("arrangeit.view.ImageTk.PhotoImage")
-        property_icon = Restored(mocker.MagicMock())
+        property_icon = PropertyIcon(mocker.MagicMock())
         mocked.reset_mock()
         mocked_image.reset_mock()
+        if value:
+            property_icon.on_name = path
+        else:
+            property_icon.off_name = path
         property_icon.setup_widgets()
         calls = [
             mocker.call(
@@ -223,7 +200,7 @@ class TestPropertyIcon(object):
 
     @pytest.mark.parametrize(
         "event,method",
-        [("<Button-1>", "on_resizable_change"), ("<Button-1>", "on_restore_change")],
+        [("<Button-1>", "on_resizable_change"), ("<Button-1>", "on_restored_change")],
     )
     def test_PropertyIcon_setup_bindings_labels_master_callbacks(
         self, mocker, event, method
@@ -306,8 +283,15 @@ class TestResizable(object):
     def test_Resizable_issubclass_of_PropertyIcon(self):
         assert issubclass(Resizable, PropertyIcon)
 
-    @pytest.mark.parametrize("attr,value", [("callback", None)])
+    @pytest.mark.parametrize(
+        "attr,value",
+        [
+            ("images", {True: None, False: None}),
+            ("colorized", {True: None, False: None}),
+        ],
+    )
     def test_Resizable_inits_attr_as_empty(self, attr, value):
+        # reload(arrangeit.view)
         assert getattr(Resizable, attr) == value
 
     @pytest.mark.parametrize(
@@ -336,8 +320,15 @@ class TestRestored(object):
     def test_Restored_issubclass_of_PropertyIcon(self):
         assert issubclass(Restored, PropertyIcon)
 
-    @pytest.mark.parametrize("attr,value", [("callback", None)])
+    @pytest.mark.parametrize(
+        "attr,value",
+        [
+            ("images", {True: None, False: None}),
+            ("colorized", {True: None, False: None}),
+        ],
+    )
     def test_Restored_inits_attr_as_empty(self, attr, value):
+        # reload(arrangeit.view)
         assert getattr(Restored, attr) == value
 
     @pytest.mark.parametrize(
@@ -353,7 +344,7 @@ class TestRestored(object):
         BACKGROUND = "yellow"
         Restored(master=master, background=BACKGROUND)
         mocked.assert_called_with(
-            master, background=BACKGROUND, callback=master.controller.on_restore_change
+            master, background=BACKGROUND, callback=master.controller.on_restored_change
         )
 
 

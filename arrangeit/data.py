@@ -13,6 +13,8 @@ class WindowModel(object):
     :type rect: (int, int, int, int)
     :var WindowModel.resizable: is window resizable or not
     :type WindowModel.resizable: Boolean
+    :var WindowModel.restored: is window restored or minimized
+    :type WindowModel.restored: Boolean
     :var WindowModel.title: window title/caption
     :type WindowModel.title: string
     :var WindowModel.name: window's application name
@@ -30,6 +32,7 @@ class WindowModel(object):
     wid = None
     rect = ()
     resizable = None
+    restored = None
     title = None
     name = None
     icon = None
@@ -286,6 +289,7 @@ class WindowsCollection(object):
             (
                 model.changed or model.rect,
                 model.resizable,
+                model.restored,
                 model.title,
                 model.name,
                 model.changed_ws or model.ws,

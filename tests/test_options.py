@@ -594,8 +594,9 @@ class TestOptionsDialog(object):
 
     def test_OptionsDialog_change_setting_not_called_upon_startup(self, mocker):
         mocked = mocker.patch("arrangeit.options.OptionsDialog.change_setting")
-        OptionsDialog(tk.Frame(tk.Frame()))
+        options = OptionsDialog(tk.Frame(tk.Frame()))
         mocked.assert_not_called()
+        options.destroy()
 
     ## OptionsDialog.set_timer
     def test_OptionsDialog_set_timer_calls_after_cancel_if_timer_exists(self, mocker):

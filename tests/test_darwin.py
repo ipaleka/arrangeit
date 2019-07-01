@@ -154,6 +154,7 @@ class TestDarwinCollector(object):
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_id")
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.darwin.collector.Collector.is_resizable")
+        mocker.patch("arrangeit.darwin.collector.Collector.is_restored")
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_title")
         mocker.patch("arrangeit.darwin.collector.Collector._get_class_name")
         mocker.patch("arrangeit.darwin.collector.Collector._get_application_icon")
@@ -171,6 +172,9 @@ class TestDarwinCollector(object):
         )
         mocked_resizable = mocker.patch(
             "arrangeit.darwin.collector.Collector.is_resizable"
+        )
+        mocked_restored = mocker.patch(
+            "arrangeit.darwin.collector.Collector.is_restored"
         )
         mocked_title = mocker.patch(
             "arrangeit.darwin.collector.Collector._get_window_title"
@@ -191,6 +195,7 @@ class TestDarwinCollector(object):
             wid=mocked_id.return_value,
             rect=mocked_rect.return_value,
             resizable=mocked_resizable.return_value,
+            restored=mocked_restored.return_value,
             title=mocked_title.return_value,
             name=mocked_name.return_value,
             icon=mocked_icon.return_value,
@@ -203,6 +208,7 @@ class TestDarwinCollector(object):
             "_get_window_id",
             "_get_window_geometry",
             "is_resizable",
+            "is_restored",
             "_get_window_title",
             "_get_class_name",
             "_get_application_icon",
@@ -213,6 +219,7 @@ class TestDarwinCollector(object):
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_id")
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.darwin.collector.Collector.is_resizable")
+        mocker.patch("arrangeit.darwin.collector.Collector.is_restored")
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_title")
         mocker.patch("arrangeit.darwin.collector.Collector._get_class_name")
         mocker.patch("arrangeit.darwin.collector.Collector._get_application_icon")
@@ -349,6 +356,11 @@ class TestDarwinCollector(object):
     ## DarwinCollector.is_resizable
     @pytest.mark.skip("Research how to deal with resizable windows in Mac OS X")
     def test_DarwinCollector_is_resizable(self, mocker):
+        pass
+
+    ## DarwinCollector.is_restored
+    @pytest.mark.skip("Research how to deal with minimized windows in Mac OS X")
+    def test_DarwinCollector_is_restored(self, mocker):
         pass
 
     ## DarwinCollector.is_valid_state

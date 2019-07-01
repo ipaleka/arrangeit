@@ -869,6 +869,11 @@ class BaseController(object):
         self.model.resizable = not self.model.resizable
         self.view.resizable.set_value(self.model.resizable)
 
+    def switch_restored(self):
+        """Changes current model restored Boolean value and updates view."""
+        self.model.restored = not self.model.restored
+        self.view.restored.set_value(self.model.restored)
+
     def workspace_activated_by_digit(self, number):
         """Activates workspace with humanized number equal to provided number.
 
@@ -899,6 +904,9 @@ class BaseController(object):
 
         elif event.keysym in ("R", "r"):
             self.switch_resizable()
+
+        elif event.keysym in ("M", "m"):
+            self.switch_restored()
 
         elif event.keysym in ("Alt_L", "Alt_R", "Shift_L", "Shift_R"):
             self.release_mouse()
@@ -961,6 +969,12 @@ class BaseController(object):
         self.recapture_mouse()
         return "break"
 
+    def on_restored_change(self, event):
+        """Switches model restored attribute."""
+        self.switch_restored()
+        self.recapture_mouse()
+        return "break"
+
     ## MAIN LOOPS
     def check_mouse(self):
         """Runs method that corresponds to retrieved item from mouse queue.
@@ -1009,6 +1023,10 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def is_resizable(self, window_type):
+        """Method must be overridden."""
+        raise NotImplementedError
+
+    def is_restored(self, window_type):
         """Method must be overridden."""
         raise NotImplementedError
 
@@ -1147,5 +1165,5 @@ class BaseMouse(object):
         """Stops listener by raising an exception."""
         try:
             raise pynput.mouse.Listener.StopException
-        except:
-            pass
+        except pynput.mouse.Listener.StopException:
+            return

@@ -657,6 +657,11 @@ class TestBaseCollector(object):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().is_resizable(0)
 
+    ## BaseCollector.is_restored
+    def test_BaseCollector_is_restored_raises_NotImplementedError(self):
+        with pytest.raises(NotImplementedError):
+            base.BaseCollector().is_restored(0)
+
     ## BaseCollector.get_windows
     def test_BaseCollector_get_windows_raises_NotImplementedError(self):
         with pytest.raises(NotImplementedError):
@@ -864,4 +869,5 @@ class TestBaseMouse(object):
     @pytest.mark.skip("Find a way to test if raise keyword is invoked")
     def test_BaseMouse_stop_stops_listener(self, mocker):
         mouse = base.BaseMouse()
+        mocker.patch("builtins.raise")
         mouse.stop()

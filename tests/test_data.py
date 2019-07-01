@@ -19,7 +19,7 @@ from .fixtures import (
     WINDOWSCOLLECTION_EXPORT,
 )
 
-WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "title", "name", "icon", "workspace"]
+WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "restored", "title", "name", "icon", "workspace"]
 
 
 class TestWindowModel(object):
@@ -439,12 +439,13 @@ class TestWindowsCollection(object):
             collection.add(model)
         data = collection.export()
         assert len(data) == len(elements)
-        assert all(len(elem) == 5 for elem in data)
+        assert all(len(elem) == 6 for elem in data)
         assert all(len(elem[0]) == 4 for elem in data)
         assert all(isinstance(elem[1], bool) for elem in data)
-        assert all(isinstance(elem[2], str) for elem in data)
+        assert all(isinstance(elem[2], bool) for elem in data)
         assert all(isinstance(elem[3], str) for elem in data)
-        assert all(isinstance(elem[4], int) for elem in data)
+        assert all(isinstance(elem[4], str) for elem in data)
+        assert all(isinstance(elem[5], int) for elem in data)
         assert all(
             elem[0] == elements[i][1] or elements[i][0]["rect"]
             for i, elem in enumerate(data)

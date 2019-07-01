@@ -67,6 +67,15 @@ class Collector(BaseCollector):
         """
         return window_type in (Wnck.WindowType.NORMAL,)
 
+    def is_restored(self, win):
+        """Checks if provided `win` is not minimized.
+
+        :param win: window instance to check
+        :type win: :class:`Wnck.Window` object
+        :returns: Boolean
+        """
+        return not win.is_minimized()
+
     def get_windows(self):
         """Returns windows list from the Wnck.Screen object.
 
@@ -115,6 +124,7 @@ class Collector(BaseCollector):
                 wid=win.get_xid(),
                 rect=tuple(win.get_geometry()),
                 resizable=self.is_resizable(win.get_window_type()),
+                restored=self.is_restored(win),
                 title=win.get_name(),
                 name=win.get_class_group_name(),
                 icon=self.get_image_from_pixbuf(win.get_icon()),

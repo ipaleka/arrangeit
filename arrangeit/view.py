@@ -138,8 +138,18 @@ class ViewApplication(tk.Frame):
         """Sets and places resizable label widget."""
         self.resizable = Resizable(self, background=Settings.TITLE_LABEL_BG)
         self.resizable.place(
-            x=-(Settings.RESIZABLE_SIZE + Settings.RESIZABLE_PADX),
-            y=-(Settings.RESIZABLE_SIZE + Settings.RESIZABLE_PADY),
+            x=-(Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADX),
+            y=-(Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADY),
+            relx=Settings.TITLE_LABEL_RELWIDTH,
+            rely=Settings.TITLE_LABEL_RELHEIGHT,
+        )
+
+    def setup_restored(self):
+        """Sets and places restored label widget."""
+        self.restored = Restored(self, background=Settings.TITLE_LABEL_BG)
+        self.restored.place(
+            x=-2 * (Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADX),
+            y=-(Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADY),
             relx=Settings.TITLE_LABEL_RELWIDTH,
             rely=Settings.TITLE_LABEL_RELHEIGHT,
         )
@@ -183,6 +193,7 @@ class ViewApplication(tk.Frame):
         """Calls all the frame's widgets creation and placement methods."""
         self.setup_title()
         self.setup_resizable()
+        self.setup_restored()
         self.setup_name()
         self.setup_icon()
         self.setup_workspaces()
@@ -234,6 +245,7 @@ class ViewApplication(tk.Frame):
         """
         self.title.set(model.title)
         self.resizable.set_value(model.resizable)
+        self.restored.set_value(model.restored)
         self.icon_image = ImageTk.PhotoImage(model.icon)
         self.icon.config(image=self.icon_image)
         self.name.set(model.name)
@@ -245,10 +257,10 @@ class PropertyIcon(tk.Label):
 
     :var PropertyIcon.master: master widget
     :type PropertyIcon.master: :class:`.tk.Frame`
-    :var images: collection of two possible images
-    :type images: dict
-    :var colorized: collection of two highlighted images
-    :type colorized: dict
+    :var PropertyIcon.images: collection of two possible images
+    :type PropertyIcon.images: dict
+    :var PropertyIcon.colorized: collection of two highlighted images
+    :type PropertyIcon.colorized: dict
     :var PropertyIcon.background: main background color
     :type PropertyIcon.background: str
     :var PropertyIcon.value: current widget value
@@ -339,17 +351,20 @@ class PropertyIcon(tk.Label):
 class Resizable(PropertyIcon):
     """Widget holding resizable/non-resizable image.
 
+    :var Resizable.images: collection of two possible images
+    :type Resizable.images: dict
+    :var Resizable.colorized: collection of two highlighted images
+    :type Resizable.colorized: dict
     :var Resizable.on_name: image name when the property is on
     :type Resizable.on_name: str
     :var Resizable.off_name: image name when the property is off
     :type Resizable.off_name: str
-    :var Resizable.callback: method to call on triggered event
-    :type Resizable.callback: method
     """
 
+    images = {True: None, False: None}
+    colorized = {True: None, False: None}
     on_name = "resize.png"
     off_name = "move.png"
-    callback = None
 
     def __init__(self, master=None, background="white"):
         """Sets master attribute from provided argument
@@ -368,17 +383,20 @@ class Resizable(PropertyIcon):
 class Restored(PropertyIcon):
     """Widget holding restored/minimized image.
 
+    :var Restored.images: collection of two possible images
+    :type Restored.images: dict
+    :var Restored.colorized: collection of two highlighted images
+    :type Restored.colorized: dict
     :var Restored.on_name: image name when the property is on
     :type Restored.on_name: str
     :var Restored.off_name: image name when the property is off
     :type Restored.off_name: str
-    :var Restored.callback: method to call on triggered event
-    :type Restored.callback: method
     """
 
+    images = {True: None, False: None}
+    colorized = {True: None, False: None}
     on_name = "restore.png"
     off_name = "minimize.png"
-    callback = None
 
     def __init__(self, master=None, background="white"):
         """Sets master attribute from provided argument
@@ -388,7 +406,7 @@ class Restored(PropertyIcon):
         :type background: str
         """
         super().__init__(
-            master, background=background, callback=master.controller.on_restore_change
+            master, background=background, callback=master.controller.on_restored_change
         )
 
 

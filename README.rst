@@ -1,4 +1,2 @@
-.. figure:: https://i.imgur.com/FPgIOGD.jpg
-   :alt: 20+ years old ArrangeIt v0.91 logo
-
-   20+ years old ArrangeIt v0.91 logo
+.. figure:: https://github.com/ipaleka/arrangeit/raw/master/arrangeit/resources/logo.png
+   :alt: arrangeit logo

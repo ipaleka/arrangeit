@@ -62,9 +62,16 @@ class App(BaseApp):
         model = self.collector.collection.get_model_by_wid(wid)
         if model.is_ws_changed:
             self._move_window_to_workspace(wid, model.changed_ws)
+
+        win = self.collector.get_window_by_wid(wid)
+
+        if model.restored and win.is_minimized():
+            win.unminimize(X.CurrentTime)
+        elif not model.restored and not win.is_minimized():
+            win.minimize()
+
         mask = self.collector.get_window_move_resize_mask(model)
         if mask:
-            win = self.collector.get_window_by_wid(wid)
             if win.is_maximized():
                 win.unmaximize()
             win.set_geometry(Wnck.WindowGravity.STATIC, mask, *model.changed)

@@ -3,6 +3,7 @@ from win32con import (
     WS_EX_TOOLWINDOW,
     WS_EX_NOACTIVATE,
     WS_THICKFRAME,
+    SW_MINIMIZE,
     SW_RESTORE,
 )
 
@@ -155,6 +156,40 @@ class TestWindowsApp(object):
         mocked = mocker.patch("arrangeit.windows.app.MoveWindow")
         app = App()
         app.move_and_resize(100)
+        mocked.assert_not_called()
+
+    def test_WindowsApp_move_and_resize_calls_ShowWindow_minimized(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.MoveWindow")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        mocker.patch("arrangeit.windows.app.IsIconic", return_value=False)
+        type(mocked_model.return_value).changed = mocker.PropertyMock(
+            return_value=(79, 89, 509, 509)
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=False
+        )
+        mocked = mocker.patch("arrangeit.windows.app.ShowWindow")
+        app = App()
+        SAMPLE = 7405
+        app.move_and_resize(SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE, SW_MINIMIZE)
+
+    def test_WindowsApp_move_and_resize_not_calling_ShowWindow_minimized(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.MoveWindow")
+        mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
+        mocker.patch("arrangeit.windows.app.IsIconic", return_value=False)
+        type(mocked_model.return_value).changed = mocker.PropertyMock(
+            return_value=(89, 99, 409, 409)
+        )
+        type(mocked_model.return_value).restored = mocker.PropertyMock(
+            return_value=True
+        )
+        mocked = mocker.patch("arrangeit.windows.app.ShowWindow")
+        app = App()
+        app.move_and_resize(7518)
         mocked.assert_not_called()
 
     def test_WindowsApp_move_and_resize_returns_False(self, mocker):
@@ -593,6 +628,9 @@ class TestWindowsCollector(object):
         mocked_resizable = mocker.patch(
             "arrangeit.windows.collector.Collector.is_resizable"
         )
+        mocked_restored = mocker.patch(
+            "arrangeit.windows.collector.Collector.is_restored", return_value=True
+        )
         mocked_title = mocker.patch(
             "arrangeit.windows.collector.Collector._get_window_title"
         )
@@ -612,6 +650,7 @@ class TestWindowsCollector(object):
             wid=SAMPLE_HWND,
             rect=mocked_rect.return_value,
             resizable=mocked_resizable.return_value,
+            restored=mocked_restored.return_value,
             title=mocked_title.return_value,
             name=mocked_name.return_value,
             icon=mocked_icon.return_value,
@@ -623,6 +662,7 @@ class TestWindowsCollector(object):
         [
             "_get_window_geometry",
             "is_resizable",
+            "is_restored",
             "_get_window_title",
             "_get_class_name",
             "_get_application_icon",
@@ -848,6 +888,23 @@ class TestWindowsCollector(object):
     def test_WindowsCollector_is_resizable_return(self, mocker, value, expected):
         mocker.patch("arrangeit.windows.collector.GetWindowLong", return_value=value)
         assert Collector().is_resizable(SAMPLE_HWND) == expected
+
+
+    ## WindowsCollector.is_restored
+    @pytest.mark.parametrize("method", ["IsIconic"])
+    def test_WindowsCollector_is_restored_calls(self, mocker, method):
+        mocked = mocker.patch("arrangeit.windows.collector.{}".format(method))
+        Collector().is_restored(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND)
+
+    @pytest.mark.parametrize(
+        "value,expected", [(False, True), (True, False)]
+    )
+    def test_WindowsCollector_is_restored_return(self, mocker, value, expected):
+        mocker.patch("arrangeit.windows.collector.IsIconic", return_value=value)
+        assert Collector().is_restored(SAMPLE_HWND) == expected
+
 
     ## WindowsCollector.is_valid_state
     @pytest.mark.parametrize("method", ["_is_activable"])
