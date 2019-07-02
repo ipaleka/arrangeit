@@ -270,10 +270,7 @@ class TestWindowsCollector(object):
     def test_WindowsCollector__get_application_icon_calls_SendMessageTimeout(
         self, mocker
     ):
-        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocker.patch("arrangeit.windows.collector.Collector._get_image_from_icon_handle")
         mocked = mocker.patch(
             "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
         )
@@ -283,159 +280,26 @@ class TestWindowsCollector(object):
         mocked.assert_called_with(SAMPLE, WM_GETICON, 1, 0, 0, 50)
 
     def test_WindowsCollector__get_application_icon_calls_GetClassLong(self, mocker):
-        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocker.patch("arrangeit.windows.collector.Collector._get_image_from_icon_handle")
         mocker.patch(
             "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 0)
         )
-        mocked = mocker.patch("arrangeit.windows.collector.GetClassLong")
+        mocked = mocker.patch("arrangeit.windows.collector.GetClassLong", return_value=1)
         SAMPLE = 108
         Collector()._get_application_icon(SAMPLE)
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE, GCL_HICON)
 
-    def test_WindowsCollector__get_application_icon_calls_GetDC(self, mocker):
+    def test_WindowsCollector__get_application_icon_calls__get_image_from_icon_handle(self, mocker):
+        SAMPLE = 15002
         mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
+            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, SAMPLE)
         )
-        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocked = mocker.patch("arrangeit.windows.collector.GetDC")
-        Collector()._get_application_icon(100)
-        mocked.assert_called_once()
-        mocked.assert_called_with(0)
-
-    def test_WindowsCollector__get_application_icon_calls_CreateDCFromHandle(
-        self, mocker
-    ):
-        SAMPLE = 4545
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC", return_value=SAMPLE)
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        Collector()._get_application_icon(100)
+        mocked = mocker.patch("arrangeit.windows.collector.Collector._get_image_from_icon_handle")
+        returned = Collector()._get_application_icon(100)
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE)
-
-    def test_WindowsCollector__get_application_icon_calls_CreateBitmap(self, mocker):
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        Collector()._get_application_icon(100)
-        mocked.assert_called_once()
-        mocked.assert_called_with()
-
-    def test_WindowsCollector__get_application_icon_calls_bitmap_CreateCompatibleBitmap(
-        self, mocker
-    ):
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocked_create = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        Collector()._get_application_icon(100)
-        mocked.return_value.CreateCompatibleBitmap.assert_called_once()
-        mocked.return_value.CreateCompatibleBitmap.assert_called_with(
-            mocked_create.return_value, Settings.ICON_SIZE, Settings.ICON_SIZE
-        )
-
-    def test_WindowsCollector__get_application_icon_calls_dc_CreateCompatibleDC(
-        self, mocker
-    ):
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        Collector()._get_application_icon(100)
-        mocked.return_value.CreateCompatibleDC.assert_called_once()
-        mocked.return_value.CreateCompatibleDC.assert_called_with()
-
-    def test_WindowsCollector__get_application_icon_calls_dc_SelectObject(self, mocker):
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocked_bitmap = mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocked_hdc = mocked.return_value.CreateCompatibleDC.return_value
-        Collector()._get_application_icon(100)
-        mocked_hdc.SelectObject.assert_called_once()
-        mocked_hdc.SelectObject.assert_called_with(mocked_bitmap.return_value)
-
-    def test_WindowsCollector__get_application_icon_calls_dc_DrawIcon(self, mocker):
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 0)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocked_class = mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocked_hdc = mocked.return_value.CreateCompatibleDC.return_value
-        Collector()._get_application_icon(100)
-        mocked_hdc.DrawIcon.assert_called_once()
-        mocked_hdc.DrawIcon.assert_called_with((0, 0), mocked_class.return_value)
-
-    def test_WindowsCollector__get_application_icon_calls_bitmap_GetBitmapBits(
-        self, mocker
-    ):
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        Collector()._get_application_icon(100)
-        mocked.return_value.GetBitmapBits.assert_called_once()
-        mocked.return_value.GetBitmapBits.assert_called_with(True)
-
-    def test_WindowsCollector__get_application_icon_calls_Image_frombuffer(
-        self, mocker
-    ):
-        mocker.patch(
-            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
-        )
-        mocker.patch("arrangeit.windows.collector.GetDC")
-        mocker.patch("arrangeit.windows.collector.GetClassLong")
-        mocked_bitmap = mocker.patch("arrangeit.windows.collector.CreateBitmap")
-        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
-        mocked = mocker.patch("arrangeit.windows.collector.Image.frombuffer")
-        Collector()._get_application_icon(100)
-        mocked.assert_called_once()
-        mocked.assert_called_with(
-            "RGBA",
-            (Settings.ICON_SIZE, Settings.ICON_SIZE),
-            mocked_bitmap.return_value.GetBitmapBits.return_value,
-            "raw",
-            "BGRA",
-            0,
-            1,
-        )
+        assert returned == mocked.return_value
 
     ## WindowsCollector._get_class_name
     @pytest.mark.parametrize("method", ["GetClassName"])
@@ -448,6 +312,114 @@ class TestWindowsCollector(object):
     def test_WindowsCollector__get_class_name_functionality(self, mocker, value):
         mocker.patch("arrangeit.windows.collector.GetClassName", return_value=value)
         assert Collector()._get_class_name(SAMPLE_HWND) == value
+
+    ## WindowsCollector._get_image_from_icon_handle
+    def test_WindowsCollector__get_image_from_icon_handle_calls_GetDC(self, mocker):
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked = mocker.patch("arrangeit.windows.collector.GetDC")
+        Collector()._get_image_from_icon_handle(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(0)
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_CreateDCFromHandle(
+        self, mocker
+    ):
+        SAMPLE = 4545
+        mocker.patch("arrangeit.windows.collector.GetDC", return_value=SAMPLE)
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        Collector()._get_image_from_icon_handle(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE)
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_CreateBitmap(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        Collector()._get_image_from_icon_handle(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_bitmap_CreateCompatibleBitmap(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked_create = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        Collector()._get_image_from_icon_handle(100)
+        mocked.return_value.CreateCompatibleBitmap.assert_called_once()
+        mocked.return_value.CreateCompatibleBitmap.assert_called_with(
+            mocked_create.return_value, Settings.ICON_SIZE, Settings.ICON_SIZE
+        )
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_dc_CreateCompatibleDC(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        Collector()._get_image_from_icon_handle(100)
+        mocked.return_value.CreateCompatibleDC.assert_called_once()
+        mocked.return_value.CreateCompatibleDC.assert_called_with()
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_dc_SelectObject(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked_bitmap = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked_hdc = mocked.return_value.CreateCompatibleDC.return_value
+        Collector()._get_image_from_icon_handle(100)
+        mocked_hdc.SelectObject.assert_called_once()
+        mocked_hdc.SelectObject.assert_called_with(mocked_bitmap.return_value)
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_dc_DrawIcon(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked_hdc = mocked.return_value.CreateCompatibleDC.return_value
+        ICON_HANDLE = 54887
+        Collector()._get_image_from_icon_handle(ICON_HANDLE)
+        mocked_hdc.DrawIcon.assert_called_once()
+        mocked_hdc.DrawIcon.assert_called_with((0, 0), ICON_HANDLE)
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_bitmap_GetBitmapBits(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocked = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        Collector()._get_image_from_icon_handle(100)
+        mocked.return_value.GetBitmapBits.assert_called_once()
+        mocked.return_value.GetBitmapBits.assert_called_with(True)
+
+    def test_WindowsCollector__get_image_from_icon_handle_calls_Image_frombuffer(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.GetDC")
+        mocked_bitmap = mocker.patch("arrangeit.windows.collector.CreateBitmap")
+        mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
+        mocked = mocker.patch("arrangeit.windows.collector.Image.frombuffer")
+        returned = Collector()._get_image_from_icon_handle(100)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            "RGBA",
+            (Settings.ICON_SIZE, Settings.ICON_SIZE),
+            mocked_bitmap.return_value.GetBitmapBits.return_value,
+            "raw",
+            "BGRA",
+            0,
+            1,
+        )
+        assert returned == mocked.return_value
 
     ## WindowsCollector._get_window_geometry
     def test_WindowsCollector__get_window_geometry_calls(self, mocker):

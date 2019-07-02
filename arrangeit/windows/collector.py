@@ -17,7 +17,6 @@ from win32con import (
     WS_THICKFRAME,
 )
 from win32gui import (
-    EnumChildWindows,
     EnumWindows,
     GetClassLong,
     GetDC,
@@ -138,170 +137,139 @@ class WINDOWINFO(ctypes.Structure):
 class Collector(BaseCollector):
     """Collecting windows class with MS Windows specific code."""
 
-    def _get_children(self, hwnd):
+    def get_uwpapp_icon(self, hwnd):
         """
-        :returns: list of integers
         """
-        children = []
-        EnumChildWindows(hwnd, append_to_collection, children)
-        return children
+        from win32api import OpenProcess, CloseHandle
+        from win32con import PROCESS_QUERY_INFORMATION  # , PROCESS_VM_READ
+        from win32process import GetWindowThreadProcessId, GetModuleFileNameEx
+
+        _, pid = GetWindowThreadProcessId(hwnd)
+        children = self._get_children(hwnd)
+        for child in children:
+            _, child_pid = GetWindowThreadProcessId(child)
+            if child_pid != pid:
+                # hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, child_pid)
+                hprocess = OpenProcess(
+                    PROCESS_QUERY_INFORMATION, False, child_pid
+                )
+                exe = GetModuleFileNameEx(hprocess, 0)
+                print(exe)
+                break
+        length = ctypes.c_uint()
+        buf = ctypes.windll.kernel32.GetPackageFullName(
+            hprocess.handle, ctypes.byref(length), None
+        )
+        full_name = ctypes.create_unicode_buffer(buf)
+        ctypes.windll.kernel32.GetPackageFullName(
+            hprocess.handle, ctypes.byref(length), full_name
+        )
+
+        # PACKAGE_INFORMATION_FULL = 0x00000100
+        # # PACKAGE_FILTER_HEAD = 0x00000010
+        # # PACKAGE_INFORMATION_BASIC = 0x00000000
+
+        # packageIdBufferSize = 100
+        # package_id_ref = ctypes.c_uint32()
+        # length0 = ctypes.c_uint32()
+        # length1 = ctypes.create_unicode_buffer(100)
+
+        # buf = (ctypes.c_byte * 100)()
+        # ctypes.memmove(buf, ctypes.byref(package_id_ref), ctypes.sizeof(package_id_ref))
+
+        # ret = ctypes.windll.kernel32.PackageIdFromFullName(
+        #     ctypes.byref(full_name),
+        #     PACKAGE_FILTER_ALL_LOADED,
+        #     ctypes.byref(length0),
+        #     None
+        # )
+
+        # length0 = ctypes.sizeof(PACKAGE_ID)
+        # PACKAGE_FILTER_ALL_LOADED = 0x00000000
+
+        # buf = ctypes.windll.kernel32.PackageIdFromFullName(
+        #     ctypes.byref(full_name),
+        #     PACKAGE_FILTER_ALL_LOADED,
+        #     ctypes.byref(length0), None
+        # )
+        # package_id_buffer = ctypes.create_string_buffer(buf)
+        # ctypes.windll.kernel32.PackageIdFromFullName(
+        #     ctypes.byref(full_name),
+        #     PACKAGE_FILTER_ALL_LOADED,
+        #     ctypes.byref(length0),
+        #     ctypes.byref(package_id_buffer)
+        # )
+
+        info_ref = PACKAGE_INFO()
+        ret = ctypes.windll.kernel32.OpenPackageInfoByFullName(
+            ctypes.byref(full_name), 0, ctypes.byref(info_ref)
+        )
+        try:
+            print(info_ref.packageId.name.contents)
+        except ValueError:
+            print("   ERR:  NULL pointer access")
+
+        # PACKAGE_INFORMATION_FULL = 0x00000100
+        PACKAGE_FILTER_ALL_LOADED = 0x00000000
+        length = ctypes.c_uint()
+        count = ctypes.c_uint()
+        package = ctypes.windll.kernel32.GetPackageInfo(
+            ctypes.byref(info_ref),
+            PACKAGE_FILTER_ALL_LOADED,
+            length,
+            None,
+            count,
+        )
+
+        # name, version = full_name.value.split("_")
+        print(ret, full_name.value)
+        CloseHandle(hprocess)
+        # TODO ClosePackageInfo
+
+        # // now this is a bit tricky. Modern apps are hosted inside ApplicationFrameHost process, so we need to find
+        # // child window which does NOT belong to this process. This should be the process we need
+        # var children = GetChildWindows(hwnd);
+        # foreach (var childHwnd in children) {
+        #     uint childPid = 0;
+        #     GetWindowThreadProcessId(childHwnd, out childPid);
+        #     if (childPid != pid) {
+        #         // here we are
+        #         Process childProc = Process.GetProcessById((int) childPid);
+        #         return childProc.MainModule.FileName;
+        #     }
+        # }
+
+        # hprocess = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
+        # exe = GetModuleFileNameEx(app_handle, 0)
+        # print(hwnd, exe)
+
+        # from win32process import GetWindowThreadProcessId
+        # tid, pid = GetWindowThreadProcessId(hwnd)
+
+        print("no icon", GetWindowText(hwnd))
+        # hicon = LoadIcon(hwnd, icon_handle)
+        return open_image("white.png")
+
+        # buf=create_unicode_buffer(256)
+        # ctypes.windll.shlwapi.SHLoadIndirectString(s,buf,256,None)
+        # return buf.value
 
     def _get_application_icon(self, hwnd):
-        """Returns application icon of the windows with provided hwnd.
-
-        TODO check if everything is tested
+        """Returns application icon of the window with provided hwnd.
 
         :param hwnd: window id
         :type hwnd: int
         :var icon_handle: handle to windows icon in window instance
         :type icon_handle: int
-        :var source_hdc: handle to root device context
-        :type source_hdc: int
-        :var bitmap: PyGdiHANDLE of icon bitmap
-        :type bitmap: int
-        :var main_hdc: handle to icon device context
-        :type main_hdc: int
-        :var buffer: string of bitmap bits
-        :type buffer: str
         :returns: :class:`PIL.Image` instance
         """
-        size = Settings.ICON_SIZE
-
         _, icon_handle = SendMessageTimeout(hwnd, WM_GETICON, 1, 0, 0, 50)
         if icon_handle == 0:
             icon_handle = GetClassLong(hwnd, GCL_HICON)
             if icon_handle == 0:
+                return self.get_uwpapp_icon(hwnd)
 
-                from win32api import OpenProcess, CloseHandle
-                from win32con import PROCESS_QUERY_INFORMATION  # , PROCESS_VM_READ
-                from win32process import GetWindowThreadProcessId, GetModuleFileNameEx
-
-                _, pid = GetWindowThreadProcessId(hwnd)
-                children = self._get_children(hwnd)
-                for child in children:
-                    _, child_pid = GetWindowThreadProcessId(child)
-                    if child_pid != pid:
-                        # hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, child_pid)
-                        hprocess = OpenProcess(
-                            PROCESS_QUERY_INFORMATION, False, child_pid
-                        )
-                        exe = GetModuleFileNameEx(hprocess, 0)
-                        print(exe)
-                        break
-                length = ctypes.c_uint()
-                buf = ctypes.windll.kernel32.GetPackageFullName(
-                    hprocess.handle, ctypes.byref(length), None
-                )
-                full_name = ctypes.create_unicode_buffer(buf)
-                ctypes.windll.kernel32.GetPackageFullName(
-                    hprocess.handle, ctypes.byref(length), full_name
-                )
-
-                # PACKAGE_INFORMATION_FULL = 0x00000100
-                # # PACKAGE_FILTER_HEAD = 0x00000010
-                # # PACKAGE_INFORMATION_BASIC = 0x00000000
-
-                # packageIdBufferSize = 100
-                # package_id_ref = ctypes.c_uint32()
-                # length0 = ctypes.c_uint32()
-                # length1 = ctypes.create_unicode_buffer(100)
-
-                # buf = (ctypes.c_byte * 100)()
-                # ctypes.memmove(buf, ctypes.byref(package_id_ref), ctypes.sizeof(package_id_ref))
-
-                # ret = ctypes.windll.kernel32.PackageIdFromFullName(
-                #     ctypes.byref(full_name),
-                #     PACKAGE_FILTER_ALL_LOADED,
-                #     ctypes.byref(length0),
-                #     None
-                # )
-
-                # length0 = ctypes.sizeof(PACKAGE_ID)
-                # PACKAGE_FILTER_ALL_LOADED = 0x00000000
-
-                # buf = ctypes.windll.kernel32.PackageIdFromFullName(
-                #     ctypes.byref(full_name),
-                #     PACKAGE_FILTER_ALL_LOADED,
-                #     ctypes.byref(length0), None
-                # )
-                # package_id_buffer = ctypes.create_string_buffer(buf)
-                # ctypes.windll.kernel32.PackageIdFromFullName(
-                #     ctypes.byref(full_name),
-                #     PACKAGE_FILTER_ALL_LOADED,
-                #     ctypes.byref(length0),
-                #     ctypes.byref(package_id_buffer)
-                # )
-
-                info_ref = PACKAGE_INFO()
-                ret = ctypes.windll.kernel32.OpenPackageInfoByFullName(
-                    ctypes.byref(full_name), 0, ctypes.byref(info_ref)
-                )
-                try:
-                    print(info_ref.packageId.name.contents)
-                except ValueError:
-                    print("   ERR:  NULL pointer access")
-
-                # PACKAGE_INFORMATION_FULL = 0x00000100
-                PACKAGE_FILTER_ALL_LOADED = 0x00000000
-                length = ctypes.c_uint()
-                count = ctypes.c_uint()
-                package = ctypes.windll.kernel32.GetPackageInfo(
-                    ctypes.byref(info_ref),
-                    PACKAGE_FILTER_ALL_LOADED,
-                    length,
-                    None,
-                    count,
-                )
-
-                # name, version = full_name.value.split("_")
-                print(ret, full_name.value)
-                CloseHandle(hprocess)
-                # TODO ClosePackageInfo
-
-                # // now this is a bit tricky. Modern apps are hosted inside ApplicationFrameHost process, so we need to find
-                # // child window which does NOT belong to this process. This should be the process we need
-                # var children = GetChildWindows(hwnd);
-                # foreach (var childHwnd in children) {
-                #     uint childPid = 0;
-                #     GetWindowThreadProcessId(childHwnd, out childPid);
-                #     if (childPid != pid) {
-                #         // here we are
-                #         Process childProc = Process.GetProcessById((int) childPid);
-                #         return childProc.MainModule.FileName;
-                #     }
-                # }
-
-                # hprocess = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-                # exe = GetModuleFileNameEx(app_handle, 0)
-                # print(hwnd, exe)
-
-                # from win32process import GetWindowThreadProcessId
-                # tid, pid = GetWindowThreadProcessId(hwnd)
-
-                print("no icon", GetWindowText(hwnd))
-                # hicon = LoadIcon(hwnd, icon_handle)
-                return open_image("white.png")
-
-                # buf=create_unicode_buffer(256)
-                # ctypes.windll.shlwapi.SHLoadIndirectString(s,buf,256,None)
-                # return buf.value
-
-        source_hdc = CreateDCFromHandle(GetDC(0))
-
-        bitmap = CreateBitmap()
-        bitmap.CreateCompatibleBitmap(source_hdc, size, size)
-        main_hdc = source_hdc.CreateCompatibleDC()
-
-        main_hdc.SelectObject(bitmap)
-        try:
-            main_hdc.DrawIcon((0, 0), icon_handle)
-        except win32ui.error:
-            # TODO check this - with white.png from above this shouldn't be reached
-            pass
-
-        buffer = bitmap.GetBitmapBits(True)  # TODO this is deprecated, use GetDIBits
-        image = Image.frombuffer("RGBA", (size, size), buffer, "raw", "BGRA", 0, 1)
-        return image
+        return self._get_image_from_icon_handle(icon_handle)
 
     def _get_class_name(self, hwnd):
         """Returns class name for the window represented by provided handle.
@@ -311,6 +279,36 @@ class Collector(BaseCollector):
         :returns: str
         """
         return GetClassName(hwnd)
+
+    def _get_image_from_icon_handle(self, icon_handle):
+        """Creates and returns PIL image from provided handle to icon.
+        
+        :param icon_handle: handle to windows icon in window instance
+        :type icon_handle: int
+        :var size: icon size in pixels
+        :type size: int
+        :var source_hdc: handle to root device context
+        :type source_hdc: int
+        :var bitmap: PyGdiHANDLE of icon bitmap
+        :type bitmap: int
+        :var main_hdc: handle to icon device context
+        :type main_hdc: int
+        :var buffer: string of bitmap bits
+        :type buffer: str
+        :returns: :class:`PIL.Image` instance        
+        """
+        size = Settings.ICON_SIZE
+        source_hdc = CreateDCFromHandle(GetDC(0))
+
+        bitmap = CreateBitmap()
+        bitmap.CreateCompatibleBitmap(source_hdc, size, size)
+        main_hdc = source_hdc.CreateCompatibleDC()
+
+        main_hdc.SelectObject(bitmap)
+        main_hdc.DrawIcon((0, 0), icon_handle)
+
+        buffer = bitmap.GetBitmapBits(True)  # TODO this is deprecated, use GetDIBits
+        return Image.frombuffer("RGBA", (size, size), buffer, "raw", "BGRA", 0, 1)
 
     def _get_window_geometry(self, hwnd):
         """Returns window geometry for the window represented by provided handle.
