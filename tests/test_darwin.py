@@ -1,17 +1,12 @@
 import pytest
 
 from arrangeit import __appname__
-from arrangeit.darwin.collector import (
-    Collector,
-    kCGWindowListExcludeDesktopElements,
-    kCGNullWindowID,
-    NSApplicationActivationPolicyRegular,
-)
-from arrangeit.darwin.utils import (
-    user_data_path,
-    NSApplicationSupportDirectory,
-    NSUserDomainMask,
-)
+from arrangeit.darwin.collector import (Collector,
+                                        NSApplicationActivationPolicyRegular,
+                                        kCGNullWindowID,
+                                        kCGWindowListExcludeDesktopElements)
+from arrangeit.darwin.utils import (NSApplicationSupportDirectory,
+                                    NSUserDomainMask, user_data_path)
 
 
 class TestDarwinCollector(object):

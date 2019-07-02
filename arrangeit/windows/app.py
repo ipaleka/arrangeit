@@ -1,9 +1,10 @@
 from PIL import ImageTk
+
 from win32con import SW_MINIMIZE, SW_RESTORE
 from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 
-from arrangeit.settings import Settings
 from arrangeit.base import BaseApp
+from arrangeit.settings import Settings
 
 
 class App(BaseApp):

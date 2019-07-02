@@ -1,22 +1,22 @@
-import os
 import json
+import logging
+import os
 import queue
 import sys
-import logging
 
 import pynput
 
 from arrangeit.data import WindowModel, WindowsCollection
-from arrangeit.settings import Settings, MESSAGES
+from arrangeit.settings import MESSAGES, Settings
 from arrangeit.utils import (
-    get_component_class,
-    quarter_by_smaller,
-    platform_user_data_path,
-    get_snapping_sources_for_rect,
     check_intersections,
+    get_component_class,
+    get_snapping_sources_for_rect,
     offset_for_intersections,
+    platform_user_data_path,
+    quarter_by_smaller,
 )
-from arrangeit.view import get_tkinter_root, get_screenshot_widget, ViewApplication
+from arrangeit.view import ViewApplication, get_screenshot_widget, get_tkinter_root
 
 
 class BaseApp(object):

@@ -5,7 +5,7 @@ from PIL import Image
 
 import arrangeit
 from arrangeit import settings
-from arrangeit.settings import SettingsMetaclass, Settings
+from arrangeit.settings import Settings, SettingsMetaclass
 
 
 class TestSettingsModule(object):

@@ -1,7 +1,6 @@
 from arrangeit.data import WindowModel
 from arrangeit.settings import Settings
 
-
 ## test_data
 SAMPLE_RECT = (45, 54, 304, 405)
 SAMPLE_MODEL_VALUES = [

@@ -5,7 +5,6 @@ from gettext import gettext as _
 from arrangeit import options
 from arrangeit.settings import Settings
 
-
 MESSAGES = {
     "options_title": _("arrangeit options"),
     "appearance": _("Appearance"),

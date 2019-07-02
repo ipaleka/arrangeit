@@ -1,6 +1,5 @@
 from platform import system
 
-
 collect_ignore = []
 if system() == "Darwin":
     collect_ignore.append("test_linux.py")

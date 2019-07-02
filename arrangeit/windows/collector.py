@@ -1,26 +1,27 @@
-from PIL import Image
-
 import ctypes
 import ctypes.wintypes
 
+from PIL import Image
+
+import win32ui
 from win32api import EnumDisplayMonitors
 from win32con import (
     GA_ROOTOWNER,
     GCL_HICON,
-    GWL_STYLE,
     GWL_EXSTYLE,
+    GWL_STYLE,
     NULL,
     STATE_SYSTEM_INVISIBLE,
     WM_GETICON,
-    WS_EX_TOOLWINDOW,
     WS_EX_NOACTIVATE,
+    WS_EX_TOOLWINDOW,
     WS_THICKFRAME,
 )
 from win32gui import (
     EnumWindows,
     GetClassLong,
-    GetDC,
     GetClassName,
+    GetDC,
     GetWindowLong,
     GetWindowPlacement,
     GetWindowText,
@@ -30,12 +31,11 @@ from win32gui import (
     IsWindowVisible,
     SendMessageTimeout,
 )
-import win32ui
-from win32ui import CreateDCFromHandle, CreateBitmap
+from win32ui import CreateBitmap, CreateDCFromHandle
 
-from arrangeit.settings import Settings
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
+from arrangeit.settings import Settings
 from arrangeit.utils import append_to_collection, open_image
 
 DWMWA_CLOAKED = 14
@@ -150,9 +150,7 @@ class Collector(BaseCollector):
             _, child_pid = GetWindowThreadProcessId(child)
             if child_pid != pid:
                 # hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, child_pid)
-                hprocess = OpenProcess(
-                    PROCESS_QUERY_INFORMATION, False, child_pid
-                )
+                hprocess = OpenProcess(PROCESS_QUERY_INFORMATION, False, child_pid)
                 exe = GetModuleFileNameEx(hprocess, 0)
                 print(exe)
                 break
@@ -214,11 +212,7 @@ class Collector(BaseCollector):
         length = ctypes.c_uint()
         count = ctypes.c_uint()
         package = ctypes.windll.kernel32.GetPackageInfo(
-            ctypes.byref(info_ref),
-            PACKAGE_FILTER_ALL_LOADED,
-            length,
-            None,
-            count,
+            ctypes.byref(info_ref), PACKAGE_FILTER_ALL_LOADED, length, None, count
         )
 
         # name, version = full_name.value.split("_")

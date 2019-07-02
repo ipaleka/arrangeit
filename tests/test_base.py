@@ -7,13 +7,9 @@ from arrangeit import base, utils
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.settings import Settings
 
-from .fixtures import (
-    SAMPLE_RECT,
-    WIN_COLLECTION_SNAP_CHANGED,
-    WIN_COLLECTION_SNAP_SAMPLES,
-    WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING,
-)
-
+from .fixtures import (SAMPLE_RECT, WIN_COLLECTION_SNAP_CHANGED,
+                       WIN_COLLECTION_SNAP_SAMPLES,
+                       WIN_COLLECTION_SNAP_SAMPLES_EXCLUDING)
 from .mock_helpers import mocked_setup
 
 

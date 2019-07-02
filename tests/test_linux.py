@@ -1,20 +1,20 @@
 import os
 
 import gi
-
-gi.require_version("Wnck", "3.0")
-gi.require_version("GdkPixbuf", "2.0")
-from gi.repository import Wnck, GdkPixbuf
+import pytest
 from PIL import Image
 from Xlib import X
-import pytest
 
 import arrangeit
 from arrangeit.data import WindowModel
 from arrangeit.linux.app import App
-from arrangeit.linux.collector import Collector, MOVE_RESIZE_MASKS
+from arrangeit.linux.collector import MOVE_RESIZE_MASKS, Collector
 from arrangeit.linux.controller import Controller
 from arrangeit.linux.utils import user_data_path
+
+gi.require_version("Wnck", "3.0")
+gi.require_version("GdkPixbuf", "2.0")
+from gi.repository import GdkPixbuf, Wnck
 
 
 ## arrangeit.linux.app

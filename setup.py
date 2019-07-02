@@ -2,10 +2,9 @@
 
 # Learn more: https://github.com/kennethreitz/setup.py
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 from arrangeit import __version__
-
 
 with open("README.rst") as f:
     readme = f.read()

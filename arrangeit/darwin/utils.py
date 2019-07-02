@@ -1,8 +1,8 @@
 import os
 
 from AppKit import (
-    NSSearchPathForDirectoriesInDomains,
     NSApplicationSupportDirectory,
+    NSSearchPathForDirectoriesInDomains,
     NSUserDomainMask,
 )
 

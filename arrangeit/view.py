@@ -1,12 +1,11 @@
 import tkinter as tk
-from tkinter.font import nametofont
 from gettext import gettext as _
+from tkinter.font import nametofont
 
-from PIL import ImageTk, Image
+from PIL import Image, ImageTk
 
-
-from arrangeit.settings import Settings
 from arrangeit.options import OptionsDialog
+from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction, open_image
 
 

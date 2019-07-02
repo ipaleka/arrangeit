@@ -1,24 +1,15 @@
 import tkinter as tk
-from tkinter.font import nametofont
 from gettext import gettext as _
+from tkinter.font import nametofont
 
 import pytest
 
-from arrangeit.view import (
-    get_tkinter_root,
-    get_screenshot_widget,
-    PropertyIcon,
-    Resizable,
-    Restored,
-    CornerWidget,
-    WorkspacesCollection,
-    WindowsList,
-    Workspace,
-    ListedWindow,
-    Toolbar,
-)
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
+from arrangeit.view import (CornerWidget, ListedWindow, PropertyIcon,
+                            Resizable, Restored, Toolbar, WindowsList,
+                            Workspace, WorkspacesCollection,
+                            get_screenshot_widget, get_tkinter_root)
 
 
 class TestViewFunctions(object):
@@ -1425,4 +1416,3 @@ class TestToolbar(object):
         toolbar = Toolbar(master)
         toolbar.on_options_click()
         master.hide_root.assert_called_once()
-

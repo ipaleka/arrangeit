@@ -1,23 +1,13 @@
-from win32con import (
-    STATE_SYSTEM_INVISIBLE,
-    WS_EX_TOOLWINDOW,
-    WS_EX_NOACTIVATE,
-    WS_THICKFRAME,
-    SW_MINIMIZE,
-    SW_RESTORE,
-)
-
 import pytest
+
+from win32con import (STATE_SYSTEM_INVISIBLE, SW_MINIMIZE, SW_RESTORE,
+                      WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_THICKFRAME)
+
 from arrangeit.settings import Settings
 from arrangeit.windows.app import App
-from arrangeit.windows.collector import (
-    TITLEBARINFO,
-    WINDOWINFO,
-    Collector,
-    GCL_HICON,
-    DWMWA_CLOAKED,
-    WM_GETICON,
-)
+from arrangeit.windows.collector import (DWMWA_CLOAKED, GCL_HICON,
+                                         TITLEBARINFO, WINDOWINFO, WM_GETICON,
+                                         Collector)
 from arrangeit.windows.controller import Controller
 from arrangeit.windows.utils import user_data_path
 

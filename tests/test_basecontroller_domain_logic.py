@@ -3,14 +3,9 @@ import pytest
 from arrangeit import base
 from arrangeit.settings import Settings
 
-from .mock_helpers import (
-    controller_mocked_for_run,
-    controller_mocked_for_next,
-    mocked_setup,
-    mocked_setup_view,
-    controller_mocked_app,
-    controller_mocked_next,
-)
+from .mock_helpers import (controller_mocked_app, controller_mocked_for_next,
+                           controller_mocked_for_run, controller_mocked_next,
+                           mocked_setup, mocked_setup_view)
 
 
 class TestBaseControllerDomainLogic(object):

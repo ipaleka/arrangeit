@@ -1,11 +1,10 @@
-import os
 import json
+import os
 from gettext import gettext as _
 
 from PIL import Image
 
-from arrangeit.utils import platform_user_data_path, open_image
-
+from arrangeit.utils import open_image, platform_user_data_path
 
 """
 DO NOT EDIT SETTINGS IN THIS FILE FOR USER SIDE CONFIGURATION - for such purpose use

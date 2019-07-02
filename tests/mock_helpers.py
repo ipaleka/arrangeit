@@ -84,4 +84,3 @@ def mocked_for_options_setup(mocker, without_section=False, without_files=False)
     mocker.patch("arrangeit.options.tk.IntVar")
     mocker.patch("arrangeit.options.tk.Label")
     mocker.patch("arrangeit.options.tk.Button")
-

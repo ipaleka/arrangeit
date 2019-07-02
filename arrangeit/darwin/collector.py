@@ -2,12 +2,11 @@ import io
 
 from PIL import Image
 
-from AppKit import NSScreen, NSWorkspace, NSApplicationActivationPolicyRegular
-
+from AppKit import NSApplicationActivationPolicyRegular, NSScreen, NSWorkspace
 from Quartz import (
     CGWindowListCopyWindowInfo,
-    kCGWindowListExcludeDesktopElements,
     kCGNullWindowID,
+    kCGWindowListExcludeDesktopElements,
 )
 
 from arrangeit.base import BaseCollector

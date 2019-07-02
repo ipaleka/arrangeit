@@ -1,16 +1,14 @@
 import os
+
 import pytest
 from PIL import ImageFilter
 
 from arrangeit import utils
 from arrangeit.settings import Settings
 
-from .fixtures import (
-    SAMPLE_SNAPPING_SOURCES_FOR_RECT,
-    SAMPLE_CHECK_INTERSECTIONS,
-    INTERSECTS_SAMPLES,
-    OFFSET_INTERSECTING_PAIR_SAMPLES,
-)
+from .fixtures import (INTERSECTS_SAMPLES, OFFSET_INTERSECTING_PAIR_SAMPLES,
+                       SAMPLE_CHECK_INTERSECTIONS,
+                       SAMPLE_SNAPPING_SOURCES_FOR_RECT)
 
 
 class TestUtils(object):

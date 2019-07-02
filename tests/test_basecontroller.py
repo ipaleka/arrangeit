@@ -3,13 +3,8 @@ import pytest
 from arrangeit import base, data
 from arrangeit.settings import Settings
 
-from .mock_helpers import (
-    mocked_setup,
-    mocked_setup_root,
-    mocked_setup_view,
-    controller_mocked_app,
-    controller_mocked_key_press,
-)
+from .mock_helpers import (controller_mocked_app, controller_mocked_key_press,
+                           mocked_setup, mocked_setup_root, mocked_setup_view)
 
 
 class TestBaseController(object):

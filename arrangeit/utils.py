@@ -1,13 +1,12 @@
+import logging
 import os
 import sys
-import logging
-from platform import system
 from gettext import gettext as _
 from importlib import import_module
-from itertools import islice, chain, product
+from itertools import chain, islice, product
+from platform import system
 
-
-from PIL import Image, ImageOps, ImageFilter, ImageTk
+from PIL import Image, ImageFilter, ImageOps, ImageTk
 
 MESSAGES = {"platform_error": _("arrangeit can't run on your platform. :(")}
 

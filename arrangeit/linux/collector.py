@@ -1,12 +1,12 @@
 import gi
 from PIL import Image
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Wnck", "3.0")
-from gi.repository import Wnck, Gdk
-
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
+
+gi.require_version("Gdk", "3.0")
+gi.require_version("Wnck", "3.0")
+from gi.repository import Gdk, Wnck
 
 MOVE_RESIZE_MASKS = {
     "x": Wnck.WindowMoveResizeMask.X,

@@ -1,14 +1,14 @@
 import gi
-
-gi.require_version("Wnck", "3.0")
-gi.require_version("Gdk", "3.0")
-from gi.repository import Wnck, Gdk
 from PIL import ImageTk
 from Xlib import X
 
 from arrangeit.base import BaseApp
 from arrangeit.settings import Settings
 from arrangeit.utils import get_prepared_screenshot
+
+gi.require_version("Gdk", "3.0")
+gi.require_version("Wnck", "3.0")
+from gi.repository import Gdk, Wnck
 
 
 class App(BaseApp):

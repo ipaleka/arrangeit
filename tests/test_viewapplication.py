@@ -4,16 +4,10 @@ from tkinter.font import nametofont
 import pytest
 
 from arrangeit.data import WindowModel
-from arrangeit.view import (
-    ViewApplication,
-    Resizable,
-    Restored,
-    WorkspacesCollection,
-    WindowsList,
-    Toolbar,
-)
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
+from arrangeit.view import (Resizable, Restored, Toolbar, ViewApplication,
+                            WindowsList, WorkspacesCollection)
 
 
 class TestViewApplication(object):
@@ -643,4 +637,3 @@ class TestViewApplication(object):
         mocked.return_value.select_active.call_count == 1
         calls = [mocker.call(1002)]
         mocked.return_value.select_active.assert_has_calls(calls, any_order=True)
-
