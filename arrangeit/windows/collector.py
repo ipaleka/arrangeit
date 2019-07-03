@@ -4,13 +4,15 @@ import ctypes.wintypes
 from PIL import Image
 
 import win32ui
-from win32api import EnumDisplayMonitors
+from win32api import CloseHandle, EnumDisplayMonitors, OpenProcess
 from win32con import (
     GA_ROOTOWNER,
     GCL_HICON,
     GWL_EXSTYLE,
     GWL_STYLE,
     NULL,
+    PROCESS_QUERY_INFORMATION, 
+    PROCESS_VM_READ,
     STATE_SYSTEM_INVISIBLE,
     WM_GETICON,
     WS_EX_NOACTIVATE,
@@ -18,6 +20,7 @@ from win32con import (
     WS_THICKFRAME,
 )
 from win32gui import (
+    EnumChildWindows,
     EnumWindows,
     GetClassLong,
     GetClassName,
@@ -31,6 +34,7 @@ from win32gui import (
     IsWindowVisible,
     SendMessageTimeout,
 )
+from win32process import GetWindowThreadProcessId, GetModuleFileNameEx
 from win32ui import CreateBitmap, CreateDCFromHandle
 
 from arrangeit.base import BaseCollector
@@ -39,6 +43,21 @@ from arrangeit.settings import Settings
 from arrangeit.utils import append_to_collection, open_image
 
 DWMWA_CLOAKED = 14
+ERROR_SUCCESS = 0x0
+ERROR_INSUFFICIENT_BUFFER = 0x7A
+PACKAGE_FILTER_ALL_LOADED = 0x00000000
+PACKAGE_FILTER_HEAD = 0x00000010
+PACKAGE_INFORMATION_FULL = 0x00000100
+
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+
+
+class PACKAGE_INFO_REFERENCE(ctypes.Structure):
+    """"""
+
+    _fields_ = [
+        ("reserved", ctypes.c_void_p),
+    ]
 
 
 class PACKAGE_SUBVERSION(ctypes.Structure):
@@ -57,19 +76,10 @@ class PACKAGE_VERSION(ctypes.Union):
 
     _fields_ = [
         ("Version", ctypes.c_uint64),
-        # ("Version", ctypes.wintypes.ULARGE_INTEGER),
-        ("DUMMYSTRUCTNAME", PACKAGE_SUBVERSION),
+        ("DUMMY", PACKAGE_SUBVERSION),
     ]
 
 
-# class EnumProcessorArchitecture(IntEnum):
-#     x86 = 0
-#     Arm = 5
-#     x64 = 9
-#     Neutral = 11
-#     Arm64 = 12
-
-# class PACKAGE_ID(StructureWithEnums):
 class PACKAGE_ID(ctypes.Union):
     """"""
 
@@ -83,10 +93,10 @@ class PACKAGE_ID(ctypes.Union):
         # ("VersionBuild", ctypes.wintypes.ATOM),
         # ("VersionMinor", ctypes.wintypes.ATOM),
         # ("VersionMajor", ctypes.wintypes.ATOM),
-        ("name", ctypes.wintypes.PWCHAR),
-        ("publisher", ctypes.wintypes.PWCHAR),
-        ("resourceId", ctypes.wintypes.PWCHAR),
-        ("publisherId", ctypes.wintypes.PWCHAR),
+        ("name", ctypes.c_wchar_p),
+        ("publisher", ctypes.c_wchar_p),
+        ("resourceId", ctypes.c_wchar_p),
+        ("publisherId", ctypes.c_wchar_p),        
     ]
 
     # _map = {"processorArchitecture": EnumProcessorArchitecture}
@@ -96,13 +106,11 @@ class PACKAGE_INFO(ctypes.Union):
     """"""
 
     _fields_ = [
-        # ("reserved", ctypes.wintypes.UINT),
-        # ("flags", ctypes.wintypes.UINT),
         ("reserved", ctypes.c_uint32),
         ("flags", ctypes.c_uint32),
-        ("path", ctypes.wintypes.PWCHAR),
-        ("packageFullName", ctypes.wintypes.PWCHAR),
-        ("packageFamilyName", ctypes.wintypes.PWCHAR),
+        ("path", ctypes.c_wchar_p),
+        ("packageFullName", ctypes.c_wchar_p),
+        ("packageFamilyName", ctypes.c_wchar_p),
         ("packageId", PACKAGE_ID),
     ]
 
@@ -137,116 +145,154 @@ class WINDOWINFO(ctypes.Structure):
 class Collector(BaseCollector):
     """Collecting windows class with MS Windows specific code."""
 
+    def _get_children(self, hwnd):
+        """
+        :returns: list of integers
+        """
+        children = []
+        EnumChildWindows(hwnd, append_to_collection, children)
+        return children
+
+    def package_full_name_from_handle(self, handle):
+        length = ctypes.c_uint()
+        retval = ctypes.windll.kernel32.GetPackageFullName(
+            handle, ctypes.byref(length), None
+        )
+        assert retval == ERROR_INSUFFICIENT_BUFFER
+
+        full_name = ctypes.create_unicode_buffer(length.value + 1)
+        retval = ctypes.windll.kernel32.GetPackageFullName(
+            handle, ctypes.byref(length), full_name
+        )
+        assert retval == ERROR_SUCCESS
+
+        return full_name
+
+    def package_path_from_full_name(self, full_name):
+        length = ctypes.c_uint()
+        retval = ctypes.windll.kernel32.GetPackagePathByFullName(
+            ctypes.byref(full_name), ctypes.byref(length), None
+        )
+        assert retval == ERROR_INSUFFICIENT_BUFFER
+
+        package_path = ctypes.create_unicode_buffer(length.value)
+        retval = ctypes.windll.kernel32.GetPackagePathByFullName(
+            ctypes.byref(full_name), ctypes.byref(length), ctypes.byref(package_path)
+        )
+        assert retval == ERROR_SUCCESS
+
+        return package_path
+
+    def package_family_name_from_full_name(self, full_name):
+        length = ctypes.c_uint()
+        retval = ctypes.windll.kernel32.PackageFamilyNameFromFullName(
+            ctypes.byref(full_name), ctypes.byref(length), None
+        )
+        assert retval == ERROR_INSUFFICIENT_BUFFER
+
+        family_name = ctypes.create_unicode_buffer(length.value)
+        retval = ctypes.windll.kernel32.PackageFamilyNameFromFullName(
+            ctypes.byref(full_name), ctypes.byref(length), ctypes.byref(family_name)
+        )
+        assert retval == ERROR_SUCCESS
+
+        return family_name
+
+    def package_id_from_full_name(self, full_name):
+        length = ctypes.c_uint(0)
+        count = ctypes.c_uint()
+
+        retval = ctypes.windll.kernel32.PackageIdFromFullName(
+            ctypes.byref(full_name),
+            PACKAGE_INFORMATION_FULL, 
+            ctypes.byref(length),
+            None
+        )
+        assert retval == ERROR_INSUFFICIENT_BUFFER
+        
+        buffer = ctypes.create_string_buffer(length.value)
+        retval = ctypes.windll.kernel32.PackageIdFromFullName(
+            ctypes.byref(full_name),
+            PACKAGE_INFORMATION_FULL, 
+            ctypes.byref(length), 
+            ctypes.byref(buffer)
+        )
+        assert retval == ERROR_SUCCESS
+
+        return buffer
+
+    def package_info_reference_from_full_name(self, full_name):
+        package_info_reference = ctypes.pointer(PACKAGE_INFO_REFERENCE())
+        retval = ctypes.windll.kernel32.OpenPackageInfoByFullName(
+            ctypes.byref(full_name), 0, ctypes.byref(package_info_reference)
+        )
+        assert retval == ERROR_SUCCESS
+
+        return package_info_reference
+
+    def package_info_buffer_from_reference(self, package_info_reference):
+        length = ctypes.c_uint(0)
+        count = ctypes.c_uint()
+
+        retval = ctypes.windll.kernel32.GetPackageInfo(
+            package_info_reference, 
+            PACKAGE_FILTER_HEAD, 
+            ctypes.byref(length),
+            None,
+            ctypes.byref(count)
+        )
+        assert retval == ERROR_INSUFFICIENT_BUFFER
+        
+        buffer = ctypes.create_string_buffer(length.value)
+        retval = ctypes.windll.kernel32.GetPackageInfo(
+            package_info_reference, 
+            PACKAGE_FILTER_HEAD, 
+            ctypes.byref(length), 
+            ctypes.byref(buffer),
+            ctypes.byref(count)
+        )
+        assert retval == ERROR_SUCCESS
+
+        return buffer
+
     def get_uwpapp_icon(self, hwnd):
         """
-        """
-        from win32api import OpenProcess, CloseHandle
-        from win32con import PROCESS_QUERY_INFORMATION  # , PROCESS_VM_READ
-        from win32process import GetWindowThreadProcessId, GetModuleFileNameEx
-
+        TODO check what is happened when window is minimized (no different child_pid)
+        """        
         _, pid = GetWindowThreadProcessId(hwnd)
         children = self._get_children(hwnd)
         for child in children:
             _, child_pid = GetWindowThreadProcessId(child)
             if child_pid != pid:
                 # hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, child_pid)
-                hprocess = OpenProcess(PROCESS_QUERY_INFORMATION, False, child_pid)
-                exe = GetModuleFileNameEx(hprocess, 0)
-                print(exe)
+                hprocess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
                 break
-        length = ctypes.c_uint()
-        buf = ctypes.windll.kernel32.GetPackageFullName(
-            hprocess.handle, ctypes.byref(length), None
-        )
-        full_name = ctypes.create_unicode_buffer(buf)
-        ctypes.windll.kernel32.GetPackageFullName(
-            hprocess.handle, ctypes.byref(length), full_name
-        )
 
-        # PACKAGE_INFORMATION_FULL = 0x00000100
-        # # PACKAGE_FILTER_HEAD = 0x00000010
-        # # PACKAGE_INFORMATION_BASIC = 0x00000000
+        full_name = self.package_full_name_from_handle(hprocess.handle)
+        print("\n             full name:", full_name.value)
+        package_path = self.package_path_from_full_name(full_name)
+        print("          package path:", package_path.value)
+        family_name = self.package_family_name_from_full_name(full_name)
+        print("           family name:", family_name.value)
+        package_info_reference = self.package_info_reference_from_full_name(full_name)
+        print("package info reference:", package_info_reference.contents.reserved)
 
-        # packageIdBufferSize = 100
-        # package_id_ref = ctypes.c_uint32()
-        # length0 = ctypes.c_uint32()
-        # length1 = ctypes.create_unicode_buffer(100)
+        package_info_buffer = self.package_info_buffer_from_reference(package_info_reference)
+        package_info = PACKAGE_INFO()
+        ctypes.memmove(ctypes.addressof(package_info), package_info_buffer, ctypes.sizeof(package_info))
+        print("       packageFullName:", package_info.packageFullName)
 
-        # buf = (ctypes.c_byte * 100)()
-        # ctypes.memmove(buf, ctypes.byref(package_id_ref), ctypes.sizeof(package_id_ref))
+        package_id_buffer = self.package_id_from_full_name(full_name)
+        package_id = PACKAGE_ID()
+        ctypes.memmove(ctypes.addressof(package_id), package_id_buffer, ctypes.sizeof(package_id))
+        print("       package id name:", package_id.name)
 
-        # ret = ctypes.windll.kernel32.PackageIdFromFullName(
-        #     ctypes.byref(full_name),
-        #     PACKAGE_FILTER_ALL_LOADED,
-        #     ctypes.byref(length0),
-        #     None
-        # )
-
-        # length0 = ctypes.sizeof(PACKAGE_ID)
-        # PACKAGE_FILTER_ALL_LOADED = 0x00000000
-
-        # buf = ctypes.windll.kernel32.PackageIdFromFullName(
-        #     ctypes.byref(full_name),
-        #     PACKAGE_FILTER_ALL_LOADED,
-        #     ctypes.byref(length0), None
-        # )
-        # package_id_buffer = ctypes.create_string_buffer(buf)
-        # ctypes.windll.kernel32.PackageIdFromFullName(
-        #     ctypes.byref(full_name),
-        #     PACKAGE_FILTER_ALL_LOADED,
-        #     ctypes.byref(length0),
-        #     ctypes.byref(package_id_buffer)
-        # )
-
-        info_ref = PACKAGE_INFO()
-        ret = ctypes.windll.kernel32.OpenPackageInfoByFullName(
-            ctypes.byref(full_name), 0, ctypes.byref(info_ref)
-        )
-        try:
-            print(info_ref.packageId.name.contents)
-        except ValueError:
-            print("   ERR:  NULL pointer access")
-
-        # PACKAGE_INFORMATION_FULL = 0x00000100
-        PACKAGE_FILTER_ALL_LOADED = 0x00000000
-        length = ctypes.c_uint()
-        count = ctypes.c_uint()
-        package = ctypes.windll.kernel32.GetPackageInfo(
-            ctypes.byref(info_ref), PACKAGE_FILTER_ALL_LOADED, length, None, count
-        )
-
-        # name, version = full_name.value.split("_")
-        print(ret, full_name.value)
         CloseHandle(hprocess)
-        # TODO ClosePackageInfo
+        ctypes.windll.kernel32.ClosePackageInfo(package_info_reference)
 
-        # // now this is a bit tricky. Modern apps are hosted inside ApplicationFrameHost process, so we need to find
-        # // child window which does NOT belong to this process. This should be the process we need
-        # var children = GetChildWindows(hwnd);
-        # foreach (var childHwnd in children) {
-        #     uint childPid = 0;
-        #     GetWindowThreadProcessId(childHwnd, out childPid);
-        #     if (childPid != pid) {
-        #         // here we are
-        #         Process childProc = Process.GetProcessById((int) childPid);
-        #         return childProc.MainModule.FileName;
-        #     }
-        # }
-
-        # hprocess = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-        # exe = GetModuleFileNameEx(app_handle, 0)
-        # print(hwnd, exe)
-
-        # from win32process import GetWindowThreadProcessId
-        # tid, pid = GetWindowThreadProcessId(hwnd)
-
-        print("no icon", GetWindowText(hwnd))
+        # print("no icon", GetWindowText(hwnd))
         # hicon = LoadIcon(hwnd, icon_handle)
         return open_image("white.png")
-
-        # buf=create_unicode_buffer(256)
-        # ctypes.windll.shlwapi.SHLoadIndirectString(s,buf,256,None)
-        # return buf.value
 
     def _get_application_icon(self, hwnd):
         """Returns application icon of the window with provided hwnd.
