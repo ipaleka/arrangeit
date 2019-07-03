@@ -1,6 +1,6 @@
 ## pynput
 pynput==1.4.2
 # Pillow
-Pillow==6.0.0
+Pillow==6.1.0
 # wheel
 wheel
