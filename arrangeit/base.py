@@ -369,7 +369,9 @@ class BaseController(object):
                     get_snapping_sources_for_rect(
                         self.get_root_rect(x, y),
                         Settings.SNAP_PIXELS,
-                        corner=self.state % 10,
+                        corner=None
+                        if self.state < Settings.RESIZE
+                        else self.state % 10,
                     ),
                     self.snapping_targets[self.view.workspaces.active],
                 ),
