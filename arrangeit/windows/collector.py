@@ -1,18 +1,16 @@
 import ctypes
 import ctypes.wintypes
+import logging
 
 from PIL import Image
 
-import win32ui
-from win32api import CloseHandle, EnumDisplayMonitors, OpenProcess
+from win32api import EnumDisplayMonitors
 from win32con import (
     GA_ROOTOWNER,
     GCL_HICON,
     GWL_EXSTYLE,
     GWL_STYLE,
     NULL,
-    PROCESS_QUERY_INFORMATION, 
-    PROCESS_VM_READ,
     STATE_SYSTEM_INVISIBLE,
     WM_GETICON,
     WS_EX_NOACTIVATE,
@@ -20,8 +18,6 @@ from win32con import (
     WS_THICKFRAME,
 )
 from win32gui import (
-    EnumChildWindows,
-    EnumWindows,
     GetClassLong,
     GetClassName,
     GetDC,
@@ -34,264 +30,53 @@ from win32gui import (
     IsWindowVisible,
     SendMessageTimeout,
 )
-from win32process import GetWindowThreadProcessId, GetModuleFileNameEx
 from win32ui import CreateBitmap, CreateDCFromHandle
 
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
 from arrangeit.settings import Settings
-from arrangeit.utils import append_to_collection, open_image
+from arrangeit.utils import open_image
+from arrangeit.windows.apihelpers import (
+    TITLEBARINFO,
+    WINDOWINFO,
+    enum_windows,
+    _package_full_name_from_handle,
+    get_child_process_with_different_pid,
+)
 
 DWMWA_CLOAKED = 14
 ERROR_SUCCESS = 0x0
 ERROR_INSUFFICIENT_BUFFER = 0x7A
+APPMODEL_ERROR_NO_PACKAGE = 15700
+
 PACKAGE_FILTER_ALL_LOADED = 0x00000000
 PACKAGE_FILTER_HEAD = 0x00000010
 PACKAGE_INFORMATION_FULL = 0x00000100
-
-PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-
-
-class PACKAGE_INFO_REFERENCE(ctypes.Structure):
-    """"""
-
-    _fields_ = [
-        ("reserved", ctypes.c_void_p),
-    ]
-
-
-class PACKAGE_SUBVERSION(ctypes.Structure):
-    """"""
-
-    _fields_ = [
-        ("Revision", ctypes.wintypes.ATOM),
-        ("Build", ctypes.wintypes.ATOM),
-        ("Minor", ctypes.wintypes.ATOM),
-        ("Major", ctypes.wintypes.ATOM),
-    ]
-
-
-class PACKAGE_VERSION(ctypes.Union):
-    """"""
-
-    _fields_ = [
-        ("Version", ctypes.c_uint64),
-        ("DUMMY", PACKAGE_SUBVERSION),
-    ]
-
-
-class PACKAGE_ID(ctypes.Union):
-    """"""
-
-    _fields_ = [
-        # ("reserved", ctypes.wintypes.UINT),
-        # ("processorArchitecture", ctypes.wintypes.UINT),
-        ("reserved", ctypes.c_uint32),
-        ("processorArchitecture", ctypes.c_uint32),
-        ("version", PACKAGE_VERSION),
-        # ("VersionRevision", ctypes.wintypes.ATOM),
-        # ("VersionBuild", ctypes.wintypes.ATOM),
-        # ("VersionMinor", ctypes.wintypes.ATOM),
-        # ("VersionMajor", ctypes.wintypes.ATOM),
-        ("name", ctypes.c_wchar_p),
-        ("publisher", ctypes.c_wchar_p),
-        ("resourceId", ctypes.c_wchar_p),
-        ("publisherId", ctypes.c_wchar_p),        
-    ]
-
-    # _map = {"processorArchitecture": EnumProcessorArchitecture}
-
-
-class PACKAGE_INFO(ctypes.Union):
-    """"""
-
-    _fields_ = [
-        ("reserved", ctypes.c_uint32),
-        ("flags", ctypes.c_uint32),
-        ("path", ctypes.c_wchar_p),
-        ("packageFullName", ctypes.c_wchar_p),
-        ("packageFamilyName", ctypes.c_wchar_p),
-        ("packageId", PACKAGE_ID),
-    ]
-
-
-class TITLEBARINFO(ctypes.Structure):
-    """Class holding ctypes ctypes.Structure data for title bar information."""
-
-    _fields_ = [
-        ("cbSize", ctypes.wintypes.DWORD),
-        ("rcTitleBar", ctypes.wintypes.RECT),
-        ("rgstate", ctypes.wintypes.DWORD * 6),
-    ]
-
-
-class WINDOWINFO(ctypes.Structure):
-    """Class holding ctypes ctypes.Structure data for window information."""
-
-    _fields_ = [
-        ("cbSize", ctypes.wintypes.DWORD),
-        ("rcWindow", ctypes.wintypes.RECT),
-        ("rcClient", ctypes.wintypes.RECT),
-        ("dwStyle", ctypes.wintypes.DWORD),
-        ("dwExStyle", ctypes.wintypes.DWORD),
-        ("dwWindowStatus", ctypes.wintypes.DWORD),
-        ("cxWindowBorders", ctypes.wintypes.UINT),
-        ("cyWindowBorders", ctypes.wintypes.UINT),
-        ("atomWindowType", ctypes.wintypes.ATOM),
-        ("win32conreatorVersion", ctypes.wintypes.DWORD),
-    ]
 
 
 class Collector(BaseCollector):
     """Collecting windows class with MS Windows specific code."""
 
-    def _get_children(self, hwnd):
-        """
-        :returns: list of integers
-        """
-        children = []
-        EnumChildWindows(hwnd, append_to_collection, children)
-        return children
+    def get_package(self, hwnd):
 
-    def package_full_name_from_handle(self, handle):
-        length = ctypes.c_uint()
-        retval = ctypes.windll.kernel32.GetPackageFullName(
-            handle, ctypes.byref(length), None
-        )
-        assert retval == ERROR_INSUFFICIENT_BUFFER
+        hprocess = get_child_process_with_different_pid(hwnd)
+        if hprocess is None:
+            logging.info(
+                "get_package: hwnd {} has no different child process id.".format(hwnd)
+            )
+            return None
 
-        full_name = ctypes.create_unicode_buffer(length.value + 1)
-        retval = ctypes.windll.kernel32.GetPackageFullName(
-            handle, ctypes.byref(length), full_name
-        )
-        assert retval == ERROR_SUCCESS
+        full_name = _package_full_name_from_handle(hprocess)
+        if not full_name:
+            return
+        else:
+            print(full_name.value)
 
-        return full_name
-
-    def package_path_from_full_name(self, full_name):
-        length = ctypes.c_uint()
-        retval = ctypes.windll.kernel32.GetPackagePathByFullName(
-            ctypes.byref(full_name), ctypes.byref(length), None
-        )
-        assert retval == ERROR_INSUFFICIENT_BUFFER
-
-        package_path = ctypes.create_unicode_buffer(length.value)
-        retval = ctypes.windll.kernel32.GetPackagePathByFullName(
-            ctypes.byref(full_name), ctypes.byref(length), ctypes.byref(package_path)
-        )
-        assert retval == ERROR_SUCCESS
-
-        return package_path
-
-    def package_family_name_from_full_name(self, full_name):
-        length = ctypes.c_uint()
-        retval = ctypes.windll.kernel32.PackageFamilyNameFromFullName(
-            ctypes.byref(full_name), ctypes.byref(length), None
-        )
-        assert retval == ERROR_INSUFFICIENT_BUFFER
-
-        family_name = ctypes.create_unicode_buffer(length.value)
-        retval = ctypes.windll.kernel32.PackageFamilyNameFromFullName(
-            ctypes.byref(full_name), ctypes.byref(length), ctypes.byref(family_name)
-        )
-        assert retval == ERROR_SUCCESS
-
-        return family_name
-
-    def package_id_from_full_name(self, full_name):
-        length = ctypes.c_uint(0)
-        count = ctypes.c_uint()
-
-        retval = ctypes.windll.kernel32.PackageIdFromFullName(
-            ctypes.byref(full_name),
-            PACKAGE_INFORMATION_FULL, 
-            ctypes.byref(length),
-            None
-        )
-        assert retval == ERROR_INSUFFICIENT_BUFFER
-        
-        buffer = ctypes.create_string_buffer(length.value)
-        retval = ctypes.windll.kernel32.PackageIdFromFullName(
-            ctypes.byref(full_name),
-            PACKAGE_INFORMATION_FULL, 
-            ctypes.byref(length), 
-            ctypes.byref(buffer)
-        )
-        assert retval == ERROR_SUCCESS
-
-        return buffer
-
-    def package_info_reference_from_full_name(self, full_name):
-        package_info_reference = ctypes.pointer(PACKAGE_INFO_REFERENCE())
-        retval = ctypes.windll.kernel32.OpenPackageInfoByFullName(
-            ctypes.byref(full_name), 0, ctypes.byref(package_info_reference)
-        )
-        assert retval == ERROR_SUCCESS
-
-        return package_info_reference
-
-    def package_info_buffer_from_reference(self, package_info_reference):
-        length = ctypes.c_uint(0)
-        count = ctypes.c_uint()
-
-        retval = ctypes.windll.kernel32.GetPackageInfo(
-            package_info_reference, 
-            PACKAGE_FILTER_HEAD, 
-            ctypes.byref(length),
-            None,
-            ctypes.byref(count)
-        )
-        assert retval == ERROR_INSUFFICIENT_BUFFER
-        
-        buffer = ctypes.create_string_buffer(length.value)
-        retval = ctypes.windll.kernel32.GetPackageInfo(
-            package_info_reference, 
-            PACKAGE_FILTER_HEAD, 
-            ctypes.byref(length), 
-            ctypes.byref(buffer),
-            ctypes.byref(count)
-        )
-        assert retval == ERROR_SUCCESS
-
-        return buffer
-
-    def get_uwpapp_icon(self, hwnd):
+    def _get_uwpapp_icon(self, hwnd):
         """
         TODO check what is happened when window is minimized (no different child_pid)
-        """        
-        _, pid = GetWindowThreadProcessId(hwnd)
-        children = self._get_children(hwnd)
-        for child in children:
-            _, child_pid = GetWindowThreadProcessId(child)
-            if child_pid != pid:
-                # hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, child_pid)
-                hprocess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-                break
-
-        full_name = self.package_full_name_from_handle(hprocess.handle)
-        print("\n             full name:", full_name.value)
-        package_path = self.package_path_from_full_name(full_name)
-        print("          package path:", package_path.value)
-        family_name = self.package_family_name_from_full_name(full_name)
-        print("           family name:", family_name.value)
-        package_info_reference = self.package_info_reference_from_full_name(full_name)
-        print("package info reference:", package_info_reference.contents.reserved)
-
-        package_info_buffer = self.package_info_buffer_from_reference(package_info_reference)
-        package_info = PACKAGE_INFO()
-        ctypes.memmove(ctypes.addressof(package_info), package_info_buffer, ctypes.sizeof(package_info))
-        print("       packageFullName:", package_info.packageFullName)
-
-        package_id_buffer = self.package_id_from_full_name(full_name)
-        package_id = PACKAGE_ID()
-        ctypes.memmove(ctypes.addressof(package_id), package_id_buffer, ctypes.sizeof(package_id))
-        print("       package id name:", package_id.name)
-
-        CloseHandle(hprocess)
-        ctypes.windll.kernel32.ClosePackageInfo(package_info_reference)
-
-        # print("no icon", GetWindowText(hwnd))
-        # hicon = LoadIcon(hwnd, icon_handle)
+        """
+        package = self.get_package(hwnd)
         return open_image("white.png")
 
     def _get_application_icon(self, hwnd):
@@ -307,7 +92,7 @@ class Collector(BaseCollector):
         if icon_handle == 0:
             icon_handle = GetClassLong(hwnd, GCL_HICON)
             if icon_handle == 0:
-                return self.get_uwpapp_icon(hwnd)
+                return self._get_uwpapp_icon(hwnd)
 
         return self._get_image_from_icon_handle(icon_handle)
 
@@ -322,7 +107,7 @@ class Collector(BaseCollector):
 
     def _get_image_from_icon_handle(self, icon_handle):
         """Creates and returns PIL image from provided handle to icon.
-        
+
         :param icon_handle: handle to windows icon in window instance
         :type icon_handle: int
         :var size: icon size in pixels
@@ -335,7 +120,7 @@ class Collector(BaseCollector):
         :type main_hdc: int
         :var buffer: string of bitmap bits
         :type buffer: str
-        :returns: :class:`PIL.Image` instance        
+        :returns: :class:`PIL.Image` instance
         """
         size = Settings.ICON_SIZE
         source_hdc = CreateDCFromHandle(GetDC(0))
@@ -502,15 +287,11 @@ class Collector(BaseCollector):
         return [rect for (_a, _b, rect) in EnumDisplayMonitors(None, None)]
 
     def get_windows(self):
-        """Creates and returns list of all the windows hwnds
-
-        by calling win32gui.EnumWindows with append_to_collection as the argument.
+        """Creates and returns list of all the windows handles
 
         :returns: list of integers
         """
-        hwnds = []
-        EnumWindows(append_to_collection, hwnds)
-        return hwnds
+        return enum_windows()
 
     def get_workspace_number_for_window(self, hwnd):
         """TODO implement

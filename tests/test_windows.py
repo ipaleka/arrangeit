@@ -1,13 +1,22 @@
 import pytest
 
-from win32con import (STATE_SYSTEM_INVISIBLE, SW_MINIMIZE, SW_RESTORE,
-                      WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_THICKFRAME)
+from win32con import (
+    STATE_SYSTEM_INVISIBLE,
+    SW_MINIMIZE,
+    SW_RESTORE,
+    WS_EX_NOACTIVATE,
+    WS_EX_TOOLWINDOW,
+    WS_THICKFRAME,
+)
 
 from arrangeit.settings import Settings
 from arrangeit.windows.app import App
-from arrangeit.windows.collector import (DWMWA_CLOAKED, GCL_HICON,
-                                         TITLEBARINFO, WINDOWINFO, WM_GETICON,
-                                         Collector)
+from arrangeit.windows.collector import (
+    DWMWA_CLOAKED,
+    GCL_HICON,
+    WM_GETICON,
+    Collector,
+)
 from arrangeit.windows.controller import Controller
 from arrangeit.windows.utils import user_data_path
 
@@ -211,48 +220,6 @@ class TestWindowsApp(object):
 
 
 ## arrangeit.windows.collector
-class TestTITLEBARINFO(object):
-    """Testing class for :py:class:`arrangeit.windows.collector.TITLEBARINFO` class."""
-
-    def test_TITLEBARINFO_inits__fields_(self):
-        assert getattr(TITLEBARINFO, "_fields_", None) is not None
-        assert isinstance(TITLEBARINFO._fields_, list)
-        for elem in TITLEBARINFO._fields_:
-            assert isinstance(elem, tuple)
-
-    @pytest.mark.parametrize("field", ["cbSize", "rcTitleBar", "rgstate"])
-    def test_TITLEBARINFO_has_field_with_type(self, field):
-        assert getattr(TITLEBARINFO, field, None) is not None
-
-
-class TestWINDOWINFO(object):
-    """Testing class for :py:class:`arrangeit.windows.collector.WINDOWINFO` class."""
-
-    def test_WINDOWINFO_inits__fields_(self):
-        assert getattr(WINDOWINFO, "_fields_", None) is not None
-        assert isinstance(WINDOWINFO._fields_, list)
-        for elem in WINDOWINFO._fields_:
-            assert isinstance(elem, tuple)
-
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "cbSize",
-            "rcWindow",
-            "rcClient",
-            "dwStyle",
-            "dwExStyle",
-            "dwWindowStatus",
-            "cxWindowBorders",
-            "cyWindowBorders",
-            "atomWindowType",
-            "win32conreatorVersion",
-        ],
-    )
-    def test_WINDOWINFO_has_field_with_type(self, field):
-        assert getattr(WINDOWINFO, field, None) is not None
-
-
 class TestWindowsCollector(object):
     """Testing class for :py:class:`arrangeit.windows.collector.Collector` class."""
 
@@ -260,7 +227,9 @@ class TestWindowsCollector(object):
     def test_WindowsCollector__get_application_icon_calls_SendMessageTimeout(
         self, mocker
     ):
-        mocker.patch("arrangeit.windows.collector.Collector._get_image_from_icon_handle")
+        mocker.patch(
+            "arrangeit.windows.collector.Collector._get_image_from_icon_handle"
+        )
         mocked = mocker.patch(
             "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 1)
         )
@@ -270,22 +239,47 @@ class TestWindowsCollector(object):
         mocked.assert_called_with(SAMPLE, WM_GETICON, 1, 0, 0, 50)
 
     def test_WindowsCollector__get_application_icon_calls_GetClassLong(self, mocker):
-        mocker.patch("arrangeit.windows.collector.Collector._get_image_from_icon_handle")
+        mocker.patch(
+            "arrangeit.windows.collector.Collector._get_image_from_icon_handle"
+        )
         mocker.patch(
             "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 0)
         )
-        mocked = mocker.patch("arrangeit.windows.collector.GetClassLong", return_value=1)
+        mocked = mocker.patch(
+            "arrangeit.windows.collector.GetClassLong", return_value=1
+        )
         SAMPLE = 108
         Collector()._get_application_icon(SAMPLE)
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE, GCL_HICON)
 
-    def test_WindowsCollector__get_application_icon_calls__get_image_from_icon_handle(self, mocker):
+    def test_WindowsCollector__get_application_icon_calls__get_uwpapp_icon(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.windows.collector.Collector._get_image_from_icon_handle"
+        )
+        mocker.patch(
+            "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, 0)
+        )
+        mocker.patch("arrangeit.windows.collector.GetClassLong", return_value=0)
+        mocked = mocker.patch("arrangeit.windows.collector.Collector._get_uwpapp_icon")
+        SAMPLE = 452
+        returned = Collector()._get_application_icon(SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE)
+        assert returned == mocked.return_value
+
+    def test_WindowsCollector__get_application_icon_calls__get_image_from_icon_handle(
+        self, mocker
+    ):
         SAMPLE = 15002
         mocker.patch(
             "arrangeit.windows.collector.SendMessageTimeout", return_value=(0, SAMPLE)
         )
-        mocked = mocker.patch("arrangeit.windows.collector.Collector._get_image_from_icon_handle")
+        mocked = mocker.patch(
+            "arrangeit.windows.collector.Collector._get_image_from_icon_handle"
+        )
         returned = Collector()._get_application_icon(100)
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE)
@@ -325,7 +319,9 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE)
 
-    def test_WindowsCollector__get_image_from_icon_handle_calls_CreateBitmap(self, mocker):
+    def test_WindowsCollector__get_image_from_icon_handle_calls_CreateBitmap(
+        self, mocker
+    ):
         mocker.patch("arrangeit.windows.collector.GetDC")
         mocker.patch("arrangeit.windows.collector.CreateDCFromHandle")
         mocker.patch("arrangeit.windows.collector.Image.frombuffer")
@@ -359,7 +355,9 @@ class TestWindowsCollector(object):
         mocked.return_value.CreateCompatibleDC.assert_called_once()
         mocked.return_value.CreateCompatibleDC.assert_called_with()
 
-    def test_WindowsCollector__get_image_from_icon_handle_calls_dc_SelectObject(self, mocker):
+    def test_WindowsCollector__get_image_from_icon_handle_calls_dc_SelectObject(
+        self, mocker
+    ):
         mocker.patch("arrangeit.windows.collector.GetDC")
         mocker.patch("arrangeit.windows.collector.Image.frombuffer")
         mocked_bitmap = mocker.patch("arrangeit.windows.collector.CreateBitmap")
@@ -369,7 +367,9 @@ class TestWindowsCollector(object):
         mocked_hdc.SelectObject.assert_called_once()
         mocked_hdc.SelectObject.assert_called_with(mocked_bitmap.return_value)
 
-    def test_WindowsCollector__get_image_from_icon_handle_calls_dc_DrawIcon(self, mocker):
+    def test_WindowsCollector__get_image_from_icon_handle_calls_dc_DrawIcon(
+        self, mocker
+    ):
         mocker.patch("arrangeit.windows.collector.GetDC")
         mocker.patch("arrangeit.windows.collector.CreateBitmap")
         mocker.patch("arrangeit.windows.collector.Image.frombuffer")
@@ -701,26 +701,18 @@ class TestWindowsCollector(object):
         returned = Collector().get_monitors_rects()
         assert returned == [RECT1, RECT2]
 
+    # WindowsCollector.get_windows
+    def test_WindowsCollector_get_windows_calls_enum_windows(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.collector.enum_windows")
+        returned = Collector().get_windows()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+        assert returned == mocked.return_value
+
     ## WindowsCollector.get_workspace_number_for_window
     @pytest.mark.skip("Research how to deal with workspaces in MS Windows")
     def test_WindowsCollector_get_workspace_number_for_window_(self, mocker):
         pass
-
-    ## WindowsCollector.get_windows
-    def test_WindowsCollector_get_windows_calls_EnumWindows(self, mocker):
-        mocked = mocker.patch("arrangeit.windows.collector.EnumWindows")
-        Collector().get_windows()
-        mocked.assert_called_once()
-
-    def test_WindowsCollector_get_windows_calls_append_to_collection(self, mocker):
-        mocked = mocker.patch("arrangeit.windows.collector.append_to_collection")
-        Collector().get_windows()
-        mocked.assert_called()
-
-    def test_WindowsCollector_get_windows_returns_non_empty_list(self):
-        returned = Collector().get_windows()
-        assert isinstance(returned, list)
-        assert len(returned) > 0
 
     ## WindowsCollector.is_applicable
     @pytest.mark.parametrize(
@@ -851,7 +843,6 @@ class TestWindowsCollector(object):
         mocker.patch("arrangeit.windows.collector.GetWindowLong", return_value=value)
         assert Collector().is_resizable(SAMPLE_HWND) == expected
 
-
     ## WindowsCollector.is_restored
     @pytest.mark.parametrize("method", ["IsIconic"])
     def test_WindowsCollector_is_restored_calls(self, mocker, method):
@@ -860,13 +851,10 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_HWND)
 
-    @pytest.mark.parametrize(
-        "value,expected", [(False, True), (True, False)]
-    )
+    @pytest.mark.parametrize("value,expected", [(False, True), (True, False)])
     def test_WindowsCollector_is_restored_return(self, mocker, value, expected):
         mocker.patch("arrangeit.windows.collector.IsIconic", return_value=value)
         assert Collector().is_restored(SAMPLE_HWND) == expected
-
 
     ## WindowsCollector.is_valid_state
     @pytest.mark.parametrize("method", ["_is_activable"])

@@ -128,3 +128,21 @@
   :members:
   :undoc-members:
   :show-inheritance:
+
+
+:mod:`tests.mock_helpers` -- Unit testing mock helper functions
+---------------------------------------------------------------
+
+.. automodule:: tests.mock_helpers
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.nested_helper` -- Helper module for unit testing of inner/nested functions
+--------------------------------------------------------------------------------------
+
+.. automodule:: tests.nested_helper
+  :members:
+  :undoc-members:
+  :show-inheritance:
