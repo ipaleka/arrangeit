@@ -1,6 +1,10 @@
+import os
+import re
 import ctypes
 import ctypes.wintypes
+from itertools import product
 import logging
+import xml.etree.ElementTree as ET
 
 from PIL import Image
 
@@ -39,9 +43,18 @@ from arrangeit.utils import open_image
 from arrangeit.windows.apihelpers import (
     TITLEBARINFO,
     WINDOWINFO,
+    PACKAGE_INFO,
     enum_windows,
     _package_full_name_from_handle,
+    package_info_reference_from_full_name,
+    package_info_buffer_from_reference,
+    package_full_name_from_hwnd,
+    _close_package_info,
+    _close_handle,
+    _package_id_from_handle,
+    _package_family_name_from_handle,
     get_child_process_with_different_pid,
+    get_child_with_different_pid
 )
 
 DWMWA_CLOAKED = 14
@@ -53,31 +66,105 @@ PACKAGE_FILTER_ALL_LOADED = 0x00000000
 PACKAGE_FILTER_HEAD = 0x00000010
 PACKAGE_INFORMATION_FULL = 0x00000100
 
+ICON_TYPES = (".targetsize-256_altform-fullcolor", ".targetsize-96_altform-unplated",".scale-200", "", ".scale-100")
+
+
+class Package(object):
+    """TODO tests and docstring"""
+
+    path = ""
+    app_name = ""
+    icon = open_image("white.png")
+
+    def __init__(self, path=""):
+        self.path = path
+        self.setup_package()
+
+    def get_first_image(self, sources):
+        for name, suffix in product(sources, ICON_TYPES):
+            check_name = os.path.splitext(name)[0] + suffix + os.path.splitext(name)[1]
+            path = os.path.join(self.path, check_name)
+            if os.path.exists(path):
+                try:
+                    print(path)
+                    image = Image.open(path)
+                    return image.resize((Settings.ICON_SIZE, Settings.ICON_SIZE), Image.HAMMING)
+                except IOError:
+                    pass
+
+        return open_image("white.png")
+
+    def namespace_for_element(self, element):
+        match = re.match(r"\{.*\}", element.tag)
+        return match.group(0) if match else ""
+
+    def setup_package(self):
+
+        manifest_file = os.path.join(self.path, "AppXManifest.xml")
+        if not os.path.exists(manifest_file):
+            return
+        tree = ET.parse(manifest_file)
+        root = tree.getroot()
+        namespace = self.namespace_for_element(root)
+
+        for identity in next(root.iter("{}Identity".format(namespace))).iter():
+            if "Name" in identity.attrib:
+                self.app_name = identity.attrib["Name"].split(".")[-1]
+
+        sources = []
+        for subelem in next(root.iter("{}Applications".format(namespace))).iter():
+            if "VisualElements" in subelem.tag:
+                for name in ("Square44x44Logo", "Square150x150Logo"):
+                    attrib = subelem.attrib.get(name)
+                    if attrib not in sources:
+                        sources.append(attrib)
+
+        for prop in next(root.iter("{}Properties".format(namespace))).iter():
+            if "Logo" in prop.tag and prop.text not in sources:
+                sources.append(prop.text)
+
+        self.icon = self.get_first_image(sources)
+
+
+class Api(object):
+    """TODO tests and docstring"""
+
+    packages = {}
+
+    def get_package(self, hwnd):
+
+        full_name = package_full_name_from_hwnd(hwnd)
+        if not full_name:
+            logging.info("get_package: hwnd {} has no full_name.".format(hwnd))
+            return Package("")
+
+        package_info_reference = package_info_reference_from_full_name(full_name)
+        package_info_buffer, _a = package_info_buffer_from_reference(
+            package_info_reference
+        )
+        package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
+
+        _close_package_info(package_info_reference.contents)
+
+        # print(package_info.path)
+        return Package(package_info.path)
+
 
 class Collector(BaseCollector):
     """Collecting windows class with MS Windows specific code."""
 
-    def get_package(self, hwnd):
-
-        hprocess = get_child_process_with_different_pid(hwnd)
-        if hprocess is None:
-            logging.info(
-                "get_package: hwnd {} has no different child process id.".format(hwnd)
-            )
-            return None
-
-        full_name = _package_full_name_from_handle(hprocess)
-        if not full_name:
-            return
-        else:
-            print(full_name.value)
+    def __init__(self):
+        """TODO tests and docstring"""
+        super().__init__()
+        self.api = Api()
 
     def _get_uwpapp_icon(self, hwnd):
         """
         TODO check what is happened when window is minimized (no different child_pid)
         """
-        package = self.get_package(hwnd)
-        return open_image("white.png")
+        if self.api.packages.get(hwnd) is None:
+            self.api.packages[hwnd] = self.api.get_package(hwnd)
+        return self.api.packages[hwnd].icon
 
     def _get_application_icon(self, hwnd):
         """Returns application icon of the window with provided hwnd.
@@ -99,10 +186,15 @@ class Collector(BaseCollector):
     def _get_class_name(self, hwnd):
         """Returns class name for the window represented by provided handle.
 
+        TODO tests
+
         :param hwnd: window id
         :type hwnd: int
         :returns: str
         """
+        if self.api.packages.get(hwnd) is not None:
+            return self.api.packages[hwnd].app_name
+
         return GetClassName(hwnd)
 
     def _get_image_from_icon_handle(self, icon_handle):
@@ -244,8 +336,8 @@ class Collector(BaseCollector):
                 resizable=self.is_resizable(hwnd),
                 restored=self.is_restored(hwnd),
                 title=self._get_window_title(hwnd),
-                name=self._get_class_name(hwnd),
                 icon=self._get_application_icon(hwnd),
+                name=self._get_class_name(hwnd),
                 workspace=self.get_workspace_number_for_window(hwnd),
             )
         )
