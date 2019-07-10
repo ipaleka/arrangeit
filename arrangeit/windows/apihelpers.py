@@ -3,6 +3,7 @@ import ctypes.wintypes
 import logging
 import os
 import re
+import sys
 import xml.etree.ElementTree as ET
 from itertools import product
 
@@ -17,13 +18,26 @@ ERROR_SUCCESS = 0x0
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 PACKAGE_FILTER_HEAD = 0x00000010
 
-UWP_ICON_TYPES = (
+UWP_ICON_SUFFIXES = (
     ".targetsize-256_altform-fullcolor",
     ".targetsize-96_altform-unplated",
     ".scale-200",
     "",  # as is
     ".scale-100",
 )
+
+
+def platform_supports_packages():
+    """Returns Boolean indicating if Windows version supports packages.
+    
+    :var version: platform version data
+    :type version: named tuple
+    :returns: Boolean
+    """
+    version = sys.getwindowsversion()
+    if version.major > 6 or (version.major == 6 and version.minor > 1):
+        return True
+    return False
 
 
 class PACKAGE_SUBVERSION(ctypes.Structure):
@@ -148,35 +162,37 @@ _close_handle = _kernel32.CloseHandle
 _close_handle.argtypes = (ctypes.wintypes.HANDLE,)
 _close_handle.restype = ctypes.wintypes.BOOL
 
-_get_package_full_name = _kernel32.GetPackageFullName
-_get_package_full_name.argtypes = (
-    ctypes.wintypes.HANDLE,
-    ctypes.POINTER(ctypes.c_uint32),
-    ctypes.wintypes.LPCWSTR,
-)
-_get_package_full_name.restype = ctypes.wintypes.LONG
+"""Windows 8.1 and Windows 10 specific API to retrieve UWP packages."""
+if platform_supports_packages():
+    _get_package_full_name = _kernel32.GetPackageFullName
+    _get_package_full_name.argtypes = (
+        ctypes.wintypes.HANDLE,
+        ctypes.POINTER(ctypes.c_uint32),
+        ctypes.wintypes.LPCWSTR,
+    )
+    _get_package_full_name.restype = ctypes.wintypes.LONG
 
-_open_package_info_by_full_name = _kernel32.OpenPackageInfoByFullName
-_open_package_info_by_full_name.argtypes = (
-    ctypes.wintypes.LPCWSTR,
-    ctypes.c_uint32,
-    ctypes.POINTER(PACKAGE_INFO_REFERENCE),
-)
-_open_package_info_by_full_name.restype = ctypes.wintypes.LONG
+    _open_package_info_by_full_name = _kernel32.OpenPackageInfoByFullName
+    _open_package_info_by_full_name.argtypes = (
+        ctypes.wintypes.LPCWSTR,
+        ctypes.c_uint32,
+        ctypes.POINTER(PACKAGE_INFO_REFERENCE),
+    )
+    _open_package_info_by_full_name.restype = ctypes.wintypes.LONG
 
-_get_package_info = _kernel32.GetPackageInfo
-_get_package_info.argtypes = (
-    PACKAGE_INFO_REFERENCE,
-    ctypes.c_uint32,
-    ctypes.POINTER(ctypes.c_uint32),
-    ctypes.POINTER(ctypes.c_uint8),
-    ctypes.POINTER(ctypes.c_uint32),
-)
-_get_package_info.restype = ctypes.wintypes.LONG
+    _get_package_info = _kernel32.GetPackageInfo
+    _get_package_info.argtypes = (
+        PACKAGE_INFO_REFERENCE,
+        ctypes.c_uint32,
+        ctypes.POINTER(ctypes.c_uint32),
+        ctypes.POINTER(ctypes.c_uint8),
+        ctypes.POINTER(ctypes.c_uint32),
+    )
+    _get_package_info.restype = ctypes.wintypes.LONG
 
-_close_package_info = _kernel32.ClosePackageInfo
-_close_package_info.argtypes = (PACKAGE_INFO_REFERENCE,)
-_close_package_info.restype = ctypes.wintypes.LONG
+    _close_package_info = _kernel32.ClosePackageInfo
+    _close_package_info.argtypes = (PACKAGE_INFO_REFERENCE,)
+    _close_package_info.restype = ctypes.wintypes.LONG
 
 
 class Package(object):
@@ -191,7 +207,7 @@ class Package(object):
         self._setup_package()
 
     def _get_first_image(self, sources):
-        for name, suffix in product(sources, UWP_ICON_TYPES):
+        for name, suffix in product(sources, UWP_ICON_SUFFIXES):
             check_name = os.path.splitext(name)[0] + suffix + os.path.splitext(name)[1]
             path = os.path.join(self.path, check_name)
             if os.path.exists(path):
@@ -249,15 +265,29 @@ class Package(object):
 
 
 class Api(object):
-    """TODO tests and docstring"""
+    """Helper class for calls to Windows API.
+
+    :var packages: cached collection of packages distincted by windows handles
+    :type packages: dictionary of :class:`Package`
+    """
 
     packages = {}
 
     def _package_full_name_from_handle(self, handle):
         """Returns full name of the package associated with provided process handle.
 
-        :param hwnd: process handle
-        :type hwnd: int
+        First we call `_get_package_full_name` helper function to fill `length`
+        variable, and afterwards to fill `full_name` variable.
+
+        :param handle: process handle
+        :type handle: int
+        :var length: buffer size in characters
+        :type length: :class:`ctypes.c_uint`
+        :var ret_val: function return value indicating error/success status
+        :type ret_val: int
+        :var full_name: buffer holding package full name
+        :type full_name: array of :class:`ctypes.c_wchar`
+        :returns: array of :class:`ctypes.c_wchar`
         """
         length = ctypes.c_uint()
         ret_val = _get_package_full_name(handle, ctypes.byref(length), None)
@@ -282,6 +312,24 @@ class Api(object):
         return full_name
 
     def _package_full_name_from_hwnd(self, hwnd):
+        """Returns full name of the package associated with provided window identifier.
+
+        `enum_windows` is called to retrieve all the children windows. Very first
+        package full name is returned if it can be retrieved from associated process
+        of a child window.
+
+        :param hwnd: window handle
+        :type hwnd: int
+        :var child: child window identifier
+        :type child: int
+        :var child_pid: child process identifier
+        :type child_pid: int
+        :var hprocess: child process handle
+        :type hprocess: int
+        :var full_name: buffer holding package full name
+        :type full_name: array of :class:`ctypes.c_wchar`
+        :returns: array of :class:`ctypes.c_wchar`
+        """
         for child in self.enum_windows(hwnd, enum_children=True):
             child_pid = ctypes.wintypes.DWORD(0)
             _get_windows_thread_process_id(child, ctypes.byref(child_pid))
@@ -294,6 +342,25 @@ class Api(object):
                 return full_name
 
     def _package_info_buffer_from_reference(self, package_info_reference):
+        """Returns buffer of package info structure from provided reference.
+
+        First we call `_get_package_info` helper function to fill `length`
+        variable, and afterwards to fill `buffer` variable.
+
+        :param package_info_reference: reference to package info structure pointer
+        :type package_info_reference: int
+        :var length: buffer size in characters
+        :type length: :class:`ctypes.c_uint`
+        :var count: number of elements in buffer array
+        :type count: :class:`ctypes.c_uint`
+        :var ret_val: function return value indicating error/success status
+        :type ret_val: int
+        :var buffer: buffer holding reference to package info structure
+        :type buffer: array of :class:`ctypes.c_char`
+        :var buffer_bytes: size of package info structure data
+        :type buffer_bytes: array of bytes
+        :returns: array of :class:`ctypes.c_char`
+        """
         length = ctypes.c_uint(0)
         count = ctypes.c_uint()
 
@@ -332,6 +399,16 @@ class Api(object):
         return buffer
 
     def _package_info_reference_from_full_name(self, full_name):
+        """Returns reference to package info structure from provided package full name.
+
+        :param full_name: buffer holding package full name
+        :type full_name: array of :class:`ctypes.c_wchar`
+        :var package_info_reference: reference to package info structure pointer
+        :type package_info_reference: int
+        :var ret_val: function return value indicating error/success status
+        :type ret_val: int
+        :returns: int
+        """
         package_info_reference = ctypes.pointer(PACKAGE_INFO_REFERENCE())
         ret_val = _open_package_info_by_full_name(full_name, 0, package_info_reference)
         if ret_val != ERROR_SUCCESS:
@@ -370,7 +447,20 @@ class Api(object):
         return hwnds
 
     def get_package(self, hwnd):
+        """Returns :class:`Package` holding needed package data from provided window id.
 
+        :param hwnd: window id
+        :type hwnd: int
+        :var full_name: buffer holding package full name
+        :type full_name: array of :class:`ctypes.c_wchar`
+        :var package_info_reference: reference to package info structure pointer
+        :type package_info_reference: int
+        :var package_info_buffer: buffer holding reference to package info structure
+        :type package_info_buffer: array of :class:`ctypes.c_char`
+        :var package_info: structure holding package data
+        :type package_info: :class:`PACKAGE_INFO`
+        :returns: :class:`Package`
+        """
         full_name = self._package_full_name_from_hwnd(hwnd)
         if not full_name:
             logging.info("get_package: hwnd {} has no full_name.".format(hwnd))
@@ -383,462 +473,3 @@ class Api(object):
         package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
         _close_package_info(package_info_reference.contents)
         return Package(package_info.path)
-
-
-# def _package_full_name_from_handle(handle):
-#     """Returns full name of the package associated with provided process handle.
-
-#     :param hwnd: process handle
-#     :type hwnd: int
-#     """
-#     length = ctypes.c_uint()
-#     ret_val = _get_package_full_name(handle, ctypes.byref(length), None)
-#     if ret_val == APPMODEL_ERROR_NO_PACKAGE:
-#         logging.info(
-#             "_package_full_name_from_handle: handle {} has no package.".format(
-#                 hex(handle)
-#             )
-#         )
-#         return None
-
-#     full_name = ctypes.create_unicode_buffer(length.value + 1)
-#     ret_val = _get_package_full_name(handle, ctypes.byref(length), full_name)
-#     if ret_val != ERROR_SUCCESS:
-#         err = ctypes.WinError(ctypes.get_last_error())
-#         logging.info("_package_full_name_from_handle: error -> {}".format(str(err)))
-#         return None
-
-#     return full_name
-
-
-# def package_info_reference_from_full_name(full_name):
-#     package_info_reference = ctypes.pointer(PACKAGE_INFO_REFERENCE())
-#     ret_val = _open_package_info_by_full_name(full_name, 0, package_info_reference)
-#     if ret_val != ERROR_SUCCESS:
-#         raise ctypes.WinError(ctypes.get_last_error())
-
-#     return package_info_reference
-
-
-# def package_info_buffer_from_reference(package_info_reference):
-#     length = ctypes.c_uint(0)
-#     count = ctypes.c_uint()
-
-#     ret_val = _get_package_info(
-#         package_info_reference.contents,  # package_info_reference is already a pointer. We want its content.
-#         PACKAGE_FILTER_HEAD,
-#         ctypes.byref(length),
-#         None,
-#         ctypes.byref(count),
-#     )
-#     if ret_val != ERROR_INSUFFICIENT_BUFFER:
-#         raise ctypes.WinError(ctypes.get_last_error())
-
-#     buffer = ctypes.create_string_buffer(length.value)
-#     buffer_bytes = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_uint8))
-#     ret_val = _get_package_info(
-#         package_info_reference.contents,
-#         PACKAGE_FILTER_HEAD,
-#         ctypes.byref(length),
-#         buffer_bytes,
-#         ctypes.byref(count),
-#     )
-#     if ret_val != ERROR_SUCCESS:
-#         raise ctypes.WinError(ctypes.get_last_error())
-
-#     return buffer, length
-
-
-# def get_child_process_with_different_pid(hwnd):
-#     """Returns first child process with different process id for the window
-
-#     identified by provided hwnd.
-
-#     :param hwnd: window id
-#     :type hwnd: int
-#     :var hprocess: process handle
-#     :type hprocess: int
-#     :var pid: process identifier
-#     :type pid: int
-#     :var child: child window identifier
-#     :type child: int
-#     :var child_pid: child process identifier
-#     :type child_pid: int
-#     :returns: int
-#     """
-#     hprocess = None
-
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-
-#     for child in enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         if child_pid != pid:
-#             hprocess = _open_process(
-#                 PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid
-#             )
-#             break
-
-#     return hprocess
-
-
-# def get_child_with_different_pid(hwnd):
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-
-#     for child in enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         if child_pid != pid:
-#             return child_pid
-
-#     return hwnd
-
-
-# _get_package_id = _kernel32.GetPackageId
-# _get_package_id.argtypes = (
-#     ctypes.wintypes.HANDLE,
-#     ctypes.POINTER(ctypes.c_uint32),
-#     ctypes.POINTER(ctypes.c_uint8),
-# )
-# _get_package_id.restype = ctypes.wintypes.LONG
-
-
-# def _package_id_from_handle(handle):
-#     length = ctypes.c_uint()
-
-#     ret_val = _get_package_id(handle, ctypes.byref(length), None)
-#     if ret_val == APPMODEL_ERROR_NO_PACKAGE:
-#         logging.info(
-#             "_package_id_from_handle: handle {} has no package.".format(hex(handle))
-#         )
-#         return None
-
-#     buffer = ctypes.create_string_buffer(length.value)
-#     buffer_bytes = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_uint8))
-#     ret_val = _get_package_id(handle, ctypes.byref(length), buffer_bytes)
-#     if ret_val != ERROR_SUCCESS:
-#         raise ctypes.WinError(ctypes.get_last_error())
-
-#     return buffer, length
-
-# _get_package_family_name = _kernel32.GetPackageFamilyName
-# _get_package_family_name.argtypes = (
-#     ctypes.wintypes.HANDLE,
-#     ctypes.POINTER(ctypes.c_uint32),
-#     ctypes.wintypes.LPCWSTR,
-# )
-# _get_package_family_name.restype = ctypes.wintypes.LONG
-
-
-# def _package_family_name_from_handle(handle):
-#     length = ctypes.c_uint()
-#     ret_val = _get_package_family_name(handle, ctypes.byref(length), None)
-#     if ret_val == APPMODEL_ERROR_NO_PACKAGE:
-#         logging.info(
-#             "_get_package_family_name: handle {} has no package.".format(
-#                 hex(handle)
-#             )
-#         )
-#         return None
-
-#     family_name = ctypes.create_unicode_buffer(length.value + 1)
-#     ret_val = _get_package_family_name(handle, ctypes.byref(length), family_name)
-#     if ret_val != ERROR_SUCCESS:
-#         err = ctypes.WinError(ctypes.get_last_error())
-#         logging.info("_get_package_family_name: error -> {}".format(str(err)))
-#         return None
-
-#     return family_name
-
-
-# def package_full_name_from_hwnd(hwnd):
-#     for child in enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-#         full_name = _package_full_name_from_handle(hprocess)
-#         _close_handle(hprocess)
-#         if full_name is not None:
-#             return full_name
-
-
-# def print_family_names(hwnd):
-#     hprocess = None
-
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-
-#     hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-
-#     family_name = _package_family_name_from_handle(hprocess)
-#     if family_name is not None:
-#         logging.info("family_name.value: {}".format(family_name.value))
-#     _close_handle(hprocess)
-
-#     for child in enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-#         family_name = _package_family_name_from_handle(hprocess)
-#         if family_name is not None:
-#             logging.info("family_name.value: {}".format(family_name.value))
-#             logging.info("pid != child_pid: {}".format(pid != child_pid))
-#             logging.info("     pid {} ; child_pid {}".format(pid, child_pid))
-#         _close_handle(hprocess)
-#     logging.info("=" * 79)
-
-
-# def print_package_ids(hwnd):
-#     hprocess = None
-
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-
-#     hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-
-#     package_id_buffer = _package_id_from_handle(hprocess)
-#     if package_id_buffer is not None:
-#         package_id = PACKAGE_ID.from_buffer(package_id_buffer[0])
-#         logging.info("package_id.name: {}".format(package_id.name))
-#     _close_handle(hprocess)
-
-#     for child in enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-#         package_id_buffer = _package_id_from_handle(hprocess)
-#         if package_id_buffer is not None:
-#             package_id = PACKAGE_ID.from_buffer(package_id_buffer[0])
-#             logging.info("pid != child_pid: {}".format(pid != child_pid))
-#             logging.info("child package_id.name: {}".format(package_id.name))
-#             logging.info("     pid {} ; child_pid {}".format(pid, child_pid))
-#         _close_handle(hprocess)
-#     logging.info("=" * 79)
-
-# def print_package_full_names(hwnd):
-#     hprocess = None
-
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-
-#     hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-
-#     full_name = _package_full_name_from_handle(hprocess)
-#     if full_name is not None:
-#         logging.info("full_name.value: {}".format(full_name.value))
-#     _close_handle(hprocess)
-
-#     for child in enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-#         full_name = _package_full_name_from_handle(hprocess)
-#         if full_name is not None:
-#             logging.info("child full_name.value: {}".format(full_name.value))
-#             logging.info("     pid {} ; child_pid {}".format(pid, child_pid))
-#         _close_handle(hprocess)
-#     logging.info("=" * 79)
-
-
-# def print_children(hwnd):
-#     hprocess = None
-
-#     logging.info("print_children: hwnd {} : hex {}".format(hwnd, hex(hwnd)))
-
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-
-#     logging.info("print_children: pid {}".format(pid))
-#     hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-#     logging.info("print_children: hprocess {} : hex {}".format(hprocess, hex(hprocess)))
-#     _close_handle(hprocess)
-#     logging.info("\n")
-
-#     for child in enum_windows(hwnd, enum_children=True):
-#         logging.info("print_children: child hwnd {} : hex {}".format(child, hex(child)))
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         logging.info("print_children: child_pid {}".format(child_pid))
-#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-#         logging.info(
-#             "print_children: child hprocess {} : hex {}".format(hprocess, hex(hprocess))
-#         )
-#         _close_handle(hprocess)
-#     logging.info("=" * 79)
-
-
-# _get_application_user_model_id = _kernel32.GetApplicationUserModelId
-# _get_application_user_model_id.argtypes = (
-#     ctypes.wintypes.HANDLE,
-#     ctypes.POINTER(ctypes.c_uint32),
-#     ctypes.wintypes.LPCWSTR,
-# )
-# _get_application_user_model_id.restype = ctypes.wintypes.LONG
-
-# APPMODEL_ERROR_NO_APPLICATION = 0x3D57
-# def _application_user_model_id_from_handle(handle):
-#     length = ctypes.c_uint()
-#     ret_val = _get_application_user_model_id(handle, ctypes.byref(length), None)
-#     if ret_val == APPMODEL_ERROR_NO_APPLICATION:
-#         logging.info(
-#             "_get_application_user_model_id: handle {} has no package.".format(
-#                 hex(handle)
-#             )
-#         )
-#         return None
-
-#     model = ctypes.create_unicode_buffer(length.value + 1)
-#     ret_val = _get_application_user_model_id(handle, ctypes.byref(length), model)
-#     if ret_val != ERROR_SUCCESS:
-#         err = ctypes.WinError(ctypes.get_last_error())
-#         logging.info("_get_application_user_model_id: error -> {}".format(str(err)))
-#         return None
-
-#     return model
-
-
-# def print_model_ids(hwnd):
-#     hprocess = None
-
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-
-#     hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-
-#     model = _application_user_model_id_from_handle(hprocess)
-#     if model is not None:
-#         logging.info("model.value: {}".format(model.value))
-#     _close_handle(hprocess)
-
-#     for child in enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-#         model = _application_user_model_id_from_handle(hprocess)
-#         if model is not None:
-#             logging.info("model.value: {}".format(model.value))
-#             logging.info("pid != child_pid: {}".format(pid != child_pid))
-#             logging.info("     pid {} ; child_pid {}".format(pid, child_pid))
-#         _close_handle(hprocess)
-#     logging.info("=" * 79)
-
-
-# def get_package(self, hwnd):
-#     # from arrangeit.windows.apihelpers import print_children
-#     # print_children(hwnd)
-#     # from arrangeit.windows.apihelpers import print_package_ids
-#     # print_package_ids(hwnd)
-#     # from arrangeit.windows.apihelpers import print_family_names
-#     # print_family_names(hwnd)
-#     # from arrangeit.windows.apihelpers import print_model_ids
-#     # print_model_ids(hwnd)
-#     # from arrangeit.windows.apihelpers import print_package_full_names
-#     # print_package_full_names(hwnd)
-#     # hprocess = get_child_process_with_different_pid(hwnd)
-#     # if hprocess is None:
-#     #     logging.info(
-#     #         "get_package: hwnd {} has no different child process id.".format(hwnd)
-#     #     )
-#     #     return None
-
-#     # full_name = _package_full_name_from_handle(hprocess)
-#     # if not full_name:
-#     #     return
-#     # else:
-#     #     print(full_name.value)
-
-#     # hprocess = get_child_process_with_different_pid(hwnd)
-#     # if hprocess is None:
-#     #     logging.info(
-#     #         "get_package: hwnd {} has no different child process id.".format(hwnd)
-#     #     )
-#     #     return None
-
-#     full_name = package_full_name_from_hwnd(hwnd)
-#     if not full_name:
-#         logging.info(
-#             "get_package: hwnd {} has no full_name.".format(hwnd)
-#         )
-#         return
-#     # else:
-#     #     print(full_name.value)
-
-#     package_info_reference = package_info_reference_from_full_name(full_name)
-#     logging.info(
-#         "info reference: {} reserved.".format(package_info_reference.contents.reserved)
-#     )
-
-#     package_info_buffer, length = package_info_buffer_from_reference(package_info_reference)
-#     package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
-#     logging.info(
-#         "package_info.packageFullName: {}".format(package_info.packageFullName)
-#     )
-
-#     manifest_file = os.path.join(package_info.path, "AppXManifest.xml")
-#     tree = ET.parse(manifest_file)
-#     root = tree.getroot()
-#     # schema = "http://schemas.microsoft.com/appx/2010/manifest"
-
-#     namespace = self.api.namespace_for_element(root)
-
-#     print(package_info.path)
-
-#     # app = root.iter("{}Applications".format(namespace))
-#     # print("## {} {} ".format(app.tag, app.attrib))
-#     sources = set()
-#     for prop in next(root.iter("{}Properties".format(namespace))).iter():
-#         if "Logo" in prop.tag:
-#             # print("Properties/Logo ## {} {} ".format(prop.tag, prop.attrib))
-#             sources.add(prop.text)
-
-#     for subelem in next(root.iter("{}Applications".format(namespace))).iter():
-#         # print("#### {} {} ".format(subelem.tag, subelem.attrib))
-#         if "VisualElements" in subelem.tag:
-#             # print("Applications/VisualElements #### {} {} ".format(subelem.tag, subelem.attrib))
-#             sources.add(subelem.attrib.get("Square44x44Logo"))
-#             sources.add(subelem.attrib.get("Square150x150Logo"))
-
-#         # MicrosoftEdgeSquare44x44.scale-100.png
-
-#     print(sources)
-#     print("\n")
-#     # Square150x150Logo and Square44x44Logo
-
-#     # for app in root.iter("{}Applications".format(namespace)):
-#     #     print("## {} ".format(app.text,))
-
-#     #     for subelem in app.iter():
-#     #         print("#### {} {} ".format(subelem.tag, subelem.attrib))
-
-#         # for visual in root.iter("{}VisualElements".format(namespace)):
-#         #     print("## {} {} ".format(visual.tag, visual.attrib))
-
-#     # print("{} {} ".format(root.tag, root.attrib))
-#     # for elem in root:
-#     #     print("## {} {} ".format(elem.tag, elem.attrib))
-#     #     for subelem in elem:
-#     #         print("#### {} {} ".format(subelem.tag, subelem.attrib))
-
-#     # _close_handle(hprocess)
-#     _close_package_info(package_info_reference.contents)
-
-#     # from arrangeit.windows.apihelpers import PACKAGE_ID
-#     # package_id_buffer = _package_id_from_handle(hprocess)
-#     # if package_id_buffer is not None:
-#     #     package_id = PACKAGE_ID.from_buffer(package_id_buffer[0])
-#     #     print("package_id.name:", package_id.name)
-
-#     # family_name = _package_family_name_from_handle(hprocess)
-#     # if not family_name:
-#     #     return
-#     # else:
-#     #     print(family_name.value)
-
-#     # full_name = _package_full_name_from_handle(hprocess)
-#     # if not full_name:
-#     #     return
-#     # else:
-#     #     print(full_name.value)
-

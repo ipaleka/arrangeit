@@ -5,19 +5,21 @@ import importlib
 import pytest
 
 import arrangeit.windows.apihelpers as apihelpers
-
 from arrangeit.windows.apihelpers import (
-    PACKAGE_SUBVERSION,
-    PACKAGE_VERSION_U,
-    PACKAGE_VERSION,
+    platform_supports_packages,
     PACKAGE_ID,
     PACKAGE_INFO,
     PACKAGE_INFO_REFERENCE,
+    PACKAGE_SUBVERSION,
+    PACKAGE_VERSION,
+    PACKAGE_VERSION_U,
     TITLEBARINFO,
     WINDOWINFO,
     Api,
 )
+
 from .nested_helper import nested
+
 
 ## structures
 class TestPACKAGE_SUBVERSION(object):
@@ -237,7 +239,7 @@ class TestWindowsapiHelperFunctions(object):
         assert apihelpers.WNDENUMPROC._restype_ == ctypes.wintypes.BOOL
         assert apihelpers.WNDENUMPROC._argtypes_[0] == ctypes.wintypes.HWND
         assert apihelpers.WNDENUMPROC._argtypes_[1] == ctypes.wintypes.LPARAM
-        
+
     # _get_windows_thread_process_id
     def test_windows_apihelpers_defines__get_windows_thread_process_id(self):
         assert apihelpers.__dict__.get("_get_windows_thread_process_id") is not None
@@ -302,6 +304,12 @@ class TestWindowsapiHelperFunctions(object):
         assert apihelpers._close_handle.argtypes == (ctypes.wintypes.HANDLE,)
         assert apihelpers._close_handle.restype == ctypes.wintypes.BOOL
 
+
+# windowsapi helper functions for Windows >= 8.1
+@pytest.mark.skipif(not platform_supports_packages(), reason="Win 8 and 10 only")
+class TestWindowsapiHelperFunctionsWin8and10(object):
+    """Testing class for :py:mod:`arrangeit.windows.apihelpers` Win8 and 10 functions."""
+
     # _get_package_full_name
     def test_windows_apihelpers_defines__get_package_full_name(self):
         assert apihelpers.__dict__.get("_get_package_full_name") is not None
@@ -309,9 +317,7 @@ class TestWindowsapiHelperFunctions(object):
             apihelpers._get_package_full_name == apihelpers._kernel32.GetPackageFullName
         )
 
-    def test_windows_apihelpers__get_package_full_name_argtypes_and_restype(
-        self
-    ):
+    def test_windows_apihelpers__get_package_full_name_argtypes_and_restype(self):
         argtypes = apihelpers._get_package_full_name.argtypes
         assert argtypes[0] == ctypes.wintypes.HANDLE
         assert isinstance(argtypes[1], type(ctypes._Pointer))
@@ -373,7 +379,6 @@ class TestWindowsapiHelperFunctions(object):
 # Package
 # TODO
 
-
 # Api class public methods
 class TestWindowsapiApiPublic(object):
     """Testing class for :py:class:`arrangeit.windows.apihelpers.Api` public methods."""
@@ -411,6 +416,12 @@ class TestWindowsapiApiPublic(object):
         mocker.patch("arrangeit.windows.apihelpers.WNDENUMPROC")
         mocker.patch("arrangeit.windows.apihelpers._enum_windows")
         assert isinstance(Api().enum_windows(), list)
+
+
+# Api class public methods for Windows >= 8.1
+@pytest.mark.skipif(not platform_supports_packages(), reason="Win 8 and 10 only")
+class TestWindowsapiApiPublicWin8and10(object):
+    """Testing class for :py:class:`arrangeit.windows.apihelpers.Api` Win8 and 10 public methods."""
 
     # get_package
     def test_apihelpers_Api_get_package_calls__package_full_name_from_hwnd(
@@ -539,7 +550,8 @@ class TestWindowsapiApiPublic(object):
 
 
 # Api class private methods
-class TestWindowsapiApiPrivate(object):
+@pytest.mark.skipif(not platform_supports_packages(), reason="Win 8 and 10 only")
+class TestWindowsapiApiPrivateWin8and10(object):
     """Testing class for :py:class:`arrangeit.windows.apihelpers.Api` private methods."""
 
     # _package_full_name_from_handle
@@ -723,7 +735,7 @@ class TestWindowsapiApiPrivate(object):
         )
         mocker.patch("ctypes.byref")
         mocker.patch(
-            "arrangeit.windows.apihelpers.Api.enum_windows", return_value=[5845,]
+            "arrangeit.windows.apihelpers.Api.enum_windows", return_value=[5845]
         )
         mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
         returned = Api()._package_full_name_from_hwnd(2847)
@@ -739,7 +751,7 @@ class TestWindowsapiApiPrivate(object):
         )
         mocker.patch("ctypes.byref")
         mocker.patch(
-            "arrangeit.windows.apihelpers.Api.enum_windows", return_value=[5845,]
+            "arrangeit.windows.apihelpers.Api.enum_windows", return_value=[5845]
         )
         mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
         returned = Api()._package_full_name_from_hwnd(2847)
