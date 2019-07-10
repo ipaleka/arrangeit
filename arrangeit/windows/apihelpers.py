@@ -29,7 +29,7 @@ UWP_ICON_SUFFIXES = (
 
 def platform_supports_packages():
     """Returns Boolean indicating if Windows version supports packages.
-    
+
     :var version: platform version data
     :type version: named tuple
     :returns: Boolean
@@ -196,17 +196,43 @@ if platform_supports_packages():
 
 
 class Package(object):
-    """TODO tests and docstring"""
+    """Helper class for calls to Windows API.
+
+    :var path: filesystem path to package directory
+    :type path: str
+    :var app_name: name of package's first application
+    :type app_name: str
+    :var icon: application icon
+    :type icon: :class:`PIL.Image`
+    """
 
     path = ""
     app_name = ""
     icon = open_image("white.png")
 
     def __init__(self, path=""):
+        """Sets `path` attribute from provided argument and calls package setup.
+
+        :param path: filesystem path to package directory
+        :type path: str
+        """
         self.path = path
-        self._setup_package()
+        self.setup_package()
 
     def _get_first_image(self, sources):
+        """Returns first image that exists in filesystem for provided `sources`
+
+        in combination to package path and defined icon sufixess. Returned image is
+        resized to icon size defined in Settings.
+
+        :param sources: collection of image paths relative to their package directory
+        :type sources: list
+        :var check_name: filename made of sources element and suffix
+        :type check_name: str
+        :var path: full path to eventual image file
+        :type path: str
+        :returns: :class:`PIL.Image` instance
+        """
         for name, suffix in product(sources, UWP_ICON_SUFFIXES):
             check_name = os.path.splitext(name)[0] + suffix + os.path.splitext(name)[1]
             path = os.path.join(self.path, check_name)
@@ -221,6 +247,14 @@ class Package(object):
         return open_image("white.png")
 
     def _get_manifest_root(self):
+        """Returns root element of package's manifest XML document.
+
+        :var manifest_file: path to XML document
+        :type manifest_file: str
+        :var tree: package information
+        :type tree: :class:`xml.etree.ElementTree`
+        :returns: :class:`xml.etree.ElementTree.Element`
+        """
         manifest_file = os.path.join(self.path, "AppXManifest.xml")
         if not os.path.exists(manifest_file):
             return True
@@ -229,10 +263,31 @@ class Package(object):
         return tree.getroot()
 
     def _namespace_for_element(self, element):
+        """Returns XML namespace from the tag of provided XML `element`.
+
+        https://stackoverflow.com/a/20104763/11703358
+
+        :param element: element of XML document
+        :type element: :class:`xml.etree.ElementTree.Element`
+        :var match: regular expression match object
+        :type match: :class:`re.Match`
+        :returns: str
+        """
         match = re.match(r"\{.*\}", element.tag)
         return match.group(0) if match else ""
 
     def _setup_app_name(self, root):
+        """Sets app_name attribute from provided `root` XML element
+
+        by extracting Identity element's Name attribute.
+
+        :param root: root element of XML document
+        :type root: :class:`xml.etree.ElementTree.Element`
+        :var namespace: namespace retrieved from root XML element
+        :type namespace: str
+        :var identity: package's identity
+        :type identity: :class:`xml.etree.ElementTree.Element`
+        """
         namespace = self._namespace_for_element(root)
         for identity in next(root.iter("{}Identity".format(namespace))).iter():
             if "Name" in identity.attrib:
@@ -240,6 +295,24 @@ class Package(object):
                 break
 
     def _setup_icon(self, root):
+        """Sets icon attribute from provided `root` XML element
+
+        by extracting predefined image types from XML document and picking
+        the first that exists in filesystem.
+
+        :param root: root element of XML document
+        :type root: :class:`xml.etree.ElementTree.Element`
+        :var sources: collection of image paths relative to their package directory
+        :type sources: list
+        :var namespace: namespace retrieved from root XML element
+        :type namespace: str
+        :var subelem: current child element of the first Applications XML element
+        :type subelem: :class:`xml.etree.ElementTree.Element`
+        :var prop: current child element of the first Properties XML element
+        :type prop: :class:`xml.etree.ElementTree.Element`
+        :var attrib: image path relative to package directory
+        :type attrib: str
+        """
         sources = []
         namespace = self._namespace_for_element(root)
         for subelem in next(root.iter("{}Applications".format(namespace))).iter():
@@ -257,8 +330,14 @@ class Package(object):
 
         self.icon = self._get_first_image(sources)
 
-    def _setup_package(self):
+    def setup_package(self):
+        """Retrieves and sets package data.
 
+        TODO add call to this method if window is minimized
+
+        :var root: root element of XML document
+        :type root: :class:`xml.etree.ElementTree.Element`
+        """
         root = self._get_manifest_root()
         self._setup_app_name(root)
         self._setup_icon(root)

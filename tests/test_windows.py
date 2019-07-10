@@ -11,12 +11,8 @@ from win32con import (
 
 from arrangeit.settings import Settings
 from arrangeit.windows.app import App
-from arrangeit.windows.collector import (
-    DWMWA_CLOAKED,
-    GCL_HICON,
-    WM_GETICON,
-    Collector,
-)
+from arrangeit.windows.apihelpers import Package
+from arrangeit.windows.collector import DWMWA_CLOAKED, GCL_HICON, WM_GETICON, Collector
 from arrangeit.windows.controller import Controller
 from arrangeit.windows.utils import user_data_path
 
@@ -223,6 +219,49 @@ class TestWindowsApp(object):
 class TestWindowsCollector(object):
     """Testing class for :py:class:`arrangeit.windows.collector.Collector` class."""
 
+    ## WindowsCollector.__init__
+    def test_WindowsCollector__init__calls_super(self, mocker):
+        mocked = mocker.patch("arrangeit.base.BaseCollector.__init__")
+        Collector()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_WindowsCollector__init__initializes_Api_and_sets_it_as_attribute(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.windows.collector.Api")
+        collector = Collector()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+        assert collector.api == mocked.return_value
+
+    ## WindowsCollector._get_uwpapp_icon
+    def test_WindowsCollector__get_uwpapp_icon_calls_get_package(self, mocker):
+        SAMPLE = 220
+        mocked = mocker.patch("arrangeit.windows.collector.Api")
+        mocked.return_value.packages = {}
+        Collector()._get_uwpapp_icon(SAMPLE)
+        mocked.return_value.get_package.assert_called_once()
+        mocked.return_value.get_package.assert_called_with(SAMPLE)
+
+    def test_WindowsCollector__get_uwpapp_icon_sets_api_packages_for_hwnd(self, mocker):
+        SAMPLE = 221
+        mocked = mocker.patch("arrangeit.windows.collector.Api")
+        mocked.return_value.packages = {}
+        Collector()._get_uwpapp_icon(SAMPLE)
+        assert (
+            mocked.return_value.packages[SAMPLE]
+            == mocked.return_value.get_package.return_value
+        )
+
+    def test_WindowsCollector__get_uwpapp_icon_returns_icon(self, mocker):
+        SAMPLE = 222
+        mocked = mocker.patch("arrangeit.windows.collector.Api")
+        PACKAGE = Package("")
+        mocked.return_value.packages = {SAMPLE: PACKAGE}
+        returned = Collector()._get_uwpapp_icon(SAMPLE)
+        assert returned == PACKAGE.icon
+
     ## WindowsCollector._get_application_icon
     def test_WindowsCollector__get_application_icon_calls_SendMessageTimeout(
         self, mocker
@@ -286,14 +325,25 @@ class TestWindowsCollector(object):
         assert returned == mocked.return_value
 
     ## WindowsCollector._get_class_name
+    def test_WindowsCollector__get_class_name_existing_package(self, mocker, method):
+        mocked_api = mocker.patch("arrangeit.windows.collector.Api")
+        SAMPLE = "barfoo"
+        mocked_api.return_value.packages = {SAMPLE_HWND: Package(SAMPLE)}
+        returned = Collector()._get_class_name(SAMPLE_HWND)
+        assert returned == SAMPLE
+
     @pytest.mark.parametrize("method", ["GetClassName"])
     def test_WindowsCollector__get_class_name_calls(self, mocker, method):
+        mocked_api = mocker.patch("arrangeit.windows.collector.Api")
+        mocked_api.return_value.packages = {}
         mocked = mocker.patch("arrangeit.windows.collector.{}".format(method))
         Collector()._get_class_name(SAMPLE_HWND)
         mocked.assert_called_once()
 
     @pytest.mark.parametrize("value", ["foo", "bar", ""])
     def test_WindowsCollector__get_class_name_functionality(self, mocker, value):
+        mocked_api = mocker.patch("arrangeit.windows.collector.Api")
+        mocked_api.return_value.packages = {}
         mocker.patch("arrangeit.windows.collector.GetClassName", return_value=value)
         assert Collector()._get_class_name(SAMPLE_HWND) == value
 

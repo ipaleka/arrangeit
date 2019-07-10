@@ -1,12 +1,11 @@
 import ctypes
 import ctypes.wintypes
-import importlib
+from collections import namedtuple
 
 import pytest
 
 import arrangeit.windows.apihelpers as apihelpers
 from arrangeit.windows.apihelpers import (
-    platform_supports_packages,
     PACKAGE_ID,
     PACKAGE_INFO,
     PACKAGE_INFO_REFERENCE,
@@ -16,9 +15,37 @@ from arrangeit.windows.apihelpers import (
     TITLEBARINFO,
     WINDOWINFO,
     Api,
+    platform_supports_packages,
 )
 
 from .nested_helper import nested
+
+
+## custom functions
+class TestWindowsApihelpersCustomFunctions(object):
+    """Testing class for :py:mod:`arrangeit.windows.apihelpers` custom functions."""
+
+    def test_windows_apihelpers_platform_supports_packages_calls_getwindowsversion(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.windows.apihelpers.sys.getwindowsversion")
+        platform_supports_packages()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    @pytest.mark.parametrize(
+        "major,minor,expected",
+        [(5, 1, False), (6, 1, False), (6, 2, True), (7, 0, True)],
+    )
+    def test_windows_apihelpers_platform_supports_packages_functionality(
+        self, mocker, major, minor, expected
+    ):
+        Version = namedtuple("version", ["major", "minor"])
+        mocker.patch(
+            "arrangeit.windows.apihelpers.sys.getwindowsversion",
+            return_value=Version(major, minor),
+        )
+        assert platform_supports_packages() == expected
 
 
 ## structures
@@ -383,6 +410,11 @@ class TestWindowsapiHelperFunctionsWin8and10(object):
 class TestWindowsapiApiPublic(object):
     """Testing class for :py:class:`arrangeit.windows.apihelpers.Api` public methods."""
 
+    # Api
+    @pytest.mark.parametrize("attr", ["packages", ])
+    def test_apihelpers_Api_inits_empty_attr(self, attr):
+        assert getattr(Api, attr) is {}
+
     # enum_windows
     def test_apihelpers_Api_enum_windows_nested_append_to_collection(self, mocker):
         mocker.patch("arrangeit.windows.apihelpers.WNDENUMPROC")
@@ -729,7 +761,7 @@ class TestWindowsapiApiPrivateWin8and10(object):
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("arrangeit.windows.apihelpers._close_handle")
         FULL_NAME = "foobar"
-        mocked_full = mocker.patch(
+        mocker.patch(
             "arrangeit.windows.apihelpers.Api._package_full_name_from_handle",
             return_value=FULL_NAME,
         )

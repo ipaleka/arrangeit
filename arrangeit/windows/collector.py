@@ -42,14 +42,18 @@ class Collector(BaseCollector):
     """Collecting windows class with MS Windows specific code."""
 
     def __init__(self):
-        """TODO tests and docstring"""
+        """Creates and sets Api instance after call to super."""
         super().__init__()
         self.api = Api()
 
     def _get_uwpapp_icon(self, hwnd):
-        """
-        TODO check what is happened when window is minimized (no different child_pid)
-             also make tests
+        """Returns icon from UWP package associated with provided windows identifier.
+
+        Uses cached package for provided hwnd if it has been already retrieved.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: :class:`PIL.Image` instance
         """
         if self.api.packages.get(hwnd) is None:
             self.api.packages[hwnd] = self.api.get_package(hwnd)
@@ -75,7 +79,8 @@ class Collector(BaseCollector):
     def _get_class_name(self, hwnd):
         """Returns class name for the window represented by provided handle.
 
-        TODO tests
+        Uses package app_name if there's cached package for provided hwnd (that
+        functionality is available only for Windows versions greater than 8.1).
 
         :param hwnd: window id
         :type hwnd: int
