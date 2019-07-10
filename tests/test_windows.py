@@ -255,6 +255,7 @@ class TestWindowsCollector(object):
         )
 
     def test_WindowsCollector__get_uwpapp_icon_returns_icon(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
         SAMPLE = 222
         mocked = mocker.patch("arrangeit.windows.collector.Api")
         PACKAGE = Package("")
@@ -325,11 +326,14 @@ class TestWindowsCollector(object):
         assert returned == mocked.return_value
 
     ## WindowsCollector._get_class_name
-    def test_WindowsCollector__get_class_name_existing_package(self, mocker, method):
+    def test_WindowsCollector__get_class_name_existing_package(self, mocker):
         mocked_api = mocker.patch("arrangeit.windows.collector.Api")
+        HWND = 9715
         SAMPLE = "barfoo"
-        mocked_api.return_value.packages = {SAMPLE_HWND: Package(SAMPLE)}
-        returned = Collector()._get_class_name(SAMPLE_HWND)
+        PACKAGE = mocker.MagicMock()
+        PACKAGE.app_name = SAMPLE
+        mocked_api.return_value.packages = {HWND: PACKAGE}
+        returned = Collector()._get_class_name(HWND)
         assert returned == SAMPLE
 
     @pytest.mark.parametrize("method", ["GetClassName"])

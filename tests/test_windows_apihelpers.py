@@ -3,8 +3,10 @@ import ctypes.wintypes
 from collections import namedtuple
 
 import pytest
+from PIL import Image
 
 import arrangeit.windows.apihelpers as apihelpers
+from arrangeit.settings import Settings
 from arrangeit.windows.apihelpers import (
     PACKAGE_ID,
     PACKAGE_INFO,
@@ -15,6 +17,7 @@ from arrangeit.windows.apihelpers import (
     TITLEBARINFO,
     WINDOWINFO,
     Api,
+    Package,
     platform_supports_packages,
 )
 
@@ -28,7 +31,8 @@ class TestWindowsApihelpersCustomFunctions(object):
     def test_windows_apihelpers_platform_supports_packages_calls_getwindowsversion(
         self, mocker
     ):
-        mocked = mocker.patch("arrangeit.windows.apihelpers.sys.getwindowsversion")
+        Version = namedtuple("version", ["major", "minor"])
+        mocked = mocker.patch("arrangeit.windows.apihelpers.sys.getwindowsversion", return_value=Version(6, 1))
         platform_supports_packages()
         mocked.assert_called_once()
         mocked.assert_called_with()
@@ -403,17 +407,417 @@ class TestWindowsapiHelperFunctionsWin8and10(object):
         assert apihelpers._close_package_info.restype == ctypes.wintypes.LONG
 
 
-# Package
-# TODO
+# Package class
+class TestWindowsapiPackage(object):
+    """Testing class for :py:class:`arrangeit.windows.apihelpers.Package`."""
+
+    # Package
+    @pytest.mark.parametrize("attr", ["path", "app_name"])
+    def test_apihelpers_Package_inits_empty_attr(self, attr):
+        assert getattr(Package, attr) == ""
+
+    def test_apihelpers_Package_inits_empty_icon(self):
+        assert isinstance(Package.icon, Image.Image)
+
+    # Package.__init__
+    def test_apihelpers_Package__init__sets_path_attribute_from_provided(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        SAMPLE = "foobar"
+        package = Package(SAMPLE)
+        assert package.path == SAMPLE
+
+    def test_apihelpers_Package__init__calls_setup_package(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        Package()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    # Package._get_first_image
+    def test_apihelpers_Package__get_first_image_calls_product(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        mocked = mocker.patch("arrangeit.windows.apihelpers.product")
+        SAMPLE = ["a"]
+        Package()._get_first_image(SAMPLE)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE, apihelpers.UWP_ICON_SUFFIXES)
+
+    def test_apihelpers_Package__get_first_image_calls_splitext(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        NAME = "foo"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.product", return_value=[(NAME, "bar")]
+        )
+        mocker.patch("arrangeit.windows.apihelpers.Image")
+        mocker.patch("os.path.join")
+        mocked = mocker.patch("os.path.splitext")
+        Package()._get_first_image(["b"])
+        calls = [mocker.call(NAME)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__get_first_image_calls_os_path_join(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        PATH = "foobar"
+        NAME = "foo"
+        SUFFIX = "bar"
+        SPLIT = ("ABC", "DEF")
+        mocker.patch("os.path.splitext", return_value=SPLIT)
+        mocker.patch(
+            "arrangeit.windows.apihelpers.product", return_value=[(NAME, SUFFIX)]
+        )
+        mocker.patch("arrangeit.windows.apihelpers.Image")
+        mocked = mocker.patch("os.path.join")
+        Package(PATH)._get_first_image(["c"])
+        calls = [mocker.call(PATH, SPLIT[0] + SUFFIX + SPLIT[1])]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__get_first_image_calls_os_path_exists(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        PATH = "foobar"
+        NAME = "foo"
+        SUFFIX = "bar"
+        SPLIT = ("ABC", "DEF")
+        mocker.patch("os.path.splitext", return_value=SPLIT)
+        mocker.patch(
+            "arrangeit.windows.apihelpers.product", return_value=[(NAME, SUFFIX)]
+        )
+        CHECK_PATH = SPLIT[0] + SUFFIX + SPLIT[1]
+        mocker.patch("os.path.join", return_value=CHECK_PATH)
+        mocked = mocker.patch("os.path.exists")
+        mocker.patch("arrangeit.windows.apihelpers.open_image")
+        Package(PATH)._get_first_image(["d"])
+        calls = [mocker.call(CHECK_PATH)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__get_first_image_calls_and_returns_resized_Image(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        PATH = "foobar"
+        NAME = "foo"
+        SUFFIX = "bar"
+        SPLIT = ("ABC", "DEF")
+        mocker.patch("os.path.splitext", return_value=SPLIT)
+        mocker.patch(
+            "arrangeit.windows.apihelpers.product", return_value=[(NAME, SUFFIX)]
+        )
+        CHECK_PATH = SPLIT[0] + SUFFIX + SPLIT[1]
+        mocker.patch("os.path.join", return_value=CHECK_PATH)
+        mocker.patch("os.path.exists", return_value=True)
+        mocked = mocker.patch("arrangeit.windows.apihelpers.Image")
+        returned = Package(PATH)._get_first_image(["e"])
+        calls = [mocker.call(CHECK_PATH)]
+        mocked.open.assert_has_calls(calls, any_order=True)
+        calls = [mocker.call((Settings.ICON_SIZE, Settings.ICON_SIZE), mocked.BICUBIC)]
+        mocked.open.return_value.resize.assert_has_calls(calls, any_order=True)
+        assert returned == mocked.open.return_value.resize.return_value
+
+    def test_apihelpers_Package__get_first_image_catches_exception(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        PATH = "foobar"
+        NAME = "foo"
+        SUFFIX = "bar"
+        SPLIT = ("ABC", "DEF")
+        mocker.patch("os.path.splitext", return_value=SPLIT)
+        mocker.patch(
+            "arrangeit.windows.apihelpers.product", return_value=[(NAME, SUFFIX)]
+        )
+        CHECK_PATH = SPLIT[0] + SUFFIX + SPLIT[1]
+        mocker.patch("os.path.join", return_value=CHECK_PATH)
+        mocker.patch("os.path.exists", return_value=True)
+        mocker.patch("arrangeit.windows.apihelpers.Image.open", side_effect=IOError())
+        mocked = mocker.patch("arrangeit.windows.apihelpers.open_image")
+        returned = Package(PATH)._get_first_image(["f"])
+        calls = [mocker.call("white.png")]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert returned == mocked.return_value
+
+    def test_apihelpers_Package__get_first_image_calls_open_image_if_not_exists(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        PATH = "foobar"
+        NAME = "foo"
+        SUFFIX = "bar"
+        SPLIT = ("ABC", "DEF")
+        mocker.patch("os.path.splitext", return_value=SPLIT)
+        mocker.patch(
+            "arrangeit.windows.apihelpers.product", return_value=[(NAME, SUFFIX)]
+        )
+        CHECK_PATH = SPLIT[0] + SUFFIX + SPLIT[1]
+        mocker.patch("os.path.join", return_value=CHECK_PATH)
+        mocker.patch("os.path.exists", return_value=False)
+        mocked = mocker.patch("arrangeit.windows.apihelpers.open_image")
+        returned = Package(PATH)._get_first_image(["g"])
+        calls = [mocker.call("white.png")]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert returned == mocked.return_value
+
+    # Package._get_manifest_root
+    def test_apihelpers_Package__get_manifest_root_calls_os_path_join(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        mocker.patch("xml.etree.ElementTree.parse")
+        PATH = "foobar"
+        mocked = mocker.patch("os.path.join")
+        Package(PATH)._get_manifest_root()
+        calls = [mocker.call(PATH, "AppXManifest.xml")]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__get_manifest_root_calls_os_path_exists(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        SAMPLE = "foobar"
+        mocker.patch("os.path.join", return_value=SAMPLE)
+        mocked = mocker.patch("os.path.exists", return_value=False)
+        Package()._get_manifest_root()
+        calls = [mocker.call(SAMPLE)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__get_manifest_root_returns_true_if_not_exists(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        mocker.patch("os.path.exists", return_value=False)
+        returned = Package()._get_manifest_root()
+        assert returned is True
+
+    def test_apihelpers_Package__get_manifest_root_calls_parse(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        SAMPLE = "foobar1"
+        mocker.patch("os.path.join", return_value=SAMPLE)
+        mocker.patch("os.path.exists", return_value=True)
+        mocked = mocker.patch("xml.etree.ElementTree.parse")
+        Package()._get_manifest_root()
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE)
+
+    def test_apihelpers_Package__get_manifest_root_calls_and_returns_getroot(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        mocker.patch("os.path.join")
+        mocker.patch("os.path.exists", return_value=True)
+        mocked = mocker.patch("xml.etree.ElementTree.parse")
+        returned = Package()._get_manifest_root()
+        mocked.return_value.getroot.assert_called_once()
+        mocked.return_value.getroot.assert_called_with()
+        assert returned == mocked.return_value.getroot.return_value
+
+    # Package._namespace_for_element
+    def test_apihelpers_Package__namespace_for_element_calls_re_match(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ELEMENT = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.windows.apihelpers.re.match")
+        Package()._namespace_for_element(ELEMENT)
+        calls = [mocker.call(r"\{.*\}", ELEMENT.tag)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__namespace_for_element_returns_first_group(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        MATCH = mocker.MagicMock()
+        mocker.patch("arrangeit.windows.apihelpers.re.match", return_value=MATCH)
+        returned = Package()._namespace_for_element(mocker.MagicMock())
+        assert returned == MATCH.group(0)
+
+    def test_apihelpers_Package__namespace_for_element_returns_empty_string(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        mocker.patch("arrangeit.windows.apihelpers.re.match", return_value=False)
+        returned = Package()._namespace_for_element(mocker.MagicMock())
+        assert returned == ""
+
+    # Package._setup_app_name
+    def test_apihelpers_Package__setup_app_name_calls__namespace_for_element(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        mocked = mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element"
+        )
+        Package()._setup_app_name(ROOT)
+        calls = [mocker.call(ROOT)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__setup_app_name_calls_root_iter(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        NAMESPACE = "foo"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        Package()._setup_app_name(ROOT)
+        ROOT.iter.assert_called_once()
+        ROOT.iter.assert_called_with("{}Identity".format(NAMESPACE))
+
+    def test_apihelpers_Package__setup_app_name_calls_next(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        NAMESPACE = "foo"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.next")
+        Package()._setup_app_name(ROOT)
+        mocked.assert_called_once()
+        mocked.assert_called_with(ROOT.iter.return_value)
+
+    def test_apihelpers_Package__setup_app_name_calls_iter_on_next(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        NAMESPACE = "foo"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.next")
+        Package()._setup_app_name(ROOT)
+        mocked.return_value.iter.assert_called_once()
+        mocked.return_value.iter.assert_called_with()
+
+    def test_apihelpers_Package__setup_app_name_sets_app_name_attr(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        SAMPLE = "bar"
+        IDENTITY = mocker.MagicMock()
+        IDENTITY.attrib = {"Name": "foo.{}".format(SAMPLE)}
+        NAMESPACE = "foo"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.next")
+        mocked.return_value.iter.return_value = [IDENTITY,]
+        package = Package()
+        package._setup_app_name(mocker.MagicMock())
+        assert package.app_name == SAMPLE
+
+    # Package._setup_icon
+    def test_apihelpers_Package__setup_icon_calls__namespace_for_element(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        mocked = mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element"
+        )
+        Package()._setup_icon(ROOT)
+        calls = [mocker.call(ROOT)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__setup_icon_calls_root_iter(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        NAMESPACE = "bar"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        Package()._setup_icon(ROOT)
+        calls = [mocker.call("{}Applications".format(NAMESPACE))]
+        ROOT.iter.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__setup_icon_calls_next(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        NAMESPACE = "bar"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.next")
+        Package()._setup_icon(ROOT)
+        calls = [mocker.call(ROOT.iter.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__setup_icon_calls_iter_on_next(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        ROOT = mocker.MagicMock()
+        NAMESPACE = "bar"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.next")
+        Package()._setup_icon(ROOT)
+        calls = [mocker.call()]
+        mocked.return_value.iter.assert_has_calls(calls, any_order=True)
+
+    def test_apihelpers_Package__setup_icon_appends_once_to_sources_from_Applications(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        SAMPLE = "foo1bar"
+        SUBELEM = mocker.MagicMock()
+        SUBELEM.tag = "VisualElements"
+        SUBELEM.attrib = {"Square44x44Logo": SAMPLE, "Square150x150Logo": SAMPLE}
+        NAMESPACE = "barfoo"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.next")
+        mocked_first = mocker.patch("arrangeit.windows.apihelpers.Package._get_first_image")
+        mocked.return_value.iter.return_value = [SUBELEM,]
+        Package()._setup_icon(mocker.MagicMock())
+        mocked_first.assert_called_with([SAMPLE,])
+
+    def test_apihelpers_Package__setup_icon_appends_to_sources_from_Properties(self, mocker):
+        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        SAMPLE = "foo1bar4"
+        PROP = mocker.MagicMock()
+        PROP.tag = "Logo"
+        PROP.text = SAMPLE
+        NAMESPACE = "barfoo"
+        mocker.patch(
+            "arrangeit.windows.apihelpers.Package._namespace_for_element",
+            return_value=NAMESPACE,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.next")
+        mocked_first = mocker.patch("arrangeit.windows.apihelpers.Package._get_first_image")
+        mocked.return_value.iter.return_value = [PROP,]
+        package = Package()
+        package._setup_icon(mocker.MagicMock())
+        mocked_first.assert_called_with([SAMPLE,])
+        assert package.icon == mocked_first.return_value
+
+    # Package.setup_package
+    def test_apihelpers_Package_setup_package_calls__get_manifest_root(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.apihelpers.Package._get_manifest_root")
+        mocker.patch("arrangeit.windows.apihelpers.Package._setup_app_name")
+        mocker.patch("arrangeit.windows.apihelpers.Package._setup_icon")
+        package = Package()
+        mocked.reset_mock()        
+        package.setup_package()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_apihelpers_Package_setup_package_calls__setup_app_name(self, mocker):
+        mocked_root = mocker.patch("arrangeit.windows.apihelpers.Package._get_manifest_root")
+        mocked = mocker.patch("arrangeit.windows.apihelpers.Package._setup_app_name")
+        mocker.patch("arrangeit.windows.apihelpers.Package._setup_icon")
+        package = Package()
+        mocked.reset_mock()        
+        package.setup_package()
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_root.return_value)
+
+    def test_apihelpers_Package_setup_package_calls__setup_icon(self, mocker):
+        mocked_root = mocker.patch("arrangeit.windows.apihelpers.Package._get_manifest_root")
+        mocker.patch("arrangeit.windows.apihelpers.Package._setup_app_name")
+        mocked = mocker.patch("arrangeit.windows.apihelpers.Package._setup_icon")
+        package = Package()
+        mocked.reset_mock()
+        package.setup_package()
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_root.return_value)
 
 # Api class public methods
 class TestWindowsapiApiPublic(object):
     """Testing class for :py:class:`arrangeit.windows.apihelpers.Api` public methods."""
 
     # Api
-    @pytest.mark.parametrize("attr", ["packages", ])
+    @pytest.mark.parametrize("attr", ["packages"])
     def test_apihelpers_Api_inits_empty_attr(self, attr):
-        assert getattr(Api, attr) is {}
+        assert getattr(Api, attr) == {}
 
     # enum_windows
     def test_apihelpers_Api_enum_windows_nested_append_to_collection(self, mocker):
