@@ -282,7 +282,6 @@ class TestResizable(object):
         ],
     )
     def test_Resizable_inits_attr_as_empty(self, attr, value):
-        # reload(arrangeit.view)
         assert getattr(Resizable, attr) == value
 
     @pytest.mark.parametrize(
@@ -319,7 +318,6 @@ class TestRestored(object):
         ],
     )
     def test_Restored_inits_attr_as_empty(self, attr, value):
-        # reload(arrangeit.view)
         assert getattr(Restored, attr) == value
 
     @pytest.mark.parametrize(

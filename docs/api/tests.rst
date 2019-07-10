@@ -121,6 +121,15 @@
   :show-inheritance:
 
 
+:mod:`tests.test_windows_apihelpers` -- Unit tests for MS Windows api helpers module
+------------------------------------------------------------------------------------
+
+.. automodule:: tests.test_windows_apihelpers
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.fixtures` -- Sample fixtures for unit testing
 ---------------------------------------------------------
 

@@ -702,8 +702,8 @@ class TestWindowsCollector(object):
         assert returned == [RECT1, RECT2]
 
     # WindowsCollector.get_windows
-    def test_WindowsCollector_get_windows_calls_enum_windows(self, mocker):
-        mocked = mocker.patch("arrangeit.windows.collector.enum_windows")
+    def test_WindowsCollector_get_windows_calls_api_enum_windows(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.collector.Api.enum_windows")
         returned = Collector().get_windows()
         mocked.assert_called_once()
         mocked.assert_called_with()
