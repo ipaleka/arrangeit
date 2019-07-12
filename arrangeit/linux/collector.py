@@ -196,12 +196,10 @@ class Collector(BaseCollector):
         workspaces = self._get_available_wnck_workspaces()
         if not workspaces:
             return [(0, "")]
-        collection = []
-        for i, workspace in enumerate(workspaces):
-            collection.append(
-                (self.get_workspace_number(workspace), workspace.get_name())
-            )
-        return collection
+        return [
+            (self.get_workspace_number(workspace), workspace.get_name())
+            for workspace in workspaces
+        ]
 
     def get_wnck_workspace_for_custom_number(self, number):
         """Returns :class:`Wnck.Workspace` instance from provided custom number.
