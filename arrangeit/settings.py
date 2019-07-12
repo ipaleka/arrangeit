@@ -173,6 +173,7 @@ class Settings(metaclass=SettingsMetaclass):
     WINDOW_MODEL_RECT_ELEMENTS = ("x", "y", "w", "h")
     ICON_SIZE = 32
     BLANK_ICON = open_image("blank.png")
+    CORNER_RECT_INDEXES = [(0, 3), (0, 1), (2, 1), (2, 3)]
 
     @classmethod
     def is_setting(cls, name, value):

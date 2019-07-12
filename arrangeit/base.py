@@ -9,6 +9,7 @@ import pynput
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.settings import MESSAGES, Settings
 from arrangeit.utils import (
+    Rectangle,
     check_intersections,
     get_component_class,
     get_snapping_sources_for_rect,
@@ -347,39 +348,99 @@ class BaseController(object):
         return Settings.RESIZE + (self.state + 2) % 4
 
     ## DOMAIN LOGIC
+    def apply_snapping(self, new_x, new_y, sources, intersections):
+        """Moves cursor and sets new state and corner if snapping occured on new side.
+
+        State and corner can change only for positioning phase, so for resizing phase
+        this function calls and returns `move_cursor` at the very beginning.
+
+        :param new_x: new cursor position on x-axis
+        :type new_x: int
+        :param new_y: new cursor position on y-axis
+        :type new_y: int
+        :param sources: four-tuple of root window snapping rectangles
+        :type sources: tuple of :class:`Rectangle`
+        :param intersections: one or two pairs of snapping rectangles that intersect
+        :type intersections: tuple
+        :var new_state: positioning state
+        :type new_state: int
+        :var index0: position of root's first intersected snapping rectangle in sources
+        :type index0: int
+        :var index1: position of root's second intersected snapping rectangle in sources
+        :type index1: int
+        """
+        if not self.state < Settings.RESIZE:
+            return self.mouse.move_cursor(new_x, new_y)
+
+        new_state = self.state
+
+        if isinstance(intersections[0], Rectangle):  # single axis snap
+            index0 = sources.index(intersections[0])
+            if not index0 in Settings.CORNER_RECT_INDEXES[self.state]:
+                new_state = Settings.CORNER_RECT_INDEXES.index(
+                    (Settings.CORNER_RECT_INDEXES[self.state][0], index0)
+                    if index0 % 2
+                    else (index0, Settings.CORNER_RECT_INDEXES[self.state][1])
+                )
+
+        else:  # both axes snapped
+            index0 = sources.index(intersections[0][0])
+            index1 = sources.index(intersections[1][0])
+            if Settings.CORNER_RECT_INDEXES[self.state] != (index0, index1):
+                new_state = Settings.CORNER_RECT_INDEXES.index((index0, index1))
+
+        if new_state != self.state:
+            if new_state in (1, 2) and self.state in (0, 3):
+                new_x += self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
+            elif new_state in (0, 3) and self.state in (1, 2):
+                new_x -= self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
+
+            if new_state in (2, 3) and self.state in (0, 1):
+                new_y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
+            elif new_state in (0, 1) and self.state in (2, 3):
+                new_y -= self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
+            self.state = new_state
+            self.setup_corner()
+
+        self.mouse.move_cursor(new_x, new_y)
+
     def check_snapping(self, x, y):
         """Snaps root window and returns True if root window intersects
 
         with any collection window according to snapping rects in current workspace
         or returns False if no snapping has occurred.
 
-        Corner for which snapping could occurs is sent from current `state` that should
-        correspond to targeting window corner ordinal (0 to 3).
+        Calls `apply_snapping` to change state and corner if snapping occurs on
+        different corner that current state/corner.
 
         :param x: absolute horizontal axis mouse position in pixels
         :type x: int
         :param y: absolute vertical axis mouse position in pixels
         :type y: int
-        :returns: (int, int) or False
+        :var sources: four-tuple of root window snapping rectangles
+        :type sources: tuple of :class:`Rectangle`
+        :var intersections: one or two pairs of snapping rectangles that intersect
+        :type intersections: tuple
+        :var offset: offset for axes
+        :type offset: tuple
+        :returns: Boolean
         """
         if Settings.SNAPPING_IS_ON:
 
-            offset = offset_for_intersections(
-                check_intersections(
-                    get_snapping_sources_for_rect(
-                        self.get_root_rect(x, y),
-                        Settings.SNAP_PIXELS,
-                        corner=None
-                        if self.state < Settings.RESIZE
-                        else self.state % 10,
-                    ),
-                    self.snapping_targets[self.view.workspaces.active],
-                ),
+            sources = get_snapping_sources_for_rect(
+                self.get_root_rect(x, y),
                 Settings.SNAP_PIXELS,
+                corner=None if self.state < Settings.RESIZE else self.state % 10,
             )
+            intersections = check_intersections(
+                sources, self.snapping_targets[self.view.workspaces.active]
+            )
+            offset = offset_for_intersections(intersections, Settings.SNAP_PIXELS)
 
             if offset and offset != (0, 0):
-                self.mouse.move_cursor(x + offset[0], y + offset[1])
+                self.apply_snapping(
+                    x + offset[0], y + offset[1], sources, intersections
+                )
                 return True
 
         return False
