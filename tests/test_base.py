@@ -862,8 +862,12 @@ class TestBaseMouse(object):
         mocked.return_value.start.assert_called_with()
 
     ## BaseMouse.stop
-    @pytest.mark.skip("Find a way to test if raise keyword is invoked")
     def test_BaseMouse_stop_stops_listener(self, mocker):
-        mouse = base.BaseMouse()
-        mocker.patch("builtins.raise")
-        mouse.stop()
+        """StopException is raised if MagicMock has got StopException attribute."""
+        mocked = mocker.patch("pynput.mouse.Listener")
+        with pytest.raises(TypeError):
+            base.BaseMouse().stop()
+        assert hasattr(mocked, "StopException")
+
+    def test_BaseMouse_stop_returns_False(self, mocker):
+        assert base.BaseMouse().stop() is False

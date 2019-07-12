@@ -1229,4 +1229,4 @@ class BaseMouse(object):
         try:
             raise pynput.mouse.Listener.StopException
         except pynput.mouse.Listener.StopException:
-            return
+            return False
