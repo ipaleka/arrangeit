@@ -312,10 +312,10 @@ def check_intersections(sources, targets):
     then through all odd elements pairs. Stops iteration when first intersected pair
     is found. Returns either single pair (even or odd) or tuple of both.
 
-    :param sources: two-tuple or four-tuple of rectangles
-    :type sources: tuple
-    :param targets: collection of rectangles
-    :type targets: list
+    :param sources: two-tuple or four-tuple of root window snapping rectangles
+    :type sources: tuple of :class:`Rectangle`
+    :param targets: collection of other windows snapping rectangles
+    :type targets: list of :class:`Rectangle`
     :param even: horizontal intersection pair or False
     :type even: (:class:`Rectangle`, :class:`Rectangle`)
     :param odd: vertical intersection pair or False

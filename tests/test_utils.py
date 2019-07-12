@@ -1,6 +1,5 @@
-import os
-from collections import namedtuple
 import inspect
+import os
 
 import pytest
 from PIL import ImageFilter
@@ -8,9 +7,12 @@ from PIL import ImageFilter
 from arrangeit import utils
 from arrangeit.settings import Settings
 
-from .fixtures import (INTERSECTS_SAMPLES, OFFSET_INTERSECTING_PAIR_SAMPLES,
-                       SAMPLE_CHECK_INTERSECTIONS,
-                       SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+from .fixtures import (
+    INTERSECTS_SAMPLES,
+    OFFSET_INTERSECTING_PAIR_SAMPLES,
+    SAMPLE_CHECK_INTERSECTIONS,
+    SAMPLE_SNAPPING_SOURCES_FOR_RECT,
+)
 
 
 class TestUtils(object):
@@ -288,7 +290,7 @@ class TestUtils(object):
         for i in range(4):
             assert isinstance(
                 utils._get_snapping_source_by_ordinal((200, 300, 400, 500), 10, i),
-                utils.Rectangle
+                utils.Rectangle,
             )
 
     ## get_snapping_sources_for_rect
@@ -426,7 +428,13 @@ class TestUtils(object):
 
     def test_offset_for_intersections_calls__offset_once_for_single_pair(self, mocker):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
-        RECTS, SNAP = [utils.Rectangle(1732, 36, 1752, 316), utils.Rectangle(1725, 22, 1745, 868)], 10
+        RECTS, SNAP = (
+            [
+                utils.Rectangle(1732, 36, 1752, 316),
+                utils.Rectangle(1725, 22, 1745, 868),
+            ],
+            10,
+        )
         utils.offset_for_intersections(RECTS, SNAP)
         mocked.assert_called_once()
         mocked.assert_called_with(RECTS, SNAP)
@@ -434,7 +442,10 @@ class TestUtils(object):
     def test_offset_for_intersections_calls__offset_twice_for_two_pairs(self, mocker):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
         RECTS = [
-            (utils.Rectangle(1732, 36, 1752, 316), utils.Rectangle(1725, 22, 1745, 868)),
+            (
+                utils.Rectangle(1732, 36, 1752, 316),
+                utils.Rectangle(1725, 22, 1745, 868),
+            ),
             (utils.Rectangle(257, 52, 747, 72), utils.Rectangle(169, 51, 1123, 71)),
         ]
         SNAP = 10
@@ -446,9 +457,14 @@ class TestUtils(object):
 
     def test_offset_for_intersections_returns_opposite_tuple_element(self, mocker):
         SAMPLE = (7, 5)
-        mocker.patch("arrangeit.utils._offset_for_intersecting_pair", return_value=SAMPLE)
+        mocker.patch(
+            "arrangeit.utils._offset_for_intersecting_pair", return_value=SAMPLE
+        )
         RECTS = [
-            (utils.Rectangle(1732, 36, 1752, 316), utils.Rectangle(1725, 22, 1745, 868)),
+            (
+                utils.Rectangle(1732, 36, 1752, 316),
+                utils.Rectangle(1725, 22, 1745, 868),
+            ),
             (utils.Rectangle(257, 52, 747, 72), utils.Rectangle(169, 51, 1123, 71)),
         ]
         SNAP = 10
