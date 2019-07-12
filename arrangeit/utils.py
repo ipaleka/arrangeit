@@ -1,12 +1,15 @@
 import logging
 import os
 import sys
+from collections import namedtuple
 from gettext import gettext as _
 from importlib import import_module
 from itertools import chain, islice, product
 from platform import system
 
 from PIL import Image, ImageFilter, ImageOps, ImageTk
+
+Rectangle = namedtuple("Rectangle", "x0 y0 x1 y1")
 
 MESSAGES = {"platform_error": _("arrangeit can't run on your platform. :(")}
 
@@ -175,40 +178,34 @@ def _get_snapping_source_by_ordinal(rect, snap, ordinal=0):
 
     clockwise to vertical left as 3.
 
-    :returns: tuple (x0, y0, x1, y1)
+    :returns: :class:`Rectangle`
     """
     if ordinal == 0:
-        return (
-            rect[0] - snap,
-            rect[1] - snap,
-            rect[0] + rect[2] + snap,
-            rect[1] + snap,
+        return Rectangle(
+            rect[0] - snap, rect[1] - snap, rect[0] + rect[2] + snap, rect[1] + snap
         )
     elif ordinal == 1:
-        return (
+        return Rectangle(
             rect[0] + rect[2] - snap,
             rect[1] - snap,
             rect[0] + rect[2] + snap,
             rect[1] + rect[3] + snap,
         )
     elif ordinal == 2:
-        return (
+        return Rectangle(
             rect[0] - snap,
             rect[1] + rect[3] - snap,
             rect[0] + rect[2] + snap,
             rect[1] + rect[3] + snap,
         )
     elif ordinal == 3:
-        return (
-            rect[0] - snap,
-            rect[1] - snap,
-            rect[0] + snap,
-            rect[1] + rect[3] + snap,
+        return Rectangle(
+            rect[0] - snap, rect[1] - snap, rect[0] + snap, rect[1] + rect[3] + snap
         )
 
 
 def get_snapping_sources_for_rect(rect, snap, corner=None):
-    """Returns snapping rectangles formated as (x0,y0,x0,y0) from provided rect.
+    """Returns snapping rectangles formated as Rectangle(x0,y0,x0,y0) from provided rect.
 
     Snapping rectangle is created around window connected edge points pair with
     height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
@@ -218,11 +215,11 @@ def get_snapping_sources_for_rect(rect, snap, corner=None):
     corner (horizontal first, vertical second) where ordinal 0 is top-left corner,
     with clockwise ordering to bottom-left corner which is ordinal 3.
 
-    :param rect: window rectangle (x, y, width, height)
+    :param rect: window defined by (x, y, width, height)
     :type rect: (int, int, int, int)
     :param snap: snapping distance in pixels
     :type snap: int
-    :returns: four-tuple or two-tuple of (x0, y0, x1, y1)
+    :returns: two or four-tuple of :class:`Rectangle`
     """
     if corner == 0:
         return (
@@ -260,16 +257,16 @@ def _intersects(source, target):
     - left side of target is placed on the right side of the source right edge
 
     :param source: rectangle (x0, y0, x1, y1)
-    :type source: (int, int, int, int)
+    :type source: :class:`Rectangle`
     :param target: rectangle (x0, y0, x1, y1)
-    :type target: (int, int, int, int)
+    :type target: :class:`Rectangle`
     :returns: Boolean
     """
     return not (
-        source[3] < target[1]
-        or target[3] < source[1]
-        or source[0] > target[2]
-        or target[0] > source[2]
+        source.y1 < target.y0
+        or target.y1 < source.y0
+        or source.x0 > target.x1
+        or target.x0 > source.x1
     )
 
 
@@ -283,7 +280,7 @@ def _offset_for_intersecting_pair(rectangles, snap):
     `snap` parameter is provided just for doublechecking reason.
 
     :param rectangles: intersecting pair of rectangles
-    :type rectangles: two-tuple ((x0,y0,x1,y1),(x0,y0,x1,y1))
+    :type rectangles: (:class:`Rectangle`, :class:`Rectangle`)
     :param snap: snapping value in pixels
     :type snap: int
     :returns: tuple (x,y)
@@ -292,16 +289,16 @@ def _offset_for_intersecting_pair(rectangles, snap):
         return (0, 0)
 
     return (
-        (rectangles[1][0] - rectangles[0][0], 0)
-        if rectangles[0][2] - rectangles[0][0]
-        == rectangles[1][2] - rectangles[1][0]
+        (rectangles[1].x0 - rectangles[0].x0, 0)
+        if rectangles[0].x1 - rectangles[0].x0
+        == rectangles[1].x1 - rectangles[1].x0
         == snap * 2
-        else (0, rectangles[1][1] - rectangles[0][1])
+        else (0, rectangles[1].y0 - rectangles[0].y0)
     )
 
 
 def check_intersections(sources, targets):
-    """Returns first pairs that intersects from sources and targets list of four-tuples.
+    """Returns first pairs that intersects from sources and targets list of Rectangles.
 
     Sources is either four-tuple representing whole window or two-tuple representing
     specific corner of the window (from first top-left clockwise to forth bottom-left).
@@ -315,15 +312,15 @@ def check_intersections(sources, targets):
     then through all odd elements pairs. Stops iteration when first intersected pair
     is found. Returns either single pair (even or odd) or tuple of both.
 
-    :param sources: two-tuple or four-tuple of (x0, y0, x1, y1)
+    :param sources: two-tuple or four-tuple of rectangles
     :type sources: tuple
-    :param targets: collection of four-tuples (x0, y0, x1, y1)
-    :type targets: list of four-tuples
-    :param even: horizontal intersection pair ((x0,y0,x1,y1),(x0,y0,x1,y1))
-    :type even: tuple
-    :param odd: vertical intersection pair ((x0,y0,x1,y1),(x0,y0,x1,y1)) or False
-    :type odd: tuple
-    :returns: tuple or two-tuple of two-tuples ((x0,y0,x1,y1),(x0,y0,x1,y1)) or False
+    :param targets: collection of rectangles
+    :type targets: list
+    :param even: horizontal intersection pair or False
+    :type even: (:class:`Rectangle`, :class:`Rectangle`)
+    :param odd: vertical intersection pair or False
+    :type odd: (:class:`Rectangle`, :class:`Rectangle`)
+    :returns: :class:`Rectangle` or (:class:`Rectangle`,:class:`Rectangle`) or False
     """
     even = next(
         (
@@ -345,6 +342,7 @@ def check_intersections(sources, targets):
         ),
         False,
     )
+
     if not even or not odd:
         return even or odd
     return (even, odd)
@@ -354,14 +352,15 @@ def offset_for_intersections(rectangles, snap):
     """Checks if single or both axes intersect and returns related offset(s).
 
     :param rectangles: one or two intersecting pair of rectangles
-    :type rectangles: two tuples of or single two-tuple ((x0,y0,x1,y1),(x0,y0,x1,y1))
+    :type rectangles: :class:`Rectangle` or (:class:`Rectangle`, :class:`Rectangle`)
     :param snap: snapping value in pixels
     :type snap: int
     :returns: tuple (x,y)
     """
     if not rectangles:
         return (0, 0)
-    if isinstance(rectangles[0][0], int):  # single pair provided
+
+    if isinstance(rectangles[0], Rectangle):  # single pair provided
         return _offset_for_intersecting_pair(rectangles, snap)
 
     return (

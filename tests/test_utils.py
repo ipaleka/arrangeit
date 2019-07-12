@@ -1,4 +1,6 @@
 import os
+from collections import namedtuple
+import inspect
 
 import pytest
 from PIL import ImageFilter
@@ -13,6 +15,12 @@ from .fixtures import (INTERSECTS_SAMPLES, OFFSET_INTERSECTING_PAIR_SAMPLES,
 
 class TestUtils(object):
     """Testing class for :py:mod:`arrangeit.utils` module."""
+
+    ## Rectangle
+    def test_Rectangle_is_namedtuple_class(self):
+        assert inspect.isclass(utils.Rectangle)
+        assert utils.Rectangle.__name__ == "Rectangle"
+        assert utils.Rectangle._fields == ("x0", "y0", "x1", "y1")
 
     ## platform_path
     @pytest.mark.parametrize("name", ["Darwin", "Linux", "Windows"])
@@ -276,6 +284,13 @@ class TestUtils(object):
         for i in range(4):
             assert utils._get_snapping_source_by_ordinal(rect, 10, i) == expected[i]
 
+    def test__get_snapping_source_by_ordinal_returns_Rectangle(self):
+        for i in range(4):
+            assert isinstance(
+                utils._get_snapping_source_by_ordinal((200, 300, 400, 500), 10, i),
+                utils.Rectangle
+            )
+
     ## get_snapping_sources_for_rect
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
     def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
@@ -411,7 +426,7 @@ class TestUtils(object):
 
     def test_offset_for_intersections_calls__offset_once_for_single_pair(self, mocker):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
-        RECTS, SNAP = [(1732, 36, 1752, 316), (1725, 22, 1745, 868)], 10
+        RECTS, SNAP = [utils.Rectangle(1732, 36, 1752, 316), utils.Rectangle(1725, 22, 1745, 868)], 10
         utils.offset_for_intersections(RECTS, SNAP)
         mocked.assert_called_once()
         mocked.assert_called_with(RECTS, SNAP)
@@ -419,8 +434,8 @@ class TestUtils(object):
     def test_offset_for_intersections_calls__offset_twice_for_two_pairs(self, mocker):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
         RECTS = [
-            ((1732, 36, 1752, 316), (1725, 22, 1745, 868)),
-            ((257, 52, 747, 72), (169, 51, 1123, 71)),
+            (utils.Rectangle(1732, 36, 1752, 316), utils.Rectangle(1725, 22, 1745, 868)),
+            (utils.Rectangle(257, 52, 747, 72), utils.Rectangle(169, 51, 1123, 71)),
         ]
         SNAP = 10
         utils.offset_for_intersections(RECTS, SNAP)
@@ -433,8 +448,8 @@ class TestUtils(object):
         SAMPLE = (7, 5)
         mocker.patch("arrangeit.utils._offset_for_intersecting_pair", return_value=SAMPLE)
         RECTS = [
-            ((1732, 36, 1752, 316), (1725, 22, 1745, 868)),
-            ((257, 52, 747, 72), (169, 51, 1123, 71)),
+            (utils.Rectangle(1732, 36, 1752, 316), utils.Rectangle(1725, 22, 1745, 868)),
+            (utils.Rectangle(257, 52, 747, 72), utils.Rectangle(169, 51, 1123, 71)),
         ]
         SNAP = 10
         returned = utils.offset_for_intersections(RECTS, SNAP)
