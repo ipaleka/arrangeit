@@ -29,6 +29,7 @@ setup(
         'python-xlib; platform_system == "Linux"',
         'pywin32; platform_system == "Windows"',
     ],
+    entry_points={"gui_scripts": ["arrangeit=arrangeit.__main__:main"]},
     author="Ivica Paleka",
     author_email="ipaleka@hopemeet.me",
     url="https://github.com/ipaleka/arrangeit",

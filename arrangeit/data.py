@@ -53,11 +53,11 @@ class WindowModel(object):
             setattr(self, attr, get_value_if_valid_type(kwargs.get(attr), typ))
 
     def set_changed(self, **kwargs):
-        """Creates `changed` attribute from provided arguments.
+        """Creates ``changed`` attribute from provided arguments.
 
         Accepts "rect" argument, individual rect element(s) as defined by
         Settings.WINDOW_MODEL_RECT_ELEMENTS or "ws" argument. If some rect part isn't provided
-        then `changed`, respectively `rect` is used for valid changes or rect elements.
+        then ``changed``, respectively ``rect`` is used for valid changes or rect elements.
 
         Resets to () if any of provided rect arguments is invalid in regard to
         Settings.WINDOW_MODEL_TYPES for "rect". changed_ws is reset to None in such a case.
@@ -260,9 +260,9 @@ class WindowsCollection(object):
             return None
 
     def repopulate_for_wid(self, wid, remove_before):
-        """Repopulates collection starting from the window with identifier `wid`
+        """Repopulates collection starting from the window with identifier ``wid``
 
-        without including models placed before provided `remove_before`.
+        without including models placed before provided ``remove_before``.
 
         :param wid: window id (xid, hwnd, ...)
         :type wid: int

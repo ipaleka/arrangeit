@@ -58,7 +58,7 @@ def get_component_class(name, platform=None):
 
     :param platform: platform name
     :type platform: string
-    :returns: class with provided `name` from the platform specific package
+    :returns: class with provided ``name`` from the platform specific package
     """
     return get_class(name, platform=platform)
 
@@ -66,7 +66,7 @@ def get_component_class(name, platform=None):
 def open_image(path, background="white", colorized=False, foreground="red"):
     """Returns Pillow image instance from provided path and colorizes it if set.
 
-    Provided `black` and `white` are used for colorize filter.
+    Provided ``black`` and ``white`` are used for colorize filter.
 
     :param path: image path
     :type path: str
@@ -274,10 +274,10 @@ def _offset_for_intersecting_pair(rectangles, snap):
     """Calculates and returns offset (x, y) for provided overlapping pair of rectangles.
 
     Offset is value we should add or substract so rectangles overlapping sides fit.
-    The only value checking here is for provided `rectangles` parameter as it could
+    The only value checking here is for provided ``rectangles`` parameter as it could
     be False as the result of call to other function. If it's not we imply that
     provided pair is snapping rectangle with the same width or height.
-    `snap` parameter is provided just for doublechecking reason.
+    ``snap`` parameter is provided just for doublechecking reason.
 
     :param rectangles: intersecting pair of rectangles
     :type rectangles: (:class:`Rectangle`, :class:`Rectangle`)

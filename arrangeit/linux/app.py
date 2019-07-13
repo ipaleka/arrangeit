@@ -16,7 +16,7 @@ class App(BaseApp):
 
     ## TASKS
     def activate_root(self, wid):
-        """Activates/focuses root window identified by provided `wid`.
+        """Activates/focuses root window identified by provided ``wid``.
 
         FIXME possible nasty hack wid+1
         """
@@ -32,7 +32,7 @@ class App(BaseApp):
             window.focus(X.CurrentTime)
 
     def move(self, wid):
-        """Just calls `move_and_resize` as the same method moves and resizes
+        """Just calls :func:`move_and_resize` as the same method moves and resizes
 
         in Wnck.Window class under GNU/Linux.
 
@@ -45,9 +45,9 @@ class App(BaseApp):
         """Moves and resizes window identified by provided wid.
 
         Gravity stays the same (Wnck.WindowGravity.CURRENT) and the other arguments
-        are calculated/retrieved from model where `changed` attribute holds needed data.
+        are calculated/retrieved from model where ``changed`` attribute holds needed data.
 
-        If returned `mask` is False then wee don't need to do anything more.
+        If returned ``mask`` is False then wee don't need to do anything more.
 
         :param wid: windows id
         :type wid: int
@@ -122,7 +122,7 @@ class App(BaseApp):
     def move_to_workspace(self, wid, number):
         """Moves root window to provided custom workspace number.
 
-        Calls `_move_window_to_workspace` with wid increased by 1.
+        Calls :func:`_move_window_to_workspace` with wid increased by 1.
 
         FIXME possible nasty hack wid+1
 

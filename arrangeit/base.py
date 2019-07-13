@@ -71,7 +71,7 @@ class BaseApp(object):
         and saves it to user settings file.
 
         If name startswith _ it means we want to change theme part,
-        so it calls and returns `change_settings_color_group`.
+        so it calls and returns :func:`change_settings_color_group`.
 
         :param name: setting name to save
         :type name: str
@@ -89,7 +89,7 @@ class BaseApp(object):
         return self._save_setting([name], value)
 
     def change_settings_color_group(self, group="", value=None):
-        """Changes values for all settings ending with provided `group`
+        """Changes values for all settings ending with provided ``group``
 
         and saves them to user settings file.
 
@@ -259,7 +259,7 @@ class BaseController(object):
     def __init__(self, app):
         """Sets app attribute to provided argument, model attribute to new empty model
 
-        and calls :func:`BaseController.setup`.
+        and calls :func:`setup`.
         """
         self.app = app
         self.model = WindowModel()
@@ -273,7 +273,7 @@ class BaseController(object):
         Creates and place screenshot widget below view frame, used to hold window image.
         Sets view attribute to newly created Tkinter application.
         Temporary hides root window.
-        Tkinter root window from now may be accessed by `[self].view.master` attribute.
+        Tkinter root window from now may be accessed by ``self.view.master`` attribute.
         """
         root = get_tkinter_root()
         self.setup_root_window(root)
@@ -352,7 +352,7 @@ class BaseController(object):
         """Moves cursor and sets new state and corner if snapping occured on new side.
 
         State and corner can change only for positioning phase, so for resizing phase
-        this function calls and returns `move_cursor` at the very beginning.
+        this function calls and returns :func:`BaseMouse.move_cursor` at the very beginning.
 
         :param new_x: new cursor position on x-axis
         :type new_x: int
@@ -410,7 +410,7 @@ class BaseController(object):
         with any collection window according to snapping rects in current workspace
         or returns False if no snapping has occurred.
 
-        Calls `apply_snapping` to change state and corner if snapping occurs on
+        Calls :func:`apply_snapping` to change state and corner if snapping occurs on
         different corner that current state/corner.
 
         :param x: absolute horizontal axis mouse position in pixels
@@ -515,9 +515,9 @@ class BaseController(object):
     def run(self, generator):
         """Prepares view, syncs data, starts mouse listener and enters main loop.
 
-        Calls `prepare_view` to create workspaces and windows list widgets.
+        Calls :func:`prepare_view` to create workspaces and windows list widgets.
         Sets generator attribute to provided generator and sets window data
-        by calling :func:`BaseController.next` for the first time.
+        by calling :func:`next` for the first time.
         Calls view application startup routine to show root and calculate
         visible parameters.
         Also brings global focus to root window.
@@ -917,7 +917,7 @@ class BaseController(object):
         )
 
     def skip_current_window(self):
-        """Calls `next` and then destroys that new window from the windows list."""
+        """Calls :func:`next` and then destroys that new window from the windows list."""
         self.model.clear_changed()
         self.next()
 
@@ -989,7 +989,7 @@ class BaseController(object):
         return "break"
 
     def on_mouse_left_down(self, event):
-        """Calls :class:`BaseController.update` with current cursor position
+        """Calls :class:`update` with current cursor position
 
         :param event: catched event
         :type event: Tkinter event

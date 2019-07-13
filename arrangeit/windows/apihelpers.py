@@ -211,7 +211,7 @@ class Package(object):
     icon = open_image("white.png")
 
     def __init__(self, path=""):
-        """Sets `path` attribute from provided argument and calls package setup.
+        """Sets ``path`` attribute from provided argument and calls package setup.
 
         :param path: filesystem path to package directory
         :type path: str
@@ -220,7 +220,7 @@ class Package(object):
         self.setup_package()
 
     def _get_first_image(self, sources):
-        """Returns first image that exists in filesystem for provided `sources`
+        """Returns first image that exists in filesystem for provided ``sources``
 
         in combination to package path and defined icon sufixess. Returned image is
         resized to icon size defined in Settings.
@@ -263,7 +263,7 @@ class Package(object):
         return tree.getroot()
 
     def _namespace_for_element(self, element):
-        """Returns XML namespace from the tag of provided XML `element`.
+        """Returns XML namespace from the tag of provided XML ``element``.
 
         https://stackoverflow.com/a/20104763/11703358
 
@@ -277,7 +277,7 @@ class Package(object):
         return match.group(0) if match else ""
 
     def _setup_app_name(self, root):
-        """Sets app_name attribute from provided `root` XML element
+        """Sets app_name attribute from provided ``root`` XML element
 
         by extracting Identity element's Name attribute.
 
@@ -295,7 +295,7 @@ class Package(object):
                 break
 
     def _setup_icon(self, root):
-        """Sets icon attribute from provided `root` XML element
+        """Sets icon attribute from provided ``root`` XML element
 
         by extracting predefined image types from XML document and picking
         the first that exists in filesystem.
@@ -355,8 +355,8 @@ class Api(object):
     def _package_full_name_from_handle(self, handle):
         """Returns full name of the package associated with provided process handle.
 
-        First we call `_get_package_full_name` helper function to fill `length`
-        variable, and afterwards to fill `full_name` variable.
+        First we call :func:`_get_package_full_name` helper function to fill ``length``
+        variable, and afterwards to fill ``full_name`` variable.
 
         :param handle: process handle
         :type handle: int
@@ -393,7 +393,7 @@ class Api(object):
     def _package_full_name_from_hwnd(self, hwnd):
         """Returns full name of the package associated with provided window identifier.
 
-        `enum_windows` is called to retrieve all the children windows. Very first
+        :func:`enum_windows` is called to retrieve all the children windows. Very first
         package full name is returned if it can be retrieved from associated process
         of a child window.
 
@@ -423,8 +423,8 @@ class Api(object):
     def _package_info_buffer_from_reference(self, package_info_reference):
         """Returns buffer of package info structure from provided reference.
 
-        First we call `_get_package_info` helper function to fill `length`
-        variable, and afterwards to fill `buffer` variable.
+        First we call :func:`_get_package_info` helper function to fill ``length``
+        variable, and afterwards to fill ``buffer`` variable.
 
         :param package_info_reference: reference to package info structure pointer
         :type package_info_reference: int

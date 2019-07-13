@@ -20,7 +20,7 @@ class Collector(BaseCollector):
     """Collecting windows class with GNU/Linux specific code."""
 
     def is_applicable(self, window_type):
-        """Checks if provided `window_type` qualifies window for collecting.
+        """Checks if provided ``window_type`` qualifies window for collecting.
 
         :param window_type: type of window
         :type window_type: Wnck.WindowType int flag
@@ -33,7 +33,7 @@ class Collector(BaseCollector):
         )
 
     def is_valid_state(self, window_type, window_state):
-        """Checks if `window state` for `window_type` qualifies window to collect.
+        """Checks if ``window state`` for ``window_type`` qualifies window to collect.
 
         :param window_type: type of window
         :type window_type: Wnck.WindowType int flag
@@ -59,7 +59,7 @@ class Collector(BaseCollector):
         )
 
     def is_resizable(self, window_type):
-        """Checks if provided `window_type` implies that window is resizable.
+        """Checks if provided ``window_type`` implies that window is resizable.
 
         :param window_type: type of window
         :type window_type: Wnck.WindowType int flag
@@ -68,7 +68,7 @@ class Collector(BaseCollector):
         return window_type in (Wnck.WindowType.NORMAL,)
 
     def is_restored(self, win):
-        """Checks if provided `win` is not minimized.
+        """Checks if provided ``win`` is not minimized.
 
         :param win: window instance to check
         :type win: :class:`Wnck.Window` object

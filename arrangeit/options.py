@@ -92,7 +92,7 @@ class OptionsDialog(tk.Toplevel):
     """Tkinter dialog window for manipulating of user settings data.
 
     :var OptionsDialog.master: master widget
-    :type OptionsDialog.master: :class:`.tk.Tk`
+    :type OptionsDialog.master: :class:`tk.Tk`
     :var message: variable holding message log
     :type message: :class:`tk.StringVar`
     :var timer: id of active timer
@@ -288,7 +288,7 @@ class ScaleOption(tk.Scale):
     """Tkinter widget for showing and changing range settings values.
 
     :var ScaleOption.master: master widget
-    :type ScaleOption.master: :class:`.tk.Toplevel`
+    :type ScaleOption.master: :class:`tk.Toplevel`
     :var ScaleOption.name: setting name to change
     :type ScaleOption.name: str
     """
@@ -316,7 +316,7 @@ class ScaleOption(tk.Scale):
         Also sets command callback and orientation.
 
         :param master: parent widget
-        :param master: :class:`.tk.Toplevel`
+        :param master: :class:`tk.Toplevel`
         :param name: settings name to change
         :param name: str
         :param change_callback: callback method to call on value change
@@ -374,7 +374,7 @@ class CheckOption(tk.Checkbutton):
     """Tkinter widget for showing and changing Boolean values.
 
     :var CheckOption.master: master widget
-    :type CheckOption.master: :class:`.tk.Toplevel`
+    :type CheckOption.master: :class:`tk.Toplevel`
     :var CheckOption.name: setting name to change
     :type CheckOption.name: str
     :var CheckOption.var: variable holding the check button value
@@ -395,7 +395,7 @@ class CheckOption(tk.Checkbutton):
         Also sets command callback.
 
         :param master: parent widget
-        :param master: :class:`.tk.Toplevel`
+        :param master: :class:`tk.Toplevel`
         :param name: settings name to change
         :param name: str
         :param change_callback: callback method to call on value change
@@ -422,7 +422,7 @@ class ColorOption(tk.OptionMenu):
     """Tkinter widget for showing and changing Boolean values.
 
     :var ColorOption.master: master widget
-    :type ColorOption.master: :class:`.tk.Toplevel`
+    :type ColorOption.master: :class:`tk.Toplevel`
     :var ColorOption.name: setting name to change
     :type ColorOption.name: str
     :var ColorOption.var: variable holding the choice value
@@ -450,7 +450,7 @@ class ColorOption(tk.OptionMenu):
         Also sets command callback.
 
         :param master: parent widget
-        :param master: :class:`.tk.Toplevel`
+        :param master: :class:`tk.Toplevel`
         :param name: settings name to change
         :param name: str
         :param change_callback: callback method to call on value change

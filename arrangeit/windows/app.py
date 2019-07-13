@@ -12,11 +12,11 @@ class App(BaseApp):
 
     ## TASKS
     def activate_root(self, hwnd):
-        """Activates/focuses root window identified by provided `hwnd`."""
+        """Activates/focuses root window identified by provided ``hwnd``."""
         SetActiveWindow(hwnd)
 
     def move(self, hwnd):
-        """Just calls `move_and_resize` as the same method moves and resizes
+        """Just calls :func:`move_and_resize` as the same method moves and resizes
 
         under MS Windows.
 

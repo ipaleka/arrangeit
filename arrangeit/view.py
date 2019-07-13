@@ -12,7 +12,7 @@ from arrangeit.utils import increased_by_fraction, open_image
 def get_tkinter_root():
     """Initializes and returns Tkinter root window.
 
-    :returns: :class:`tkinter.Tk` window instance
+    :returns: :class:`tk.Tk` window instance
     """
     return tk.Tk()
 
@@ -78,8 +78,9 @@ class ViewApplication(tk.Frame):
     def setup_bindings(self):
         """Binds relevant events to related controller callbacks.
 
-        `bind_all` method is used if possible so events can be catch in label widget.
-        It first unbinds Button-1 events (in case they were bound in `reset_bindings`)
+        ``bind_all`` method is used if possible so events can be catch in label widget.
+        It first unbinds Button-1 events (in case they were bound
+        in :func:`reset_bindings`)
 
         NOTE master is None check exists solely because unit tests.
         """
@@ -179,7 +180,7 @@ class ViewApplication(tk.Frame):
         )
 
     def setup_toolbar(self):
-        """Creates and places `toolbar` widget and sets corresponding variable."""
+        """Creates and places ``toolbar`` widget and sets corresponding variable."""
         self.toolbar = Toolbar(self)
         self.toolbar.place(
             rely=Settings.TITLE_LABEL_RELHEIGHT + Settings.WORKSPACES_FRAME_RELHEIGHT,
@@ -201,7 +202,7 @@ class ViewApplication(tk.Frame):
         self.setup_corner()
 
     def setup_windows(self):
-        """Creates and places `windows` widget and sets corresponding variable."""
+        """Creates and places ``windows`` widget and sets corresponding variable."""
         self.windows = WindowsList(self)
         self.windows.place(
             rely=Settings.TITLE_LABEL_RELHEIGHT,
@@ -210,7 +211,7 @@ class ViewApplication(tk.Frame):
         )
 
     def setup_workspaces(self):
-        """Creates and places `workspaces` widget and sets corresponding variable."""
+        """Creates and places ``workspaces`` widget and sets corresponding variable."""
         self.workspaces = WorkspacesCollection(self)
         self.workspaces.place(
             rely=Settings.NAME_LABEL_RELHEIGHT,
@@ -222,7 +223,7 @@ class ViewApplication(tk.Frame):
     def startup(self):
         """Shows master and then calculates and sets now visible parameters.
 
-        Calls `focus_set` so frame can trigger keyboard events.
+        Calls :func:`focus_set` so frame can trigger keyboard events.
         """
         self.show_root()
         self.place(width=self.master.winfo_width(), height=self.master.winfo_height())
@@ -237,7 +238,7 @@ class ViewApplication(tk.Frame):
     def update_widgets(self, model):
         """Updates widgets with the data from provided WindowModel instance.
 
-        Tkinter needs a reference to image so we create `icon_image` reference.
+        Tkinter needs a reference to image so we create ``icon_image`` reference.
 
         :param model: window data
         :type model: :class:`WindowModel` instance
@@ -255,7 +256,7 @@ class PropertyIcon(tk.Label):
     """Tkinter label holding on/off image for a property.
 
     :var PropertyIcon.master: master widget
-    :type PropertyIcon.master: :class:`.tk.Frame`
+    :type PropertyIcon.master: :class:`tk.Frame`
     :var PropertyIcon.images: collection of two possible images
     :type PropertyIcon.images: dict
     :var PropertyIcon.colorized: collection of two highlighted images
@@ -413,7 +414,7 @@ class CornerWidget(object):
     """Widget holding three frames for emphasizing current corner.
 
     :var CornerWidget.master: parent widget
-    :type CornerWidget.master: :class:`.tk.Tk`
+    :type CornerWidget.master: :class:`tk.Tk`
     :var shift: cursor shift from corner in pixels
     :type shift: int
     :var CornerWidget.background: widget background color
@@ -439,7 +440,7 @@ class CornerWidget(object):
         from provided arguments.
 
         :param master: parent widget
-        :type master: :class:`.tk.Frame`
+        :type master: :class:`tk.Frame`
         :var shift: cursor shift from corner in pixels
         :type shift: int
         :var background: widget background color
@@ -521,7 +522,7 @@ class WorkspacesCollection(tk.Frame):
     """Tkinter frame holding all the available workspaces widgets.
 
     :var WorkspacesCollection.master: master widget
-    :type WorkspacesCollection.master: :class:`.tk.Frame`
+    :type WorkspacesCollection.master: :class:`tk.Frame`
     :var active: currently active workspace number
     :type active: int
     :var capacity: number of children workspaces
@@ -620,7 +621,7 @@ class WindowsList(tk.Frame):
     """Tkinter frame holding titles and small icons of the windows in queue.
 
     :var WindowsList.master: master widget
-    :type WindowsList.master: :class:`.tk.Frame`
+    :type WindowsList.master: :class:`tk.Frame`
     """
 
     master = None
@@ -686,7 +687,7 @@ class Workspace(tk.Frame):
     """Tkinter frame holding individual workspace widget.
 
     :var Workspace.master: master widget
-    :type Workspace.master: :class:`.tk.Frame`
+    :type Workspace.master: :class:`tk.Frame`
     :var Workspace.number: workspace number
     :type Workspace.number: int
     :var Workspace.name: workspace name
@@ -796,7 +797,7 @@ class ListedWindow(tk.Frame):
     """Tkinter frame holding window title and smaller icon.
 
     :var ListedWindow.master: master widget
-    :type ListedWindow.master: :class:`.tk.Frame`
+    :type ListedWindow.master: :class:`tk.Frame`
     :var ListedWindow.wid: window id
     :type ListedWindow.wid: int
     :var ListedWindow.title: window title
@@ -898,7 +899,7 @@ class Toolbar(tk.Frame):
     """Tkinter frame holding options and quit button.
 
     :var Toolbar.master: master widget
-    :type Toolbar.master: :class:`.tk.Frame`
+    :type Toolbar.master: :class:`tk.Frame`
     """
 
     master = None
