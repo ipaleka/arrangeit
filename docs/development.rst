@@ -51,6 +51,10 @@ Manjaro 18.04 Xfce
   sudo pacman -S gobject-introspection tk
 
 
+MS Windows
+^^^^^^^^^^
+
+
 Darwin
 ^^^^^^
 
@@ -60,6 +64,16 @@ and finally run post-install script `Install Certificates.command`.
 
 Tools
 -----
+
+PyInstaller
+^^^^^^^^^^^
+`starter.py` is created for a sole purpose of PyInstaller's dependencies collecting.
+There's specification file `arrangeit_pyinstaller.spec` in the root directory capable to produce only MS Windows executable for now. Installation binaries are created by the following call:
+
+.. code-block:: bash
+
+  python -OO -m PyInstaller `arrangeit_pyinstaller.spec
+
 
 black
 ^^^^^

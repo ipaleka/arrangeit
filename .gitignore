@@ -5,6 +5,7 @@ __pycache__
 arrangeit.code-workspace
 htmlcov/
 dist
+build
 arrangeit.egg-info
 .coverage
 tests/coverage*.xml
