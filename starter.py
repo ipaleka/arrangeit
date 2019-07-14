@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from arrangeit.__main__ import main
 
 

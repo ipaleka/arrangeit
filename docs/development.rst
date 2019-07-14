@@ -65,14 +65,74 @@ and finally run post-install script `Install Certificates.command`.
 Tools
 -----
 
+
+fpm
+^^^
+
+dependency: `virtualenv-tools3` (`pip3 install virtualenv-tools3`)
+
+fpm_ is used to build GNU/Linux installation package.
+
+.. _fpm: https://github.com/jordansissel/fpm
+
+Run the following command inside project's root directory to create Debian installation package:
+
+.. code-block:: bash
+
+fpm -s python -t deb -n arrangeit --category=misc --license=GPLv3 -d "python3-pil" -d "python3-pip" -d "python3-gi" -d "python3-gi-cairo" -d "gir1.2-gtk-3.0" -d "python3-xlib" -m "Ivica Paleka <ipaleka@hopemeet.me>" --no-python-dependencies --python-obey-requirements-txt --python-bin=python3 --python-pip=pip3 --force --log=debug setup.py
+fpm -s virtualenv -t deb -n arrangeit --category=misc --license=GPLv3 -d "python3-pip" -d "python3-gi" -d "python3-gi-cairo" -d "gir1.2-gtk-3.0" -m "Ivica Paleka <ipaleka@hopemeet.me>" -a all -v 0.3alpha --description="Cross-platform desktop utility for easy windows management" --url=https://github.com/ipaleka/arrangeit --python-bin=python3 --python-pip=pip3 --virtualenv-setup-install --force --log=debug requirements.txt
+
+  fpm -s python -t deb -n arrangeit --category=misc  \
+    -d "python3-pil" -d "python3-pip" -d "python3-xlib" \
+    -d "python3-gi" -d "python3-gi-cairo" -d "gir1.2-gtk-3.0" \
+    -m "Ivica Paleka <ipaleka@hopemeet.me>" \
+    --no-python-dependencies --python-obey-requirements-txt \
+    --force --log=debug setup.py
+
+TODO: add script to parameter `--deb-after-purge` which will delete local/share/arrangeit directory
+
+
 PyInstaller
 ^^^^^^^^^^^
-`starter.py` is created for a sole purpose of PyInstaller's dependencies collecting.
-There's specification file `arrangeit_pyinstaller.spec` in the root directory capable to produce only MS Windows executable for now. Installation binaries are created by the following call:
+
+PyInstaller_ is used to build MS Windows installation package.
+
+.. _PyInstaller: https://www.pyinstaller.org/
+
+`starter.py` script is created in the project's root directory for the purpose of PyInstaller's dependencies collecting.
+There's specification file `arrangeit_pyinstaller.spec` in the same directory used to produce MS Windows executable by the following call:
 
 .. code-block:: bash
 
   python -OO -m PyInstaller `arrangeit_pyinstaller.spec
+
+
+stdeb
+^^^^^
+
+.. code-block:: bash
+
+  sudo apt-get install python3-all
+  pip3 install stdeb --user
+  python setup.py sdist
+  cd dist
+  py2dsc-deb arrangeit-0.2.4.tar.gz
+
+
+py2deb
+^^^^^^
+
+.. code-block:: bash
+
+  sudo apt-get install dpkg-dev fakeroot
+
+
+dh-virtualenv
+^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+  sudo apt-get install build-essential debhelper devscripts equivs
 
 
 black
