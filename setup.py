@@ -18,6 +18,7 @@ setup(
     description="Cross-platform desktop utility for easy windows management",
     long_description=readme,
     packages=find_packages(),
+    test_suite='tests',
     python_requires="~=3.4",
     install_requires=[
         "Pillow",
@@ -30,6 +31,7 @@ setup(
         'pywin32; platform_system == "Windows"',
     ],
     entry_points={"gui_scripts": ["arrangeit=arrangeit.__main__:main"]},
+    include_package_data=True,
     author="Ivica Paleka",
     author_email="ipaleka@hopemeet.me",
     url="https://github.com/ipaleka/arrangeit",

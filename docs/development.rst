@@ -65,31 +65,33 @@ and finally run post-install script `Install Certificates.command`.
 Tools
 -----
 
+py2deb
+^^^^^^
 
-fpm
-^^^
+py2deb_ is used to build GNU/Linux installation package.
 
-dependency: `virtualenv-tools3` (`pip3 install virtualenv-tools3`)
+.. _py2deb: https://py2deb.readthedocs.io
 
-fpm_ is used to build GNU/Linux installation package.
 
-.. _fpm: https://github.com/jordansissel/fpm
-
-Run the following command inside project's root directory to create Debian installation package:
+Run the following command to install py2deb and its dependencies on Debian/Ubuntu:
 
 .. code-block:: bash
 
-fpm -s python -t deb -n arrangeit --category=misc --license=GPLv3 -d "python3-pil" -d "python3-pip" -d "python3-gi" -d "python3-gi-cairo" -d "gir1.2-gtk-3.0" -d "python3-xlib" -m "Ivica Paleka <ipaleka@hopemeet.me>" --no-python-dependencies --python-obey-requirements-txt --python-bin=python3 --python-pip=pip3 --force --log=debug setup.py
-fpm -s virtualenv -t deb -n arrangeit --category=misc --license=GPLv3 -d "python3-pip" -d "python3-gi" -d "python3-gi-cairo" -d "gir1.2-gtk-3.0" -m "Ivica Paleka <ipaleka@hopemeet.me>" -a all -v 0.3alpha --description="Cross-platform desktop utility for easy windows management" --url=https://github.com/ipaleka/arrangeit --python-bin=python3 --python-pip=pip3 --virtualenv-setup-install --force --log=debug requirements.txt
+  apt-get install dpkg-dev fakeroot lintian python3-pip
+  pip3 install py2deb --user
+  pip3 install pip-accel --user  # it will downgrade pip to version <8.0
 
-  fpm -s python -t deb -n arrangeit --category=misc  \
-    -d "python3-pil" -d "python3-pip" -d "python3-xlib" \
-    -d "python3-gi" -d "python3-gi-cairo" -d "gir1.2-gtk-3.0" \
-    -m "Ivica Paleka <ipaleka@hopemeet.me>" \
-    --no-python-dependencies --python-obey-requirements-txt \
-    --force --log=debug setup.py
 
-TODO: add script to parameter `--deb-after-purge` which will delete local/share/arrangeit directory
+And then run the following command inside project's root directory to create Debian installation package in `./dist/` directory:
+
+.. code-block:: bash
+
+  mkdir dist
+  py2deb -r ./dist/ --no-name-prefix=arrangeit -y \
+    --use-system-package=Pillow,python3-pil \
+    --use-system-package=python-xlib,python3-xlib \
+    --use-system-package=six,python3-six \
+    .
 
 
 PyInstaller
@@ -105,34 +107,6 @@ There's specification file `arrangeit_pyinstaller.spec` in the same directory us
 .. code-block:: bash
 
   python -OO -m PyInstaller `arrangeit_pyinstaller.spec
-
-
-stdeb
-^^^^^
-
-.. code-block:: bash
-
-  sudo apt-get install python3-all
-  pip3 install stdeb --user
-  python setup.py sdist
-  cd dist
-  py2dsc-deb arrangeit-0.2.4.tar.gz
-
-
-py2deb
-^^^^^^
-
-.. code-block:: bash
-
-  sudo apt-get install dpkg-dev fakeroot
-
-
-dh-virtualenv
-^^^^^^^^^^^^^
-
-.. code-block:: bash
-
-  sudo apt-get install build-essential debhelper devscripts equivs
 
 
 black
