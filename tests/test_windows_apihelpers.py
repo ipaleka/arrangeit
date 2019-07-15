@@ -32,7 +32,10 @@ class TestWindowsApihelpersCustomFunctions(object):
         self, mocker
     ):
         Version = namedtuple("version", ["major", "minor"])
-        mocked = mocker.patch("arrangeit.windows.apihelpers.sys.getwindowsversion", return_value=Version(6, 1))
+        mocked = mocker.patch(
+            "arrangeit.windows.apihelpers.sys.getwindowsversion",
+            return_value=Version(6, 1),
+        )
         platform_supports_packages()
         mocked.assert_called_once()
         mocked.assert_called_with()
@@ -263,6 +266,12 @@ class TestWindowsapiHelperFunctions(object):
         assert isinstance(apihelpers._kernel32, ctypes.WinDLL)
         assert apihelpers._kernel32._name == "kernel32"
 
+    # _kernel32
+    def test_windows_apihelpers_sets_WinDLL_psapi(self):
+        assert apihelpers.__dict__.get("_psapi") is not None
+        assert isinstance(apihelpers._psapi, ctypes.WinDLL)
+        assert apihelpers._psapi._name == "psapi"
+
     # WNDENUMPROC
     def test_windows_apihelpers_defines_WNDENUMPROC(self):
         assert apihelpers.__dict__.get("WNDENUMPROC") is not None
@@ -325,6 +334,22 @@ class TestWindowsapiHelperFunctions(object):
             ctypes.wintypes.DWORD,
         )
         assert apihelpers._open_process.restype == ctypes.wintypes.HANDLE
+
+    # _get_process_image_file_name
+    def test_windows_apihelpers_defines__get_process_image_file_name(self):
+        assert apihelpers.__dict__.get("_get_process_image_file_name") is not None
+        assert (
+            apihelpers._get_process_image_file_name
+            == apihelpers._psapi.GetProcessImageFileNameA
+        )
+
+    def test_windows_apihelpers__get_process_image_file_name_argtypes_and_restype(self):
+        assert apihelpers._get_process_image_file_name.argtypes == (
+            ctypes.wintypes.HANDLE,
+            ctypes.wintypes.LPSTR,
+            ctypes.wintypes.DWORD,
+        )
+        assert apihelpers._get_process_image_file_name.restype == ctypes.wintypes.DWORD
 
     # _close_handle
     def test_windows_apihelpers_defines__close_handle(self):
@@ -689,7 +714,7 @@ class TestWindowsapiPackage(object):
             return_value=NAMESPACE,
         )
         mocked = mocker.patch("arrangeit.windows.apihelpers.next")
-        mocked.return_value.iter.return_value = [IDENTITY,]
+        mocked.return_value.iter.return_value = [IDENTITY]
         package = Package()
         package._setup_app_name(mocker.MagicMock())
         assert package.app_name == SAMPLE
@@ -743,7 +768,9 @@ class TestWindowsapiPackage(object):
         calls = [mocker.call()]
         mocked.return_value.iter.assert_has_calls(calls, any_order=True)
 
-    def test_apihelpers_Package__setup_icon_appends_once_to_sources_from_Applications(self, mocker):
+    def test_apihelpers_Package__setup_icon_appends_once_to_sources_from_Applications(
+        self, mocker
+    ):
         mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
         SAMPLE = "foo1bar"
         SUBELEM = mocker.MagicMock()
@@ -755,12 +782,16 @@ class TestWindowsapiPackage(object):
             return_value=NAMESPACE,
         )
         mocked = mocker.patch("arrangeit.windows.apihelpers.next")
-        mocked_first = mocker.patch("arrangeit.windows.apihelpers.Package._get_first_image")
-        mocked.return_value.iter.return_value = [SUBELEM,]
+        mocked_first = mocker.patch(
+            "arrangeit.windows.apihelpers.Package._get_first_image"
+        )
+        mocked.return_value.iter.return_value = [SUBELEM]
         Package()._setup_icon(mocker.MagicMock())
-        mocked_first.assert_called_with([SAMPLE,])
+        mocked_first.assert_called_with([SAMPLE])
 
-    def test_apihelpers_Package__setup_icon_appends_to_sources_from_Properties(self, mocker):
+    def test_apihelpers_Package__setup_icon_appends_to_sources_from_Properties(
+        self, mocker
+    ):
         mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
         SAMPLE = "foo1bar4"
         PROP = mocker.MagicMock()
@@ -772,11 +803,13 @@ class TestWindowsapiPackage(object):
             return_value=NAMESPACE,
         )
         mocked = mocker.patch("arrangeit.windows.apihelpers.next")
-        mocked_first = mocker.patch("arrangeit.windows.apihelpers.Package._get_first_image")
-        mocked.return_value.iter.return_value = [PROP,]
+        mocked_first = mocker.patch(
+            "arrangeit.windows.apihelpers.Package._get_first_image"
+        )
+        mocked.return_value.iter.return_value = [PROP]
         package = Package()
         package._setup_icon(mocker.MagicMock())
-        mocked_first.assert_called_with([SAMPLE,])
+        mocked_first.assert_called_with([SAMPLE])
         assert package.icon == mocked_first.return_value
 
     # Package.setup_package
@@ -785,23 +818,27 @@ class TestWindowsapiPackage(object):
         mocker.patch("arrangeit.windows.apihelpers.Package._setup_app_name")
         mocker.patch("arrangeit.windows.apihelpers.Package._setup_icon")
         package = Package()
-        mocked.reset_mock()        
+        mocked.reset_mock()
         package.setup_package()
         mocked.assert_called_once()
         mocked.assert_called_with()
 
     def test_apihelpers_Package_setup_package_calls__setup_app_name(self, mocker):
-        mocked_root = mocker.patch("arrangeit.windows.apihelpers.Package._get_manifest_root")
+        mocked_root = mocker.patch(
+            "arrangeit.windows.apihelpers.Package._get_manifest_root"
+        )
         mocked = mocker.patch("arrangeit.windows.apihelpers.Package._setup_app_name")
         mocker.patch("arrangeit.windows.apihelpers.Package._setup_icon")
         package = Package()
-        mocked.reset_mock()        
+        mocked.reset_mock()
         package.setup_package()
         mocked.assert_called_once()
         mocked.assert_called_with(mocked_root.return_value)
 
     def test_apihelpers_Package_setup_package_calls__setup_icon(self, mocker):
-        mocked_root = mocker.patch("arrangeit.windows.apihelpers.Package._get_manifest_root")
+        mocked_root = mocker.patch(
+            "arrangeit.windows.apihelpers.Package._get_manifest_root"
+        )
         mocker.patch("arrangeit.windows.apihelpers.Package._setup_app_name")
         mocked = mocker.patch("arrangeit.windows.apihelpers.Package._setup_icon")
         package = Package()
@@ -809,6 +846,7 @@ class TestWindowsapiPackage(object):
         package.setup_package()
         mocked.assert_called_once()
         mocked.assert_called_with(mocked_root.return_value)
+
 
 # Api class public methods
 class TestWindowsapiApiPublic(object):
@@ -852,6 +890,147 @@ class TestWindowsapiApiPublic(object):
         mocker.patch("arrangeit.windows.apihelpers.WNDENUMPROC")
         mocker.patch("arrangeit.windows.apihelpers._enum_windows")
         assert isinstance(Api().enum_windows(), list)
+
+    # executable_name_for_hwnd
+    def test_Api_executable_name_for_hwnd_calls__wintypes_DWORD(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
+        mocker.patch("arrangeit.windows.apihelpers._open_process")
+        mocker.patch("ctypes.create_string_buffer")
+        mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        mocked = mocker.patch("ctypes.wintypes.DWORD")
+        Api().executable_name_for_hwnd(2080)
+        calls = [mocker.call()]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_executable_name_for_hwnd_calls__get_windows_thread_process_id(
+        self, mocker
+    ):
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("arrangeit.windows.apihelpers._open_process")
+        mocker.patch("ctypes.create_string_buffer")
+        mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        mocked_byref = mocker.patch("ctypes.byref")
+        mocked = mocker.patch(
+            "arrangeit.windows.apihelpers._get_windows_thread_process_id"
+        )
+        HWND = 2081
+        Api().executable_name_for_hwnd(HWND)
+        calls = [mocker.call(HWND, mocked_byref.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_executable_name_for_hwnd_calls__open_process(self, mocker):
+        mocked_dword = mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("ctypes.create_string_buffer")
+        mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
+        mocked = mocker.patch("arrangeit.windows.apihelpers._open_process")
+        Api().executable_name_for_hwnd(2082)
+        calls = [
+            mocker.call(
+                apihelpers.PROCESS_QUERY_LIMITED_INFORMATION,
+                False,
+                mocked_dword.return_value,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_executable_name_for_hwnd_calls_create_string_buffer(self, mocker):
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=False,
+        )
+        mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
+        mocker.patch("arrangeit.windows.apihelpers._open_process")
+        mocked = mocker.patch("ctypes.create_string_buffer")
+        Api().executable_name_for_hwnd(2083)
+        calls = [mocker.call(500)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_executable_name_for_hwnd_calls__get_process_image_file_name(
+        self, mocker
+    ):
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
+        mocked_process = mocker.patch("arrangeit.windows.apihelpers._open_process")
+        mocked_buffer = mocker.patch("ctypes.create_string_buffer")
+        mocked = mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=False,
+        )
+        Api().executable_name_for_hwnd(2084)
+        calls = [
+            mocker.call(mocked_process.return_value, mocked_buffer.return_value, 500)
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_executable_name_for_hwnd_calls__close_handle(self, mocker):
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
+        mocked_process = mocker.patch("arrangeit.windows.apihelpers._open_process")
+        mocker.patch("ctypes.create_string_buffer")
+        mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=False,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        Api().executable_name_for_hwnd(2085)
+        calls = [mocker.call(mocked_process.return_value)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_executable_name_for_hwnd_calls_and_returns_extract_name_from_bytes_path(
+        self, mocker
+    ):
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
+        mocker.patch("arrangeit.windows.apihelpers._open_process")
+        mocked_buffer = mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=True,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.extract_name_from_bytes_path")
+        returned = Api().executable_name_for_hwnd(2086)
+        calls = [mocker.call(mocked_buffer.return_value.value)]
+        mocked.assert_has_calls(calls, any_order=True)
+        assert returned == mocked.return_value
+
+    def test_Api_executable_name_for_hwnd_returns_None(self, mocker):
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.apihelpers._get_windows_thread_process_id")
+        mocker.patch("arrangeit.windows.apihelpers._open_process")
+        mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.apihelpers._close_handle")
+        mocker.patch(
+            "arrangeit.windows.apihelpers._get_process_image_file_name",
+            return_value=False,
+        )
+        mocked = mocker.patch("arrangeit.windows.apihelpers.extract_name_from_bytes_path")
+        returned = Api().executable_name_for_hwnd(2087)
+        mocked.assert_not_called()
+        assert returned is None
 
 
 # Api class public methods for Windows >= 8.1

@@ -61,7 +61,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
-    icon='D:\\dev\\arrangeit\\arrangeit\\resources\\arrangeit.ico'
+    icon='arrangeit\\resources\\arrangeit.ico'
 )
 coll = COLLECT(
     exe,

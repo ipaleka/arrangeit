@@ -11,6 +11,7 @@ from PIL import Image
 
 from arrangeit.settings import Settings
 from arrangeit.utils import open_image
+from arrangeit.windows.utils import extract_name_from_bytes_path
 
 APPMODEL_ERROR_NO_PACKAGE = 15700
 ERROR_INSUFFICIENT_BUFFER = 0x7A
@@ -126,6 +127,7 @@ class WINDOWINFO(ctypes.Structure):
 
 _user32 = ctypes.WinDLL("user32", use_last_error=True)
 _kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+_psapi = ctypes.WinDLL("psapi", use_last_error=True)
 
 WNDENUMPROC = ctypes.WINFUNCTYPE(
     ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
@@ -157,6 +159,14 @@ _open_process.argtypes = (
     ctypes.wintypes.DWORD,
 )
 _open_process.restype = ctypes.wintypes.HANDLE
+
+_get_process_image_file_name = _psapi.GetProcessImageFileNameA
+_get_process_image_file_name.argtypes = (
+    ctypes.wintypes.HANDLE,
+    ctypes.wintypes.LPSTR,
+    ctypes.wintypes.DWORD,
+)
+_get_process_image_file_name.restype = ctypes.wintypes.DWORD
 
 _close_handle = _kernel32.CloseHandle
 _close_handle.argtypes = (ctypes.wintypes.HANDLE,)
@@ -371,11 +381,6 @@ class Api(object):
         length = ctypes.c_uint()
         ret_val = _get_package_full_name(handle, ctypes.byref(length), None)
         if ret_val == APPMODEL_ERROR_NO_PACKAGE:
-            logging.info(
-                "_package_full_name_from_handle: handle {} has no package.".format(
-                    hex(handle)
-                )
-            )
             return None
 
         full_name = ctypes.create_unicode_buffer(length.value + 1)
@@ -525,6 +530,30 @@ class Api(object):
 
         return hwnds
 
+    def executable_name_for_hwnd(self, hwnd):
+        """Returns name of the executable associated with provided window identifier.
+
+        :param hwnd: window handle
+        :type hwnd: int
+        :var pid: process identifier
+        :type pid: int
+        :var hprocess: process handle
+        :type hprocess: int
+        :var path_buffer: buffer holding executable path
+        :type path_buffer: array of :class:`ctypes.c_wchar`
+        :var ret_val: return value indicating success for value > 0
+        :type ret_val: int
+        :returns: str
+        """
+        pid = ctypes.wintypes.DWORD()
+        _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
+        hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        path_buffer = ctypes.create_string_buffer(500)
+        ret_val = _get_process_image_file_name(hprocess, path_buffer, 500)
+        _close_handle(hprocess)
+        if ret_val:
+            return extract_name_from_bytes_path(path_buffer.value)
+
     def get_package(self, hwnd):
         """Returns :class:`Package` holding needed package data from provided window id.
 
@@ -552,3 +581,40 @@ class Api(object):
         package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
         _close_package_info(package_info_reference.contents)
         return Package(package_info.path)
+
+
+# _psapi = ctypes.WinDLL("psapi", use_last_error=True)
+# _get_module_file_name_ex_a = _psapi.GetModuleFileNameExA
+# _get_module_file_name_ex_a.argtypes = (
+#     ctypes.wintypes.HANDLE,
+#     ctypes.wintypes.HMODULE,
+#     ctypes.wintypes.LPSTR,
+#     ctypes.wintypes.DWORD,
+# )
+# _get_module_file_name_ex_a.restype = ctypes.wintypes.DWORD
+
+
+# def _module_file_name(hwnd):
+
+#     pid = ctypes.wintypes.DWORD()
+#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
+#     hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+#     buffer = ctypes.create_string_buffer(800)
+#     # buffer_bytes = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_uint8))
+#     ret_val = _get_module_file_name_ex_a(hprocess, None, buffer, 800)
+#     _close_handle(hprocess)
+#     if ret_val:
+#         return buffer.value
+
+#     for child in Api().enum_windows(hwnd, enum_children=True):
+#         child_pid = ctypes.wintypes.DWORD(0)
+#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
+#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
+
+#         buffer = ctypes.create_string_buffer(255)
+#         # buffer_bytes = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_uint8))
+#         ret_val = _get_module_file_name_ex_a(hprocess, None, buffer, 255)
+
+#         _close_handle(hprocess)
+#         if ret_val:
+#             return buffer.value

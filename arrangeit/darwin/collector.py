@@ -27,7 +27,7 @@ class Collector(BaseCollector):
         app = self._running_apps_ids()[win.valueForKey_("kCGWindowOwnerPID")]
         return Image.open(io.BytesIO(app.icon().TIFFRepresentation()))
 
-    def _get_class_name(self, win):
+    def get_application_name(self, win):
         """Returns application/owner name for the provided win.
 
         :param win: window object
@@ -94,7 +94,7 @@ class Collector(BaseCollector):
                 rect=self._get_window_geometry(win),
                 resizable=self.is_resizable(win),
                 title=self._get_window_title(win),
-                name=self._get_class_name(win),
+                name=self.get_application_name(win),
                 icon=self._get_application_icon(win),
                 workspace=self.get_workspace_number_for_window(win),
             )

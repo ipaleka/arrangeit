@@ -76,20 +76,27 @@ class Collector(BaseCollector):
 
         return self._get_image_from_icon_handle(icon_handle)
 
-    def _get_class_name(self, hwnd):
-        """Returns class name for the window represented by provided handle.
+    def get_application_name(self, hwnd):
+        """Returns application name for the window represented by provided handle.
 
-        Uses package app_name if there's cached package for provided hwnd (that
-        functionality is available only for Windows versions greater than 8.1).
+        For Windows versions greater than 8.1 it uses package app_name if there's cached
+        package for provided hwnd.
+
+        Otherwise it tries to extract the name from executable path.
+
+        If previous methods haven't succeed it returns window's class name.
 
         :param hwnd: window id
         :type hwnd: int
+        :param app_name: executable name without extension
+        :type app_name: str
         :returns: str
         """
         if self.api.packages.get(hwnd) is not None:
             return self.api.packages[hwnd].app_name
 
-        return GetClassName(hwnd)
+        app_name = self.api.executable_name_for_hwnd(hwnd)
+        return app_name if app_name is not None else GetClassName(hwnd)
 
     def _get_image_from_icon_handle(self, icon_handle):
         """Creates and returns PIL image from provided handle to icon.
@@ -231,7 +238,7 @@ class Collector(BaseCollector):
                 restored=self.is_restored(hwnd),
                 title=self._get_window_title(hwnd),
                 icon=self._get_application_icon(hwnd),
-                name=self._get_class_name(hwnd),
+                name=self.get_application_name(hwnd),
                 workspace=self.get_workspace_number_for_window(hwnd),
             )
         )

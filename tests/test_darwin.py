@@ -67,10 +67,10 @@ class TestDarwinCollector(object):
         returned = Collector()._get_application_icon(mocked_win)
         assert returned == mocked.return_value
 
-    ## DarwinCollector._get_class_name
-    def test_DarwinCollector__get_class_name_calls_valueForKey_(self, mocker):
+    ## DarwinCollector.get_application_name
+    def test_DarwinCollector_get_application_name_calls_valueForKey_(self, mocker):
         mocked_win = mocker.MagicMock()
-        Collector()._get_class_name(mocked_win)
+        Collector().get_application_name(mocked_win)
         mocked_win.valueForKey_.assert_called_once()
         mocked_win.valueForKey_.assert_called_with("kCGWindowOwnerName")
 
@@ -151,7 +151,7 @@ class TestDarwinCollector(object):
         mocker.patch("arrangeit.darwin.collector.Collector.is_resizable")
         mocker.patch("arrangeit.darwin.collector.Collector.is_restored")
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_title")
-        mocker.patch("arrangeit.darwin.collector.Collector._get_class_name")
+        mocker.patch("arrangeit.darwin.collector.Collector.get_application_name")
         mocker.patch("arrangeit.darwin.collector.Collector._get_application_icon")
         mocker.patch(
             "arrangeit.darwin.collector.Collector.get_workspace_number_for_window"
@@ -175,7 +175,7 @@ class TestDarwinCollector(object):
             "arrangeit.darwin.collector.Collector._get_window_title"
         )
         mocked_name = mocker.patch(
-            "arrangeit.darwin.collector.Collector._get_class_name"
+            "arrangeit.darwin.collector.Collector.get_application_name"
         )
         mocked_icon = mocker.patch(
             "arrangeit.darwin.collector.Collector._get_application_icon"
@@ -205,7 +205,7 @@ class TestDarwinCollector(object):
             "is_resizable",
             "is_restored",
             "_get_window_title",
-            "_get_class_name",
+            "get_application_name",
             "_get_application_icon",
             "get_workspace_number_for_window",
         ],
@@ -216,7 +216,7 @@ class TestDarwinCollector(object):
         mocker.patch("arrangeit.darwin.collector.Collector.is_resizable")
         mocker.patch("arrangeit.darwin.collector.Collector.is_restored")
         mocker.patch("arrangeit.darwin.collector.Collector._get_window_title")
-        mocker.patch("arrangeit.darwin.collector.Collector._get_class_name")
+        mocker.patch("arrangeit.darwin.collector.Collector.get_application_name")
         mocker.patch("arrangeit.darwin.collector.Collector._get_application_icon")
         mocker.patch(
             "arrangeit.darwin.collector.Collector.get_workspace_number_for_window"
