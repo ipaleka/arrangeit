@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'arrangeit'
-copyright = '2019, Ivica Paleka'
+copyright = '1999-2019, Ivica Paleka'
 author = 'Ivica Paleka'
 
 # The full version, including alpha/beta/rc tags
@@ -60,3 +60,28 @@ html_logo = "../arrangeit/resources/logo.png"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+# -- Options for LaTeX output ---------------------------------------------
+
+# Grouping the document tree into LaTeX files. List of tuples
+# (source start file, target name, title,
+#  author, documentclass [howto, manual, or own class]).
+latex_documents = [
+    ('index', 'arrangeit.tex', 'arrangeit documentation',
+     author, 'manual'),
+]
+
+# The name of an image file (relative to this directory) to place at the top of
+# the title page.
+#
+latex_logo = html_logo
+
+# -- Options for manual page output ---------------------------------------
+
+# One entry per manual page. List of tuples
+# (source start file, name, description, authors, manual section).
+man_pages = [
+    ("index", 'arrangeit', 'arrangeit documentation',
+     [author], 1)
+]

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import logging
 
 from arrangeit.utils import get_component_class

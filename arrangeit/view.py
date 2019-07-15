@@ -1,3 +1,5 @@
+# arrangeit; Copyright (C) 1999-2019 Ivica Paleka; <https://www.gnu.org/licenses/>
+
 import tkinter as tk
 from gettext import gettext as _
 from tkinter.font import nametofont
