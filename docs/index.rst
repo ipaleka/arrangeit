@@ -20,7 +20,10 @@ Mac OS X support is expected in the next **v0.4beta** release.
 
    development
 
+   legal
+
    api
+
 
 Indices and tables
 ==================

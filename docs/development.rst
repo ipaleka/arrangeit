@@ -16,7 +16,7 @@ To start **arrangeit** development on Ubuntu, you should install some system pac
 
 .. code-block:: bash
 
-  sudo apt-get install python3-dev git \
+  sudo apt-get install python3-dev git gcc \
     libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
 
 
@@ -41,8 +41,19 @@ Debian Stretch
 
 .. code-block:: bash
 
-  apt-get install python3-dev python3-venv python3-tk git \
+  su
+  apt-get install python3-dev python3-venv python3-tk git pkg-config \
     libcairo2-dev libgirepository1.0-dev gir1.2-gtk-3.0 gir1.2-wnck-3.0
+
+
+Debian Buster
+"""""""""""""
+
+.. code-block:: bash
+
+  su
+  apt-get install python3-dev python3-venv python3-tk git gcc \
+    pkg-config libcairo2-dev libgirepository1.0-dev
 
 
 Manjaro 18.04 Xfce
