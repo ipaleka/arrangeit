@@ -3,8 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to arrangeit's documentation!
-=====================================
+arrangeit v0.3alpha documentation
+=================================
+
+It should be possible to run **arrangeit v0.3alpha** under X Windows in GNU/Linux (Wayland is not supported. Yet...) and under MS Windows (pretty much all versions).
+
+Mac OS X support is expected in the next **v0.4beta** release.
+
 
 .. toctree::
    :maxdepth: 2
@@ -13,7 +18,6 @@ Welcome to arrangeit's documentation!
    installation
    userguide
 
-   requirements
    development
 
    api
