@@ -35,15 +35,11 @@ class App(BaseApp):
         """Activates/focuses root window identified by provided ``wid``.
 
         FIXME possible nasty hack wid+1
+
+        :param wid: windows id
+        :type wid: int
         """
-        window = next(
-            (
-                win
-                for win in Gdk.Screen.get_default().get_window_stack()
-                if win.get_xid() == wid + 1
-            ),
-            None,
-        )
+        window = self._window_from_wid(wid + 1)
         if window is not None:
             window.focus(X.CurrentTime)
 
@@ -54,6 +50,7 @@ class App(BaseApp):
 
         :param wid: windows id
         :type wid: int
+        :returns: Boolean
         """
         return self.move_and_resize(wid)
 
@@ -94,6 +91,21 @@ class App(BaseApp):
             return False
         return True
 
+    def move_to_workspace(self, wid, number):
+        """Moves root window to provided custom workspace number.
+
+        Calls :func:`_move_window_to_workspace` with wid increased by 1.
+
+        FIXME possible nasty hack wid+1
+
+        :param wid: root id got from Tkinter
+        :type wid: int
+        :param number: our custom workspace number
+        :type number: int
+        """
+        return self._move_window_to_workspace(wid + 1, number)
+
+    ## HELPERS
     def _activate_workspace(self, number):
         """Activates workspace identified by provided our custom workspace number.
 
@@ -135,19 +147,21 @@ class App(BaseApp):
             return False
         return True
 
-    def move_to_workspace(self, wid, number):
-        """Moves root window to provided custom workspace number.
+    def _window_from_wid(self, wid):
+        """Returns window instance from provided window identifier ``wid``.
 
-        Calls :func:`_move_window_to_workspace` with wid increased by 1.
-
-        FIXME possible nasty hack wid+1
-
-        :param wid: root id got from Tkinter
+        :param wid: windows id
         :type wid: int
-        :param number: our custom workspace number
-        :type number: int
+        :returns: :class:`Wnck.Window` instance
         """
-        return self._move_window_to_workspace(wid + 1, number)
+        return next(
+            (
+                win
+                for win in Gdk.Screen.get_default().get_window_stack()
+                if win.get_xid() == wid
+            ),
+            None,
+        )
 
     ## COMMANDS
     def grab_window_screen(self, model):
@@ -168,14 +182,7 @@ class App(BaseApp):
         :type height: int
         :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
         """
-        window = next(
-            (
-                win
-                for win in Gdk.Screen.get_default().get_window_stack()
-                if win.get_xid() == model.wid
-            ),
-            None,
-        )
+        window = self._window_from_wid(model.wid)
         if window is not None:
             width, height = window.get_width(), window.get_height()
             pixbuf = Gdk.pixbuf_get_from_window(window, 0, 0, width, height)
