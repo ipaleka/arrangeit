@@ -11,7 +11,7 @@ from win32con import (
 
 from arrangeit.settings import Settings
 from arrangeit.windows.app import App
-from arrangeit.windows.apihelpers import Package
+from arrangeit.windows.api import Package
 from arrangeit.windows.collector import DWMWA_CLOAKED, GCL_HICON, WM_GETICON, Collector
 from arrangeit.windows.controller import Controller
 from arrangeit.windows.utils import user_data_path, extract_name_from_bytes_path
@@ -255,7 +255,7 @@ class TestWindowsCollector(object):
         )
 
     def test_WindowsCollector__get_uwpapp_icon_returns_icon(self, mocker):
-        mocker.patch("arrangeit.windows.apihelpers.Package.setup_package")
+        mocker.patch("arrangeit.windows.api.Package.setup_package")
         SAMPLE = 222
         mocked = mocker.patch("arrangeit.windows.collector.Api")
         PACKAGE = Package("")

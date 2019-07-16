@@ -7,7 +7,7 @@ datas = [('./arrangeit/resources', './arrangeit/resources')]
 
 hiddenimports = [
     'arrangeit.windows',
-    'arrangeit.windows.apihelpers',
+    'arrangeit.windows.api',
     'arrangeit.windows.app',
     'arrangeit.windows.collector',
     'arrangeit.windows.controller',
@@ -37,7 +37,6 @@ excludes = [
 
 a = Analysis(
     ['starter.py'],
-    pathex=['C:\\dev\\arrangeit'],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,

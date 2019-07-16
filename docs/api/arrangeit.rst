@@ -175,10 +175,10 @@
   :show-inheritance:
 
 
-:mod:`arrangeit.windows.apihelpers` -- Module providing helper class and functions for API calls (MS Windows platform specific code)
+:mod:`arrangeit.windows.api` -- Module providing helper class and functions for API calls (MS Windows platform specific code)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: arrangeit.windows.apihelpers
+.. automodule:: arrangeit.windows.api
   :members:
   :undoc-members:
   :show-inheritance:

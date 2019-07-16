@@ -22,7 +22,7 @@ from PIL import Image
 from arrangeit.base import BaseCollector
 from arrangeit.data import WindowModel
 from arrangeit.settings import Settings
-from arrangeit.windows.apihelpers import TITLEBARINFO, WINDOWINFO, Api
+from arrangeit.windows.api import TITLEBARINFO, WINDOWINFO, Api
 from win32api import EnumDisplayMonitors
 from win32con import (
     GA_ROOTOWNER,

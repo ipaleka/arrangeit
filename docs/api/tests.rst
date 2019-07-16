@@ -121,10 +121,10 @@
   :show-inheritance:
 
 
-:mod:`tests.test_windows_apihelpers` -- Unit tests for MS Windows api helpers module
+:mod:`tests.test_windows_api` -- Unit tests for MS Windows api helpers module
 ------------------------------------------------------------------------------------
 
-.. automodule:: tests.test_windows_apihelpers
+.. automodule:: tests.test_windows_api
   :members:
   :undoc-members:
   :show-inheritance:

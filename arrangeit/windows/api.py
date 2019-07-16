@@ -34,13 +34,15 @@ ERROR_INSUFFICIENT_BUFFER = 0x7A
 ERROR_SUCCESS = 0x0
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 PACKAGE_FILTER_HEAD = 0x00000010
-
 UWP_ICON_SUFFIXES = (
     ".targetsize-256_altform-fullcolor",
     ".targetsize-96_altform-unplated",
     ".scale-200",
     "",  # as is
     ".scale-100",
+)
+WNDENUMPROC = ctypes.WINFUNCTYPE(
+    ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
 )
 
 
@@ -141,84 +143,126 @@ class WINDOWINFO(ctypes.Structure):
     ]
 
 
-_user32 = ctypes.WinDLL("user32", use_last_error=True)
-_kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-_psapi = ctypes.WinDLL("psapi", use_last_error=True)
+class Helpers(object):
+    """Helper class for calls to WinDLL API.
 
-WNDENUMPROC = ctypes.WINFUNCTYPE(
-    ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
-)
+    :var _user32: object holding API functions from user32 domain
+    :type _user32: :class:`ctypes.WinDLL`
+    :var _kernel32: object holding API functions from kernel32 domain
+    :type _kernel32: :class:`ctypes.WinDLL`
+    :var _psapi: object holding API functions from psapi domain
+    :type _psapi: :class:`ctypes.WinDLL`    
+    """
 
-_get_windows_thread_process_id = _user32.GetWindowThreadProcessId
-_get_windows_thread_process_id.argtypes = (
-    ctypes.wintypes.HWND,
-    ctypes.POINTER(ctypes.wintypes.DWORD),
-)
-_get_windows_thread_process_id.restype = ctypes.wintypes.DWORD
+    _user32 = ctypes.WinDLL("user32", use_last_error=True)
+    _kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    _psapi = ctypes.WinDLL("psapi", use_last_error=True)
 
-_enum_windows = _user32.EnumWindows
-_enum_windows.argtypes = (WNDENUMPROC, ctypes.wintypes.LPARAM)
-_enum_windows.restype = ctypes.wintypes.BOOL
+    def __init__(self):
+        """Calls setup methods."""
+        self._setup_common_helpers()
+        if platform_supports_packages():
+            self._setup_win8_helpers()
 
-_enum_child_windows = _user32.EnumChildWindows
-_enum_child_windows.argtypes = (
-    ctypes.wintypes.HWND,
-    WNDENUMPROC,
-    ctypes.wintypes.LPARAM,
-)
-_enum_child_windows.restype = ctypes.wintypes.BOOL
+    def _setup_helper(self, section, name, argtypes, restype):
+        """Retrieves and returns Windows API function with given ``name`` from ``section``.
+        
+        Also sets given ``argtypes``and ``restype`` attributes to functiom.
 
-_open_process = _kernel32.OpenProcess
-_open_process.argtypes = (
-    ctypes.wintypes.DWORD,
-    ctypes.wintypes.BOOL,
-    ctypes.wintypes.DWORD,
-)
-_open_process.restype = ctypes.wintypes.HANDLE
+        :var section: object holding API functions from specific domain
+        :type section: :class:`ctypes.WinDLL`        
+        :var name: Windows API function name
+        :type name: str  
+        :var argtypes: collection of ctypes objects arguments to Windows API function
+        :type argtypes: tuple
+        :var restype: returning value of Windows API function
+        :type restype: ctypes type object      
+        :returns: Windows API function callback
+        """
+        helper = getattr(section, name)
+        helper.argtypes = argtypes
+        helper.restype = restype
+        return helper
 
-_get_process_image_file_name = _psapi.GetProcessImageFileNameA
-_get_process_image_file_name.argtypes = (
-    ctypes.wintypes.HANDLE,
-    ctypes.wintypes.LPSTR,
-    ctypes.wintypes.DWORD,
-)
-_get_process_image_file_name.restype = ctypes.wintypes.DWORD
+    def _setup_common_helpers(self):
+        """Sets helper methods common to all MS Windows versions."""
+        self._get_windows_thread_process_id = self._setup_helper(
+            self._user32,
+            "GetWindowThreadProcessId",
+            (ctypes.wintypes.HWND, ctypes.POINTER(ctypes.wintypes.DWORD)),
+            ctypes.wintypes.DWORD,
+        )
+        self._enum_windows = self._setup_helper(
+            self._user32,
+            "EnumWindows",
+            (WNDENUMPROC, ctypes.wintypes.LPARAM),
+            ctypes.wintypes.BOOL,
+        )
+        self._enum_child_windows = self._setup_helper(
+            self._user32,
+            "EnumChildWindows",
+            (ctypes.wintypes.HWND, WNDENUMPROC, ctypes.wintypes.LPARAM),
+            ctypes.wintypes.BOOL,
+        )
+        self._open_process = self._setup_helper(
+            self._kernel32,
+            "OpenProcess",
+            (ctypes.wintypes.DWORD, ctypes.wintypes.BOOL, ctypes.wintypes.DWORD),
+            ctypes.wintypes.HANDLE,
+        )
+        self._close_handle = self._setup_helper(
+            self._kernel32,
+            "CloseHandle",
+            (ctypes.wintypes.HANDLE,),
+            ctypes.wintypes.BOOL,
+        )
+        self._get_process_image_file_name = self._setup_helper(
+            self._psapi,
+            "GetProcessImageFileNameA",
+            (ctypes.wintypes.HANDLE, ctypes.wintypes.LPSTR, ctypes.wintypes.DWORD),
+            ctypes.wintypes.DWORD,
+        )
 
-_close_handle = _kernel32.CloseHandle
-_close_handle.argtypes = (ctypes.wintypes.HANDLE,)
-_close_handle.restype = ctypes.wintypes.BOOL
-
-"""Windows 8.1 and Windows 10 specific API to retrieve UWP packages."""
-if platform_supports_packages():
-    _get_package_full_name = _kernel32.GetPackageFullName
-    _get_package_full_name.argtypes = (
-        ctypes.wintypes.HANDLE,
-        ctypes.POINTER(ctypes.c_uint32),
-        ctypes.wintypes.LPCWSTR,
-    )
-    _get_package_full_name.restype = ctypes.wintypes.LONG
-
-    _open_package_info_by_full_name = _kernel32.OpenPackageInfoByFullName
-    _open_package_info_by_full_name.argtypes = (
-        ctypes.wintypes.LPCWSTR,
-        ctypes.c_uint32,
-        ctypes.POINTER(PACKAGE_INFO_REFERENCE),
-    )
-    _open_package_info_by_full_name.restype = ctypes.wintypes.LONG
-
-    _get_package_info = _kernel32.GetPackageInfo
-    _get_package_info.argtypes = (
-        PACKAGE_INFO_REFERENCE,
-        ctypes.c_uint32,
-        ctypes.POINTER(ctypes.c_uint32),
-        ctypes.POINTER(ctypes.c_uint8),
-        ctypes.POINTER(ctypes.c_uint32),
-    )
-    _get_package_info.restype = ctypes.wintypes.LONG
-
-    _close_package_info = _kernel32.ClosePackageInfo
-    _close_package_info.argtypes = (PACKAGE_INFO_REFERENCE,)
-    _close_package_info.restype = ctypes.wintypes.LONG
+    def _setup_win8_helpers(self):
+        """Sets helper methods specific to MS Windows versions >= 8."""
+        self._get_package_full_name = self._setup_helper(
+            self._kernel32,
+            "GetPackageFullName",
+            (
+                ctypes.wintypes.HANDLE,
+                ctypes.POINTER(ctypes.c_uint32),
+                ctypes.wintypes.LPCWSTR,
+            ),
+            ctypes.wintypes.LONG,
+        )
+        self._open_package_info_by_full_name = self._setup_helper(
+            self._kernel32,
+            "OpenPackageInfoByFullName",
+            (
+                ctypes.wintypes.LPCWSTR,
+                ctypes.c_uint32,
+                ctypes.POINTER(PACKAGE_INFO_REFERENCE),
+            ),
+            ctypes.wintypes.LONG,
+        )
+        self._get_package_info = self._setup_helper(
+            self._kernel32,
+            "GetPackageInfo",
+            (
+                PACKAGE_INFO_REFERENCE,
+                ctypes.c_uint32,
+                ctypes.POINTER(ctypes.c_uint32),
+                ctypes.POINTER(ctypes.c_uint8),
+                ctypes.POINTER(ctypes.c_uint32),
+            ),
+            ctypes.wintypes.LONG,
+        )
+        self._close_package_info = self._setup_helper(
+            self._kernel32,
+            "ClosePackageInfo",
+            (PACKAGE_INFO_REFERENCE,),
+            ctypes.wintypes.LONG,
+        )
 
 
 class Package(object):
@@ -374,9 +418,16 @@ class Api(object):
 
     :var packages: cached collection of packages distincted by windows handles
     :type packages: dictionary of :class:`Package`
+    :var helpers: object holding helper methods for Windows API functions 
+    :type helpers: :class:`Helpers`    
     """
 
     packages = {}
+    helpers = None
+
+    def __init__(self):
+        """Initializes and sets attribute for helpers instance."""
+        self.helpers = Helpers()
 
     def _package_full_name_from_handle(self, handle):
         """Returns full name of the package associated with provided process handle.
@@ -395,12 +446,16 @@ class Api(object):
         :returns: array of :class:`ctypes.c_wchar`
         """
         length = ctypes.c_uint()
-        ret_val = _get_package_full_name(handle, ctypes.byref(length), None)
+        ret_val = self.helpers._get_package_full_name(
+            handle, ctypes.byref(length), None
+        )
         if ret_val == APPMODEL_ERROR_NO_PACKAGE:
             return None
 
         full_name = ctypes.create_unicode_buffer(length.value + 1)
-        ret_val = _get_package_full_name(handle, ctypes.byref(length), full_name)
+        ret_val = self.helpers._get_package_full_name(
+            handle, ctypes.byref(length), full_name
+        )
         if ret_val != ERROR_SUCCESS:
             logging.info(
                 "_package_full_name_from_handle: error -> {}".format(
@@ -432,12 +487,12 @@ class Api(object):
         """
         for child in self.enum_windows(hwnd, enum_children=True):
             child_pid = ctypes.wintypes.DWORD(0)
-            _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-            hprocess = _open_process(
+            self.helpers._get_windows_thread_process_id(child, ctypes.byref(child_pid))
+            hprocess = self.helpers._open_process(
                 PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid
             )
             full_name = self._package_full_name_from_handle(hprocess)
-            _close_handle(hprocess)
+            self.helpers._close_handle(hprocess)
             if full_name is not None:
                 return full_name
 
@@ -464,7 +519,7 @@ class Api(object):
         length = ctypes.c_uint(0)
         count = ctypes.c_uint()
 
-        ret_val = _get_package_info(
+        ret_val = self.helpers._get_package_info(
             package_info_reference.contents,
             PACKAGE_FILTER_HEAD,
             ctypes.byref(length),
@@ -481,7 +536,7 @@ class Api(object):
 
         buffer = ctypes.create_string_buffer(length.value)
         buffer_bytes = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_uint8))
-        ret_val = _get_package_info(
+        ret_val = self.helpers._get_package_info(
             package_info_reference.contents,
             PACKAGE_FILTER_HEAD,
             ctypes.byref(length),
@@ -510,7 +565,9 @@ class Api(object):
         :returns: int
         """
         package_info_reference = ctypes.pointer(PACKAGE_INFO_REFERENCE())
-        ret_val = _open_package_info_by_full_name(full_name, 0, package_info_reference)
+        ret_val = self.helpers._open_package_info_by_full_name(
+            full_name, 0, package_info_reference
+        )
         if ret_val != ERROR_SUCCESS:
             logging.info(
                 "_package_info_reference_from_full_name: error -> {}".format(
@@ -546,9 +603,9 @@ class Api(object):
 
         func = WNDENUMPROC(append_to_collection)
         if enum_children:
-            _enum_child_windows(hwnd, func, 0)
+            self.helpers._enum_child_windows(hwnd, func, 0)
         else:
-            _enum_windows(func, 0)
+            self.helpers._enum_windows(func, 0)
 
         return hwnds
 
@@ -568,11 +625,13 @@ class Api(object):
         :returns: str
         """
         pid = ctypes.wintypes.DWORD()
-        _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-        hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        self.helpers._get_windows_thread_process_id(hwnd, ctypes.byref(pid))
+        hprocess = self.helpers._open_process(
+            PROCESS_QUERY_LIMITED_INFORMATION, False, pid
+        )
         path_buffer = ctypes.create_string_buffer(500)
-        ret_val = _get_process_image_file_name(hprocess, path_buffer, 500)
-        _close_handle(hprocess)
+        ret_val = self.helpers._get_process_image_file_name(hprocess, path_buffer, 500)
+        self.helpers._close_handle(hprocess)
         if ret_val:
             return extract_name_from_bytes_path(path_buffer.value)
 
@@ -601,42 +660,5 @@ class Api(object):
             package_info_reference
         )
         package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
-        _close_package_info(package_info_reference.contents)
+        self.helpers._close_package_info(package_info_reference.contents)
         return Package(package_info.path)
-
-
-# _psapi = ctypes.WinDLL("psapi", use_last_error=True)
-# _get_module_file_name_ex_a = _psapi.GetModuleFileNameExA
-# _get_module_file_name_ex_a.argtypes = (
-#     ctypes.wintypes.HANDLE,
-#     ctypes.wintypes.HMODULE,
-#     ctypes.wintypes.LPSTR,
-#     ctypes.wintypes.DWORD,
-# )
-# _get_module_file_name_ex_a.restype = ctypes.wintypes.DWORD
-
-
-# def _module_file_name(hwnd):
-
-#     pid = ctypes.wintypes.DWORD()
-#     _get_windows_thread_process_id(hwnd, ctypes.byref(pid))
-#     hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-#     buffer = ctypes.create_string_buffer(800)
-#     # buffer_bytes = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_uint8))
-#     ret_val = _get_module_file_name_ex_a(hprocess, None, buffer, 800)
-#     _close_handle(hprocess)
-#     if ret_val:
-#         return buffer.value
-
-#     for child in Api().enum_windows(hwnd, enum_children=True):
-#         child_pid = ctypes.wintypes.DWORD(0)
-#         _get_windows_thread_process_id(child, ctypes.byref(child_pid))
-#         hprocess = _open_process(PROCESS_QUERY_LIMITED_INFORMATION, False, child_pid)
-
-#         buffer = ctypes.create_string_buffer(255)
-#         # buffer_bytes = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_uint8))
-#         ret_val = _get_module_file_name_ex_a(hprocess, None, buffer, 255)
-
-#         _close_handle(hprocess)
-#         if ret_val:
-#             return buffer.value
