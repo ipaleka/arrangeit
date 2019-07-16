@@ -267,6 +267,54 @@ class BaseController(object):
         self.setup()
 
     ## CONFIGURATION
+    def prepare_view(self):
+        """Populates view's workspaces and windows list widgets.
+
+        Very first window is our main window so we skip it in listing.
+        """
+        self.view.workspaces.add_workspaces(
+            self.app.collector.get_available_workspaces()
+        )
+        self.view.windows.add_windows(
+            self.app.collector.collection.get_windows_list()[1:]
+        )
+
+    def set_default_geometry(self, root):
+        """Sets provided root window width and height
+
+        calculated from available width and height for screen as quarter of
+        the smaller element. Returned width and height have 16:9 aspect ratio.
+
+        :param root: root tkinter window
+        :type root: :class:`tkinter.Tk` instance
+        :var width: root width in pixels
+        :type width: int
+        :var height: root height in pixels
+        :type height: int
+        """
+        if self.default_size is None:
+            width, height = quarter_by_smaller(
+                *self.app.collector.get_smallest_monitor_size()
+            )
+            self.default_size = (width, height)
+        root.geometry("{}x{}".format(*self.default_size))
+
+    def set_screenshot(self):
+        """Creates and places screenshot of model window as background image.
+
+        If we can't include window decoration in image then offset is returned
+        and we place image shifted by offset amount of pixels to related axis.
+
+        :var offset: offset (x, y)
+        :type offset: (int, int)
+        """
+        self.screenshot, offset = self.app.grab_window_screen(self.model)
+        self.screenshot_widget.config(image=self.screenshot)
+        self.screenshot_widget.place(
+            x=offset[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
+            y=offset[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
+        )
+
     def setup(self):
         """Initializes Tkinter ViewApplication with root window and self as arguments.
 
@@ -292,60 +340,6 @@ class BaseController(object):
 
         root.wm_attributes("-topmost", True)
         root.config(background=Settings.MAIN_BG)
-
-    def set_default_geometry(self, root):
-        """Sets provided root window width and height
-
-        calculated from available width and height for screen as quarter of
-        the smaller element. Returned width and height have 16:9 aspect ratio.
-
-        :param root: root tkinter window
-        :type root: :class:`tkinter.Tk` instance
-        :var width: root width in pixels
-        :type width: int
-        :var height: root height in pixels
-        :type height: int
-        """
-        if self.default_size is None:
-            width, height = quarter_by_smaller(
-                *self.app.collector.get_smallest_monitor_size()
-            )
-            self.default_size = (width, height)
-        root.geometry("{}x{}".format(*self.default_size))
-
-    def prepare_view(self):
-        """Populates view's workspaces and windows list widgets.
-
-        Very first window is our main window so we skip it in listing.
-        """
-        self.view.workspaces.add_workspaces(
-            self.app.collector.get_available_workspaces()
-        )
-        self.view.windows.add_windows(
-            self.app.collector.collection.get_windows_list()[1:]
-        )
-
-    def set_screenshot(self):
-        """Creates and places screenshot of model window as background image.
-
-        If we can't include window decoration in image then offset is returned
-        and we place image shifted by offset amount of pixels to related axis.
-
-        :var offset: offset (x, y)
-        :type offset: (int, int)
-        """
-        self.screenshot, offset = self.app.grab_window_screen(self.model)
-        self.screenshot_widget.config(image=self.screenshot)
-        self.screenshot_widget.place(
-            x=offset[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
-            y=offset[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
-        )
-
-    ## PROPERTIES
-    @property
-    def resizing_state_counterpart(self):
-        """Returns resizing state counterpart of current positioning state."""
-        return Settings.RESIZE + (self.state + 2) % 4
 
     ## DOMAIN LOGIC
     def apply_snapping(self, new_x, new_y, sources, intersections):
@@ -568,7 +562,7 @@ class BaseController(object):
                 self.app.run_task("move", self.model.wid)
             self.next()
         else:
-            self.state = self.resizing_state_counterpart
+            self.state = self.resizing_state_counterpart()
             self.place_on_opposite_corner()
 
     def update_resizing(self, x, y):
@@ -851,6 +845,26 @@ class BaseController(object):
         self.mouse.move_cursor(left, top)
         self.setup_corner()
 
+    def recapture_mouse(self):
+        """Starts mouse listener and positioning/resizing routine."""
+        self.view.setup_bindings()
+        self.state = Settings.LOCATE
+        self.set_default_geometry(self.view.master)
+        self.mouse.move_cursor(
+            self.view.master.winfo_x() + Settings.SHIFT_CURSOR,
+            self.view.master.winfo_y() + Settings.SHIFT_CURSOR,
+        )
+        self.setup_corner()
+        self.mouse.start()
+
+    def release_mouse(self):
+        """Stops positioning/resizing routine and releases mouse."""
+        self.view.reset_bindings()
+        self.view.master.config(cursor="left_ptr")
+        self.view.corner.hide_corner()
+        self.state = Settings.OTHER
+        self.mouse.stop()
+
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.
 
@@ -867,25 +881,9 @@ class BaseController(object):
             pass
         self.view.windows.place_children()
 
-    def release_mouse(self):
-        """Stops positioning/resizing routine and releases mouse."""
-        self.view.reset_bindings()
-        self.view.master.config(cursor="left_ptr")
-        self.view.corner.hide_corner()
-        self.state = Settings.OTHER
-        self.mouse.stop()
-
-    def recapture_mouse(self):
-        """Starts mouse listener and positioning/resizing routine."""
-        self.view.setup_bindings()
-        self.state = Settings.LOCATE
-        self.set_default_geometry(self.view.master)
-        self.mouse.move_cursor(
-            self.view.master.winfo_x() + Settings.SHIFT_CURSOR,
-            self.view.master.winfo_y() + Settings.SHIFT_CURSOR,
-        )
-        self.setup_corner()
-        self.mouse.start()
+    def resizing_state_counterpart(self):
+        """Returns resizing counterpart to current positioning state."""
+        return Settings.RESIZE + (self.state + 2) % 4
 
     def save(self):
         """Runs task for saving windows collection data to default file."""
@@ -896,11 +894,6 @@ class BaseController(object):
         self.mouse.stop()
         self.view.master.destroy()
         sys.exit(0)
-
-    def setup_corner(self):
-        """Configures mouse pointer and background to current corner."""
-        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
-        self.view.corner.set_corner(self.state % 10)
 
     def set_minimum_size(self, x, y):
         """Sets root window size to minimum size defined in settings
@@ -916,16 +909,15 @@ class BaseController(object):
             "{}x{}+{}+{}".format(Settings.MIN_WIDTH, Settings.MIN_HEIGHT, x, y)
         )
 
+    def setup_corner(self):
+        """Configures mouse pointer and background to current corner."""
+        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
+        self.view.corner.set_corner(self.state % 10)
+
     def skip_current_window(self):
         """Calls :func:`next` and then destroys that new window from the windows list."""
         self.model.clear_changed()
         self.next()
-
-    def switch_workspace(self):
-        """Activates workspace and moves root window onto it."""
-        self.app.run_task(
-            "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
-        )
 
     def switch_resizable(self):
         """Changes current model resizable Boolean value and updates view."""
@@ -936,6 +928,12 @@ class BaseController(object):
         """Changes current model restored Boolean value and updates view."""
         self.model.restored = not self.model.restored
         self.view.restored.set_value(self.model.restored)
+
+    def switch_workspace(self):
+        """Activates workspace and moves root window onto it."""
+        self.app.run_task(
+            "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
+        )
 
     def workspace_activated_by_digit(self, number):
         """Activates workspace with humanized number equal to provided number.
@@ -950,6 +948,17 @@ class BaseController(object):
             self.workspace_activated(workspaces[number - 1].number)
 
     ## EVENTS CALLBACKS
+    def on_continue(self, event):
+        """Restarts positioning routine."""
+        self.recapture_mouse()
+        return "break"
+
+    def on_focus(self, event):
+        """Calls task top activate root if Tkinter has lost focus."""
+        if self.view.focus_get() is None:
+            self.app.run_task("activate_root", self.view.master.winfo_id())
+            return "break"
+
     def on_key_pressed(self, event):
         """Calls method related to pressed key.
 
@@ -1014,17 +1023,6 @@ class BaseController(object):
         """
         self.skip_current_window()
         return "break"
-
-    def on_continue(self, event):
-        """Restarts positioning routine."""
-        self.recapture_mouse()
-        return "break"
-
-    def on_focus(self, event):
-        """Calls task top activate root if Tkinter has lost focus."""
-        if self.view.focus_get() is None:
-            self.app.run_task("activate_root", self.view.master.winfo_id())
-            return "break"
 
     def on_resizable_change(self, event):
         """Switches model resizable attribute."""

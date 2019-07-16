@@ -14,6 +14,7 @@ Rectangle = namedtuple("Rectangle", "x0 y0 x1 y1")
 MESSAGES = {"platform_error": _("arrangeit can't run on your platform. :(")}
 
 
+## PLATFORM
 def platform_path():
     """Returns lowercased string holding platform name."""
     return system().lower()
@@ -25,6 +26,7 @@ def platform_user_data_path():
     return getattr(module, "user_data_path")()
 
 
+## SETUP
 def get_class(name, platform):
     """Helper method for retrieving platform specific class instance
 
@@ -63,25 +65,25 @@ def get_component_class(name, platform=None):
     return get_class(name, platform=platform)
 
 
-def open_image(path, background="white", colorized=False, foreground="red"):
-    """Returns Pillow image instance from provided path and colorizes it if set.
+## HELPERS
+def get_prepared_screenshot(image, blur_size=2, grayscale=False):
+    """Filters provided image and converts it to format suitable for Tkinter.
 
-    Provided ``black`` and ``white`` are used for colorize filter.
+    SCREENSHOT_BLUR_PIXELS defines blur depth in pixels.
 
-    :param path: image path
-    :type path: str
-    :param background: image background color
-    :type background: str
-    :param colorized: should return image be highlighted
-    :type colorized: Boolean
-    :param foreground: image foreground color
-    :type foreground: str
-    :returns: :class:`PIL.Image`
+    :param image: raw screenshot image
+    :type image: :class:`PIL.Image.Image`
+    :param blur_size: how many pixels in all directions will be blured
+    :type blur_size: int
+    :param grayscale: should image be converted to grayscale
+    :type grayscale: Boolean
+    :returns: :class:`PIL.ImageTk.PhotoImage`
     """
-    image = Image.open(
-        os.path.join(os.path.dirname(__file__), "resources", path)
-    ).convert("L")
-    return ImageOps.colorize(image, foreground if colorized else "black", background)
+    if grayscale:
+        return ImageTk.PhotoImage(
+            image.convert("L").filter(ImageFilter.BoxBlur(blur_size))
+        )
+    return ImageTk.PhotoImage(image.filter(ImageFilter.BoxBlur(blur_size)))
 
 
 def get_value_if_valid_type(value, typ):
@@ -105,20 +107,37 @@ def get_value_if_valid_type(value, typ):
     return value if isinstance(value, typ) else None
 
 
-def append_to_collection(element, collection):
-    """Simple helper function to append provided elem to provided collection.
+def increased_by_fraction(value, fraction):
+    """Helper method for increasing provided value by provided fraction.
 
-    This function is used as callback argument for win32gui.EnumWindows
-    and it requires True to be returned.
-
-    :param element: element to add
-    :type element: int
-    :param collection: collection to add element to
-    :type collection: list
-    :returns: True
+    :param value: value to increase
+    :type value: int
+    :param fraction: fraction of a whole to increase value by
+    :type fraction: float
+    :returns: int
     """
-    collection.append(element)
-    return True
+    return round(value * (1.0 + fraction))
+
+
+def open_image(path, background="white", colorized=False, foreground="red"):
+    """Returns Pillow image instance from provided path and colorizes it if set.
+
+    Provided ``black`` and ``white`` are used for colorize filter.
+
+    :param path: image path
+    :type path: str
+    :param background: image background color
+    :type background: str
+    :param colorized: should return image be highlighted
+    :type colorized: Boolean
+    :param foreground: image foreground color
+    :type foreground: str
+    :returns: :class:`PIL.Image`
+    """
+    image = Image.open(
+        os.path.join(os.path.dirname(__file__), "resources", path)
+    ).convert("L")
+    return ImageOps.colorize(image, foreground if colorized else "black", background)
 
 
 def quarter_by_smaller(width, height):
@@ -138,38 +157,6 @@ def quarter_by_smaller(width, height):
     if width > height:
         return (int((height / 4) * 16 / 9), height // 4)
     return (width // 4, int((width / 4) * 9 / 16))
-
-
-def increased_by_fraction(value, fraction):
-    """Helper method for increasing provided value by provided fraction.
-
-    :param value: value to increase
-    :type value: int
-    :param fraction: fraction of a whole to increase value by
-    :type fraction: float
-    :returns: int
-    """
-    return round(value * (1.0 + fraction))
-
-
-def get_prepared_screenshot(image, blur_size=2, grayscale=False):
-    """Filters provided image and converts it to format suitable for Tkinter.
-
-    SCREENSHOT_BLUR_PIXELS defines blur depth in pixels.
-
-    :param image: raw screenshot image
-    :type image: :class:`PIL.Image.Image`
-    :param blur_size: how many pixels in all directions will be blured
-    :type blur_size: int
-    :param grayscale: should image be converted to grayscale
-    :type grayscale: Boolean
-    :returns: :class:`PIL.ImageTk.PhotoImage`
-    """
-    if grayscale:
-        return ImageTk.PhotoImage(
-            image.convert("L").filter(ImageFilter.BoxBlur(blur_size))
-        )
-    return ImageTk.PhotoImage(image.filter(ImageFilter.BoxBlur(blur_size)))
 
 
 ## SNAPPING
@@ -202,47 +189,6 @@ def _get_snapping_source_by_ordinal(rect, snap, ordinal=0):
         return Rectangle(
             rect[0] - snap, rect[1] - snap, rect[0] + snap, rect[1] + rect[3] + snap
         )
-
-
-def get_snapping_sources_for_rect(rect, snap, corner=None):
-    """Returns snapping rectangles formated as Rectangle(x0,y0,x0,y0) from provided rect.
-
-    Snapping rectangle is created around window connected edge points pair with
-    height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
-
-    All four rectangles are returned for default corner of None.
-    If corner is provided then it returns two adjacent rectangles for related provided
-    corner (horizontal first, vertical second) where ordinal 0 is top-left corner,
-    with clockwise ordering to bottom-left corner which is ordinal 3.
-
-    :param rect: window defined by (x, y, width, height)
-    :type rect: (int, int, int, int)
-    :param snap: snapping distance in pixels
-    :type snap: int
-    :returns: two or four-tuple of :class:`Rectangle`
-    """
-    if corner == 0:
-        return (
-            _get_snapping_source_by_ordinal(rect, snap, 0),
-            _get_snapping_source_by_ordinal(rect, snap, 3),
-        )
-    if corner == 1:
-        return (
-            _get_snapping_source_by_ordinal(rect, snap, 0),
-            _get_snapping_source_by_ordinal(rect, snap, 1),
-        )
-    if corner == 2:
-        return (
-            _get_snapping_source_by_ordinal(rect, snap, 2),
-            _get_snapping_source_by_ordinal(rect, snap, 1),
-        )
-    if corner == 3:
-        return (
-            _get_snapping_source_by_ordinal(rect, snap, 2),
-            _get_snapping_source_by_ordinal(rect, snap, 3),
-        )
-    elif corner is None:
-        return tuple((_get_snapping_source_by_ordinal(rect, snap, i) for i in range(4)))
 
 
 def _intersects(source, target):
@@ -346,6 +292,47 @@ def check_intersections(sources, targets):
     if not even or not odd:
         return even or odd
     return (even, odd)
+
+
+def get_snapping_sources_for_rect(rect, snap, corner=None):
+    """Returns snapping rectangles formated as Rectangle(x0,y0,x0,y0) from provided rect.
+
+    Snapping rectangle is created around window connected edge points pair with
+    height (or width) of 2*SNAP_PIXELS and width (or height) of related window side.
+
+    All four rectangles are returned for default corner of None.
+    If corner is provided then it returns two adjacent rectangles for related provided
+    corner (horizontal first, vertical second) where ordinal 0 is top-left corner,
+    with clockwise ordering to bottom-left corner which is ordinal 3.
+
+    :param rect: window defined by (x, y, width, height)
+    :type rect: (int, int, int, int)
+    :param snap: snapping distance in pixels
+    :type snap: int
+    :returns: two or four-tuple of :class:`Rectangle`
+    """
+    if corner == 0:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 0),
+            _get_snapping_source_by_ordinal(rect, snap, 3),
+        )
+    if corner == 1:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 0),
+            _get_snapping_source_by_ordinal(rect, snap, 1),
+        )
+    if corner == 2:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 2),
+            _get_snapping_source_by_ordinal(rect, snap, 1),
+        )
+    if corner == 3:
+        return (
+            _get_snapping_source_by_ordinal(rect, snap, 2),
+            _get_snapping_source_by_ordinal(rect, snap, 3),
+        )
+    elif corner is None:
+        return tuple((_get_snapping_source_by_ordinal(rect, snap, i) for i in range(4)))
 
 
 def offset_for_intersections(rectangles, snap):

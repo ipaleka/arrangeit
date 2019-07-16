@@ -3,8 +3,13 @@ import pytest
 from arrangeit import base, data
 from arrangeit.settings import Settings
 
-from .mock_helpers import (controller_mocked_app, controller_mocked_key_press,
-                           mocked_setup, mocked_setup_root, mocked_setup_view)
+from .mock_helpers import (
+    controller_mocked_app,
+    controller_mocked_key_press,
+    mocked_setup,
+    mocked_setup_root,
+    mocked_setup_view,
+)
 
 
 class TestBaseController(object):
@@ -52,6 +57,152 @@ class TestBaseController(object):
         mocked = mocker.patch("arrangeit.base.BaseController.setup")
         base.BaseController(mocker.MagicMock())
         mocked.assert_called_once()
+
+    ## CONFIGURATION
+    ## BaseController.prepare_view
+    def test_BaseController_prepare_view_calls_WorkspacesCollection_add_workspaces(
+        self, mocker
+    ):
+        view = mocked_setup_view(mocker)
+        app = mocker.MagicMock()
+        base.BaseController(app).prepare_view()
+        assert view.return_value.workspaces.add_workspaces.call_count == 1
+        calls = [mocker.call(app.collector.get_available_workspaces.return_value)]
+        view.return_value.workspaces.add_workspaces.assert_has_calls(
+            calls, any_order=True
+        )
+
+    def test_BaseController_prepare_view_calls_WindowsList_add_windows_without_first(
+        self, mocker
+    ):
+        view = mocked_setup_view(mocker)
+        app = mocker.MagicMock()
+        SAMPLE = [1, 2, 3]
+        app.collector.collection.get_windows_list.return_value = SAMPLE
+        base.BaseController(app).prepare_view()
+        assert view.return_value.windows.add_windows.call_count == 1
+        calls = [mocker.call(SAMPLE[1:])]
+        view.return_value.windows.add_windows.assert_has_calls(calls, any_order=True)
+
+    ## BaseController.set_default_geometry
+    def test_BaseController_set_default_geometry_calls_get_smallest_monitor_size(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        root = mocker.MagicMock()
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
+        controller = controller_mocked_app(mocker)
+        controller.app.collector.get_smallest_monitor_size.return_value = (100, 100)
+        controller.set_default_geometry(root)
+        assert controller.app.collector.get_smallest_monitor_size.call_count == 1
+        controller.app.collector.get_smallest_monitor_size.assert_called_with()
+
+    def test_BaseController_set_default_geometry_calls_quarter_by_smaller(self, mocker):
+        mocked_setup(mocker)
+        root = mocker.MagicMock()
+        mocked = mocker.patch(
+            "arrangeit.base.quarter_by_smaller", return_value=(100, 100)
+        )
+        w, h = 1001, 1002
+        controller = controller_mocked_app(mocker)
+        controller.app.collector.get_smallest_monitor_size.return_value = (w, h)
+        controller.default_size = None
+        controller.set_default_geometry(root)
+        assert mocked.call_count == 1
+        mocked.assert_called_with(w, h)
+
+    def test_BaseController_set_default_geometry_sets_default_size(self, mocker):
+        mocked_setup(mocker)
+        root = mocker.MagicMock()
+        SAMPLE = (244, 145)
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=SAMPLE)
+        controller = controller_mocked_app(mocker)
+        controller.default_size = None
+        controller.set_default_geometry(root)
+        assert controller.default_size == SAMPLE
+
+    def test_BaseController_set_default_geometry_not_calling_quarter_by_smaller(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        root = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.base.quarter_by_smaller")
+        controller = base.BaseController(None)
+        controller.default_size = (1000, 1000)
+        controller.set_default_geometry(root)
+        mocked.assert_not_called()
+
+    def test_BaseController_set_default_geometry_not_changing_default_size(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.quarter_by_smaller")
+        root = mocker.MagicMock()
+        controller = base.BaseController(None)
+        SAMPLE = (1002, 1003)
+        controller.default_size = SAMPLE
+        controller.set_default_geometry(root)
+        assert controller.default_size == SAMPLE
+
+    def test_BaseController_set_default_geometry_calls_geometry(self, mocker):
+        mocked_setup(mocker)
+        root = mocker.MagicMock()
+        w, h = 1003, 1004
+        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(w, h))
+        controller = controller_mocked_app(mocker)
+        controller.set_default_geometry(root)
+        assert root.geometry.call_count == 1
+        root.geometry.assert_called_with("{}x{}".format(w, h))
+
+    ## BaseController.set_screenshot
+    def test_BaseController_set_screenshot_calls_grab_window_screen(self, mocker):
+        mocked_setup(mocker)
+        app = mocker.MagicMock()
+        app.grab_window_screen.return_value = (None, (0, 0))
+        controller = base.BaseController(app)
+        controller.set_screenshot()
+        app.grab_window_screen.assert_called_once()
+        app.grab_window_screen.assert_called_with(controller.model)
+
+    def test_BaseController_set_screenshot_sets_screenshot_reference_variable(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        app = mocker.MagicMock()
+        SAMPLE = 50
+        app.grab_window_screen.return_value = (SAMPLE, (0, 0))
+        controller = base.BaseController(app)
+        controller.set_screenshot()
+        app.grab_window_screen.assert_called_once()
+        app.grab_window_screen.assert_called_with(controller.model)
+        assert controller.screenshot == 50
+
+    def test_BaseController_set_screenshot_configures_screenshot_widget(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.get_screenshot_widget")
+        app = mocker.MagicMock()
+        SAMPLE = 50
+        app.grab_window_screen.return_value = (SAMPLE, (0, 0))
+        controller = base.BaseController(app)
+        controller.set_screenshot()
+        calls = [mocker.call(image=SAMPLE)]
+        mocked.return_value.config.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_set_screenshot_places_screenshot_widget(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.get_screenshot_widget")
+        app = mocker.MagicMock()
+        SAMPLE = (8, 9)
+        app.grab_window_screen.return_value = (None, SAMPLE)
+        controller = base.BaseController(app)
+        controller.set_screenshot()
+        calls = [
+            mocker.call(
+                x=SAMPLE[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
+                y=SAMPLE[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
+            )
+        ]
+        mocked.return_value.place.assert_has_calls(calls, any_order=True)
 
     ## BaseController.setup
     def test_BaseController_setup_calls_get_tkinter_root(self, mocker):
@@ -126,159 +277,7 @@ class TestBaseController(object):
         calls = [mocker.call(background=Settings.MAIN_BG)]
         root.config.assert_has_calls(calls, any_order=True)
 
-    ## BaseController.set_default_geometry
-    def test_BaseController_set_default_geometry_calls_get_smallest_monitor_size(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        root = mocker.MagicMock()
-        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
-        controller = controller_mocked_app(mocker)
-        controller.app.collector.get_smallest_monitor_size.return_value = (100, 100)
-        controller.set_default_geometry(root)
-        assert controller.app.collector.get_smallest_monitor_size.call_count == 1
-        controller.app.collector.get_smallest_monitor_size.assert_called_with()
-
-    def test_BaseController_set_default_geometry_calls_quarter_by_smaller(self, mocker):
-        mocked_setup(mocker)
-        root = mocker.MagicMock()
-        mocked = mocker.patch(
-            "arrangeit.base.quarter_by_smaller", return_value=(100, 100)
-        )
-        w, h = 1001, 1002
-        controller = controller_mocked_app(mocker)
-        controller.app.collector.get_smallest_monitor_size.return_value = (w, h)
-        controller.default_size = None
-        controller.set_default_geometry(root)
-        assert mocked.call_count == 1
-        mocked.assert_called_with(w, h)
-
-    def test_BaseController_set_default_geometry_sets_default_size(self, mocker):
-        mocked_setup(mocker)
-        root = mocker.MagicMock()
-        SAMPLE = (244, 145)
-        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=SAMPLE)
-        controller = controller_mocked_app(mocker)
-        controller.default_size = None
-        controller.set_default_geometry(root)
-        assert controller.default_size == SAMPLE
-
-    def test_BaseController_set_default_geometry_not_calling_quarter_by_smaller(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        root = mocker.MagicMock()
-        mocked = mocker.patch("arrangeit.base.quarter_by_smaller")
-        controller = base.BaseController(None)
-        controller.default_size = (1000, 1000)
-        controller.set_default_geometry(root)
-        mocked.assert_not_called()
-
-    def test_BaseController_set_default_geometry_not_changing_default_size(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.quarter_by_smaller")
-        root = mocker.MagicMock()
-        controller = base.BaseController(None)
-        SAMPLE = (1002, 1003)
-        controller.default_size = SAMPLE
-        controller.set_default_geometry(root)
-        assert controller.default_size == SAMPLE
-
-    def test_BaseController_set_default_geometry_calls_geometry(self, mocker):
-        mocked_setup(mocker)
-        root = mocker.MagicMock()
-        w, h = 1003, 1004
-        mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(w, h))
-        controller = controller_mocked_app(mocker)
-        controller.set_default_geometry(root)
-        assert root.geometry.call_count == 1
-        root.geometry.assert_called_with("{}x{}".format(w, h))
-
-    ## BaseController.prepare_view
-    def test_BaseController_prepare_view_calls_WorkspacesCollection_add_workspaces(
-        self, mocker
-    ):
-        view = mocked_setup_view(mocker)
-        app = mocker.MagicMock()
-        base.BaseController(app).prepare_view()
-        assert view.return_value.workspaces.add_workspaces.call_count == 1
-        calls = [mocker.call(app.collector.get_available_workspaces.return_value)]
-        view.return_value.workspaces.add_workspaces.assert_has_calls(
-            calls, any_order=True
-        )
-
-    def test_BaseController_prepare_view_calls_WindowsList_add_windows_without_first(
-        self, mocker
-    ):
-        view = mocked_setup_view(mocker)
-        app = mocker.MagicMock()
-        SAMPLE = [1, 2, 3]
-        app.collector.collection.get_windows_list.return_value = SAMPLE
-        base.BaseController(app).prepare_view()
-        assert view.return_value.windows.add_windows.call_count == 1
-        calls = [mocker.call(SAMPLE[1:])]
-        view.return_value.windows.add_windows.assert_has_calls(calls, any_order=True)
-
-    ## BaseController.set_screenshot
-    def test_BaseController_set_screenshot_calls_grab_window_screen(self, mocker):
-        mocked_setup(mocker)
-        app = mocker.MagicMock()
-        app.grab_window_screen.return_value = (None, (0, 0))
-        controller = base.BaseController(app)
-        controller.set_screenshot()
-        app.grab_window_screen.assert_called_once()
-        app.grab_window_screen.assert_called_with(controller.model)
-
-    def test_BaseController_set_screenshot_sets_screenshot_reference_variable(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        app = mocker.MagicMock()
-        SAMPLE = 50
-        app.grab_window_screen.return_value = (SAMPLE, (0, 0))
-        controller = base.BaseController(app)
-        controller.set_screenshot()
-        app.grab_window_screen.assert_called_once()
-        app.grab_window_screen.assert_called_with(controller.model)
-        assert controller.screenshot == 50
-
-    def test_BaseController_set_screenshot_configures_screenshot_widget(self, mocker):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.get_screenshot_widget")
-        app = mocker.MagicMock()
-        SAMPLE = 50
-        app.grab_window_screen.return_value = (SAMPLE, (0, 0))
-        controller = base.BaseController(app)
-        controller.set_screenshot()
-        calls = [mocker.call(image=SAMPLE)]
-        mocked.return_value.config.assert_has_calls(calls, any_order=True)
-
-    def test_BaseController_set_screenshot_places_screenshot_widget(self, mocker):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.get_screenshot_widget")
-        app = mocker.MagicMock()
-        SAMPLE = (8, 9)
-        app.grab_window_screen.return_value = (None, SAMPLE)
-        controller = base.BaseController(app)
-        controller.set_screenshot()
-        calls = [
-            mocker.call(
-                x=SAMPLE[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
-                y=SAMPLE[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
-            )
-        ]
-        mocked.return_value.place.assert_has_calls(calls, any_order=True)
-
-    ## BaseController.resizing_state_counterpart
-    @pytest.mark.parametrize("state,expected", [(0, 12), (1, 13), (2, 10), (3, 11)])
-    def test_BaseController_resizing_state_counterpart(self, mocker, state, expected):
-        mocked_setup(mocker)
-        controller = controller_mocked_app(mocker)
-        controller.state = state
-        assert controller.resizing_state_counterpart == expected
-
+    ## COMMANDS
     ## BaseController.change_position
     def test_BaseController_change_position_calls_check_snapping(self, mocker):
         mocked_setup(mocker)
@@ -839,79 +838,6 @@ class TestBaseController(object):
         controller.place_on_opposite_corner()
         mocked.assert_called_once()
 
-    ## BaseController.remove_listed_window
-    def test_BaseController_remove_listed_window_calls_widget_destroy(self, mocker):
-        view = mocked_setup_view(mocker)
-        widget = mocker.MagicMock()
-        type(widget).wid = mocker.PropertyMock(return_value=100)
-        view.return_value.windows.winfo_children.return_value = [widget]
-        controller = controller_mocked_app(mocker)
-        controller.remove_listed_window(100)
-        assert widget.destroy.call_count == 1
-
-    def test_BaseController_remove_listed_window_not_calling_destroy_for_wrong_widget(
-        self, mocker
-    ):
-        view = mocked_setup_view(mocker)
-        widget = mocker.MagicMock()
-        type(widget).wid = mocker.PropertyMock(return_value=100)
-        view.return_value.windows.winfo_children.return_value = [widget]
-        controller = controller_mocked_app(mocker)
-        controller.remove_listed_window(201)
-        assert widget.destroy.call_count == 0
-
-    def test_BaseController_remove_listed_window_calls_place_children(self, mocker):
-        view = mocked_setup_view(mocker)
-        widget = mocker.MagicMock()
-        type(widget).wid = mocker.PropertyMock(return_value=100)
-        view.return_value.windows.winfo_children.return_value = [widget]
-        controller = controller_mocked_app(mocker)
-        controller.remove_listed_window(100)
-        assert view.return_value.windows.place_children.call_count == 1
-
-    ## BaseController.release_mouse
-    def test_BaseController_release_mouse_calls_reset_bindings(self, mocker):
-        view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.BaseMouse")
-        controller = controller_mocked_app(mocker)
-        controller.listener = mocker.MagicMock()
-        controller.release_mouse()
-        assert view.return_value.reset_bindings.call_count == 1
-
-    def test_BaseController_release_mouse_calls_cursor_config(self, mocker):
-        view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.BaseMouse")
-        controller = controller_mocked_app(mocker)
-        controller.listener = mocker.MagicMock()
-        controller.release_mouse()
-        calls = [mocker.call(cursor="left_ptr")]
-        view.return_value.master.config.assert_has_calls(calls, any_order=True)
-
-    def test_BaseController_release_mouse_calls_view_corner_hide_corner(self, mocker):
-        view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.BaseMouse")
-        controller = controller_mocked_app(mocker)
-        controller.listener = mocker.MagicMock()
-        controller.release_mouse()
-        view.return_value.corner.hide_corner.assert_called_once()
-
-    def test_BaseController_release_mouse_changes_state_to_OTHER(self, mocker):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseMouse")
-        controller = controller_mocked_app(mocker)
-        controller.listener = mocker.MagicMock()
-        controller.state = 5
-        controller.release_mouse()
-        assert controller.state == Settings.OTHER
-
-    def test_BaseController_release_mouse_stops_mouse_listener(self, mocker):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseMouse.stop")
-        controller = controller_mocked_app(mocker)
-        controller.release_mouse()
-        mocked.assert_called_once()
-        mocked.assert_called_with()
-
     ## BaseController.recapture_mouse
     def test_BaseController_recapture_mouse_calls_view_setup_bindings(self, mocker):
         view = mocked_setup_view(mocker)
@@ -973,6 +899,87 @@ class TestBaseController(object):
         controller.recapture_mouse()
         mocked.assert_called_once()
         mocked.assert_called_with()
+
+    ## BaseController.release_mouse
+    def test_BaseController_release_mouse_calls_reset_bindings(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseMouse")
+        controller = controller_mocked_app(mocker)
+        controller.listener = mocker.MagicMock()
+        controller.release_mouse()
+        assert view.return_value.reset_bindings.call_count == 1
+
+    def test_BaseController_release_mouse_calls_cursor_config(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseMouse")
+        controller = controller_mocked_app(mocker)
+        controller.listener = mocker.MagicMock()
+        controller.release_mouse()
+        calls = [mocker.call(cursor="left_ptr")]
+        view.return_value.master.config.assert_has_calls(calls, any_order=True)
+
+    def test_BaseController_release_mouse_calls_view_corner_hide_corner(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseMouse")
+        controller = controller_mocked_app(mocker)
+        controller.listener = mocker.MagicMock()
+        controller.release_mouse()
+        view.return_value.corner.hide_corner.assert_called_once()
+
+    def test_BaseController_release_mouse_changes_state_to_OTHER(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseMouse")
+        controller = controller_mocked_app(mocker)
+        controller.listener = mocker.MagicMock()
+        controller.state = 5
+        controller.release_mouse()
+        assert controller.state == Settings.OTHER
+
+    def test_BaseController_release_mouse_stops_mouse_listener(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseMouse.stop")
+        controller = controller_mocked_app(mocker)
+        controller.release_mouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    ## BaseController.remove_listed_window
+    def test_BaseController_remove_listed_window_calls_widget_destroy(self, mocker):
+        view = mocked_setup_view(mocker)
+        widget = mocker.MagicMock()
+        type(widget).wid = mocker.PropertyMock(return_value=100)
+        view.return_value.windows.winfo_children.return_value = [widget]
+        controller = controller_mocked_app(mocker)
+        controller.remove_listed_window(100)
+        assert widget.destroy.call_count == 1
+
+    def test_BaseController_remove_listed_window_not_calling_destroy_for_wrong_widget(
+        self, mocker
+    ):
+        view = mocked_setup_view(mocker)
+        widget = mocker.MagicMock()
+        type(widget).wid = mocker.PropertyMock(return_value=100)
+        view.return_value.windows.winfo_children.return_value = [widget]
+        controller = controller_mocked_app(mocker)
+        controller.remove_listed_window(201)
+        assert widget.destroy.call_count == 0
+
+    def test_BaseController_remove_listed_window_calls_place_children(self, mocker):
+        view = mocked_setup_view(mocker)
+        widget = mocker.MagicMock()
+        type(widget).wid = mocker.PropertyMock(return_value=100)
+        view.return_value.windows.winfo_children.return_value = [widget]
+        controller = controller_mocked_app(mocker)
+        controller.remove_listed_window(100)
+        assert view.return_value.windows.place_children.call_count == 1
+
+    ## BaseController.resizing_state_counterpart
+    @pytest.mark.parametrize("state,expected", [(0, 12), (1, 13), (2, 10), (3, 11)])
+    def test_BaseController_resizing_state_counterpart(self, mocker, state, expected):
+        mocked_setup(mocker)
+        controller = controller_mocked_app(mocker)
+        controller.state = state
+        assert controller.resizing_state_counterpart() == expected
 
     ## BaseController.save
     def test_BaseController_save_runs_related_task(self, mocker):
@@ -1097,7 +1104,6 @@ class TestBaseController(object):
         view.return_value.restored.set_value.assert_called_once()
         view.return_value.restored.set_value.assert_called_with(not VALUE)
 
-
     ## BaseController.switch_workspace
     def test_BaseController_switch_workspace_calls_winfo_id(self, mocker):
         view = mocked_setup_view(mocker)
@@ -1148,6 +1154,59 @@ class TestBaseController(object):
         controller = controller_mocked_app(mocker)
         controller.workspace_activated_by_digit(3)
         mocked.assert_not_called()
+
+    ## EVENTS CALLBACKS
+    ## BaseController.on_continue
+    def test_BaseController_on_continue_calls_recapture_mouse(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        base.BaseController(mocker.MagicMock()).on_continue(mocker.MagicMock())
+        assert mocked.call_count == 1
+
+    def test_BaseController_on_continue_returns_break(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.recapture_mouse")
+        returned = base.BaseController(mocker.MagicMock()).on_continue(
+            mocker.MagicMock()
+        )
+        assert returned == "break"
+
+    ## BaseController.on_focus
+    def test_BaseController_on_focus_calls_focus_get(self, mocker):
+        view = mocked_setup_view(mocker)
+        base.BaseController(mocker.MagicMock()).on_focus(mocker.MagicMock())
+        assert view.return_value.focus_get.call_count == 1
+
+    def test_BaseController_on_focus_calls_run_task_activate_root(self, mocker):
+        view = mocked_setup_view(mocker)
+        view.return_value.focus_get.return_value = None
+        app = mocker.MagicMock()
+        base.BaseController(app).on_focus(mocker.MagicMock())
+        app.run_task.assert_called_once()
+        app.run_task.assert_called_with(
+            "activate_root", view.return_value.master.winfo_id.return_value
+        )
+
+    def test_BaseController_on_focus_returns_break(self, mocker):
+        view = mocked_setup_view(mocker)
+        view.return_value.focus_get.return_value = None
+        app = mocker.MagicMock()
+        returned = base.BaseController(app).on_focus(mocker.MagicMock())
+        assert returned == "break"
+
+    def test_BaseController_on_focus_not_calling_run_task(self, mocker):
+        view = mocked_setup_view(mocker)
+        view.return_value.focus_get.return_value = "foo"
+        app = mocker.MagicMock()
+        base.BaseController(app).on_focus(mocker.MagicMock())
+        app.run_task.assert_not_called()
+
+    def test_BaseController_on_focus_not_returns_break(self, mocker):
+        view = mocked_setup_view(mocker)
+        view.return_value.focus_get.return_value = "foo"
+        app = mocker.MagicMock()
+        returned = base.BaseController(app).on_focus(mocker.MagicMock())
+        assert returned == None
 
     ## BaseController.on_key_pressed
     def test_BaseController_on_key_pressed_for_Escape_calls_shutdown(self, mocker):
@@ -1294,58 +1353,6 @@ class TestBaseController(object):
         )
         assert returned == "break"
 
-    ## BaseController.on_continue
-    def test_BaseController_on_continue_calls_recapture_mouse(self, mocker):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
-        base.BaseController(mocker.MagicMock()).on_continue(mocker.MagicMock())
-        assert mocked.call_count == 1
-
-    def test_BaseController_on_continue_returns_break(self, mocker):
-        mocked_setup(mocker)
-        mocker.patch("arrangeit.base.BaseController.recapture_mouse")
-        returned = base.BaseController(mocker.MagicMock()).on_continue(
-            mocker.MagicMock()
-        )
-        assert returned == "break"
-
-    ## BaseController.on_focus
-    def test_BaseController_on_focus_calls_focus_get(self, mocker):
-        view = mocked_setup_view(mocker)
-        base.BaseController(mocker.MagicMock()).on_focus(mocker.MagicMock())
-        assert view.return_value.focus_get.call_count == 1
-
-    def test_BaseController_on_focus_calls_run_task_activate_root(self, mocker):
-        view = mocked_setup_view(mocker)
-        view.return_value.focus_get.return_value = None
-        app = mocker.MagicMock()
-        base.BaseController(app).on_focus(mocker.MagicMock())
-        app.run_task.assert_called_once()
-        app.run_task.assert_called_with(
-            "activate_root", view.return_value.master.winfo_id.return_value
-        )
-
-    def test_BaseController_on_focus_returns_break(self, mocker):
-        view = mocked_setup_view(mocker)
-        view.return_value.focus_get.return_value = None
-        app = mocker.MagicMock()
-        returned = base.BaseController(app).on_focus(mocker.MagicMock())
-        assert returned == "break"
-
-    def test_BaseController_on_focus_not_calling_run_task(self, mocker):
-        view = mocked_setup_view(mocker)
-        view.return_value.focus_get.return_value = "foo"
-        app = mocker.MagicMock()
-        base.BaseController(app).on_focus(mocker.MagicMock())
-        app.run_task.assert_not_called()
-
-    def test_BaseController_on_focus_not_returns_break(self, mocker):
-        view = mocked_setup_view(mocker)
-        view.return_value.focus_get.return_value = "foo"
-        app = mocker.MagicMock()
-        returned = base.BaseController(app).on_focus(mocker.MagicMock())
-        assert returned == None
-
     ## BaseController.on_resizable_change
     def test_BaseController_on_resizable_calls_switch_resizable(self, mocker):
         mocked_setup(mocker)
@@ -1371,7 +1378,6 @@ class TestBaseController(object):
             mocker.MagicMock()
         )
         assert returned == "break"
-
 
     ## BaseController.on_restored_change
     def test_BaseController_on_restored_change_calls_switch_restored(self, mocker):
@@ -1399,6 +1405,7 @@ class TestBaseController(object):
         )
         assert returned == "break"
 
+    ## MAIN LOOPS
     ## BaseController.check_mouse
     def test_BaseController_check_mouse_calls_mouse_get_item(self, mocker):
         mocked_setup(mocker)
@@ -1408,7 +1415,9 @@ class TestBaseController(object):
         mocked.assert_called_once()
         mocked.assert_called_with()
 
-    def test_BaseController_check_mouse_calls_after_idle_with_mouse_scroll(self, mocker):
+    def test_BaseController_check_mouse_calls_after_idle_with_mouse_scroll(
+        self, mocker
+    ):
         view = mocked_setup_view(mocker)
         VALUE = True
         mocker.patch("arrangeit.base.BaseMouse.get_item", side_effect=[VALUE, None])

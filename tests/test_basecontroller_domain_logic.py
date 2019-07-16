@@ -728,7 +728,7 @@ class TestBaseControllerDomainLogic(object):
         controller.model.resizable = True
         mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
         mocked_next = mocker.patch("arrangeit.base.BaseController.next")
-        new_state = controller.resizing_state_counterpart
+        new_state = controller.resizing_state_counterpart()
         controller.update_positioning(101, 202)
         assert controller.state == new_state
         mocked_next.assert_not_called()

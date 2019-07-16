@@ -37,7 +37,7 @@ excludes = [
 
 a = Analysis(
     ['starter.py'],
-    pathex=['D:\\dev\\arrangeit'],
+    pathex=['C:\\dev\\arrangeit'],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,

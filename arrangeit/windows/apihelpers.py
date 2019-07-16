@@ -519,6 +519,12 @@ class Api(object):
         hwnds = []
 
         def append_to_collection(element, param):
+            """Simple inner helper function to append provided element to parent hwnds.
+
+            :param element: element to add
+            :type element: int
+            :returns: True
+            """
             hwnds.append(element)
             return True
 

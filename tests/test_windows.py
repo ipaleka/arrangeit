@@ -1024,14 +1024,6 @@ class TestWindowsController(object):
 class TestWindowsUtils(object):
     """Testing class for `arrangeit.windows.utils` module."""
 
-    ## WindowsUtils.user_data_path
-    def test_windows_utils_module_user_data_path(self, mocker):
-        mocker.patch(
-            "os.path.expanduser",
-            side_effect=lambda e: "C:\\Users\\tempuser{}".format(e).replace("~", ""),
-        )
-        assert user_data_path() == "C:\\Users\\tempuser\\arrangeit"
-
     ## extract_name_from_bytes_path
     def test_windows_utils_module_extract_name_from_bytes_path_calls_basename(self, mocker):
         SAMPLE = b"foobar"
@@ -1078,3 +1070,11 @@ class TestWindowsUtils(object):
     ])
     def test_windows_utils_module_extract_name_from_bytes_path_functionality(self,path,name):
         assert extract_name_from_bytes_path(path) == name
+
+    ## WindowsUtils.user_data_path
+    def test_windows_utils_module_user_data_path(self, mocker):
+        mocker.patch(
+            "os.path.expanduser",
+            side_effect=lambda e: "C:\\Users\\tempuser{}".format(e).replace("~", ""),
+        )
+        assert user_data_path() == "C:\\Users\\tempuser\\arrangeit"

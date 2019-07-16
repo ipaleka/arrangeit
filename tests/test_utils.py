@@ -73,65 +73,52 @@ class TestUtils(object):
         mocked.assert_called_once()
         mocked.assert_called_with("Foo", platform="bar")
 
-    ## append_to_collection
-    @pytest.mark.parametrize(
-        "elem,collection,expected", [(1, [], [1]), (5, [2], [2, 5]), (9, [9], [9, 9])]
-    )
-    def test_append_to_collection_functionality(self, elem, collection, expected):
-        utils.append_to_collection(elem, collection)
-        assert collection == expected
-
-    def test_append_to_collection_returns_True(self):
-        assert utils.append_to_collection(1, [])
-
-    ## open_image
-    def test_open_image_returns_Image(self, mocker):
-        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
-        mocker.patch("arrangeit.utils.Image.open")
-        returned = utils.open_image("resize.png")
-        assert returned == mocked.return_value
-
-    def test_open_image_calls_Image_open(self, mocker):
-        mocker.patch("arrangeit.utils.ImageOps.colorize")
-        mocker.patch("PIL.Image.Image.convert")
-        mocked = mocker.patch("arrangeit.utils.Image.open")
-        PATH = "resize.png"
-        utils.open_image(PATH)
+    ## get_prepared_screenshot
+    def test_get_prepared_screenshot_calls_filter(self, mocker):
+        image = Settings.BLANK_ICON
+        mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocked = mocker.patch("PIL.Image.Image.filter")
+        utils.get_prepared_screenshot(image, grayscale=False)
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            os.path.join(os.path.dirname(utils.__file__), "resources", PATH)
-        )
 
-    def test_open_image_calls_Image_convert(self, mocker):
-        mocker.patch("arrangeit.utils.ImageOps.colorize")
-        mocked = mocker.patch("arrangeit.utils.Image.open")
-        utils.open_image("resize.png")
-        mocked.return_value.convert.assert_called_once()
-        mocked.return_value.convert.assert_called_with("L")
-
-    def test_open_image_calls_ImageOps_colorize(self, mocker):
-        mocked_image = mocker.patch("arrangeit.utils.Image.open")
-        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
-        BACKGROUND = "yelow"
-        utils.open_image("resize.png", background=BACKGROUND)
+    def test_get_prepared_screenshot_calls_filter_with_blur_size(self, mocker):
+        image = Settings.BLANK_ICON
+        mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        BLUR = 5
+        mocked = mocker.patch("PIL.Image.Image.filter")
+        utils.get_prepared_screenshot(image, blur_size=BLUR, grayscale=False)
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            mocked_image.return_value.convert.return_value, "black", BACKGROUND
-        )
+        mocked.assert_called_with(ImageFilter.BoxBlur(BLUR))
 
-    def test_open_image_calls_different_ImageOps_colorize_if_colorized_set(
-        self, mocker
-    ):
-        mocked_image = mocker.patch("arrangeit.utils.Image.open")
-        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
-        PATH, FOREGROUND, BACKGROUND = "resize.png", "red", "yelow"
-        utils.open_image(
-            PATH, background=BACKGROUND, colorized=True, foreground=FOREGROUND
+    def test_get_prepared_screenshot_converts_to_grayscale_if_set(self, mocker):
+        image = Settings.BLANK_ICON
+        mocked_photo = mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocker.patch("PIL.Image.Image.filter")
+        mocked = mocker.patch("PIL.Image.Image.convert")
+        assert (
+            utils.get_prepared_screenshot(image, grayscale=True)
+            == mocked_photo.return_value
         )
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            mocked_image.return_value.convert.return_value, FOREGROUND, BACKGROUND
-        )
+        mocked.assert_called_with("L")
+
+    def test_get_prepared_screenshot_not_converting_to_grayscale(self, mocker):
+        image = Settings.BLANK_ICON
+        mocker.patch("PIL.ImageTk.PhotoImage")
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocker.patch("PIL.Image.Image.filter")
+        mocked = mocker.patch("PIL.Image.Image.convert")
+        utils.get_prepared_screenshot(image, grayscale=False)
+        mocked.assert_not_called()
+
+    def test_get_prepared_screenshot_returns_ImageTk_PhotoImage(self, mocker):
+        mocker.patch("PIL.ImageFilter.BoxBlur")
+        mocker.patch("PIL.Image.Image.filter")
+        mocked = mocker.patch("PIL.ImageTk.PhotoImage")
+        assert utils.get_prepared_screenshot(Settings.BLANK_ICON) == mocked.return_value
 
     ## get_value_if_valid_type
     @pytest.mark.parametrize(
@@ -203,21 +190,6 @@ class TestUtils(object):
     def test_get_value_if_valid_type_for_collection_returns_empty(self, value, typ):
         assert utils.get_value_if_valid_type(value, typ) is ()
 
-    ## quarter_by_smaller
-    @pytest.mark.parametrize(
-        "w,h,expected",
-        [
-            (3200, 1080, (480, 270)),
-            (1920, 1080, (480, 270)),
-            (1280, 960, (426, 240)),
-            (800, 600, (266, 150)),
-            (600, 800, (150, 84)),
-            (1920, 2160, (480, 270)),
-        ],
-    )
-    def test_quarter_by_smaller(self, w, h, expected):
-        assert utils.quarter_by_smaller(w, h) == expected
-
     ## increased_by_fraction
     @pytest.mark.parametrize(
         "value,fraction,expected",
@@ -233,52 +205,69 @@ class TestUtils(object):
     def test_increased_by_fraction(self, value, fraction, expected):
         assert utils.increased_by_fraction(value, fraction) == expected
 
-    ## get_prepared_screenshot
-    def test_get_prepared_screenshot_calls_filter(self, mocker):
-        image = Settings.BLANK_ICON
-        mocker.patch("PIL.ImageTk.PhotoImage")
-        mocker.patch("PIL.ImageFilter.BoxBlur")
-        mocked = mocker.patch("PIL.Image.Image.filter")
-        utils.get_prepared_screenshot(image, grayscale=False)
-        mocked.assert_called_once()
+    ## open_image
+    def test_open_image_returns_Image(self, mocker):
+        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
+        mocker.patch("arrangeit.utils.Image.open")
+        returned = utils.open_image("resize.png")
+        assert returned == mocked.return_value
 
-    def test_get_prepared_screenshot_calls_filter_with_blur_size(self, mocker):
-        image = Settings.BLANK_ICON
-        mocker.patch("PIL.ImageTk.PhotoImage")
-        mocker.patch("PIL.ImageFilter.BoxBlur")
-        BLUR = 5
-        mocked = mocker.patch("PIL.Image.Image.filter")
-        utils.get_prepared_screenshot(image, blur_size=BLUR, grayscale=False)
+    def test_open_image_calls_Image_open(self, mocker):
+        mocker.patch("arrangeit.utils.ImageOps.colorize")
+        mocker.patch("PIL.Image.Image.convert")
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        PATH = "resize.png"
+        utils.open_image(PATH)
         mocked.assert_called_once()
-        mocked.assert_called_with(ImageFilter.BoxBlur(BLUR))
+        mocked.assert_called_with(
+            os.path.join(os.path.dirname(utils.__file__), "resources", PATH)
+        )
 
-    def test_get_prepared_screenshot_converts_to_grayscale_if_set(self, mocker):
-        image = Settings.BLANK_ICON
-        mocked_photo = mocker.patch("PIL.ImageTk.PhotoImage")
-        mocker.patch("PIL.ImageFilter.BoxBlur")
-        mocker.patch("PIL.Image.Image.filter")
-        mocked = mocker.patch("PIL.Image.Image.convert")
-        assert (
-            utils.get_prepared_screenshot(image, grayscale=True)
-            == mocked_photo.return_value
+    def test_open_image_calls_Image_convert(self, mocker):
+        mocker.patch("arrangeit.utils.ImageOps.colorize")
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        utils.open_image("resize.png")
+        mocked.return_value.convert.assert_called_once()
+        mocked.return_value.convert.assert_called_with("L")
+
+    def test_open_image_calls_ImageOps_colorize(self, mocker):
+        mocked_image = mocker.patch("arrangeit.utils.Image.open")
+        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
+        BACKGROUND = "yelow"
+        utils.open_image("resize.png", background=BACKGROUND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            mocked_image.return_value.convert.return_value, "black", BACKGROUND
+        )
+
+    def test_open_image_calls_different_ImageOps_colorize_if_colorized_set(
+        self, mocker
+    ):
+        mocked_image = mocker.patch("arrangeit.utils.Image.open")
+        mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
+        PATH, FOREGROUND, BACKGROUND = "resize.png", "red", "yelow"
+        utils.open_image(
+            PATH, background=BACKGROUND, colorized=True, foreground=FOREGROUND
         )
         mocked.assert_called_once()
-        mocked.assert_called_with("L")
+        mocked.assert_called_with(
+            mocked_image.return_value.convert.return_value, FOREGROUND, BACKGROUND
+        )
 
-    def test_get_prepared_screenshot_not_converting_to_grayscale(self, mocker):
-        image = Settings.BLANK_ICON
-        mocker.patch("PIL.ImageTk.PhotoImage")
-        mocker.patch("PIL.ImageFilter.BoxBlur")
-        mocker.patch("PIL.Image.Image.filter")
-        mocked = mocker.patch("PIL.Image.Image.convert")
-        utils.get_prepared_screenshot(image, grayscale=False)
-        mocked.assert_not_called()
-
-    def test_get_prepared_screenshot_returns_ImageTk_PhotoImage(self, mocker):
-        mocker.patch("PIL.ImageFilter.BoxBlur")
-        mocker.patch("PIL.Image.Image.filter")
-        mocked = mocker.patch("PIL.ImageTk.PhotoImage")
-        assert utils.get_prepared_screenshot(Settings.BLANK_ICON) == mocked.return_value
+    ## quarter_by_smaller
+    @pytest.mark.parametrize(
+        "w,h,expected",
+        [
+            (3200, 1080, (480, 270)),
+            (1920, 1080, (480, 270)),
+            (1280, 960, (426, 240)),
+            (800, 600, (266, 150)),
+            (600, 800, (150, 84)),
+            (1920, 2160, (480, 270)),
+        ],
+    )
+    def test_quarter_by_smaller(self, w, h, expected):
+        assert utils.quarter_by_smaller(w, h) == expected
 
     ## _get_snapping_source_by_ordinal
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
@@ -292,40 +281,6 @@ class TestUtils(object):
                 utils._get_snapping_source_by_ordinal((200, 300, 400, 500), 10, i),
                 utils.Rectangle,
             )
-
-    ## get_snapping_sources_for_rect
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10) == expected
-        assert utils.get_snapping_sources_for_rect(rect, 10, None) == expected
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_0(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 0) == (
-            expected[0],
-            expected[3],
-        )
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_1(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 1) == (
-            expected[0],
-            expected[1],
-        )
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_2(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 2) == (
-            expected[2],
-            expected[1],
-        )
-
-    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_3(self, rect, expected):
-        assert utils.get_snapping_sources_for_rect(rect, 10, 3) == (
-            expected[2],
-            expected[3],
-        )
 
     ## _intersects
     @pytest.mark.parametrize("source,target,expected", INTERSECTS_SAMPLES)
@@ -418,6 +373,40 @@ class TestUtils(object):
     ):
         assert (
             utils.check_intersections((sources[2], sources[3]), targets) == expected[4]
+        )
+
+    ## get_snapping_sources_for_rect
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10) == expected
+        assert utils.get_snapping_sources_for_rect(rect, 10, None) == expected
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_0(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 0) == (
+            expected[0],
+            expected[3],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_1(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 1) == (
+            expected[0],
+            expected[1],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_2(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 2) == (
+            expected[2],
+            expected[1],
+        )
+
+    @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
+    def test_get_snapping_sources_for_rect_corner_3(self, rect, expected):
+        assert utils.get_snapping_sources_for_rect(rect, 10, 3) == (
+            expected[2],
+            expected[3],
         )
 
     ## offset_for_intersections
