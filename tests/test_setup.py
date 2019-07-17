@@ -75,13 +75,7 @@ class TestFiles(object):
         )
         assert os.path.exists(path)
 
-    @pytest.mark.parametrize(
-        "asset",
-        [
-            "icon32.png",
-            "logo.png",
-        ],
-    )
+    @pytest.mark.parametrize("asset", ["icon32.png", "logo.png"])
     def test_resources_misc_file_exist(self, asset):
         path = os.path.abspath(
             os.path.join(os.path.dirname(arrangeit.__file__), "resources", asset)

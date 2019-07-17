@@ -1087,7 +1087,7 @@ class TestWindowsApiApiPublicWin8(object):
         mocker.patch("arrangeit.windows.api.Package")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("arrangeit.windows.api.Api._package_full_name_from_hwnd")
-        mocker.patch("arrangeit.windows.api.Api._package_info_buffer_from_reference")  
+        mocker.patch("arrangeit.windows.api.Api._package_info_buffer_from_reference")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO")
         mocker.patch("arrangeit.windows.api.Api._package_info_reference_from_full_name")
         SAMPLE = 5241
@@ -1097,7 +1097,7 @@ class TestWindowsApiApiPublicWin8(object):
 
     def test_api_Api_get_package_returns_empty_Package(self, mocker):
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._package_full_name_from_hwnd.return_value=False
+        mocked_helpers.return_value._package_full_name_from_hwnd.return_value = False
         mocked = mocker.patch("arrangeit.windows.api.Package")
         SAMPLE = 5242
         returned = Api().get_package(SAMPLE)
@@ -1110,39 +1110,51 @@ class TestWindowsApiApiPublicWin8(object):
     ):
         FULL_NAME = "foobar"
         mocker.patch("arrangeit.windows.api.Helpers")
-        mocked = mocker.patch("arrangeit.windows.api.Api._package_info_reference_from_full_name")
-        mocker.patch("arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value=FULL_NAME)
+        mocked = mocker.patch(
+            "arrangeit.windows.api.Api._package_info_reference_from_full_name"
+        )
+        mocker.patch(
+            "arrangeit.windows.api.Api._package_full_name_from_hwnd",
+            return_value=FULL_NAME,
+        )
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO")
         mocker.patch("arrangeit.windows.api.Package")
         Api().get_package(5243)
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            FULL_NAME
-        )
+        mocked.assert_called_with(FULL_NAME)
 
     def test_api_Api_get_package_calls__package_info_buffer_from_reference(
         self, mocker
     ):
-        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocker.patch("arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo")
-        mocked_ref = mocker.patch("arrangeit.windows.api.Api._package_info_reference_from_full_name")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocker.patch(
+            "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
+        )
+        mocked_ref = mocker.patch(
+            "arrangeit.windows.api.Api._package_info_reference_from_full_name"
+        )
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO")
         mocker.patch("arrangeit.windows.api.Package")
-        mocked = mocker.patch("arrangeit.windows.api.Api._package_info_buffer_from_reference")        
+        mocked = mocker.patch(
+            "arrangeit.windows.api.Api._package_info_buffer_from_reference"
+        )
         Api().get_package(5244)
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            mocked_ref.return_value
-        )
+        mocked.assert_called_with(mocked_ref.return_value)
 
     def test_api_Api_get_package_calls_PACKAGE_INFO_from_buffer(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers")
-        mocker.patch("arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo")
+        mocker.patch(
+            "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
+        )
         mocker.patch("arrangeit.windows.api.Api._package_info_reference_from_full_name")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO")
         mocker.patch("arrangeit.windows.api.Package")
         SAMPLE = 109
-        mocker.patch("arrangeit.windows.api.Api._package_info_buffer_from_reference", return_value=SAMPLE)
+        mocker.patch(
+            "arrangeit.windows.api.Api._package_info_buffer_from_reference",
+            return_value=SAMPLE,
+        )
         mocked = mocker.patch("arrangeit.windows.api.PACKAGE_INFO")
         Api().get_package(5245)
         mocked.from_buffer.assert_called_once()
@@ -1150,18 +1162,26 @@ class TestWindowsApiApiPublicWin8(object):
 
     def test_api_Api_get_package_calls__close_package_info(self, mocker):
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocker.patch("arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo")
-        mocked_ref = mocker.patch("arrangeit.windows.api.Api._package_info_reference_from_full_name")
+        mocker.patch(
+            "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
+        )
+        mocked_ref = mocker.patch(
+            "arrangeit.windows.api.Api._package_info_reference_from_full_name"
+        )
         mocker.patch("arrangeit.windows.api.Api._package_info_buffer_from_reference")
         mocker.patch("arrangeit.windows.api.Package")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO")
         Api().get_package(5246)
-        mocked_helpers.return_value._close_package_info.assert_called_once()        
-        mocked_helpers.return_value._close_package_info.assert_called_with(mocked_ref.return_value.contents)
+        mocked_helpers.return_value._close_package_info.assert_called_once()
+        mocked_helpers.return_value._close_package_info.assert_called_with(
+            mocked_ref.return_value.contents
+        )
 
     def test_api_Api_get_package_calls_Package(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers")
-        mocker.patch("arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo")
+        mocker.patch(
+            "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
+        )
         mocker.patch("arrangeit.windows.api.Api._package_info_reference_from_full_name")
         mocked_info = mocker.patch("arrangeit.windows.api.PACKAGE_INFO")
         mocked = mocker.patch("arrangeit.windows.api.Package")
@@ -1182,18 +1202,22 @@ class TestWindowsApiApiPrivateWin8(object):
     ):
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_full_name.return_value=0
+        mocked_helpers.return_value._get_package_full_name.return_value = 0
         SAMPLE = 520
         Api()._package_full_name_from_handle(SAMPLE)
         calls = [mocker.call(SAMPLE, mocked_byref.return_value, None)]
-        mocked_helpers.return_value._get_package_full_name.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._get_package_full_name.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_full_name_from_handle_returns_None_for_no_package(
         self, mocker
     ):
         mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_full_name.return_value=api.APPMODEL_ERROR_NO_PACKAGE
+        mocked_helpers.return_value._get_package_full_name.return_value = (
+            api.APPMODEL_ERROR_NO_PACKAGE
+        )
         assert Api()._package_full_name_from_handle(100) is None
 
     def test_Api__package_full_name_from_handle_calls_create_unicode_buffer(
@@ -1204,7 +1228,7 @@ class TestWindowsApiApiPrivateWin8(object):
         LENGTH = 10
         mocked_uint.return_value.value = LENGTH
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_full_name.return_value=0
+        mocked_helpers.return_value._get_package_full_name.return_value = 0
         mocked = mocker.patch("ctypes.create_unicode_buffer")
         Api()._package_full_name_from_handle(100)
         calls = [mocker.call(LENGTH + 1)]
@@ -1216,26 +1240,31 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_buffer = mocker.patch("ctypes.create_unicode_buffer")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_full_name.return_value=0
+        mocked_helpers.return_value._get_package_full_name.return_value = 0
         SAMPLE = 521
         Api()._package_full_name_from_handle(SAMPLE)
         calls = [
             mocker.call(SAMPLE, mocked_byref.return_value, mocked_buffer.return_value)
         ]
-        mocked_helpers.return_value._get_package_full_name.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._get_package_full_name.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_full_name_from_handle_returns_None_for_no_success(
         self, mocker
     ):
         mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_full_name.side_effect=[0, "foo"]        
+        mocked_helpers.return_value._get_package_full_name.side_effect = [0, "foo"]
         assert Api()._package_full_name_from_handle(100) is None
 
     def test_Api__package_full_name_from_handle_returns_full_name(self, mocker):
         mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_full_name.side_effect=[0, api.ERROR_SUCCESS]
+        mocked_helpers.return_value._get_package_full_name.side_effect = [
+            0,
+            api.ERROR_SUCCESS,
+        ]
         mocked_buffer = mocker.patch("ctypes.create_unicode_buffer")
         returned = Api()._package_full_name_from_handle(100)
         assert returned == mocked_buffer.return_value
@@ -1268,7 +1297,9 @@ class TestWindowsApiApiPrivateWin8(object):
         mocker.patch("arrangeit.windows.api.Api.enum_windows", return_value=(CHILD,))
         Api()._package_full_name_from_hwnd(2843)
         calls = [mocker.call(CHILD, mocked_byref.return_value)]
-        mocked_helpers.return_value._get_windows_thread_process_id.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._get_windows_thread_process_id.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_full_name_from_hwnd_calls__open_process(self, mocker):
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -1281,7 +1312,9 @@ class TestWindowsApiApiPrivateWin8(object):
                 api.PROCESS_QUERY_LIMITED_INFORMATION, False, mocked_dword.return_value
             )
         ]
-        mocked_helpers.return_value._open_process.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._open_process.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_full_name_from_hwnd_calls__package_full_name_from_handle(
         self, mocker
@@ -1290,7 +1323,9 @@ class TestWindowsApiApiPrivateWin8(object):
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
         mocker.patch("arrangeit.windows.api.Api.enum_windows", return_value=(5843,))
-        mocked = mocker.patch("arrangeit.windows.api.Api._package_full_name_from_handle")
+        mocked = mocker.patch(
+            "arrangeit.windows.api.Api._package_full_name_from_handle"
+        )
         Api()._package_full_name_from_hwnd(2845)
         calls = [mocker.call(mocked_helpers.return_value._open_process.return_value)]
         mocked.assert_has_calls(calls, any_order=True)
@@ -1305,13 +1340,18 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked_api.reset_mock()
         Api()._package_full_name_from_hwnd(2846)
         calls = [mocker.call(mocked_helpers.return_value._open_process.return_value)]
-        mocked_helpers.return_value._close_handle.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._close_handle.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_full_name_from_hwnd_returns_full_name(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.DWORD")
         FULL_NAME = "foobar"
-        mocker.patch("arrangeit.windows.api.Api._package_full_name_from_handle", return_value=FULL_NAME)
+        mocker.patch(
+            "arrangeit.windows.api.Api._package_full_name_from_handle",
+            return_value=FULL_NAME,
+        )
         mocker.patch("ctypes.byref")
         mocker.patch("arrangeit.windows.api.Api.enum_windows", return_value=[5845])
         returned = Api()._package_full_name_from_hwnd(2847)
@@ -1320,7 +1360,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_full_name_from_hwnd_returns_None(self, mocker):
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.DWORD")
-        mocked_helpers.return_value._package_full_name_from_handle.return_value=None
+        mocked_helpers.return_value._package_full_name_from_handle.return_value = None
         mocker.patch("ctypes.byref")
         mocker.patch("arrangeit.windows.api.Api.enum_windows", return_value=[5845])
         returned = Api()._package_full_name_from_hwnd(2847)
@@ -1332,7 +1372,7 @@ class TestWindowsApiApiPrivateWin8(object):
     ):
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_info.return_value=0
+        mocked_helpers.return_value._get_package_info.return_value = 0
         mocked_ref = mocker.MagicMock()
         Api()._package_info_buffer_from_reference(mocked_ref)
         calls = [
@@ -1344,14 +1384,16 @@ class TestWindowsApiApiPrivateWin8(object):
                 mocked_byref.return_value,
             )
         ]
-        mocked_helpers.return_value._get_package_info.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._get_package_info.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_info_buffer_from_reference_returns_None_for_not_insufficient(
         self, mocker
     ):
         mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_info.return_value=0
+        mocked_helpers.return_value._get_package_info.return_value = 0
         assert Api()._package_info_buffer_from_reference(mocker.MagicMock()) is None
 
     def test_Api__package_info_buffer_from_reference_calls_create_string_buffer(
@@ -1363,7 +1405,9 @@ class TestWindowsApiApiPrivateWin8(object):
         LENGTH = 20
         mocked_uint.return_value.value = LENGTH
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_info.return_value=api.ERROR_INSUFFICIENT_BUFFER
+        mocked_helpers.return_value._get_package_info.return_value = (
+            api.ERROR_INSUFFICIENT_BUFFER
+        )
         mocked = mocker.patch("ctypes.create_string_buffer")
         Api()._package_info_buffer_from_reference(mocker.MagicMock())
         calls = [mocker.call(LENGTH)]
@@ -1373,7 +1417,9 @@ class TestWindowsApiApiPrivateWin8(object):
         mocker.patch("ctypes.byref")
         mocked_buffer = mocker.patch("ctypes.create_string_buffer")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_info.return_value=api.ERROR_INSUFFICIENT_BUFFER
+        mocked_helpers.return_value._get_package_info.return_value = (
+            api.ERROR_INSUFFICIENT_BUFFER
+        )
         mocked = mocker.patch("ctypes.cast")
         Api()._package_info_buffer_from_reference(mocker.MagicMock())
         calls = [
@@ -1388,7 +1434,9 @@ class TestWindowsApiApiPrivateWin8(object):
         mocker.patch("ctypes.create_string_buffer")
         mocked_bytes = mocker.patch("ctypes.cast")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_info.return_value=api.ERROR_INSUFFICIENT_BUFFER
+        mocked_helpers.return_value._get_package_info.return_value = (
+            api.ERROR_INSUFFICIENT_BUFFER
+        )
         mocked_ref = mocker.MagicMock()
         Api()._package_info_buffer_from_reference(mocked_ref)
         calls = [
@@ -1400,7 +1448,9 @@ class TestWindowsApiApiPrivateWin8(object):
                 mocked_byref.return_value,
             )
         ]
-        mocked_helpers.return_value._get_package_info.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._get_package_info.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_info_buffer_from_reference_returns_None_for_no_success(
         self, mocker
@@ -1409,14 +1459,20 @@ class TestWindowsApiApiPrivateWin8(object):
         mocker.patch("ctypes.create_string_buffer")
         mocker.patch("ctypes.cast")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_info.side_effect=[api.ERROR_INSUFFICIENT_BUFFER, "foo"]
+        mocked_helpers.return_value._get_package_info.side_effect = [
+            api.ERROR_INSUFFICIENT_BUFFER,
+            "foo",
+        ]
         assert Api()._package_info_buffer_from_reference(mocker.MagicMock()) is None
 
     def test_Api__package_info_buffer_from_reference_returns_buffer(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.cast")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._get_package_info.side_effect=[api.ERROR_INSUFFICIENT_BUFFER, api.ERROR_SUCCESS]
+        mocked_helpers.return_value._get_package_info.side_effect = [
+            api.ERROR_INSUFFICIENT_BUFFER,
+            api.ERROR_SUCCESS,
+        ]
         mocked_buffer = mocker.patch("ctypes.create_string_buffer")
         returned = Api()._package_info_buffer_from_reference(mocker.MagicMock())
         assert returned == mocked_buffer.return_value
@@ -1428,7 +1484,9 @@ class TestWindowsApiApiPrivateWin8(object):
         mocker.patch("ctypes.pointer")
         mocked = mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._open_package_info_by_full_name.return_value=api.ERROR_SUCCESS
+        mocked_helpers.return_value._open_package_info_by_full_name.return_value = (
+            api.ERROR_SUCCESS
+        )
         Api()._package_info_reference_from_full_name("foobar")
         mocked.assert_called_once()
         calls = [mocker.call()]
@@ -1438,7 +1496,9 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked = mocker.patch("ctypes.pointer")
         mocked_ref = mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._open_package_info_by_full_name.return_value=api.ERROR_SUCCESS
+        mocked_helpers.return_value._open_package_info_by_full_name.return_value = (
+            api.ERROR_SUCCESS
+        )
         Api()._package_info_reference_from_full_name("foobar")
         mocked.assert_called_once()
         calls = [mocker.call(mocked_ref.return_value)]
@@ -1450,12 +1510,16 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked_pointer = mocker.patch("ctypes.pointer")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._open_package_info_by_full_name.return_value=api.ERROR_SUCCESS
+        mocked_helpers.return_value._open_package_info_by_full_name.return_value = (
+            api.ERROR_SUCCESS
+        )
         FULL_NAME = "foobar"
         Api()._package_info_reference_from_full_name(FULL_NAME)
         mocked_helpers.return_value._open_package_info_by_full_name.assert_called_once()
         calls = [mocker.call(FULL_NAME, 0, mocked_pointer.return_value)]
-        mocked_helpers.return_value._open_package_info_by_full_name.assert_has_calls(calls, any_order=True)
+        mocked_helpers.return_value._open_package_info_by_full_name.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_Api__package_info_reference_from_full_name_returns_package_info_reference(
         self, mocker
@@ -1463,7 +1527,9 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked = mocker.patch("ctypes.pointer")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._open_package_info_by_full_name.return_value=api.ERROR_SUCCESS
+        mocked_helpers.return_value._open_package_info_by_full_name.return_value = (
+            api.ERROR_SUCCESS
+        )
         returned = Api()._package_info_reference_from_full_name("foobar")
         assert returned == mocked.return_value
 
@@ -1471,6 +1537,6 @@ class TestWindowsApiApiPrivateWin8(object):
         mocker.patch("ctypes.pointer")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked_helpers.return_value._open_package_info_by_full_name.return_value="foo"
+        mocked_helpers.return_value._open_package_info_by_full_name.return_value = "foo"
         returned = Api()._package_info_reference_from_full_name("foobar")
         assert returned is None

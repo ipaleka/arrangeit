@@ -6,8 +6,14 @@ import pytest
 from arrangeit.data import WindowModel
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
-from arrangeit.view import (Resizable, Restored, Toolbar, ViewApplication,
-                            WindowsList, WorkspacesCollection)
+from arrangeit.view import (
+    Resizable,
+    Restored,
+    Toolbar,
+    ViewApplication,
+    WindowsList,
+    WorkspacesCollection,
+)
 
 
 class TestViewApplication(object):
@@ -197,9 +203,7 @@ class TestViewApplication(object):
         view.setup_corner()
         mocked.assert_called_once()
         mocked.assert_called_with(
-            view.master,
-            shift=Settings.SHIFT_CURSOR,
-            background=Settings.CORNER_COLOR,
+            view.master, shift=Settings.SHIFT_CURSOR, background=Settings.CORNER_COLOR
         )
 
     def test_ViewApplication_setup_corner_sets_corner_attribute(self, mocker):
@@ -285,12 +289,11 @@ class TestViewApplication(object):
         view.setup_resizable()
         assert mocked.call_count == 1
         mocked.assert_called_with(
-            x=-(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADX),
-            y=-(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADY),
+            x=-(Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADX),
+            y=-(Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADY),
             relx=Settings.TITLE_LABEL_RELWIDTH,
             rely=Settings.TITLE_LABEL_RELHEIGHT,
         )
-
 
     ## ViewApplication.setup_restored
     def test_ViewApplication_setup_restored_initializes_Restored(self, mocker):
@@ -311,8 +314,8 @@ class TestViewApplication(object):
         view.setup_restored()
         assert mocked.call_count == 1
         mocked.assert_called_with(
-            x=-2*(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADX),
-            y=-(Settings.PROPERTY_ICON_SIZE+Settings.PROPERTY_ICON_PADY),
+            x=-2 * (Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADX),
+            y=-(Settings.PROPERTY_ICON_SIZE + Settings.PROPERTY_ICON_PADY),
             relx=Settings.TITLE_LABEL_RELWIDTH,
             rely=Settings.TITLE_LABEL_RELHEIGHT,
         )

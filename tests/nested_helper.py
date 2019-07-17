@@ -1,10 +1,13 @@
 import types
 
+
 """
 Helper module to test inner functions
 
 http://code.activestate.com/recipes/580716-unit-testing-nested-functions/
 """
+
+
 def freeVar(val):
     def nested():
         return val
@@ -24,4 +27,3 @@ def nested(outer, innerName, **freeVars):
                 None,
                 tuple(freeVar(freeVars[name]) for name in const.co_freevars),
             )
-

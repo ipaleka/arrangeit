@@ -1,5 +1,19 @@
 import pytest
 
+from arrangeit.settings import Settings
+from arrangeit.windows.api import Package
+from arrangeit.windows.app import App
+from arrangeit.windows.collector import (
+    DWMWA_CLOAKED,
+    GCL_HICON,
+    WM_GETICON,
+    Collector,
+)
+from arrangeit.windows.controller import Controller
+from arrangeit.windows.utils import (
+    extract_name_from_bytes_path,
+    user_data_path,
+)
 from win32con import (
     STATE_SYSTEM_INVISIBLE,
     SW_MINIMIZE,
@@ -8,13 +22,6 @@ from win32con import (
     WS_EX_TOOLWINDOW,
     WS_THICKFRAME,
 )
-
-from arrangeit.settings import Settings
-from arrangeit.windows.app import App
-from arrangeit.windows.api import Package
-from arrangeit.windows.collector import DWMWA_CLOAKED, GCL_HICON, WM_GETICON, Collector
-from arrangeit.windows.controller import Controller
-from arrangeit.windows.utils import user_data_path, extract_name_from_bytes_path
 
 SAMPLE_HWND = 1001
 
@@ -336,7 +343,9 @@ class TestWindowsCollector(object):
         returned = Collector().get_application_name(HWND)
         assert returned == SAMPLE
 
-    def test_WindowsCollector_get_application_name_calls_executable_name_for_hwnd(self, mocker):
+    def test_WindowsCollector_get_application_name_calls_executable_name_for_hwnd(
+        self, mocker
+    ):
         mocked_api = mocker.patch("arrangeit.windows.collector.Api")
         mocked_api.return_value.packages = {}
         HWND = 9716
@@ -344,7 +353,9 @@ class TestWindowsCollector(object):
         mocked_api.return_value.executable_name_for_hwnd.assert_called_once()
         mocked_api.return_value.executable_name_for_hwnd.assert_called_with(HWND)
 
-    def test_WindowsCollector_get_application_name_returns_executable_name_for_hwnd(self, mocker):
+    def test_WindowsCollector_get_application_name_returns_executable_name_for_hwnd(
+        self, mocker
+    ):
         mocked_api = mocker.patch("arrangeit.windows.collector.Api")
         mocked_api.return_value.packages = {}
         SAMPLE = "foobar"
@@ -352,7 +363,9 @@ class TestWindowsCollector(object):
         returned = Collector().get_application_name(9717)
         assert returned == SAMPLE
 
-    def test_WindowsCollector_get_application_name_returns_GetClassName_for_exe_None(self, mocker):
+    def test_WindowsCollector_get_application_name_returns_GetClassName_for_exe_None(
+        self, mocker
+    ):
         mocked_api = mocker.patch("arrangeit.windows.collector.Api")
         mocked_api.return_value.packages = {}
         mocked = mocker.patch("arrangeit.windows.collector.GetClassName")
@@ -370,7 +383,9 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
 
     @pytest.mark.parametrize("value", ["foo", "bar", ""])
-    def test_WindowsCollector_get_application_name_functionality_no_package_no_app_name(self, mocker, value):
+    def test_WindowsCollector_get_application_name_functionality_no_package_no_app_name(
+        self, mocker, value
+    ):
         mocked_api = mocker.patch("arrangeit.windows.collector.Api")
         mocked_api.return_value.packages = {}
         mocked_api.return_value.executable_name_for_hwnd.return_value = None
@@ -1025,7 +1040,9 @@ class TestWindowsUtils(object):
     """Testing class for `arrangeit.windows.utils` module."""
 
     ## extract_name_from_bytes_path
-    def test_windows_utils_module_extract_name_from_bytes_path_calls_basename(self, mocker):
+    def test_windows_utils_module_extract_name_from_bytes_path_calls_basename(
+        self, mocker
+    ):
         SAMPLE = b"foobar"
         mocker.patch("os.path.splitext")
         mocker.patch("sys.getdefaultencoding", return_value="utf-8")
@@ -1034,7 +1051,9 @@ class TestWindowsUtils(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE)
 
-    def test_windows_utils_module_extract_name_from_bytes_path_calls_splitext(self, mocker):
+    def test_windows_utils_module_extract_name_from_bytes_path_calls_splitext(
+        self, mocker
+    ):
         NAME, EXT = b"foobar", b"exe"
         mocker.patch("sys.getdefaultencoding", return_value="utf-8")
         mocked = mocker.patch("os.path.splitext", return_value=(NAME, EXT))
@@ -1044,7 +1063,9 @@ class TestWindowsUtils(object):
         mocked.assert_called_with(mocked_basename.return_value)
         assert returned == "foobar"
 
-    def test_windows_utils_module_extract_name_from_bytes_path_getdefaultencoding(self, mocker):
+    def test_windows_utils_module_extract_name_from_bytes_path_getdefaultencoding(
+        self, mocker
+    ):
         mocker.patch("os.path.splitext")
         mocker.patch("os.path.basename")
         mocked = mocker.patch("sys.getdefaultencoding", return_value="utf-8")
@@ -1062,13 +1083,23 @@ class TestWindowsUtils(object):
         mocked.decode.assert_called_once()
         mocked.decode.assert_called_with(mocked_default.return_value)
 
-    @pytest.mark.parametrize("path,name",
-    [
-        (b"\\Device\\HarddiskVolume2\\Program Files\\Internet Explorer\\iexplore.exe", "iexplore"),
-        (b"\\Device\\HarddiskVolume2\\Program Files\\Git\\usr\\bin\\mintty.exe", "mintty"),
-        (b"\\Device\\HarddiskVolume1\\temp.ext.exe", "temp.ext"),
-    ])
-    def test_windows_utils_module_extract_name_from_bytes_path_functionality(self,path,name):
+    @pytest.mark.parametrize(
+        "path,name",
+        [
+            (
+                b"\\Device\\HarddiskVolume2\\Program Files\\Internet Explorer\\iexplore.exe",
+                "iexplore",
+            ),
+            (
+                b"\\Device\\HarddiskVolume2\\Program Files\\Git\\usr\\bin\\mintty.exe",
+                "mintty",
+            ),
+            (b"\\Device\\HarddiskVolume1\\temp.ext.exe", "temp.ext"),
+        ],
+    )
+    def test_windows_utils_module_extract_name_from_bytes_path_functionality(
+        self, path, name
+    ):
         assert extract_name_from_bytes_path(path) == name
 
     ## WindowsUtils.user_data_path

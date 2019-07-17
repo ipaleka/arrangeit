@@ -1,12 +1,17 @@
 import pytest
 
 from arrangeit import __appname__
-from arrangeit.darwin.collector import (Collector,
-                                        NSApplicationActivationPolicyRegular,
-                                        kCGNullWindowID,
-                                        kCGWindowListExcludeDesktopElements)
-from arrangeit.darwin.utils import (NSApplicationSupportDirectory,
-                                    NSUserDomainMask, user_data_path)
+from arrangeit.darwin.collector import (
+    Collector,
+    NSApplicationActivationPolicyRegular,
+    kCGNullWindowID,
+    kCGWindowListExcludeDesktopElements,
+)
+from arrangeit.darwin.utils import (
+    NSApplicationSupportDirectory,
+    NSUserDomainMask,
+    user_data_path,
+)
 
 
 class TestDarwinCollector(object):
@@ -90,7 +95,9 @@ class TestDarwinCollector(object):
         mocked_win = mocker.MagicMock()
         Collector()._get_window_geometry(mocked_win)
         calls = [mocker.call(element)]
-        mocked_win.valueForKey_.return_value.valueForKey_.assert_has_calls(calls, any_order=True)
+        mocked_win.valueForKey_.return_value.valueForKey_.assert_has_calls(
+            calls, any_order=True
+        )
 
     @pytest.mark.parametrize("element", ["X", "Y", "Width", "Height"])
     def test_DarwinCollector__get_window_geometry_returns_tuple_of_ints(
@@ -139,7 +146,11 @@ class TestDarwinCollector(object):
         APP3.activationPolicy.return_value = NSApplicationActivationPolicyRegular
         APP3.processIdentifier.return_value = 3
         mocked = mocker.patch("arrangeit.darwin.collector.NSWorkspace")
-        mocked.sharedWorkspace.return_value.runningApplications.return_value = [APP1, APP2, APP3]
+        mocked.sharedWorkspace.return_value.runningApplications.return_value = [
+            APP1,
+            APP2,
+            APP3,
+        ]
         returned = Collector()._running_apps_ids()
         assert returned == {1: APP1, 3: APP3}
 
@@ -277,9 +288,7 @@ class TestDarwinCollector(object):
         mocked = mocker.patch("arrangeit.darwin.collector.CGWindowListCopyWindowInfo")
         Collector().get_windows()
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            kCGWindowListExcludeDesktopElements, kCGNullWindowID
-        )
+        mocked.assert_called_with(kCGWindowListExcludeDesktopElements, kCGNullWindowID)
 
     def test_DarwinCollector_get_windows_returns_list(self, mocker):
         SAMPLE = (mocker.MagicMock(), mocker.MagicMock())

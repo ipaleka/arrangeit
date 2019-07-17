@@ -5,14 +5,30 @@ import pytest
 from arrangeit.data import WindowModel, WindowsCollection
 from arrangeit.settings import Settings
 
-from .fixtures import (ATTRS_FOR_VALID_TYPE, ATTRS_INVALID_TYPE,
-                       INVALID_SINGLE_ATTR, MODEL_INVALID_RECT,
-                       MODEL_SAME_VALUE, REPOPULATE_FOR_WID_SAMPLE,
-                       SAMPLE_MODEL_VALUES, SAMPLE_RECT, VALID_MODEL_ATTRS,
-                       WINDOWSCOLLECTION_EXPORT,
-                       WINDOWSCOLLECTION_SORT_SAMPLES)
+from .fixtures import (
+    ATTRS_FOR_VALID_TYPE,
+    ATTRS_INVALID_TYPE,
+    INVALID_SINGLE_ATTR,
+    MODEL_INVALID_RECT,
+    MODEL_SAME_VALUE,
+    REPOPULATE_FOR_WID_SAMPLE,
+    SAMPLE_MODEL_VALUES,
+    SAMPLE_RECT,
+    VALID_MODEL_ATTRS,
+    WINDOWSCOLLECTION_EXPORT,
+    WINDOWSCOLLECTION_SORT_SAMPLES,
+)
 
-WINDOW_MODEL_ATTRS = ["wid", "rect", "resizable", "restored", "title", "name", "icon", "workspace"]
+WINDOW_MODEL_ATTRS = [
+    "wid",
+    "rect",
+    "resizable",
+    "restored",
+    "title",
+    "name",
+    "icon",
+    "workspace",
+]
 
 
 class TestWindowModel(object):

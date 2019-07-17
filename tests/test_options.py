@@ -5,9 +5,18 @@ from importlib import import_module
 import pytest
 
 from arrangeit import options
-from arrangeit.options import (CLASSES, COLORS, MESSAGES, WIDGETS, CheckOption,
-                               ColorOption, FloatScaleOption, OptionsDialog,
-                               ScaleOption, ThemeOption)
+from arrangeit.options import (
+    CLASSES,
+    COLORS,
+    MESSAGES,
+    WIDGETS,
+    CheckOption,
+    ColorOption,
+    FloatScaleOption,
+    OptionsDialog,
+    ScaleOption,
+    ThemeOption,
+)
 from arrangeit.settings import Settings
 
 from .mock_helpers import mocked_for_options, mocked_for_options_setup

@@ -2,6 +2,9 @@ import os
 
 import gi
 import pytest
+gi.require_version("Wnck", "3.0")
+gi.require_version("GdkPixbuf", "2.0")
+from gi.repository import GdkPixbuf, Wnck
 from PIL import Image
 from Xlib import X
 
@@ -11,10 +14,6 @@ from arrangeit.linux.app import App
 from arrangeit.linux.collector import MOVE_RESIZE_MASKS, Collector
 from arrangeit.linux.controller import Controller
 from arrangeit.linux.utils import user_data_path
-
-gi.require_version("Wnck", "3.0")
-gi.require_version("GdkPixbuf", "2.0")
-from gi.repository import GdkPixbuf, Wnck
 
 
 ## arrangeit.linux.app
@@ -33,7 +32,9 @@ class TestLinuxApp(object):
     def test_LinuxApp_activate_root_calls_window_focus(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked_win = mocker.MagicMock()
-        mocker.patch("arrangeit.linux.app.App._window_from_wid", return_value=mocked_win)
+        mocker.patch(
+            "arrangeit.linux.app.App._window_from_wid", return_value=mocked_win
+        )
         App().activate_root(1701)
         mocked_win.focus.assert_called_once()
         mocked_win.focus.assert_called_with(X.CurrentTime)
@@ -472,7 +473,7 @@ class TestLinuxApp(object):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.linux.app.Gdk.Screen.get_default")
         mocked_win = mocker.MagicMock()
-        mocked.return_value.get_window_stack.return_value = [mocked_win, ]
+        mocked.return_value.get_window_stack.return_value = [mocked_win]
         App()._window_from_wid(4489)
         mocked_win.get_xid.assert_called()
 
@@ -482,7 +483,7 @@ class TestLinuxApp(object):
         mocked_win = mocker.MagicMock()
         WID = 4490
         mocked_win.get_xid.return_value = WID
-        mocked.return_value.get_window_stack.return_value = [mocked_win, ]
+        mocked.return_value.get_window_stack.return_value = [mocked_win]
         returned = App()._window_from_wid(WID)
         assert returned is mocked_win
 

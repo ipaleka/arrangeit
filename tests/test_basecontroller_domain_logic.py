@@ -4,6 +4,7 @@ from arrangeit import base
 from arrangeit.settings import Settings
 from arrangeit.utils import Rectangle
 
+from .fixtures import ROOT_SNAPPING_RECTANGLES_SOURCES
 from .mock_helpers import (
     controller_mocked_app,
     controller_mocked_for_next,
@@ -12,7 +13,6 @@ from .mock_helpers import (
     mocked_setup,
     mocked_setup_view,
 )
-from .fixtures import ROOT_SNAPPING_RECTANGLES_SOURCES
 
 
 class TestBaseControllerDomainLogic(object):

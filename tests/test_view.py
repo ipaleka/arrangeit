@@ -6,10 +6,19 @@ import pytest
 
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction
-from arrangeit.view import (CornerWidget, ListedWindow, PropertyIcon,
-                            Resizable, Restored, Toolbar, WindowsList,
-                            Workspace, WorkspacesCollection,
-                            get_screenshot_widget, get_tkinter_root)
+from arrangeit.view import (
+    CornerWidget,
+    ListedWindow,
+    PropertyIcon,
+    Resizable,
+    Restored,
+    Toolbar,
+    WindowsList,
+    Workspace,
+    WorkspacesCollection,
+    get_screenshot_widget,
+    get_tkinter_root,
+)
 
 
 class TestViewFunctions(object):

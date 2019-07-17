@@ -446,4 +446,3 @@ ROOT_SNAPPING_RECTANGLES_SOURCES = (
     Rectangle(819, 553, 1278, 557),
     Rectangle(819, 297, 823, 557),
 )
-
