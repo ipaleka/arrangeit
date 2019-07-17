@@ -29,14 +29,6 @@ from .nested_helper import nested
 class TestWindowsapiCustomFunctions(object):
     """Testing class for :py:mod:`arrangeit.windows.api` custom functions."""
 
-    # WNDENUMPROC
-    def test_windows_api_module_defines_WNDENUMPROC(self):
-        assert api.__dict__.get("WNDENUMPROC") is not None
-        assert isinstance(api.WNDENUMPROC, type(ctypes._CFuncPtr))
-        assert api.WNDENUMPROC._restype_ == ctypes.wintypes.BOOL
-        assert api.WNDENUMPROC._argtypes_[0] == ctypes.wintypes.HWND
-        assert api.WNDENUMPROC._argtypes_[1] == ctypes.wintypes.LPARAM
-
     # platform_supports_packages
     def test_windows_api_platform_supports_packages_calls_getwindowsversion(
         self, mocker
@@ -263,21 +255,19 @@ class TestWINDOWINFO(object):
 class TestWindowsApiHelpersCommon(object):
     """Testing class for :class:`arrangeit.windows.api.Helpers` common methods."""
 
-    # Helpers
-    def test_windows_api_Helpers_sets_WinDLL_user32(self):
-        assert isinstance(Helpers._user32, ctypes.WinDLL)
-        assert Helpers._user32._name == "user32"
-
-    def test_windows_api_Helpers_sets_WinDLL_kernel32(self):
-        assert isinstance(Helpers._kernel32, ctypes.WinDLL)
-        assert Helpers._kernel32._name == "kernel32"
-
-    def test_windows_api_Helpers_sets_WinDLL_psapi(self):
-        assert isinstance(Helpers._psapi, ctypes.WinDLL)
-        assert Helpers._psapi._name == "psapi"
-
     # Helpers.__init__
+    def test_windows_api_Helpers___init___calls__setup_base(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.api.Helpers._setup_base")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        Helpers()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
     def test_windows_api_Helpers___init___calls__setup_common_helpers(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocked = mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
@@ -289,6 +279,7 @@ class TestWindowsApiHelpersCommon(object):
     def test_windows_api_Helpers___init___calls_platform_supports_packages(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
         mocked = mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
@@ -298,6 +289,7 @@ class TestWindowsApiHelpersCommon(object):
         mocked.assert_called_with()
 
     def test_windows_api_Helpers___init___calls__setup_win8_helpers(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=True
@@ -308,6 +300,7 @@ class TestWindowsApiHelpersCommon(object):
         mocked.assert_called_with()
 
     def test_windows_api_Helpers___init__not_calling__setup_win8_helpers(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
@@ -315,6 +308,49 @@ class TestWindowsApiHelpersCommon(object):
         mocked = mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
         Helpers()
         mocked.assert_not_called()
+
+    # _setup_base
+    def test_windows_api_Helpers__setup_base_sets_WinDLL_user32(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        assert isinstance(helpers._user32, ctypes.WinDLL)
+        assert helpers._user32._name == "user32"
+
+    def test_windows_api_Helpers__setup_base_sets_WinDLL_kernel32(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        assert isinstance(helpers._kernel32, ctypes.WinDLL)
+        assert helpers._kernel32._name == "kernel32"
+
+    def test_windows_api_Helpers__setup_base_sets_WinDLL_psapi(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        assert isinstance(helpers._psapi, ctypes.WinDLL)
+        assert helpers._psapi._name == "psapi"
+
+    def test_windows_api_Helpers__setup_base_sets_WNDENUMPROC(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        assert isinstance(helpers.WNDENUMPROC, type(ctypes._CFuncPtr))
+        assert helpers.WNDENUMPROC._restype_ == ctypes.wintypes.BOOL
+        assert helpers.WNDENUMPROC._argtypes_[0] == ctypes.wintypes.HWND
+        assert helpers.WNDENUMPROC._argtypes_[1] == ctypes.wintypes.LPARAM
 
     # Helpers._setup_helper
     def test_windows_api_Helpers__setup_helper_returns_attr_method(self, mocker):
@@ -386,7 +422,7 @@ class TestWindowsApiHelpersCommon(object):
         helpers._setup_common_helpers()
         assert helpers._enum_windows == helpers._user32.EnumWindows
         argtypes = helpers._enum_windows.argtypes
-        assert argtypes == (api.WNDENUMPROC, ctypes.wintypes.LPARAM)
+        assert argtypes == (helpers.WNDENUMPROC, ctypes.wintypes.LPARAM)
         assert helpers._enum_windows.restype == ctypes.wintypes.BOOL
 
     def test_windows_api_Helpers__setup_common_helpers__enum_child_windows(
@@ -402,7 +438,7 @@ class TestWindowsApiHelpersCommon(object):
         argtypes = helpers._enum_child_windows.argtypes
         assert argtypes == (
             ctypes.wintypes.HWND,
-            api.WNDENUMPROC,
+            helpers.WNDENUMPROC,
             ctypes.wintypes.LPARAM,
         )
         assert helpers._enum_child_windows.restype == ctypes.wintypes.BOOL
@@ -931,39 +967,34 @@ class TestWindowsApiApiPublic(object):
 
     # enum_windows
     def test_api_Api_enum_windows_nested_append_to_collection(self, mocker):
-        mocker.patch("arrangeit.windows.api.WNDENUMPROC")
         mocker.patch("arrangeit.windows.api.Helpers")
         nested_func = nested(Api().enum_windows, "append_to_collection", hwnds=[])
         returned = nested_func("foo", None)
         assert returned is True
 
     def test_api_Api_enum_windows_calls_WNDENUMPROC(self, mocker):
-        mocker.patch("arrangeit.windows.api.Helpers")
-        mocked = mocker.patch("arrangeit.windows.api.WNDENUMPROC")
+        mocked = mocker.patch("arrangeit.windows.api.Helpers")
         Api().enum_windows()
-        mocked.assert_called_once()
+        mocked.return_value.WNDENUMPROC.assert_called_once()
 
     def test_api_Api_enum_windows_calls__enum_windows(self, mocker):
-        mocked_enum = mocker.patch("arrangeit.windows.api.WNDENUMPROC")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         Api().enum_windows()
         mocked.return_value._enum_windows.assert_called_once()
         mocked.return_value._enum_windows.assert_called_with(
-            mocked_enum.return_value, 0
+            mocked.return_value.WNDENUMPROC.return_value, 0
         )
 
     def test_api_Api_enum_windows_calls__enum_child_windows(self, mocker):
-        mocked_enum = mocker.patch("arrangeit.windows.api.WNDENUMPROC")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         SAMPLE = 1874
         Api().enum_windows(SAMPLE, enum_children=True)
         mocked.return_value._enum_child_windows.assert_called_once()
         mocked.return_value._enum_child_windows.assert_called_with(
-            SAMPLE, mocked_enum.return_value, 0
+            SAMPLE, mocked.return_value.WNDENUMPROC.return_value, 0
         )
 
     def test_api_Api_enum_windows_returns_non_empty_list(self, mocker):
-        mocker.patch("arrangeit.windows.api.WNDENUMPROC")
         mocker.patch("arrangeit.windows.api.Helpers")
         assert isinstance(Api().enum_windows(), list)
 

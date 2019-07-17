@@ -41,9 +41,6 @@ UWP_ICON_SUFFIXES = (
     "",  # as is
     ".scale-100",
 )
-WNDENUMPROC = ctypes.WINFUNCTYPE(
-    ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
-)
 
 
 def platform_supports_packages():
@@ -144,39 +141,47 @@ class WINDOWINFO(ctypes.Structure):
 
 
 class Helpers(object):
-    """Helper class for calls to WinDLL API.
-
-    :var _user32: object holding API functions from user32 domain
-    :type _user32: :class:`ctypes.WinDLL`
-    :var _kernel32: object holding API functions from kernel32 domain
-    :type _kernel32: :class:`ctypes.WinDLL`
-    :var _psapi: object holding API functions from psapi domain
-    :type _psapi: :class:`ctypes.WinDLL`    
-    """
-
-    _user32 = ctypes.WinDLL("user32", use_last_error=True)
-    _kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    _psapi = ctypes.WinDLL("psapi", use_last_error=True)
+    """Helper class for calls to WinDLL API."""
 
     def __init__(self):
         """Calls setup methods."""
+        self._setup_base()
         self._setup_common_helpers()
         if platform_supports_packages():
             self._setup_win8_helpers()
 
+    def _setup_base(self):
+        """Sets wWinDLL domain objects and helper shortcuts.
+
+        :var _user32: object holding API functions from user32 domain
+        :type _user32: :class:`ctypes.WinDLL`
+        :var _kernel32: object holding API functions from kernel32 domain
+        :type _kernel32: :class:`ctypes.WinDLL`
+        :var _psapi: object holding API functions from psapi domain
+        :type _psapi: :class:`ctypes.WinDLL`
+        :var WNDENUMPROC: helper function for windows enumeration
+        :type WNDENUMPROC: :class:`ctypes.WINFUNCTYPE`
+        """
+        self._user32 = ctypes.WinDLL("user32", use_last_error=True)
+        self._kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        self._psapi = ctypes.WinDLL("psapi", use_last_error=True)
+        self.WNDENUMPROC = ctypes.WINFUNCTYPE(
+            ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
+        )
+
     def _setup_helper(self, section, name, argtypes, restype):
         """Retrieves and returns Windows API function with given ``name`` from ``section``.
-        
+
         Also sets given ``argtypes``and ``restype`` attributes to functiom.
 
         :var section: object holding API functions from specific domain
-        :type section: :class:`ctypes.WinDLL`        
+        :type section: :class:`ctypes.WinDLL`
         :var name: Windows API function name
-        :type name: str  
+        :type name: str
         :var argtypes: collection of ctypes objects arguments to Windows API function
         :type argtypes: tuple
         :var restype: returning value of Windows API function
-        :type restype: ctypes type object      
+        :type restype: ctypes type object
         :returns: Windows API function callback
         """
         helper = getattr(section, name)
@@ -186,6 +191,9 @@ class Helpers(object):
 
     def _setup_common_helpers(self):
         """Sets helper methods common to all MS Windows versions."""
+        WNDENUMPROC = ctypes.WINFUNCTYPE(
+            ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
+        )
         self._get_windows_thread_process_id = self._setup_helper(
             self._user32,
             "GetWindowThreadProcessId",
@@ -418,8 +426,8 @@ class Api(object):
 
     :var packages: cached collection of packages distincted by windows handles
     :type packages: dictionary of :class:`Package`
-    :var helpers: object holding helper methods for Windows API functions 
-    :type helpers: :class:`Helpers`    
+    :var helpers: object holding helper methods for Windows API functions
+    :type helpers: :class:`Helpers`
     """
 
     packages = {}
@@ -601,7 +609,7 @@ class Api(object):
             hwnds.append(element)
             return True
 
-        func = WNDENUMPROC(append_to_collection)
+        func = self.helpers.WNDENUMPROC(append_to_collection)
         if enum_children:
             self.helpers._enum_child_windows(hwnd, func, 0)
         else:
