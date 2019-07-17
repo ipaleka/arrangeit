@@ -1226,7 +1226,7 @@ class TestBaseController(object):
         controller_mocked_key_press(mocker, key)
         mocked.assert_called_with(x, y)
 
-    @pytest.mark.parametrize("key", ["space", "Tab"])
+    @pytest.mark.parametrize("key", ["space",])
     def test_BaseController_on_key_pressed_calls_skip_current_window(self, mocker, key):
         mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.skip_current_window")

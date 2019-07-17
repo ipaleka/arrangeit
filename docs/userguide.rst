@@ -14,8 +14,8 @@ Enter
 Confirms position or size - acts identically as left mouse click.
 
 
-Space | Tab
-^^^^^^^^^^^
+Space
+^^^^^
 
 Skips current window - just like the right mouse click does.
 

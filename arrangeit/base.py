@@ -987,7 +987,7 @@ class BaseController(object):
         elif event.keysym in ("Return", "KP_Enter"):
             self.update(*self.mouse.cursor_position())
 
-        elif event.keysym in ("space", "Tab"):
+        elif event.keysym in ("space",):
             self.skip_current_window()
 
         elif event.keysym in ("R", "r"):
