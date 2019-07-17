@@ -12,14 +12,14 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'arrangeit'
-copyright = '1999-2019, Ivica Paleka'
-author = 'Ivica Paleka'
+project = "arrangeit"
+copyright = "1999-2019, Ivica Paleka"
+author = "Ivica Paleka"
 
 # The full version, including alpha/beta/rc tags
 from arrangeit import __version__
@@ -32,11 +32,19 @@ release = __version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
+    "sphinx.ext.autodoc",
+]
+
+autodoc_mock_imports = [
+    "AppKit",
+    "Quartz",
+    "ctypes.wintypes",
+    "win32con",
+    "win32gui",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -59,7 +67,7 @@ html_logo = "../arrangeit/resources/logo.png"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -68,8 +76,8 @@ html_static_path = ['_static']
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('index', 'arrangeit.tex', 'arrangeit documentation',
-     author, 'manual'),
+    ("index", "arrangeit.tex", "arrangeit documentation",
+     author, "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -82,6 +90,6 @@ latex_logo = html_logo
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ("index", 'arrangeit', 'arrangeit documentation',
+    ("index", "arrangeit", "arrangeit documentation",
      [author], 1)
 ]
