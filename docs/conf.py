@@ -14,7 +14,6 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(".."))
 
-
 # -- Project information -----------------------------------------------------
 
 project = "arrangeit"
@@ -25,23 +24,33 @@ author = "Ivica Paleka"
 from arrangeit import __version__
 release = __version__
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    "sphinx.ext.autodoc",
-]
+extensions = ["sphinx.ext.autodoc"]
 
-autodoc_mock_imports = [
-    "AppKit",
-    "Quartz",
-    "ctypes.wintypes",
-    "win32con",
-    "win32gui",
-]
+# mocks by Sphinx so autodoc of all modules is possible from GNU/Linux
+autodoc_mock_imports = ["AppKit", "Quartz", "win32api", "win32gui", "win32ui"]
+
+# custom mocks so autodoc of all modules is possible from GNU/Linux
+from unittest.mock import Mock
+
+class MockedObject(Mock):
+    USHORT = 0
+    DWORD = 0
+    RECT = 0
+    UINT = 0
+    ATOM = 0
+    WS_EX_NOACTIVATE = 0
+    WS_EX_TOOLWINDOW = 0
+    STATE_SYSTEM_INVISIBLE = 0
+    WS_THICKFRAME = 0
+
+MOCK_MODULES = ["ctypes", "ctypes.wintypes", "win32con"]
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = MockedObject()
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -76,8 +85,7 @@ html_static_path = ["_static"]
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ("index", "arrangeit.tex", "arrangeit documentation",
-     author, "manual"),
+    ("index", "arrangeit.tex", "arrangeit documentation", author, "howto")
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -89,7 +97,4 @@ latex_logo = html_logo
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ("index", "arrangeit", "arrangeit documentation",
-     [author], 1)
-]
+man_pages = [("index", "arrangeit", "arrangeit documentation", [author], 1)]

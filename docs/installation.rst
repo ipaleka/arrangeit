@@ -14,7 +14,7 @@ Binary distribution
 
 For now, only Debian/Ubuntu binary releases for Python 3.5, 3.6 and 3.7 can be downloaded from the releases_ page.
 
-Download binaries of your choice and place them in a temporary directory. Install the software by typing the following commands in terminal:
+Download binaries of your choice and place them in a temporary directory. Install **arrangeit** by typing the following commands in terminal:
 
 .. code-block:: bash
 

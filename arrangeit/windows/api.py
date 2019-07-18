@@ -50,10 +50,13 @@ def platform_supports_packages():
     :type version: named tuple
     :returns: Boolean
     """
-    version = sys.getwindowsversion()
-    if version.major > 6 or (version.major == 6 and version.minor > 1):
-        return True
-    return False
+    try:
+        version = sys.getwindowsversion()
+        if version.major > 6 or (version.major == 6 and version.minor > 1):
+            return True
+        return False
+    except AttributeError:  # Sphinx
+        pass
 
 
 class PACKAGE_SUBVERSION(ctypes.Structure):
@@ -280,8 +283,8 @@ class Package(object):
     :type path: str
     :var app_name: name of package's first application
     :type app_name: str
-    :var icon: application icon
-    :type icon: :class:`PIL.Image`
+    :var Package.icon: application icon
+    :type Package.icon: :class:`PIL.Image`
     """
 
     path = ""

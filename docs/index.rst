@@ -6,7 +6,7 @@
 arrangeit v0.3alpha documentation
 =================================
 
-It should be possible to run **arrangeit v0.3alpha** under X Windows in GNU/Linux (Wayland is not supported. Yet...) and under MS Windows (pretty much all versions).
+It should be possible to run **arrangeit v0.3alpha** under X Windows in GNU/Linux (Wayland is not supported. Yet...) and under MS Windows.
 
 Mac OS X support is expected in the next **v0.4beta** release.
 
