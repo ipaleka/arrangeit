@@ -22,12 +22,7 @@ from PIL import Image, ImageTk
 
 from arrangeit.options import OptionsDialog
 from arrangeit.settings import Settings
-from arrangeit.utils import (
-    get_resource_path,
-    increased_by_fraction,
-    open_image,
-    set_icon,
-)
+from arrangeit.utils import increased_by_fraction, open_image, set_icon
 
 
 def get_tkinter_root():
@@ -867,8 +862,10 @@ class ListedWindow(tk.Frame):
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
         return ImageTk.PhotoImage(
-            icon.resize((int(Settings.ICON_SIZE / 2), int(Settings.ICON_SIZE / 2))),
-            Image.ANTIALIAS,
+            icon.resize(
+                (int(Settings.ICON_SIZE / 2), int(Settings.ICON_SIZE / 2)),
+                Image.ANTIALIAS,
+            )
         )
 
     def setup_widgets(self):
@@ -1042,5 +1039,7 @@ class Toolbar(tk.Frame):
 
     def on_options_click(self):
         """Creates and shows options dialog and hides root window."""
-        OptionsDialog(self.master)
+        options = OptionsDialog(self.master)
+        options.wm_attributes("-topmost", True)
         self.master.hide_root()
+        options.wm_attributes("-topmost", False)

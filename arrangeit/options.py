@@ -14,13 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import platform
+import sys
 import tkinter as tk
 import tkinter.ttk as ttk
+import webbrowser
 from gettext import gettext as _
 
+import arrangeit
 from arrangeit import options
 from arrangeit.settings import Settings
-from arrangeit.utils import get_resource_path, set_icon
+from arrangeit.utils import get_resized_image, get_resource_path, set_icon
 
 MESSAGES = {
     "options_title": _("arrangeit options"),
@@ -46,7 +50,7 @@ MESSAGES = {
     "_FG": _("Foreground:"),
     "TITLE_LABEL_BG": _("Title background:"),
     "TITLE_LABEL_FG": _("Title foreground:"),
-    "about_title": _("About arrangeit")
+    "about_title": _("About arrangeit"),
 }
 CLASSES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Color"}
 WIDGETS = {
@@ -178,7 +182,7 @@ class OptionsDialog(tk.Toplevel):
         self.bind("<Destroy>", self.on_destroy_options)
 
     def setup_files_section(self):
-        """Creates and places widgets for section dealing with files.
+        """Creates and packs widgets for section dealing with files.
 
         :returns: :class:`ttk.LabelFrame`
         """
@@ -196,7 +200,7 @@ class OptionsDialog(tk.Toplevel):
         return files
 
     def setup_section(self, name, denominator=4):
-        """Creates and places widgets for section with provided name.
+        """Creates and packs widgets for section with provided name.
 
         :returns: :class:`ttk.LabelFrame`
         """
@@ -225,7 +229,7 @@ class OptionsDialog(tk.Toplevel):
         return section
 
     def setup_widgets(self):
-        """Creates and places all the options' widgets."""
+        """Creates and packs all the options' widgets."""
         self.message = tk.StringVar()
 
         section_pack_kwargs = {
@@ -255,7 +259,7 @@ class OptionsDialog(tk.Toplevel):
             padx=Settings.OPTIONS_WIDGETS_PADX * 2,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
-            side=tk.RIGHT
+            side=tk.RIGHT,
         )
 
         tk.Button(
@@ -267,7 +271,7 @@ class OptionsDialog(tk.Toplevel):
             padx=Settings.OPTIONS_WIDGETS_PADX * 2,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
-            side=tk.RIGHT
+            side=tk.RIGHT,
         )
 
     def widget_class_from_name(self, name):
@@ -524,9 +528,12 @@ class AboutDialog(tk.Toplevel):
 
     :var AboutDialog.master: master widget
     :type AboutDialog.master: :class:`tk.Tk`
+    :var AboutDialog.logo: arrangeit logo
+    :type AboutDialog.logo: :class:`PIL.ImageTk.PhotoImage`
     """
 
     master = None
+    logo = None
 
     def __init__(self, master=None):
         """Sets master attribute, position dialog on former master position
@@ -537,19 +544,51 @@ class AboutDialog(tk.Toplevel):
         self.master = master
         self.setup_widgets()
         self.title(MESSAGES["about_title"])
-        self.geometry(
-            "+{}+{}".format(self.master.winfo_x(), self.master.winfo_y())
-        )
+        set_icon(self)
+        self.geometry("+{}+{}".format(self.master.winfo_x(), self.master.winfo_y()))
 
     def setup_widgets(self):
-        """Creates and places all the about' widgets."""
+        """Creates and packs all the dialog's widgets."""
+        self.logo = get_resized_image("logo.png", Settings.ABOUT_LOGO_SIZE)
+        tk.Label(self, image=self.logo).pack(anchor="n", fill=tk.X, side=tk.TOP)
 
-        # tk.Label(
-        #     self,
-        #     # textvariable=self.message,
-        #     height=Settings.OPTIONS_MESSAGE_HEIGHT,
-        #     anchor="center",
-        # ).pack(fill=tk.X, pady=Settings.OPTIONS_WIDGETS_PADY)
+        with open(get_resource_path("COPYRIGHT"), "r") as notice:
+            tk.Label(self, text=notice.read(), justify=tk.LEFT).pack(
+                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+                pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+                fill=tk.X,
+                side=tk.TOP,
+            )
+
+        ttk.Separator(self, orient=tk.HORIZONTAL).pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+            fill=tk.X,
+            expand=True,
+        )
+
+        version = "Version: {}".format(arrangeit.__version__)
+        tk.Label(self, text=version, anchor="w").pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
+        )
+        python = "Python version: {}".format(platform.python_version())
+        tk.Label(self, text=python, anchor="w").pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
+        )
+        tcl_tk = "Tcl/Tk version: {}".format(tk.TkVersion)
+        tk.Label(self, text=tcl_tk, anchor="w").pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
+        )
+        system = "OS: {}".format(platform.platform())
+        tk.Label(self, text=system, anchor="w").pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
+        )
+        gui = "GUI: {}".format(
+            self.master.master.tk.call("winfo", "server", self.master.master._w)
+        )
+        tk.Label(self, text=gui, anchor="w").pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
+        )
 
         tk.Button(
             self,
@@ -560,9 +599,8 @@ class AboutDialog(tk.Toplevel):
             padx=Settings.OPTIONS_WIDGETS_PADX * 2,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
-            side=tk.RIGHT
+            side=tk.RIGHT,
         )
-
         tk.Button(
             self,
             text=_("Online help"),
@@ -572,9 +610,9 @@ class AboutDialog(tk.Toplevel):
             padx=Settings.OPTIONS_WIDGETS_PADX * 2,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
-            side=tk.RIGHT
+            side=tk.RIGHT,
         )
 
     def on_help_click(self):
-        """Opens documentation page in browser."""
-        pass
+        """Opens documentation page in user's default web browser."""
+        webbrowser.open(Settings.HELP_PAGE_URL, new=2)

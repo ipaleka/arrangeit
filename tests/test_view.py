@@ -1499,12 +1499,22 @@ class TestToolbar(object):
 
     ## Toolbar.on_options_click
     def test_view_Toolbar_on_options_click_initializes_Options(self, mocker):
+        mocker.patch("arrangeit.view.Toolbar.setup_widgets")
         mocked = mocker.patch("arrangeit.view.OptionsDialog")
         master = mocker.MagicMock()
         toolbar = Toolbar(master)
         toolbar.on_options_click()
         mocked.assert_called_once()
         mocked.assert_called_with(master)
+
+    def test_view_Toolbar_on_options_click_sets_topmost_true(self, mocker):
+        mocker.patch("arrangeit.view.Toolbar.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.OptionsDialog")
+        master = mocker.MagicMock()
+        toolbar = Toolbar(master)
+        toolbar.on_options_click()
+        calls = [mocker.call("-topmost", True)]
+        mocked.return_value.wm_attributes.assert_has_calls(calls, any_order=True)
 
     def test_view_Toolbar_on_options_click_hides_root(self, mocker):
         mocker.patch("arrangeit.view.Toolbar.setup_widgets")
@@ -1513,3 +1523,12 @@ class TestToolbar(object):
         toolbar = Toolbar(master)
         toolbar.on_options_click()
         master.hide_root.assert_called_once()
+
+    def test_view_Toolbar_on_options_click_sets_topmost_false(self, mocker):
+        mocker.patch("arrangeit.view.Toolbar.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.OptionsDialog")
+        master = mocker.MagicMock()
+        toolbar = Toolbar(master)
+        toolbar.on_options_click()
+        calls = [mocker.call("-topmost", False)]
+        mocked.return_value.wm_attributes.assert_has_calls(calls, any_order=True)

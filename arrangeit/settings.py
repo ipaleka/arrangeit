@@ -140,6 +140,7 @@ SETTINGS = {
     "OPTIONS_WIDGETS_PADY": (int, 2),
     "OPTIONS_MESSAGE_HEIGHT": (int, 2),
     "OPTIONS_TIMER_DELAY": (int, 5000),
+    "ABOUT_LOGO_SIZE": (tuple, (400, 128)),
 }
 
 
@@ -205,6 +206,9 @@ class Settings(metaclass=SettingsMetaclass):
     ICON_SIZE = 32
     BLANK_ICON = open_image("blank.png")
     CORNER_RECT_INDEXES = [(0, 3), (0, 1), (2, 1), (2, 3)]
+    HELP_PAGE_URL = (
+        "https://github.com/ipaleka/arrangeit/blob/master/docs/userguide.rst"
+    )
 
     @classmethod
     def is_setting(cls, name, value):

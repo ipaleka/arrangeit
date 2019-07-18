@@ -60,6 +60,20 @@ def controller_mocked_next(mocker):
     return controller
 
 
+def mocked_for_about_setup(mocker):
+    mocker.patch("arrangeit.options.AboutDialog.geometry")
+    mocker.patch("arrangeit.options.tk.Toplevel.__init__")
+    mocker.patch("arrangeit.options.AboutDialog.title")
+    mocker.patch("arrangeit.options.AboutDialog.destroy")
+    mocker.patch("arrangeit.options.set_icon")
+    mocker.patch("arrangeit.options.tk.Button")
+    mocker.patch("arrangeit.options.tk.Label")
+    mocker.patch("arrangeit.options.open")
+    mocker.patch("arrangeit.options.get_resource_path")
+    mocker.patch("arrangeit.options.get_resized_image")
+    mocker.patch("arrangeit.options.ttk.Separator")
+
+
 def mocked_for_about(mocker):
     mocker.patch("arrangeit.options.AboutDialog.setup_widgets")
     mocker.patch("arrangeit.options.AboutDialog.geometry")

@@ -2,7 +2,7 @@ import inspect
 import os
 
 import pytest
-from PIL import ImageFilter
+from PIL import ImageFilter, Image
 
 from arrangeit import utils
 from arrangeit.settings import Settings
@@ -119,6 +119,42 @@ class TestUtils(object):
         mocker.patch("PIL.Image.Image.filter")
         mocked = mocker.patch("PIL.ImageTk.PhotoImage")
         assert utils.get_prepared_screenshot(Settings.BLANK_ICON) == mocked.return_value
+
+    ## get_resized_image
+    def test_utils_get_resized_image_calls_get_resource_path(self, mocker):
+        mocker.patch("arrangeit.utils.ImageTk.PhotoImage")
+        mocker.patch("arrangeit.utils.Image.open")
+        mocked = mocker.patch("arrangeit.utils.get_resource_path")
+        FILENAME = "foobar.png"
+        utils.get_resized_image(FILENAME, (100, 100))
+        mocked.assert_called_once()
+        mocked.assert_called_with(FILENAME)
+
+    def test_utils_get_resized_image_calls_Image_open(self, mocker):
+        mocked_path = mocker.patch("arrangeit.utils.get_resource_path")
+        mocker.patch("arrangeit.utils.ImageTk.PhotoImage")
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        utils.get_resized_image("bla.png", (100, 100))
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_path.return_value)
+
+    def test_utils_get_resized_image_calls_Image_resize(self, mocker):
+        mocker.patch("arrangeit.utils.get_resource_path")
+        mocker.patch("arrangeit.utils.ImageTk.PhotoImage")
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        SIZE = (100, 100)
+        utils.get_resized_image("bla.png", SIZE)
+        mocked.return_value.resize.assert_called_once()
+        mocked.return_value.resize.assert_called_with(SIZE, Image.LANCZOS)
+
+    def test_utils_get_resized_image_calls_and_retuurns_PhotoImage(self, mocker):
+        mocker.patch("arrangeit.utils.get_resource_path")
+        mocked = mocker.patch("arrangeit.utils.ImageTk.PhotoImage")
+        mocked_open = mocker.patch("arrangeit.utils.Image.open")
+        returned = utils.get_resized_image("bla.png", (120, 120))
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_open.return_value.resize.return_value)
+        assert returned == mocked.return_value
 
     ## get_resource_path
     def test_utils_get_resource_path_calls_os_path_dirname(self, mocker):
@@ -314,22 +350,22 @@ class TestUtils(object):
 
     ## set_icon
     def test_utils_set_icon_calls_get_resource_path(self, mocker):
-        mocker.patch("arrangeit.utils.tk.PhotoImage")
+        mocker.patch("arrangeit.utils.ImageTk.PhotoImage")
         mocked = mocker.patch("arrangeit.utils.get_resource_path")
         utils.set_icon(mocker.MagicMock())
         mocked.assert_called_once()
-        mocked.assert_called_with("icon32.png")
+        mocked.assert_called_with("icon128.png")
 
     def test_utils_set_icon_calls_PhotoImage(self, mocker):
         mocked_path = mocker.patch("arrangeit.utils.get_resource_path")
-        mocked = mocker.patch("arrangeit.utils.tk.PhotoImage")
+        mocked = mocker.patch("arrangeit.utils.ImageTk.PhotoImage")
         utils.set_icon(mocker.MagicMock())
         mocked.assert_called_once()
         mocked.assert_called_with(file=mocked_path.return_value)
 
     def test_utils_set_icon_calls_tk_call(self, mocker):
         mocker.patch("arrangeit.utils.get_resource_path")
-        mocked_image = mocker.patch("arrangeit.utils.tk.PhotoImage")
+        mocked_image = mocker.patch("arrangeit.utils.ImageTk.PhotoImage")
         widget = mocker.MagicMock()
         utils.set_icon(widget)
         widget.tk.call.assert_called_once()

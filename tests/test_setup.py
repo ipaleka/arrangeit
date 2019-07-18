@@ -67,6 +67,10 @@ class TestFiles(object):
             "minimize.png",
             "blank.png",
             "white.png",
+            "arrangeit.ico",
+            "favicon.ico",
+            "icon128.png",
+            "icon32.png",
         ],
     )
     def test_resources_icon_file_exist(self, asset):
@@ -75,7 +79,7 @@ class TestFiles(object):
         )
         assert os.path.exists(path)
 
-    @pytest.mark.parametrize("asset", ["icon32.png", "logo.png"])
+    @pytest.mark.parametrize("asset", ["logo.png", "COPYRIGHT"])
     def test_resources_misc_file_exist(self, asset):
         path = os.path.abspath(
             os.path.join(os.path.dirname(arrangeit.__file__), "resources", asset)

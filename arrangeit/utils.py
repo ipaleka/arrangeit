@@ -16,7 +16,6 @@
 
 import logging
 import os
-import tkinter as tk
 import sys
 from collections import namedtuple
 from gettext import gettext as _
@@ -103,11 +102,26 @@ def get_prepared_screenshot(image, blur_size=2, grayscale=False):
     return ImageTk.PhotoImage(image.filter(ImageFilter.BoxBlur(blur_size)))
 
 
+def get_resized_image(filename, size):
+    """Opens and resizes image with provided filename to provided size.
+
+    :param filename: resource file name
+    :type filename: str
+    :param size: width and height to resize image to
+    :type size: tuple
+    :returns: :class:`PIL.Image`
+    """
+    return ImageTk.PhotoImage(
+        Image.open(get_resource_path(filename)).resize(size, Image.LANCZOS)
+    )
+
+
 def get_resource_path(filename):
     """Returns full path to resource with provided filename.
 
     :param filename: resource file name
     :type filename: str
+    :returns: str
     """
     return os.path.join(os.path.dirname(__file__), "resources", filename)
 
@@ -193,7 +207,12 @@ def set_icon(widget):
     :param widget: Tkinter toplevel widget
     :type widget: :class:`tk.Toplevel` or :class:`tk.Tk`
     """
-    widget.tk.call('wm', 'iconphoto', widget._w, tk.PhotoImage(file=get_resource_path("icon32.png")))
+    widget.tk.call(
+        "wm",
+        "iconphoto",
+        widget._w,
+        ImageTk.PhotoImage(file=get_resource_path("icon128.png")),
+    )
 
 
 ## SNAPPING
