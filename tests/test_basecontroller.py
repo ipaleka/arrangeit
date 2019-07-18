@@ -1,7 +1,7 @@
 import pytest
 
 from arrangeit import base, data
-from arrangeit.settings import Settings
+from arrangeit.settings import MESSAGES, Settings
 
 from .mock_helpers import (
     controller_mocked_app,
@@ -574,6 +574,15 @@ class TestBaseController(object):
         controller.cycle_corners(counter=True)
         assert controller.state == expected
 
+    ## BaseController.display_message
+    def test_BaseController_display_message_sets_statusbar_message(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = controller_mocked_app(mocker)
+        MESSAGE = "foobar"
+        controller.display_message(MESSAGE)
+        view.return_value.statusbar.message.set.assert_called_once()
+        view.return_value.statusbar.message.set.assert_called_with(MESSAGE)
+
     ## BaseController.get_root_rect
     @pytest.mark.parametrize(
         "state,expected",
@@ -890,6 +899,17 @@ class TestBaseController(object):
         controller.recapture_mouse()
         mocked.assert_called_once()
 
+    def test_BaseController_recapture_mouse_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.set_default_geometry")
+        mocker.patch("arrangeit.base.BaseMouse")
+        mocker.patch("arrangeit.base.BaseController.setup_corner")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = controller_mocked_app(mocker)
+        controller.recapture_mouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with("")
+
     def test_BaseController_recapture_mouse_calls_mouse_start(self, mocker):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.set_default_geometry")
@@ -934,6 +954,15 @@ class TestBaseController(object):
         controller.state = 5
         controller.release_mouse()
         assert controller.state == Settings.OTHER
+
+    def test_BaseController_release_mouse_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseMouse")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = controller_mocked_app(mocker)
+        controller.release_mouse()
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_capture_mouse"])
 
     def test_BaseController_release_mouse_stops_mouse_listener(self, mocker):
         mocked_setup(mocker)

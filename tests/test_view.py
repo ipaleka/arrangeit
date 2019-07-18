@@ -1,6 +1,6 @@
 import tkinter as tk
 from gettext import gettext as _
-from tkinter.font import nametofont
+from tkinter.font import ITALIC, nametofont, NORMAL
 
 import pytest
 
@@ -12,6 +12,7 @@ from arrangeit.view import (
     PropertyIcon,
     Resizable,
     Restored,
+    Statusbar,
     Toolbar,
     WindowsList,
     Workspace,
@@ -1284,6 +1285,86 @@ class TestListedWindow(object):
         window = ListedWindow(mocker.MagicMock())
         returned = window.on_widget_leave(mocker.MagicMock())
         assert returned == "break"
+
+
+class TestStatusbar(object):
+    """Unit testing class for :class:`Statusbar` class."""
+
+    ## Statusbar
+    def test_Statusbar_issubclass_of_Frame(self):
+        assert issubclass(Statusbar, tk.Frame)
+
+    @pytest.mark.parametrize("attr,value", [("master", None)])
+    def test_Statusbar_inits_attributes(self, attr, value):
+        assert getattr(Statusbar, attr) == value
+
+    ## Statusbar.__init__
+    def test_Statusbar_init_calls_super_with_master_arg(self, mocker):
+        master = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
+        with pytest.raises(AttributeError):
+            Statusbar(master=master)
+        mocked.assert_called_with(master)
+
+    @pytest.mark.parametrize("attr", ["master"])
+    def test_Statusbar_init_sets_attributes(self, mocker, attr):
+        mocker.patch("arrangeit.view.Statusbar.setup_widgets")
+        mocked = mocker.MagicMock()
+        kwargs = {attr: mocked}
+        statusbar = Statusbar(**kwargs)
+        assert getattr(statusbar, attr) == mocked
+
+    def test_Statusbar_init_configures_background(self, mocker):
+        mocker.patch("arrangeit.view.Statusbar.setup_widgets")
+        mocked = mocker.patch("arrangeit.view.tk.Frame.config")
+        Statusbar()
+        mocked.assert_called_once()
+        mocked.assert_called_with(background=Settings.STATUSBAR_BG)
+
+    def test_Statusbar_init_calls_setup_widgets(self, mocker):
+        master = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.view.Statusbar.setup_widgets")
+        Statusbar(master=master)
+        mocked.assert_called_once()
+
+    ## Statusbar.setup_widgets
+    def test_Statusbar_setup_widgets_sets_tk_variable(self, mocker):
+        statusbar = Statusbar(mocker.MagicMock())
+        statusbar.setup_widgets()
+        assert isinstance(statusbar.message, tk.StringVar)
+
+    def test_Statusbar_setup_widgets_sets_message_label(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        master = mocker.MagicMock()
+        statusbar = Statusbar(master)
+        statusbar.setup_widgets()
+        mocked.assert_called_with(
+            statusbar,
+            textvariable=statusbar.message,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    Settings.STATUSBAR_LABEL_FONT_INCREASE,
+                ),
+                NORMAL,
+                ITALIC,
+            ),
+            height=Settings.STATUSBAR_LABEL_HEIGHT,
+            foreground=Settings.STATUSBAR_FG,
+            background=Settings.STATUSBAR_BG,
+            anchor=Settings.STATUSBAR_LABEL_ANCHOR,
+            padx=Settings.STATUSBAR_LABEL_PADX,
+            pady=Settings.STATUSBAR_LABEL_PADY,
+        )
+
+    def test_Statusbar_setup_widgets_calls_label_pack(self, mocker):
+        mocked = mocker.patch("arrangeit.view.tk.Label")
+        statusbar = Statusbar(mocker.MagicMock())
+        mocked.reset_mock()
+        statusbar.setup_widgets()
+        assert mocked.return_value.pack.call_count == 1
+        mocked.return_value.pack.assert_called_with()
 
 
 class TestToolbar(object):

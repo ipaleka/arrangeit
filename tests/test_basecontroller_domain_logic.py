@@ -1,7 +1,7 @@
 import pytest
 
 from arrangeit import base
-from arrangeit.settings import Settings
+from arrangeit.settings import MESSAGES, Settings
 from arrangeit.utils import Rectangle
 
 from .fixtures import ROOT_SNAPPING_RECTANGLES_SOURCES
@@ -612,6 +612,19 @@ class TestBaseControllerDomainLogic(object):
         controller.run(mocker.MagicMock())
         mocked.assert_called_once()
         mocked.assert_called_with()
+
+    def test_BaseController_run_calls_view_startup(self, mocker):
+        controller = controller_mocked_for_run(mocker)
+        controller.run(mocker.MagicMock())
+        controller.view.startup.assert_called_once()
+        controller.view.startup.assert_called_with()
+
+    def test_BaseController_run_calls_display_message(self, mocker):
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = controller_mocked_for_run(mocker)
+        controller.run(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_release_mouse"])
 
     def test_BaseController_run_calls_activate_root_task(self, mocker):
         controller = controller_mocked_for_run(mocker)

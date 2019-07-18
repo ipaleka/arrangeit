@@ -16,7 +16,7 @@
 
 import tkinter as tk
 from gettext import gettext as _
-from tkinter.font import nametofont
+from tkinter.font import ITALIC, nametofont, NORMAL
 
 from PIL import Image, ImageTk
 
@@ -170,6 +170,15 @@ class ViewApplication(tk.Frame):
             rely=Settings.TITLE_LABEL_RELHEIGHT,
         )
 
+    def setup_statusbar(self):
+        """Creates and places ``statusbar`` widget and sets corresponding variable."""
+        self.statusbar = Statusbar(self)
+        self.statusbar.place(
+            rely=Settings.TITLE_LABEL_RELHEIGHT + Settings.WINDOWS_LIST_RELHEIGHT,
+            relheight=Settings.STATUSBAR_RELHEIGHT,
+            relwidth=Settings.STATUSBAR_RELWIDTH,
+        )
+
     def setup_title(self):
         """Sets and places title label widget."""
         self.title = tk.StringVar()
@@ -214,6 +223,7 @@ class ViewApplication(tk.Frame):
         self.setup_icon()
         self.setup_workspaces()
         self.setup_windows()
+        self.setup_statusbar()
         self.setup_toolbar()
         self.setup_corner()
 
@@ -911,6 +921,50 @@ class ListedWindow(tk.Frame):
         return "break"
 
 
+class Statusbar(tk.Frame):
+    """Tkinter frame showing app messages at the bottom of root window.
+
+    :var Statusbar.master: master widget
+    :type Statusbar.master: :class:`tk.Frame`
+    """
+
+    master = None
+
+    def __init__(self, master=None):
+        """Sets master attribute from provided argument
+
+        after super __init__ is called. Also sets widget background.
+        """
+        super().__init__(master)
+        self.master = master
+        self.config(background=Settings.STATUSBAR_BG)
+        self.setup_widgets()
+
+    def setup_widgets(self):
+        """Creates and places all the widget's variables and widgets."""
+        self.message = tk.StringVar()
+        self.message_label = tk.Label(
+            self,
+            textvariable=self.message,
+            font=(
+                "TkDefaultFont",
+                increased_by_fraction(
+                    nametofont("TkDefaultFont")["size"],
+                    Settings.STATUSBAR_LABEL_FONT_INCREASE,
+                ),
+                NORMAL,
+                ITALIC
+            ),
+            height=Settings.STATUSBAR_LABEL_HEIGHT,
+            foreground=Settings.STATUSBAR_FG,
+            background=Settings.STATUSBAR_BG,
+            anchor=Settings.STATUSBAR_LABEL_ANCHOR,
+            padx=Settings.STATUSBAR_LABEL_PADX,
+            pady=Settings.STATUSBAR_LABEL_PADY,
+        )
+        self.message_label.pack()
+
+
 class Toolbar(tk.Frame):
     """Tkinter frame holding options and quit button.
 
@@ -923,7 +977,7 @@ class Toolbar(tk.Frame):
     def __init__(self, master=None):
         """Sets master attribute from provided argument
 
-        after super __init__ is called.
+        after super __init__ is called. Also sets widget background.
         """
         super().__init__(master)
         self.master = master
@@ -983,3 +1037,4 @@ class Toolbar(tk.Frame):
         options = OptionsDialog(self.master)
         options.attributes("-topmost", "true")
         self.master.hide_root()
+

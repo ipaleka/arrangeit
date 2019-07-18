@@ -9,6 +9,7 @@ from arrangeit.utils import increased_by_fraction
 from arrangeit.view import (
     Resizable,
     Restored,
+    Statusbar,
     Toolbar,
     ViewApplication,
     WindowsList,
@@ -361,6 +362,30 @@ class TestViewApplication(object):
             relwidth=Settings.TITLE_LABEL_RELWIDTH,
         )
 
+    ## ViewApplication.setup_statusbar
+    def test_ViewApplication_setup_statusbar_initializes_statusbar(self, mocker):
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_statusbar()
+        assert isinstance(view.statusbar, Statusbar)
+
+    def test_ViewApplication_setup_statusbar_sets_viewapp_as_master(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Statusbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        view.setup_statusbar()
+        mocked.assert_called_with(view)
+
+    def test_ViewApplication_setup_statusbar_calls_Statusbar_place(self, mocker):
+        mocked = mocker.patch("arrangeit.view.Statusbar")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.return_value.place.reset_mock()
+        view.setup_statusbar()
+        assert mocked.return_value.place.call_count == 1
+        mocked.return_value.place.assert_called_with(
+            rely=Settings.TITLE_LABEL_RELHEIGHT + Settings.WINDOWS_LIST_RELHEIGHT,
+            relheight=Settings.STATUSBAR_RELHEIGHT,
+            relwidth=Settings.STATUSBAR_RELWIDTH,
+        )
+
     ## ViewApplication.setup_toolbar
     def test_ViewApplication_setup_toolbar_initializes_Toolbar(self, mocker):
         view = ViewApplication(None, mocker.MagicMock())
@@ -430,6 +455,13 @@ class TestViewApplication(object):
 
     def test_ViewApplication_setup_widgets_calls_setup_workspaces(self, mocker):
         mocked = mocker.patch("arrangeit.view.ViewApplication.setup_workspaces")
+        view = ViewApplication(None, mocker.MagicMock())
+        mocked.reset_mock()
+        view.setup_widgets()
+        assert mocked.call_count == 1
+
+    def test_ViewApplication_setup_widgets_calls_setup_statusbar(self, mocker):
+        mocked = mocker.patch("arrangeit.view.ViewApplication.setup_statusbar")
         view = ViewApplication(None, mocker.MagicMock())
         mocked.reset_mock()
         view.setup_widgets()

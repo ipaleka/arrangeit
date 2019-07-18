@@ -541,6 +541,8 @@ class BaseController(object):
 
         self.view.startup()
 
+        self.display_message(MESSAGES["msg_release_mouse"])
+
         self.app.run_task("activate_root", self.view.master.winfo_id())
 
         self.mainloop()
@@ -742,6 +744,14 @@ class BaseController(object):
                 self.state = self.state - 1 if self.state > 0 else 3
             self.move_to_corner()
 
+    def display_message(self, message):
+        """Displays informational message in view's status bar.
+
+        :var message: message to display
+        :type message: str
+        """
+        self.view.statusbar.message.set(message)
+
     def get_root_rect(self, x, y):
         """Returns current root position and size calculated from provided x, y.
 
@@ -871,6 +881,7 @@ class BaseController(object):
             self.view.master.winfo_y() + Settings.SHIFT_CURSOR,
         )
         self.setup_corner()
+        self.display_message("")
         self.mouse.start()
 
     def release_mouse(self):
@@ -879,6 +890,7 @@ class BaseController(object):
         self.view.master.config(cursor="left_ptr")
         self.view.corner.hide_corner()
         self.state = Settings.OTHER
+        self.display_message(MESSAGES["msg_capture_mouse"])
         self.mouse.stop()
 
     def remove_listed_window(self, wid):

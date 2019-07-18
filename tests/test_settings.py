@@ -1,3 +1,4 @@
+import gettext
 from json import JSONDecodeError
 
 import pytest
@@ -10,6 +11,19 @@ from arrangeit.settings import Settings, SettingsMetaclass
 
 class TestSettingsModule(object):
     """Unit testing class for settings module and SettingsMetaclass"""
+
+    ## TestSettingsModule.MESSAGES
+    def test_settings_module_initializes_MESSAGES(self):
+        assert hasattr(settings, "MESSAGES")
+        assert isinstance(settings.MESSAGES, dict)
+
+    @pytest.mark.parametrize(
+        "key", ["default_saved", "msg_release_mouse", "msg_capture_mouse"]
+    )
+    def test_settings_module_initializes_MESSAGES_key(self, key):
+        assert settings.MESSAGES.get(key) is not None
+        assert isinstance(settings.MESSAGES.get(key), str)
+        assert len(settings.MESSAGES.get(key)) > 2
 
     ## TestSettingsModule.SETTINGS
     def test_settings_module_initializes_SETTINGS(self):

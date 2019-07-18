@@ -27,7 +27,12 @@ DO NOT EDIT SETTINGS IN THIS FILE FOR USER SIDE CONFIGURATION - for such purpose
 user_settings.json file created and located in arrangeit user data directory.
 """
 
-MESSAGES = {"default_saved": _("Collected windows data saved to default file.")}
+MESSAGES = {
+    "default_saved": _("Collected windows data saved to default file."),
+    "msg_release_mouse": _("Mouse middle click or Space for cursor release"),
+    "msg_capture_mouse": _("Click title or icon to restart positioning"),
+}
+
 
 SETTINGS = {
     "MIN_WIDTH": (int, 100),
@@ -94,7 +99,7 @@ SETTINGS = {
     "WORKSPACE_NAME_FONT_INCREASE": (float, -0.4),
     "WORKSPACE_NAME_LABEL_PADX": (int, 0),
     "WORKSPACE_NAME_LABEL_PADY": (int, 0),
-    "WINDOWS_LIST_RELHEIGHT": (float, 0.70),
+    "WINDOWS_LIST_RELHEIGHT": (float, 0.68),
     "WINDOWS_LIST_RELWIDTH": (float, 0.75),
     "WINDOWS_LIST_BG": (str, "white"),
     "LISTED_WINDOW_RELHEIGHT": (float, 0.125),
@@ -109,6 +114,15 @@ SETTINGS = {
     "LISTED_ICON_LABEL_BG": (str, "white"),
     "LISTED_ICON_LABEL_PADX": (int, 4),
     "LISTED_ICON_LABEL_PADY": (int, 0),
+    "STATUSBAR_RELHEIGHT": (float, 0.07),
+    "STATUSBAR_RELWIDTH": (float, 0.75),
+    "STATUSBAR_BG": (str, "white"),
+    "STATUSBAR_FG": (str, "black"),
+    "STATUSBAR_LABEL_FONT_INCREASE": (float, -0.25),
+    "STATUSBAR_LABEL_ANCHOR": (str, "center"),
+    "STATUSBAR_LABEL_HEIGHT": (int, 1),
+    "STATUSBAR_LABEL_PADX": (int, 4),
+    "STATUSBAR_LABEL_PADY": (int, 0),
     "TOOLBAR_RELHEIGHT": (float, 0.15),
     "TOOLBAR_RELWIDTH": (float, 0.25),
     "TOOLBAR_BG": (str, "white"),
