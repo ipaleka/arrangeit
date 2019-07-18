@@ -953,7 +953,7 @@ class Statusbar(tk.Frame):
                     Settings.STATUSBAR_LABEL_FONT_INCREASE,
                 ),
                 NORMAL,
-                ITALIC
+                ITALIC,
             ),
             height=Settings.STATUSBAR_LABEL_HEIGHT,
             foreground=Settings.STATUSBAR_FG,
@@ -1037,4 +1037,3 @@ class Toolbar(tk.Frame):
         options = OptionsDialog(self.master)
         options.attributes("-topmost", "true")
         self.master.hide_root()
-

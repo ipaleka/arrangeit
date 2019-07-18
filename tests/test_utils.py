@@ -256,18 +256,31 @@ class TestUtils(object):
 
     ## quarter_by_smaller
     @pytest.mark.parametrize(
-        "w,h,expected",
+        "w,h,denominator,expected",
         [
-            (3200, 1080, (480, 270)),
-            (1920, 1080, (480, 270)),
-            (1280, 960, (426, 240)),
-            (800, 600, (266, 150)),
-            (600, 800, (150, 84)),
-            (1920, 2160, (480, 270)),
+            (3200, 1080, 4, (480, 270)),
+            (1920, 1080, 4, (480, 270)),
+            (1280, 960, 4, (426, 240)),
+            (800, 600, 4, (266, 150)),
+            (600, 800, 4, (150, 84)),
+            (1920, 2160, 4, (480, 270)),
+            (1920, 1080, 3, (640, 360)),
+            (1920, 2160, 3, (640, 360)),
+            (1920, 1080, 5, (384, 216)),
+            (1920, 2160, 5, (384, 216)),
+            (1920, 1080, 6, (320, 180)),
+            (1920, 2160, 6, (320, 180)),
         ],
     )
-    def test_quarter_by_smaller(self, w, h, expected):
-        assert utils.quarter_by_smaller(w, h) == expected
+    def test_quarter_by_smaller(self, w, h, denominator, expected):
+        assert utils.quarter_by_smaller(w, h, denominator=denominator) == expected
+
+    ## quarter_by_smaller
+    @pytest.mark.parametrize("denominator", [0, 1, 2, 7, 8, 9, 10])
+    def test_quarter_by_smaller_out_of_range(self, denominator):
+        w, h = 1920, 1080
+        expected = (480, 270)
+        assert utils.quarter_by_smaller(w, h, denominator) == expected
 
     ## _get_snapping_source_by_ordinal
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)

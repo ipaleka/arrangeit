@@ -156,8 +156,8 @@ def open_image(path, background="white", colorized=False, foreground="red"):
     return ImageOps.colorize(image, foreground if colorized else "black", background)
 
 
-def quarter_by_smaller(width, height):
-    """Helper method for retrieving one-forth for given ``width`` and ``height``
+def quarter_by_smaller(width, height, denominator=4):
+    """Helper method for retrieving one-forth (default) for given ``width`` and ``height``
 
     with aspect ratio of 16:9.
 
@@ -168,11 +168,15 @@ def quarter_by_smaller(width, height):
     :type width: int
     :param height: total desktop area height
     :type height: int
+    :param height: total desktop area height
+    :type height: int
     :returns: (int, int)
     """
+    if denominator > 6 or denominator < 3:
+        denominator = 4
     if width > height:
-        return (int((height / 4) * 16 / 9), height // 4)
-    return (width // 4, int((width / 4) * 9 / 16))
+        return (int((height / denominator) * 16 / 9), height // denominator)
+    return (width // denominator, int((width / denominator) * 9 / 16))
 
 
 ## SNAPPING

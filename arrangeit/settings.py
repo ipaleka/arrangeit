@@ -48,6 +48,7 @@ SETTINGS = {
     "SCREENSHOT_TO_GRAYSCALE": (bool, True),
     "TRANSPARENCY_IS_ON": (bool, True),
     "ROOT_ALPHA": (float, 0.9),
+    "ROOT_SIZE_DENOMINATOR": (int, 4),  # 3-6
     "DEFAULT_CURSOR": (str, "arrow"),
     "SELECT_CURSOR": (str, "hand2"),
     "CORNER_CURSOR": (tuple, ("ul_angle", "ur_angle", "lr_angle", "ll_angle")),

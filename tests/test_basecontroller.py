@@ -109,7 +109,7 @@ class TestBaseController(object):
         controller.default_size = None
         controller.set_default_geometry(root)
         assert mocked.call_count == 1
-        mocked.assert_called_with(w, h)
+        mocked.assert_called_with(w, h , Settings.ROOT_SIZE_DENOMINATOR)
 
     def test_BaseController_set_default_geometry_sets_default_size(self, mocker):
         mocked_setup(mocker)

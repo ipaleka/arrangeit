@@ -1,4 +1,3 @@
-import gettext
 from json import JSONDecodeError
 
 import pytest

@@ -310,7 +310,8 @@ class BaseController(object):
         """
         if self.default_size is None:
             width, height = quarter_by_smaller(
-                *self.app.collector.get_smallest_monitor_size()
+                *self.app.collector.get_smallest_monitor_size(),
+                Settings.ROOT_SIZE_DENOMINATOR
             )
             self.default_size = (width, height)
         root.geometry("{}x{}".format(*self.default_size))
