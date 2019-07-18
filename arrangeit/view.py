@@ -16,13 +16,18 @@
 
 import tkinter as tk
 from gettext import gettext as _
-from tkinter.font import ITALIC, nametofont, NORMAL
+from tkinter.font import ITALIC, NORMAL, nametofont
 
 from PIL import Image, ImageTk
 
 from arrangeit.options import OptionsDialog
 from arrangeit.settings import Settings
-from arrangeit.utils import increased_by_fraction, open_image
+from arrangeit.utils import (
+    get_resource_path,
+    increased_by_fraction,
+    open_image,
+    set_icon,
+)
 
 
 def get_tkinter_root():
@@ -30,7 +35,10 @@ def get_tkinter_root():
 
     :returns: :class:`tk.Tk` window instance
     """
-    return tk.Tk()
+    root = tk.Tk(className="arrangeit")
+    root.title("arrangeit")
+    set_icon(root)
+    return root
 
 
 def get_screenshot_widget(root):
@@ -1034,6 +1042,5 @@ class Toolbar(tk.Frame):
 
     def on_options_click(self):
         """Creates and shows options dialog and hides root window."""
-        options = OptionsDialog(self.master)
-        options.attributes("-topmost", "true")
+        OptionsDialog(self.master)
         self.master.hide_root()

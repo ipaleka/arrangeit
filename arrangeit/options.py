@@ -20,6 +20,7 @@ from gettext import gettext as _
 
 from arrangeit import options
 from arrangeit.settings import Settings
+from arrangeit.utils import get_resource_path, set_icon
 
 MESSAGES = {
     "options_title": _("arrangeit options"),
@@ -45,6 +46,7 @@ MESSAGES = {
     "_FG": _("Foreground:"),
     "TITLE_LABEL_BG": _("Title background:"),
     "TITLE_LABEL_FG": _("Title foreground:"),
+    "about_title": _("About arrangeit")
 }
 CLASSES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Color"}
 WIDGETS = {
@@ -122,13 +124,14 @@ class OptionsDialog(tk.Toplevel):
     def __init__(self, master=None):
         """Sets master attribute, position dialog on former master position
 
-        and call setup routines after super __init__ is called.
+        and calls setup routines after super __init__ is called.
         """
         super().__init__(master)
         self.master = master
         self.setup_widgets()
         self.setup_bindings()
         self.title(MESSAGES["options_title"])
+        set_icon(self)
         self.geometry(
             "+{}+{}".format(self.master.master.winfo_x(), self.master.master.winfo_y())
         )
@@ -252,6 +255,19 @@ class OptionsDialog(tk.Toplevel):
             padx=Settings.OPTIONS_WIDGETS_PADX * 2,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
+            side=tk.RIGHT
+        )
+
+        tk.Button(
+            self,
+            text=_("About"),
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
+            command=self.on_show_about,
+        ).pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+            anchor="se",
+            side=tk.RIGHT
         )
 
     def widget_class_from_name(self, name):
@@ -298,6 +314,10 @@ class OptionsDialog(tk.Toplevel):
         self.master.controller.save()
         self.message.set(MESSAGES["save_default"])
         self.set_timer()
+
+    def on_show_about(self):
+        """Creates and shows about dialog on top of this dialog."""
+        AboutDialog(self).lift(self)
 
 
 class ScaleOption(tk.Scale):
@@ -497,3 +517,64 @@ class ThemeOption(ColorOption):
     def __init__(self, *args, **kwargs):
         kwargs.update(initial=getattr(Settings, "MAIN{}".format(kwargs.get("name"))))
         super().__init__(*args, **kwargs)
+
+
+class AboutDialog(tk.Toplevel):
+    """Tkinter "About" dialog window.
+
+    :var AboutDialog.master: master widget
+    :type AboutDialog.master: :class:`tk.Tk`
+    """
+
+    master = None
+
+    def __init__(self, master=None):
+        """Sets master attribute, position dialog on former master position
+
+        and calls setup routines after super __init__ is called.
+        """
+        super().__init__(master)
+        self.master = master
+        self.setup_widgets()
+        self.title(MESSAGES["about_title"])
+        self.geometry(
+            "+{}+{}".format(self.master.winfo_x(), self.master.winfo_y())
+        )
+
+    def setup_widgets(self):
+        """Creates and places all the about' widgets."""
+
+        # tk.Label(
+        #     self,
+        #     # textvariable=self.message,
+        #     height=Settings.OPTIONS_MESSAGE_HEIGHT,
+        #     anchor="center",
+        # ).pack(fill=tk.X, pady=Settings.OPTIONS_WIDGETS_PADY)
+
+        tk.Button(
+            self,
+            text=_("Exit"),
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
+            command=self.destroy,
+        ).pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+            anchor="se",
+            side=tk.RIGHT
+        )
+
+        tk.Button(
+            self,
+            text=_("Online help"),
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
+            command=self.on_help_click,
+        ).pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+            anchor="se",
+            side=tk.RIGHT
+        )
+
+    def on_help_click(self):
+        """Opens documentation page in browser."""
+        pass

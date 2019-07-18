@@ -10,6 +10,7 @@ from arrangeit.options import (
     COLORS,
     MESSAGES,
     WIDGETS,
+    AboutDialog,
     CheckOption,
     ColorOption,
     FloatScaleOption,
@@ -19,7 +20,7 @@ from arrangeit.options import (
 )
 from arrangeit.settings import Settings
 
-from .mock_helpers import mocked_for_options, mocked_for_options_setup
+from .mock_helpers import mocked_for_about, mocked_for_options, mocked_for_options_setup
 
 
 class TestOptionsModule(object):
@@ -89,12 +90,14 @@ class TestOptionsDialog(object):
         mocked = mocker.patch("arrangeit.options.OptionsDialog.setup_widgets")
         OptionsDialog(mocker.MagicMock())
         mocked.assert_called_once()
+        mocked.assert_called_with()
 
     def test_OptionsDialog_init_calls_setup_bindings(self, mocker):
         mocked_for_options(mocker)
         mocked = mocker.patch("arrangeit.options.OptionsDialog.setup_bindings")
         OptionsDialog(mocker.MagicMock())
         mocked.assert_called_once()
+        mocked.assert_called_with()
 
     def test_OptionsDialog_init_sets_options_dialog_title(self, mocker):
         mocked_for_options(mocker)
@@ -102,6 +105,13 @@ class TestOptionsDialog(object):
         OptionsDialog(mocker.MagicMock())
         mocked.assert_called_once()
         mocked.assert_called_with(MESSAGES["options_title"])
+
+    def test_OptionsDialog_init_calls_set_icon(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.set_icon")
+        dialog = OptionsDialog(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(dialog)
 
     def test_OptionsDialog_init_calls_geometry_on_root_position(self, mocker):
         mocked_for_options(mocker)
@@ -236,6 +246,7 @@ class TestOptionsDialog(object):
         mocker.patch("arrangeit.options.OptionsDialog.setup_widgets")
         mocker.patch("arrangeit.options.OptionsDialog.title")
         mocker.patch("arrangeit.options.OptionsDialog.geometry")
+        mocker.patch("arrangeit.options.set_icon")
         mocked = mocker.patch("arrangeit.options.OptionsDialog.bind")
         dialog = OptionsDialog(mocker.MagicMock())
         callback = getattr(dialog, callback)
@@ -404,6 +415,7 @@ class TestOptionsDialog(object):
         mocker.patch("arrangeit.options.OptionsDialog.setup_files_section")
         mocked = mocker.patch("arrangeit.options.OptionsDialog.setup_section")
         dialog = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
         dialog.setup_widgets()
         calls = [mocker.call("appearance")]
         mocked.assert_has_calls(calls, any_order=True)
@@ -451,6 +463,7 @@ class TestOptionsDialog(object):
         mocker.patch("arrangeit.options.tk.StringVar")
         mocked = mocker.patch("arrangeit.options.tk.Label")
         dialog = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
         dialog.setup_widgets()
         calls = [
             mocker.call(
@@ -475,6 +488,7 @@ class TestOptionsDialog(object):
         mocked_for_options_setup(mocker)
         mocked = mocker.patch("arrangeit.options.tk.Button")
         dialog = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
         dialog.setup_widgets()
         calls = [
             mocker.call(
@@ -486,7 +500,7 @@ class TestOptionsDialog(object):
         ]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_OptionsDialog_setup_widgets_calls_button_pack(self, mocker):
+    def test_OptionsDialog_setup_widgets_calls_quit_button_pack(self, mocker):
         mocked_for_options_setup(mocker)
         mocked = mocker.patch("arrangeit.options.tk.Button")
         dialog = OptionsDialog(mocker.MagicMock())
@@ -497,6 +511,39 @@ class TestOptionsDialog(object):
                 padx=Settings.OPTIONS_WIDGETS_PADX * 2,
                 pady=Settings.OPTIONS_WIDGETS_PADY * 2,
                 anchor="se",
+                side=tk.RIGHT
+            )
+        ]
+        mocked.return_value.pack.assert_has_calls(calls, any_order=True)
+
+    def test_OptionsDialog_setup_widgets_sets_about_button(self, mocker):
+        mocked_for_options_setup(mocker)
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        dialog = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        dialog.setup_widgets()
+        calls = [
+            mocker.call(
+                dialog,
+                text=_("About"),
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
+                command=dialog.on_show_about,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_OptionsDialog_setup_widgets_calls_about_button_pack(self, mocker):
+        mocked_for_options_setup(mocker)
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        dialog = OptionsDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        dialog.setup_widgets()
+        calls = [
+            mocker.call(
+                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+                pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+                anchor="se",
+                side=tk.RIGHT
             )
         ]
         mocked.return_value.pack.assert_has_calls(calls, any_order=True)
@@ -678,6 +725,25 @@ class TestOptionsDialog(object):
         dialog.on_save_default()
         mocked.assert_called_once()
         mocked.assert_called_with()
+
+    ## OptionsDialog.on_show_about
+    def test_OptionsDialog_on_show_about_instantiates_AboutDialog(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.AboutDialog")
+        master = mocker.MagicMock()
+        dialog = OptionsDialog(master)
+        dialog.on_show_about()
+        mocked.assert_called_once()
+        mocked.assert_called_with(dialog)
+
+    def test_OptionsDialog_on_show_about_calls_lift(self, mocker):
+        mocked_for_options(mocker)
+        mocked = mocker.patch("arrangeit.options.AboutDialog")
+        master = mocker.MagicMock()
+        dialog = OptionsDialog(master)
+        dialog.on_show_about()
+        mocked.return_value.lift.assert_called_once()
+        mocked.return_value.lift.assert_called_with(dialog)
 
 
 class TestScaleOption(object):
@@ -1088,3 +1154,129 @@ class TestThemeOption(object):
         ThemeOption(master=master, name="_FG", initial="red")
         mocked.assert_called_once()
         mocked.assert_called_with(master=master, name="_FG", initial=INITIAL)
+
+
+class TestAboutDialog(object):
+    """Unit testing class for :class:`AboutDialog` class."""
+
+    ## AboutDialog
+    def test_AboutDialog_issubclass_of_Toplevel(self):
+        assert issubclass(AboutDialog, tk.Toplevel)
+
+    @pytest.mark.parametrize(
+        "attr,value", [("master", None), ]
+    )
+    def test_AboutDialog_inits_attributes(self, attr, value):
+        assert getattr(AboutDialog, attr) == value
+
+    ## AboutDialog.__init__
+    def test_AboutDialog_init_calls_super_with_master_arg(self, mocker):
+        mocked_for_about(mocker)
+        master = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.options.tk.Toplevel.__init__")
+        AboutDialog(master=master)
+        mocked.assert_called_with(master)
+
+    def test_AboutDialog_init_sets_master_attribute(self, mocker):
+        mocked_for_about(mocker)
+        master = mocker.MagicMock()
+        assert AboutDialog(master).master == master
+
+    def test_AboutDialog_init_calls_setup_widgets(self, mocker):
+        mocked_for_about(mocker)
+        mocked = mocker.patch("arrangeit.options.AboutDialog.setup_widgets")
+        AboutDialog(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_AboutDialog_init_sets_about_dialog_title(self, mocker):
+        mocked_for_about(mocker)
+        mocked = mocker.patch("arrangeit.options.AboutDialog.title")
+        AboutDialog(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["about_title"])
+
+    def test_AboutDialog_init_calls_geometry_on_master_position(self, mocker):
+        mocked_for_about(mocker)
+        mocked = mocker.patch("arrangeit.options.AboutDialog.geometry")
+        master = mocker.MagicMock()
+        AboutDialog(master)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            "+{}+{}".format(
+                master.winfo_x.return_value, master.winfo_y.return_value
+            )
+        )
+
+    ## AboutDialog.setup_widgets
+    def test_AboutDialog_setup_widgets_sets_exit_button(self, mocker):
+        mocked_for_options_setup(mocker)
+        mocker.patch("arrangeit.options.AboutDialog.geometry")
+        mocker.patch("arrangeit.options.AboutDialog.title")
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        dialog = AboutDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        dialog.setup_widgets()
+        calls = [
+            mocker.call(
+                dialog,
+                text=_("Exit"),
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
+                command=dialog.destroy,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_AboutDialog_setup_widgets_calls_quit_button_pack(self, mocker):
+        mocked_for_options_setup(mocker)
+        mocker.patch("arrangeit.options.AboutDialog.geometry")
+        mocker.patch("arrangeit.options.AboutDialog.title")
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        dialog = AboutDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        dialog.setup_widgets()
+        calls = [
+            mocker.call(
+                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+                pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+                anchor="se",
+                side=tk.RIGHT
+            )
+        ]
+        mocked.return_value.pack.assert_has_calls(calls, any_order=True)
+
+    def test_AboutDialog_setup_widgets_sets_about_button(self, mocker):
+        mocked_for_options_setup(mocker)
+        mocker.patch("arrangeit.options.AboutDialog.geometry")
+        mocker.patch("arrangeit.options.AboutDialog.title")
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        dialog = AboutDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        dialog.setup_widgets()
+        calls = [
+            mocker.call(
+                dialog,
+                text=_("Online help"),
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
+                command=dialog.on_help_click,
+            )
+        ]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_AboutDialog_setup_widgets_calls_about_button_pack(self, mocker):
+        mocked_for_options_setup(mocker)
+        mocker.patch("arrangeit.options.AboutDialog.geometry")
+        mocker.patch("arrangeit.options.AboutDialog.title")
+        mocked = mocker.patch("arrangeit.options.tk.Button")
+        dialog = AboutDialog(mocker.MagicMock())
+        mocked.reset_mock()
+        dialog.setup_widgets()
+        calls = [
+            mocker.call(
+                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+                pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+                anchor="se",
+                side=tk.RIGHT
+            )
+        ]
+        mocked.return_value.pack.assert_has_calls(calls, any_order=True)

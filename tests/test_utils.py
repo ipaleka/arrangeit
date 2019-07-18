@@ -19,25 +19,25 @@ class TestUtils(object):
     """Testing class for :py:mod:`arrangeit.utils` module."""
 
     ## Rectangle
-    def test_Rectangle_is_namedtuple_class(self):
+    def test_utils_Rectangle_is_namedtuple_class(self):
         assert inspect.isclass(utils.Rectangle)
         assert utils.Rectangle.__name__ == "Rectangle"
         assert utils.Rectangle._fields == ("x0", "y0", "x1", "y1")
 
     ## platform_path
     @pytest.mark.parametrize("name", ["Darwin", "Linux", "Windows"])
-    def test_platform_path_returns_lowercased_system_name(self, mocker, name):
+    def test_utils_platform_path_returns_lowercased_system_name(self, mocker, name):
         mocker.patch("arrangeit.utils.system", return_value=name)
         assert utils.platform_path() == name.lower()
 
     ## platform_user_data_path
-    def test_platform_user_data_path_calls_import_module(self, mocker):
+    def test_utils_platform_user_data_path_calls_import_module(self, mocker):
         mocked = mocker.patch("arrangeit.utils.import_module")
         utils.platform_user_data_path()
         mocked.assert_called_once()
         mocked.assert_called_with("arrangeit.{}.utils".format(utils.platform_path()))
 
-    def test_platform_user_data_path_calls_user_data_path(self, mocker):
+    def test_utils_platform_user_data_path_calls_user_data_path(self, mocker):
         mocked = mocker.patch(
             "arrangeit.{}.utils.user_data_path".format(utils.platform_path())
         )
@@ -46,20 +46,20 @@ class TestUtils(object):
 
     ## get_class
     @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
-    def test_get_class_involves_default_val_for_no_arg(self, mocker, name):
+    def test_utils_get_class_involves_default_val_for_no_arg(self, mocker, name):
         klass = utils.get_component_class(name)
         platform = utils.platform_path()
         assert klass.__module__ == "arrangeit.{}.{}".format(platform, name.lower())
 
     ## get_component_class
     @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
-    def test_get_component_class_involves_provided_argument(self, mocker, name):
+    def test_utils_get_component_class_involves_provided_argument(self, mocker, name):
         with pytest.raises(SystemExit):
             utils.get_component_class(name, "fooplatform")
 
     @pytest.mark.parametrize("name", ["App", "Controller", "Collector"])
     @pytest.mark.parametrize("platform", ["java", "foo", "android"])
-    def test_get_component_class_raises_SystemExit_for_invalid_platform(
+    def test_utils_get_component_class_raises_SystemExit_for_invalid_platform(
         self, platform, name
     ):
         with pytest.raises(SystemExit) as exception:
@@ -67,14 +67,14 @@ class TestUtils(object):
         assert exception.value.code == utils.MESSAGES["platform_error"]
 
     @pytest.mark.parametrize("function", ["app", "gui", "collector"])
-    def test_get_component_class_calls_get_class(self, mocker, function):
+    def test_utils_get_component_class_calls_get_class(self, mocker, function):
         mocked = mocker.patch("arrangeit.utils.get_class")
         utils.get_component_class("Foo", "bar")
         mocked.assert_called_once()
         mocked.assert_called_with("Foo", platform="bar")
 
     ## get_prepared_screenshot
-    def test_get_prepared_screenshot_calls_filter(self, mocker):
+    def test_utils_get_prepared_screenshot_calls_filter(self, mocker):
         image = Settings.BLANK_ICON
         mocker.patch("PIL.ImageTk.PhotoImage")
         mocker.patch("PIL.ImageFilter.BoxBlur")
@@ -82,7 +82,7 @@ class TestUtils(object):
         utils.get_prepared_screenshot(image, grayscale=False)
         mocked.assert_called_once()
 
-    def test_get_prepared_screenshot_calls_filter_with_blur_size(self, mocker):
+    def test_utils_get_prepared_screenshot_calls_filter_with_blur_size(self, mocker):
         image = Settings.BLANK_ICON
         mocker.patch("PIL.ImageTk.PhotoImage")
         mocker.patch("PIL.ImageFilter.BoxBlur")
@@ -92,7 +92,7 @@ class TestUtils(object):
         mocked.assert_called_once()
         mocked.assert_called_with(ImageFilter.BoxBlur(BLUR))
 
-    def test_get_prepared_screenshot_converts_to_grayscale_if_set(self, mocker):
+    def test_utils_get_prepared_screenshot_converts_to_grayscale_if_set(self, mocker):
         image = Settings.BLANK_ICON
         mocked_photo = mocker.patch("PIL.ImageTk.PhotoImage")
         mocker.patch("PIL.ImageFilter.BoxBlur")
@@ -105,7 +105,7 @@ class TestUtils(object):
         mocked.assert_called_once()
         mocked.assert_called_with("L")
 
-    def test_get_prepared_screenshot_not_converting_to_grayscale(self, mocker):
+    def test_utils_get_prepared_screenshot_not_converting_to_grayscale(self, mocker):
         image = Settings.BLANK_ICON
         mocker.patch("PIL.ImageTk.PhotoImage")
         mocker.patch("PIL.ImageFilter.BoxBlur")
@@ -114,17 +114,39 @@ class TestUtils(object):
         utils.get_prepared_screenshot(image, grayscale=False)
         mocked.assert_not_called()
 
-    def test_get_prepared_screenshot_returns_ImageTk_PhotoImage(self, mocker):
+    def test_utils_get_prepared_screenshot_returns_ImageTk_PhotoImage(self, mocker):
         mocker.patch("PIL.ImageFilter.BoxBlur")
         mocker.patch("PIL.Image.Image.filter")
         mocked = mocker.patch("PIL.ImageTk.PhotoImage")
         assert utils.get_prepared_screenshot(Settings.BLANK_ICON) == mocked.return_value
 
+    ## get_resource_path
+    def test_utils_get_resource_path_calls_os_path_dirname(self, mocker):
+        mocker.patch("os.path.join")
+        mocked = mocker.patch("os.path.dirname")
+        utils.get_resource_path("bla.png")
+        mocked.assert_called_once()
+        mocked.assert_called_with(utils.__file__)
+
+    def test_utils_get_resource_path_calls_os_path_join(self, mocker):
+        mocked_dirname = mocker.patch("os.path.dirname")
+        mocked = mocker.patch("os.path.join")
+        filename = "foobar.png"
+        utils.get_resource_path(filename)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_dirname.return_value, "resources", filename)
+
+    def test_utils_get_resource_path_returns_os_path_value(self):
+        filename = "resize.png"
+        assert utils.get_resource_path(filename) == os.path.join(
+            os.path.dirname(utils.__file__), "resources", filename
+        )
+
     ## get_value_if_valid_type
     @pytest.mark.parametrize(
         "value,typ", [(None, int), (None, float), (None, str), (None, (int, int))]
     )
-    def test_get_value_if_valid_type_returns_None_for_None_value(self, value, typ):
+    def test_utils_get_value_if_valid_type_returns_None_for_None_value(self, value, typ):
         assert utils.get_value_if_valid_type(value, typ) is None
 
     @pytest.mark.parametrize(
@@ -141,7 +163,7 @@ class TestUtils(object):
             (False, bool),
         ],
     )
-    def test_get_value_if_valid_type_for_single_type_returns_value(self, value, typ):
+    def test_utils_get_value_if_valid_type_for_single_type_returns_value(self, value, typ):
         assert utils.get_value_if_valid_type(value, typ) == value
 
     @pytest.mark.parametrize(
@@ -159,7 +181,7 @@ class TestUtils(object):
             (-1, bool),
         ],
     )
-    def test_get_value_if_valid_type_for_single_type_returns_None(self, value, typ):
+    def test_utils_get_value_if_valid_type_for_single_type_returns_None(self, value, typ):
         assert utils.get_value_if_valid_type(value, typ) is None
 
     @pytest.mark.parametrize(
@@ -172,7 +194,7 @@ class TestUtils(object):
             ((2, 5, 0, 3), (int, int, int, int)),
         ],
     )
-    def test_get_value_if_valid_type_for_collection_type_returns_value(
+    def test_utils_get_value_if_valid_type_for_collection_type_returns_value(
         self, value, typ
     ):
         assert utils.get_value_if_valid_type(value, typ) == value
@@ -187,7 +209,7 @@ class TestUtils(object):
             ((2, 5, 0, 3), (int, int, str, int)),
         ],
     )
-    def test_get_value_if_valid_type_for_collection_returns_empty(self, value, typ):
+    def test_utils_get_value_if_valid_type_for_collection_returns_empty(self, value, typ):
         assert utils.get_value_if_valid_type(value, typ) is ()
 
     ## increased_by_fraction
@@ -202,35 +224,44 @@ class TestUtils(object):
             (10, -0.1, 9),
         ],
     )
-    def test_increased_by_fraction(self, value, fraction, expected):
+    def test_utils_increased_by_fraction(self, value, fraction, expected):
         assert utils.increased_by_fraction(value, fraction) == expected
 
     ## open_image
-    def test_open_image_returns_Image(self, mocker):
+    def test_utils_open_image_returns_Image(self, mocker):
         mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
         mocker.patch("arrangeit.utils.Image.open")
         returned = utils.open_image("resize.png")
         assert returned == mocked.return_value
 
-    def test_open_image_calls_Image_open(self, mocker):
+    def test_utils_open_image_calls_get_resource_path(self, mocker):
         mocker.patch("arrangeit.utils.ImageOps.colorize")
         mocker.patch("PIL.Image.Image.convert")
-        mocked = mocker.patch("arrangeit.utils.Image.open")
-        PATH = "resize.png"
-        utils.open_image(PATH)
+        mocker.patch("arrangeit.utils.Image.open")
+        mocked = mocker.patch("arrangeit.utils.get_resource_path")
+        NAME = "resize.png"
+        utils.open_image(NAME)
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            os.path.join(os.path.dirname(utils.__file__), "resources", PATH)
-        )
+        mocked.assert_called_with(NAME)
 
-    def test_open_image_calls_Image_convert(self, mocker):
+    def test_utils_open_image_calls_Image_open(self, mocker):
+        mocker.patch("arrangeit.utils.ImageOps.colorize")
+        mocker.patch("PIL.Image.Image.convert")
+        mocked_path = mocker.patch("arrangeit.utils.get_resource_path")
+        mocked = mocker.patch("arrangeit.utils.Image.open")
+        NAME = "resize.png"
+        utils.open_image(NAME)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_path.return_value)
+
+    def test_utils_open_image_calls_Image_convert(self, mocker):
         mocker.patch("arrangeit.utils.ImageOps.colorize")
         mocked = mocker.patch("arrangeit.utils.Image.open")
         utils.open_image("resize.png")
         mocked.return_value.convert.assert_called_once()
         mocked.return_value.convert.assert_called_with("L")
 
-    def test_open_image_calls_ImageOps_colorize(self, mocker):
+    def test_utils_open_image_calls_ImageOps_colorize(self, mocker):
         mocked_image = mocker.patch("arrangeit.utils.Image.open")
         mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
         BACKGROUND = "yelow"
@@ -240,14 +271,14 @@ class TestUtils(object):
             mocked_image.return_value.convert.return_value, "black", BACKGROUND
         )
 
-    def test_open_image_calls_different_ImageOps_colorize_if_colorized_set(
+    def test_utils_open_image_calls_different_ImageOps_colorize_if_colorized_set(
         self, mocker
     ):
         mocked_image = mocker.patch("arrangeit.utils.Image.open")
         mocked = mocker.patch("arrangeit.utils.ImageOps.colorize")
-        PATH, FOREGROUND, BACKGROUND = "resize.png", "red", "yelow"
+        NAME, FOREGROUND, BACKGROUND = "resize.png", "red", "yelow"
         utils.open_image(
-            PATH, background=BACKGROUND, colorized=True, foreground=FOREGROUND
+            NAME, background=BACKGROUND, colorized=True, foreground=FOREGROUND
         )
         mocked.assert_called_once()
         mocked.assert_called_with(
@@ -272,23 +303,45 @@ class TestUtils(object):
             (1920, 2160, 6, (320, 180)),
         ],
     )
-    def test_quarter_by_smaller(self, w, h, denominator, expected):
+    def test_utils_quarter_by_smaller(self, w, h, denominator, expected):
         assert utils.quarter_by_smaller(w, h, denominator=denominator) == expected
 
-    ## quarter_by_smaller
     @pytest.mark.parametrize("denominator", [0, 1, 2, 7, 8, 9, 10])
-    def test_quarter_by_smaller_out_of_range(self, denominator):
+    def test_utils_quarter_by_smaller_out_of_range(self, denominator):
         w, h = 1920, 1080
         expected = (480, 270)
         assert utils.quarter_by_smaller(w, h, denominator) == expected
 
+    ## set_icon
+    def test_utils_set_icon_calls_get_resource_path(self, mocker):
+        mocker.patch("arrangeit.utils.tk.PhotoImage")
+        mocked = mocker.patch("arrangeit.utils.get_resource_path")
+        utils.set_icon(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with("icon32.png")
+
+    def test_utils_set_icon_calls_PhotoImage(self, mocker):
+        mocked_path = mocker.patch("arrangeit.utils.get_resource_path")
+        mocked = mocker.patch("arrangeit.utils.tk.PhotoImage")
+        utils.set_icon(mocker.MagicMock())
+        mocked.assert_called_once()
+        mocked.assert_called_with(file=mocked_path.return_value)
+
+    def test_utils_set_icon_calls_tk_call(self, mocker):
+        mocker.patch("arrangeit.utils.get_resource_path")
+        mocked_image = mocker.patch("arrangeit.utils.tk.PhotoImage")
+        widget = mocker.MagicMock()
+        utils.set_icon(widget)
+        widget.tk.call.assert_called_once()
+        widget.tk.call.assert_called_with('wm', 'iconphoto', widget._w, mocked_image.return_value)
+
     ## _get_snapping_source_by_ordinal
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test__get_snapping_source_by_ordinal_ordinal(self, rect, expected):
+    def test_utils__get_snapping_source_by_ordinal_ordinal(self, rect, expected):
         for i in range(4):
             assert utils._get_snapping_source_by_ordinal(rect, 10, i) == expected[i]
 
-    def test__get_snapping_source_by_ordinal_returns_Rectangle(self):
+    def test_utils__get_snapping_source_by_ordinal_returns_Rectangle(self):
         for i in range(4):
             assert isinstance(
                 utils._get_snapping_source_by_ordinal((200, 300, 400, 500), 10, i),
@@ -297,31 +350,31 @@ class TestUtils(object):
 
     ## _intersects
     @pytest.mark.parametrize("source,target,expected", INTERSECTS_SAMPLES)
-    def test_intersects_functionality(self, source, target, expected):
+    def test_utils_intersects_functionality(self, source, target, expected):
         assert utils._intersects(source, target) == expected
 
     ## _offset_for_intersecting_pair
-    def test_offset_for_intersecting_pair_returns_False(self, mocker):
+    def test_utils_offset_for_intersecting_pair_returns_False(self, mocker):
         assert utils._offset_for_intersecting_pair(False, 10) == (0, 0)
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
-    def test_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[1])
-    def test_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[2])
-    def test_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
-    def test_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     ## check_intersections
-    def test_check_intersections_single_calls_intersects_and_returns_False(
+    def test_utils_check_intersections_single_calls_intersects_and_returns_False(
         self, mocker
     ):
         mocked = mocker.patch("arrangeit.utils._intersects", return_value=False)
@@ -334,7 +387,7 @@ class TestUtils(object):
         assert mocked.call_count == 16
         assert result == False
 
-    def test_check_intersections_calls_intersects_twice_and_returns_two_tuple(
+    def test_utils_check_intersections_calls_intersects_twice_and_returns_two_tuple(
         self, mocker
     ):
         mocked = mocker.patch("arrangeit.utils._intersects", return_value=True)
@@ -351,13 +404,13 @@ class TestUtils(object):
         )
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
-    def test_check_intersections_single_functionality_for_full_sources(
+    def test_utils_check_intersections_single_functionality_for_full_sources(
         self, sources, targets, expected
     ):
         assert utils.check_intersections(sources, targets) == expected[0]
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
-    def test_check_intersections_single_functionality_for_two_sources_corner_0(
+    def test_utils_check_intersections_single_functionality_for_two_sources_corner_0(
         self, sources, targets, expected
     ):
         assert (
@@ -365,7 +418,7 @@ class TestUtils(object):
         )
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
-    def test_check_intersections_single_functionality_for_two_sources_corner_1(
+    def test_utils_check_intersections_single_functionality_for_two_sources_corner_1(
         self, sources, targets, expected
     ):
         assert (
@@ -373,7 +426,7 @@ class TestUtils(object):
         )
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
-    def test_check_intersections_single_functionality_for_two_sources_corner_2(
+    def test_utils_check_intersections_single_functionality_for_two_sources_corner_2(
         self, sources, targets, expected
     ):
         assert (
@@ -381,7 +434,7 @@ class TestUtils(object):
         )
 
     @pytest.mark.parametrize("sources,targets,expected", SAMPLE_CHECK_INTERSECTIONS)
-    def test_check_intersections_single_functionality_for_two_sources_corner_3(
+    def test_utils_check_intersections_single_functionality_for_two_sources_corner_3(
         self, sources, targets, expected
     ):
         assert (
@@ -390,45 +443,45 @@ class TestUtils(object):
 
     ## get_snapping_sources_for_rect
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_None(self, rect, expected):
+    def test_utils_get_snapping_sources_for_rect_corner_None(self, rect, expected):
         assert utils.get_snapping_sources_for_rect(rect, 10) == expected
         assert utils.get_snapping_sources_for_rect(rect, 10, None) == expected
 
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_0(self, rect, expected):
+    def test_utils_get_snapping_sources_for_rect_corner_0(self, rect, expected):
         assert utils.get_snapping_sources_for_rect(rect, 10, 0) == (
             expected[0],
             expected[3],
         )
 
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_1(self, rect, expected):
+    def test_utils_get_snapping_sources_for_rect_corner_1(self, rect, expected):
         assert utils.get_snapping_sources_for_rect(rect, 10, 1) == (
             expected[0],
             expected[1],
         )
 
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_2(self, rect, expected):
+    def test_utils_get_snapping_sources_for_rect_corner_2(self, rect, expected):
         assert utils.get_snapping_sources_for_rect(rect, 10, 2) == (
             expected[2],
             expected[1],
         )
 
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
-    def test_get_snapping_sources_for_rect_corner_3(self, rect, expected):
+    def test_utils_get_snapping_sources_for_rect_corner_3(self, rect, expected):
         assert utils.get_snapping_sources_for_rect(rect, 10, 3) == (
             expected[2],
             expected[3],
         )
 
     ## offset_for_intersections
-    def test_offset_for_intersections_returns_empty_tuple_for_no_rectangles(
+    def test_utils_offset_for_intersections_returns_empty_tuple_for_no_rectangles(
         self, mocker
     ):
         assert utils.offset_for_intersections(False, 10) == (0, 0)
 
-    def test_offset_for_intersections_calls__offset_once_for_single_pair(self, mocker):
+    def test_utils_offset_for_intersections_calls__offset_once_for_single_pair(self, mocker):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
         RECTS, SNAP = (
             [
@@ -441,7 +494,7 @@ class TestUtils(object):
         mocked.assert_called_once()
         mocked.assert_called_with(RECTS, SNAP)
 
-    def test_offset_for_intersections_calls__offset_twice_for_two_pairs(self, mocker):
+    def test_utils_offset_for_intersections_calls__offset_twice_for_two_pairs(self, mocker):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
         RECTS = [
             (
@@ -457,7 +510,7 @@ class TestUtils(object):
         calls = [mocker.call(RECTS[0], SNAP)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_offset_for_intersections_returns_opposite_tuple_element(self, mocker):
+    def test_utils_offset_for_intersections_returns_opposite_tuple_element(self, mocker):
         SAMPLE = (7, 5)
         mocker.patch(
             "arrangeit.utils._offset_for_intersecting_pair", return_value=SAMPLE
