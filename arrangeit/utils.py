@@ -16,6 +16,7 @@
 
 import logging
 import os
+import tkinter as tk
 import sys
 from collections import namedtuple
 from gettext import gettext as _
@@ -102,6 +103,15 @@ def get_prepared_screenshot(image, blur_size=2, grayscale=False):
     return ImageTk.PhotoImage(image.filter(ImageFilter.BoxBlur(blur_size)))
 
 
+def get_resource_path(filename):
+    """Returns full path to resource with provided filename.
+
+    :param filename: resource file name
+    :type filename: str
+    """
+    return os.path.join(os.path.dirname(__file__), "resources", filename)
+
+
 def get_value_if_valid_type(value, typ):
     """Returns provided value if it's of provided type
 
@@ -135,13 +145,13 @@ def increased_by_fraction(value, fraction):
     return round(value * (1.0 + fraction))
 
 
-def open_image(path, background="white", colorized=False, foreground="red"):
-    """Returns Pillow image instance from provided path and colorizes it if set.
+def open_image(filename, background="white", colorized=False, foreground="red"):
+    """Returns Pillow image instance from provided name and colorizes it if set.
 
     Provided ``black`` and ``white`` are used for colorize filter.
 
-    :param path: image path
-    :type path: str
+    :param filename: image filename
+    :type filename: str
     :param background: image background color
     :type background: str
     :param colorized: should return image be highlighted
@@ -150,9 +160,7 @@ def open_image(path, background="white", colorized=False, foreground="red"):
     :type foreground: str
     :returns: :class:`PIL.Image`
     """
-    image = Image.open(
-        os.path.join(os.path.dirname(__file__), "resources", path)
-    ).convert("L")
+    image = Image.open(get_resource_path(filename)).convert("L")
     return ImageOps.colorize(image, foreground if colorized else "black", background)
 
 
@@ -177,6 +185,15 @@ def quarter_by_smaller(width, height, denominator=4):
     if width > height:
         return (int((height / denominator) * 16 / 9), height // denominator)
     return (width // denominator, int((width / denominator) * 9 / 16))
+
+
+def set_icon(widget):
+    """Sets application icon to provided widget window.
+
+    :param widget: Tkinter toplevel widget
+    :type widget: :class:`tk.Toplevel` or :class:`tk.Tk`
+    """
+    widget.tk.call('wm', 'iconphoto', widget._w, tk.PhotoImage(file=get_resource_path("icon32.png")))
 
 
 ## SNAPPING
