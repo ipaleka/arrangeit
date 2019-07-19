@@ -8,6 +8,7 @@ from PIL import Image
 import arrangeit.windows.api as api
 from arrangeit.settings import Settings
 from arrangeit.windows.api import (
+    DWM_THUMBNAIL_PROPERTIES,
     PACKAGE_ID,
     PACKAGE_INFO,
     PACKAGE_INFO_REFERENCE,
@@ -251,6 +252,33 @@ class TestWINDOWINFO(object):
         assert (field, typ) in WINDOWINFO._fields_
 
 
+class TestDWM_THUMBNAIL_PROPERTIES(object):
+    """Testing class for :py:class:`arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES` class."""
+
+    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_is_Structure_subclass(self):
+        assert issubclass(DWM_THUMBNAIL_PROPERTIES, ctypes.Structure)
+
+    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_inits__fields_(self):
+        assert getattr(DWM_THUMBNAIL_PROPERTIES, "_fields_", None) is not None
+        assert isinstance(DWM_THUMBNAIL_PROPERTIES._fields_, list)
+        for elem in DWM_THUMBNAIL_PROPERTIES._fields_:
+            assert isinstance(elem, tuple)
+
+    @pytest.mark.parametrize(
+        "field,typ",
+        [
+            ("dwFlags", ctypes.wintypes.DWORD),
+            ("rcDestination", ctypes.wintypes.RECT),
+            ("rcSource", ctypes.wintypes.RECT),
+            ("opacity", ctypes.wintypes.BYTE),
+            ("fVisible", ctypes.wintypes.BOOL),
+            ("fSourceClientAreaOnly", ctypes.wintypes.BOOL),
+        ],
+    )
+    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_field_and_type(self, field, typ):
+        assert (field, typ) in DWM_THUMBNAIL_PROPERTIES._fields_
+
+
 # Helpers class
 class TestWindowsApiHelpersCommon(object):
     """Testing class for :class:`arrangeit.windows.api.Helpers` common methods."""
@@ -259,6 +287,7 @@ class TestWindowsApiHelpersCommon(object):
     def test_windows_api_Helpers___init___calls__setup_base(self, mocker):
         mocked = mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -268,6 +297,7 @@ class TestWindowsApiHelpersCommon(object):
 
     def test_windows_api_Helpers___init___calls__setup_common_helpers(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_base")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocked = mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
@@ -281,6 +311,7 @@ class TestWindowsApiHelpersCommon(object):
     ):
         mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocked = mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -288,9 +319,22 @@ class TestWindowsApiHelpersCommon(object):
         mocked.assert_called_once()
         mocked.assert_called_with()
 
+    def test_windows_api_Helpers___init___calls__setup_thumbnail_helpers(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_base")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=True
+        )
+        mocked = mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
+        Helpers()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
     def test_windows_api_Helpers___init___calls__setup_win8_helpers(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=True
         )
@@ -302,6 +346,7 @@ class TestWindowsApiHelpersCommon(object):
     def test_windows_api_Helpers___init__not_calling__setup_win8_helpers(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_base")
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -312,6 +357,7 @@ class TestWindowsApiHelpersCommon(object):
     # _setup_base
     def test_windows_api_Helpers__setup_base_sets_WinDLL_user32(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -322,6 +368,7 @@ class TestWindowsApiHelpersCommon(object):
 
     def test_windows_api_Helpers__setup_base_sets_WinDLL_kernel32(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -332,6 +379,7 @@ class TestWindowsApiHelpersCommon(object):
 
     def test_windows_api_Helpers__setup_base_sets_WinDLL_psapi(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -340,8 +388,20 @@ class TestWindowsApiHelpersCommon(object):
         assert isinstance(helpers._psapi, ctypes.WinDLL)
         assert helpers._psapi._name == "psapi"
 
+    def test_windows_api_Helpers__setup_base_sets_WinDLL_dwmapi(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        assert isinstance(helpers._dwmapi, ctypes.WinDLL)
+        assert helpers._dwmapi._name == "dwmapi"
+
     def test_windows_api_Helpers__setup_base_sets_WNDENUMPROC(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -355,6 +415,7 @@ class TestWindowsApiHelpersCommon(object):
     # Helpers._setup_helper
     def test_windows_api_Helpers__setup_helper_returns_attr_method(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -369,6 +430,7 @@ class TestWindowsApiHelpersCommon(object):
 
     def test_windows_api_Helpers__setup_helper_sets_argtypes(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -382,6 +444,7 @@ class TestWindowsApiHelpersCommon(object):
 
     def test_windows_api_Helpers__setup_helper_sets_restype(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -394,9 +457,82 @@ class TestWindowsApiHelpersCommon(object):
         assert returned.restype == mocked_restype
 
     # _setup_common_helpers
+    def test_windows_api_Helpers__setup_common_helpers__get_ancestor(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_common_helpers()
+        assert (
+            helpers._get_ancestor == helpers._user32.GetAncestor
+        )
+        argtypes = helpers._get_ancestor.argtypes
+        assert argtypes == (ctypes.wintypes.HWND, ctypes.wintypes.UINT)
+        assert helpers._get_ancestor.restype == ctypes.wintypes.HWND
+
+    def test_windows_api_Helpers__setup_common_helpers__get_last_active_popup(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_common_helpers()
+        assert (
+            helpers._get_last_active_popup == helpers._user32.GetLastActivePopup
+        )
+        argtypes = helpers._get_last_active_popup.argtypes
+        assert argtypes == (ctypes.wintypes.HWND, )
+        assert helpers._get_last_active_popup.restype == ctypes.wintypes.HWND
+
+    def test_windows_api_Helpers__setup_common_helpers__get_titlebar_info(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_common_helpers()
+        assert (
+            helpers._get_titlebar_info == helpers._user32.GetTitleBarInfo
+        )
+        argtypes = helpers._get_titlebar_info.argtypes
+        assert argtypes[0] == ctypes.wintypes.HWND
+        assert isinstance(argtypes[1], type(ctypes._Pointer))
+        assert argtypes[1]._type_ == TITLEBARINFO
+        assert helpers._get_titlebar_info.restype == ctypes.wintypes.BOOL
+
+    def test_windows_api_Helpers__setup_common_helpers__get_window_info(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_common_helpers()
+        assert (
+            helpers._get_window_info == helpers._user32.GetWindowInfo
+        )
+        argtypes = helpers._get_window_info.argtypes
+        assert argtypes[0] == ctypes.wintypes.HWND
+        assert isinstance(argtypes[1], type(ctypes._Pointer))
+        assert argtypes[1]._type_ == WINDOWINFO
+        assert helpers._get_window_info.restype == ctypes.wintypes.BOOL
+
     def test_windows_api_Helpers__setup_common__get_windows_thread_process_id(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -414,6 +550,7 @@ class TestWindowsApiHelpersCommon(object):
         assert helpers._get_windows_thread_process_id.restype == ctypes.wintypes.DWORD
 
     def test_windows_api_Helpers__setup_common_helpers__enum_windows(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -428,6 +565,7 @@ class TestWindowsApiHelpersCommon(object):
     def test_windows_api_Helpers__setup_common_helpers__enum_child_windows(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -444,6 +582,7 @@ class TestWindowsApiHelpersCommon(object):
         assert helpers._enum_child_windows.restype == ctypes.wintypes.BOOL
 
     def test_windows_api_Helpers__setup_common_helpers__open_process(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -460,6 +599,7 @@ class TestWindowsApiHelpersCommon(object):
         assert helpers._open_process.restype == ctypes.wintypes.HANDLE
 
     def test_windows_api_Helpers__setup_common_helpers__close_handle(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -474,6 +614,7 @@ class TestWindowsApiHelpersCommon(object):
     def test_windows_api_Helpers__setup_common_helpers__get_process_image_file_name(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -492,6 +633,84 @@ class TestWindowsApiHelpersCommon(object):
         )
         assert helpers._get_process_image_file_name.restype == ctypes.wintypes.DWORD
 
+    def test_windows_api_Helpers__setup_common_helpers__dwm_get_window_attribute(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_common_helpers()
+        assert (
+            helpers._dwm_get_window_attribute == helpers._dwmapi.DwmGetWindowAttribute
+        )
+        argtypes = helpers._dwm_get_window_attribute.argtypes
+        assert argtypes == (
+            ctypes.wintypes.HWND,
+            ctypes.wintypes.DWORD,
+            ctypes.wintypes.LPVOID,
+            ctypes.wintypes.DWORD,
+        )
+        assert helpers._dwm_get_window_attribute.restype == ctypes.wintypes.DWORD
+
+    # _setup_thumbnail_helpers
+    def test_windows_api_Helpers__setup_thumbnail_helpers__dwm_register_thumbnail(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_thumbnail_helpers()
+        assert helpers._dwm_register_thumbnail == helpers._dwmapi.DwmRegisterThumbnail
+        argtypes = helpers._dwm_register_thumbnail.argtypes
+        assert argtypes[0] == ctypes.wintypes.HANDLE
+        assert argtypes[1] == ctypes.wintypes.HANDLE
+        assert isinstance(argtypes[2], type(ctypes._Pointer))
+        assert argtypes[2]._type_ == ctypes.wintypes.HANDLE
+        assert helpers._dwm_register_thumbnail.restype == ctypes.wintypes.DWORD
+
+    def test_windows_api_Helpers__setup_thumbnail_help__dwm_update_thumbnail_properties(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_thumbnail_helpers()
+        assert (
+            helpers._dwm_update_thumbnail_properties
+            == helpers._dwmapi.DwmUpdateThumbnailProperties
+        )
+        argtypes = helpers._dwm_update_thumbnail_properties.argtypes
+        assert argtypes[0] == ctypes.wintypes.HANDLE
+        assert isinstance(argtypes[1], type(ctypes._Pointer))
+        assert argtypes[1]._type_ == DWM_THUMBNAIL_PROPERTIES
+        assert helpers._dwm_update_thumbnail_properties.restype == ctypes.wintypes.DWORD
+
+    def test_windows_api_Helpers__setup_thumbnail_helpers__dwm_unregister_thumbnail(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_thumbnail_helpers()
+        assert (
+            helpers._dwm_unregister_thumbnail == helpers._dwmapi.DwmUnregisterThumbnail
+        )
+        argtypes = helpers._dwm_unregister_thumbnail.argtypes
+        assert argtypes == (ctypes.wintypes.HANDLE,)
+        assert helpers._dwm_unregister_thumbnail.restype == ctypes.wintypes.DWORD
+
 
 # windows.api.Helpers functions for Windows >= 8.1
 @pytest.mark.skipif(not platform_supports_packages(), reason="Win 8 and 10 only")
@@ -502,6 +721,7 @@ class TestWindowsApiHelpersWin8(object):
     def test_windows_api_Helpers__setup_win8_helpers__get_package_full_name(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -519,6 +739,7 @@ class TestWindowsApiHelpersWin8(object):
     def test_windows_api_Helpers__setup_win8_helpers__open_package_info_by_full_name(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -537,6 +758,7 @@ class TestWindowsApiHelpersWin8(object):
         assert helpers._open_package_info_by_full_name.restype == ctypes.wintypes.LONG
 
     def test_windows_api_Helpers__setup_win8_helpers__get_package_info(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -556,6 +778,7 @@ class TestWindowsApiHelpersWin8(object):
         assert helpers._get_package_info.restype == ctypes.wintypes.LONG
 
     def test_windows_api_Helpers__setup_win8_helpers__close_package_info(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_thumbnail_helpers")
         mocker.patch(
             "arrangeit.windows.api.platform_supports_packages", return_value=False
         )
@@ -965,6 +1188,57 @@ class TestWindowsApiApiPublic(object):
         mocked.assert_called_with()
         assert api.helpers == mocked.return_value
 
+    # dwm_window_attribute_value
+    def test_Api_dwm_window_attribute_value_calls__wintypes_DWORD(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.DWORD")
+        Api().dwm_window_attribute_value(5070, 14)
+        calls = [mocker.call()]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_dwm_window_attribute_value_calls_ctypes_byref(self, mocker):
+        mocked_value = mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.byref")
+        Api().dwm_window_attribute_value(5071, 14)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_value.return_value)
+
+    def test_Api_dwm_window_attribute_value_calls_ctypes_sizeof(self, mocker):
+        mocked_value = mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.sizeof")
+        Api().dwm_window_attribute_value(5072, 14)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_value.return_value)
+
+    def test_Api_dwm_window_attribute_value_calls__dwm_get_window_attribute(
+        self, mocker
+    ):
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocked_byref = mocker.patch("ctypes.byref")
+        mocked_sizeof = mocker.patch("ctypes.sizeof")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        HWND, ATTRIBUTE = 5073, 14
+        Api().dwm_window_attribute_value(HWND, ATTRIBUTE)
+        mocked_helpers.return_value._dwm_get_window_attribute.assert_called_once()
+        mocked_helpers.return_value._dwm_get_window_attribute.assert_called_with(
+            HWND, ATTRIBUTE, mocked_byref.return_value, mocked_sizeof.return_value
+        )
+
+    def test_Api_dwm_window_attribute_value_returns_value(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.DWORD")
+        returned = Api().dwm_window_attribute_value(5074, 14)
+        assert returned is mocked.return_value.value
+
     # enum_windows
     def test_api_Api_enum_windows_nested_append_to_collection(self, mocker):
         mocker.patch("arrangeit.windows.api.Helpers")
@@ -1105,6 +1379,144 @@ class TestWindowsApiApiPublic(object):
         mocked = mocker.patch("arrangeit.windows.api.extract_name_from_bytes_path")
         returned = Api().executable_name_for_hwnd(2087)
         mocked.assert_not_called()
+        assert returned is None
+
+    # get_ancestor_by_type
+    def test_Api_get_ancestor_by_type_calls_and_returns__get_ancestor(
+        self, mocker
+    ):
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        HWND, TYPE = 50020, 1
+        returned = Api().get_ancestor_by_type(HWND, TYPE)
+        mocked_helpers.return_value._get_ancestor.assert_called_once()
+        mocked_helpers.return_value._get_ancestor.assert_called_with(
+            HWND, TYPE
+        )
+        assert returned == mocked_helpers.return_value._get_ancestor.return_value
+
+    # get_last_active_popup
+    def test_Api_get_last_active_popup_calls_and_returns__get_ancestor(
+        self, mocker
+    ):
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        HWND = 50021
+        returned = Api().get_last_active_popup(HWND)
+        mocked_helpers.return_value._get_last_active_popup.assert_called_once()
+        mocked_helpers.return_value._get_last_active_popup.assert_called_with(
+            HWND
+        )
+        assert returned == mocked_helpers.return_value._get_last_active_popup.return_value
+
+    # title_info_state
+    def test_Api_title_info_state_calls_TITLEBARINFO(self, mocker):
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        Api().title_info_state(30040, 1)
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_Api_title_info_state_calls_ctypes_sizeof(self, mocker):
+        mocked_info = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocker.patch("ctypes.byref")
+        mocked = mocker.patch("ctypes.sizeof")
+        Api().title_info_state(30041, 1)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_info.return_value)
+
+    def test_Api_title_info_state_calls_ctypes_byref(self, mocker):
+        mocked_info = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocker.patch("ctypes.sizeof")
+        mocked = mocker.patch("ctypes.byref")
+        Api().title_info_state(30042, 1)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_info.return_value)
+
+    def test_Api_title_info_state_calls__get_titlebar_info(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        mocker.patch("ctypes.sizeof")
+        mocked_byref = mocker.patch("ctypes.byref")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        HWND = 30043
+        Api().title_info_state(HWND, 1)
+        mocked_helpers.return_value._get_titlebar_info.assert_called_once()
+        mocked_helpers.return_value._get_titlebar_info.assert_called_with(
+            HWND, mocked_byref.return_value
+        )
+
+    def test_Api_title_info_state_returns_value(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocked_info = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        RGSTATE = 40
+        mocked_info.return_value.rgstate = [RGSTATE, ]
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked_helpers.return_value._get_titlebar_info.return_value = True
+        STATE = 50
+        returned = Api().title_info_state(30044, STATE)
+        assert returned == RGSTATE & STATE
+
+    def test_Api_title_info_state_returns_None(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked_helpers.return_value._get_titlebar_info.return_value = False
+        returned = Api().title_info_state(30045, 1)
+        assert returned is None
+
+    # window_info_extended_style
+    def test_Api_window_info_extended_style_calls_WINDOWINFO(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        Api().window_info_extended_style(20040, 1)
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_Api_window_info_extended_style_calls_ctypes_byref(self, mocker):
+        mocked_info = mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.byref")
+        Api().window_info_extended_style(20041, 1)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_info.return_value)
+
+    def test_Api_window_info_extended_style_calls__get_window_info(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        mocked_byref = mocker.patch("ctypes.byref")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        HWND = 20042
+        Api().window_info_extended_style(HWND, 1)
+        mocked_helpers.return_value._get_window_info.assert_called_once()
+        mocked_helpers.return_value._get_window_info.assert_called_with(
+            HWND, mocked_byref.return_value
+        )
+
+    def test_Api_window_info_extended_style_returns_value(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocked_info = mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        DWEXSTYLE = 40
+        mocked_info.return_value.dwExStyle = DWEXSTYLE
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked_helpers.return_value._get_window_info.return_value = True
+        STYLE = 50
+        returned = Api().window_info_extended_style(20043, STYLE)
+        assert returned == DWEXSTYLE & STYLE
+
+    def test_Api_window_info_extended_style_returns_None(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked_helpers.return_value._get_window_info.return_value = False
+        returned = Api().window_info_extended_style(20044, 1)
         assert returned is None
 
 

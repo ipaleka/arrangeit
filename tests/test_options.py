@@ -648,6 +648,7 @@ class TestOptionsDialog(object):
         mocked.assert_called_with()
 
     def test_OptionsDialog_change_setting_not_called_upon_startup(self, mocker):
+        # NOTE this test shows window - move it into integration tests in the future 
         mocked = mocker.patch("arrangeit.options.OptionsDialog.change_setting")
         options = OptionsDialog(tk.Frame(tk.Frame()))
         mocked.assert_not_called()

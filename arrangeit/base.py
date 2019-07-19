@@ -325,6 +325,9 @@ class BaseController(object):
         :var offset: offset (x, y)
         :type offset: (int, int)
         """
+        # self.screenshot, offset = self.app.grab_window_screen(
+            # self.model, root_hwnd=self.view.get_root_wid()
+        # )  # NOTE DWM
         self.screenshot, offset = self.app.grab_window_screen(self.model)
         self.screenshot_widget.config(image=self.screenshot)
         self.screenshot_widget.place(
@@ -344,7 +347,6 @@ class BaseController(object):
         self.setup_root_window(root)
         self.screenshot_widget = get_screenshot_widget(root)
         self.view = ViewApplication(master=root, controller=self)
-        self.view.hide_root()
 
     def setup_root_window(self, root):
         """Sets provided root window appearance common for all platforms.
@@ -544,7 +546,7 @@ class BaseController(object):
 
         self.display_message(MESSAGES["msg_release_mouse"])
 
-        self.app.run_task("activate_root", self.view.master.winfo_id())
+        self.app.run_task("activate_root", self.view.get_root_wid())
 
         self.mainloop()
 
@@ -583,6 +585,8 @@ class BaseController(object):
         else:
             self.state = self.resizing_state_counterpart()
             self.place_on_opposite_corner()
+            # self.view.master.update()  # NOTE DWM
+            # self.set_screenshot()  # NOTE DWM
 
     def update_resizing(self, x, y):
         """Updates model related to provided cursor position and current root size
@@ -622,7 +626,7 @@ class BaseController(object):
         :param number: our custom workspace number (screen*1000 + workspace)
         :type number: int
         """
-        self.app.run_task("move_to_workspace", self.view.master.winfo_id(), number)
+        self.app.run_task("move_to_workspace", self.view.get_root_wid(), number)
         self.model.set_changed(ws=number)
         if self.state == Settings.OTHER:
             self.recapture_mouse()
@@ -888,11 +892,11 @@ class BaseController(object):
     def release_mouse(self):
         """Stops positioning/resizing routine and releases mouse."""
         self.view.reset_bindings()
+        self.mouse.stop()
         self.view.master.config(cursor="left_ptr")
         self.view.corner.hide_corner()
         self.state = Settings.OTHER
         self.display_message(MESSAGES["msg_capture_mouse"])
-        self.mouse.stop()
 
     def remove_listed_window(self, wid):
         """Destroys window widget from windows list and refreshes the list afterward.
@@ -961,7 +965,7 @@ class BaseController(object):
     def switch_workspace(self):
         """Activates workspace and moves root window onto it."""
         self.app.run_task(
-            "move_to_workspace", self.view.master.winfo_id(), self.model.workspace
+            "move_to_workspace", self.view.get_root_wid(), self.model.workspace
         )
 
     def workspace_activated_by_digit(self, number):
@@ -985,7 +989,7 @@ class BaseController(object):
     def on_focus(self, event):
         """Calls task top activate root if Tkinter has lost focus."""
         if self.view.focus_get() is None:
-            self.app.run_task("activate_root", self.view.master.winfo_id())
+            self.app.run_task("activate_root", self.view.get_root_wid())
             return "break"
 
     def on_key_pressed(self, event):

@@ -631,7 +631,7 @@ class TestBaseControllerDomainLogic(object):
         controller.run(mocker.MagicMock())
         controller.app.run_task.assert_called_once()
         controller.app.run_task.assert_called_with(
-            "activate_root", controller.view.master.winfo_id.return_value
+            "activate_root", controller.view.get_root_wid.return_value
         )
 
     def test_BaseController_run_calls_mainloop(self, mocker):
@@ -857,7 +857,7 @@ class TestBaseControllerDomainLogic(object):
         SAMPLE = 1003
         controller.workspace_activated(SAMPLE)
         controller.app.run_task.assert_called_with(
-            "move_to_workspace", view.return_value.master.winfo_id.return_value, SAMPLE
+            "move_to_workspace", view.return_value.get_root_wid.return_value, SAMPLE
         )
 
     def test_BaseController_workspace_activated_calls_set_changed(self, mocker):

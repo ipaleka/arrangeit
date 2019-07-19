@@ -108,6 +108,30 @@ class TestViewApplication(object):
         assert mocked.call_count == 1
         mocked.assert_has_calls(calls, any_order=True)
 
+    ## ViewApplication.get_root_wid
+    def test_ViewApplication_get_root_wid_calls_master_frame(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        mocker.patch("arrangeit.view.int")
+        master = mocker.MagicMock()
+        ViewApplication(master, mocker.MagicMock()).get_root_wid()
+        master.frame.assert_called_once()
+        master.frame.assert_called_with()
+
+    def test_ViewApplication_get_root_wid_calls_int_and_returns_it(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
+        mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
+        mocked = mocker.patch("arrangeit.view.int")
+        master = mocker.MagicMock()
+        returned = ViewApplication(master, mocker.MagicMock()).get_root_wid()
+        mocked.assert_called_once()
+        mocked.assert_called_with(master.frame.return_value, 0)
+        assert returned == mocked.return_value
+
     ## ViewApplication.hide_root
     @pytest.mark.parametrize("method", ["withdraw"])
     def test_ViewApplication_hide_root_calls_master_hiding_up_method(

@@ -31,6 +31,7 @@ def get_tkinter_root():
     :returns: :class:`tk.Tk` window instance
     """
     root = tk.Tk(className="arrangeit")
+    root.withdraw()
     root.title("arrangeit")
     set_icon(root)
     return root
@@ -72,6 +73,13 @@ class ViewApplication(tk.Frame):
         self.config(background=Settings.MAIN_BG)
         self.setup_widgets()
         self.setup_bindings()
+
+    def get_root_wid(self):
+        """Returns windows identifier of master/root window.
+
+        :returns: int
+        """
+        return int(self.master.frame(), 0)
 
     def hide_root(self):
         """Hides master/root window."""

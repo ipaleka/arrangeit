@@ -239,13 +239,6 @@ class TestBaseController(object):
         assert mocked.call_count == 1
         mocked.assert_called_with(master=root.return_value, controller=controller)
 
-    def test_BaseController_setup_hides_root_tk_window(self, mocker):
-        view = mocked_setup_view(mocker)
-        controller = base.BaseController(None)
-        view.reset_mock()
-        controller.setup()
-        assert view.return_value.hide_root.call_count == 1
-
     ## BaseController.setup_root_window
     def test_BaseController_setup_root_window_calls_wm_attributes(self, mocker):
         mocked_setup(mocker)
@@ -1134,11 +1127,11 @@ class TestBaseController(object):
         view.return_value.restored.set_value.assert_called_with(not VALUE)
 
     ## BaseController.switch_workspace
-    def test_BaseController_switch_workspace_calls_winfo_id(self, mocker):
+    def test_BaseController_switch_workspace_calls_get_root_wid(self, mocker):
         view = mocked_setup_view(mocker)
         controller = controller_mocked_app(mocker)
         controller.switch_workspace()
-        view.return_value.master.winfo_id.call_count == 1
+        view.return_value.get_root_wid.call_count == 1
 
     def test_BaseController_switch_workspace_calls_task_move_to_workspace(self, mocker):
         view = mocked_setup_view(mocker)
@@ -1148,7 +1141,7 @@ class TestBaseController(object):
         controller = controller_mocked_app(mocker)
         controller.switch_workspace()
         controller.app.run_task.assert_called_with(
-            "move_to_workspace", view.return_value.master.winfo_id.return_value, number
+            "move_to_workspace", view.return_value.get_root_wid.return_value, number
         )
 
     ## BaseController.workspace_activated_by_digit
@@ -1213,7 +1206,7 @@ class TestBaseController(object):
         base.BaseController(app).on_focus(mocker.MagicMock())
         app.run_task.assert_called_once()
         app.run_task.assert_called_with(
-            "activate_root", view.return_value.master.winfo_id.return_value
+            "activate_root", view.return_value.get_root_wid.return_value
         )
 
     def test_BaseController_on_focus_returns_break(self, mocker):

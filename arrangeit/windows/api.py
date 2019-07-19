@@ -143,6 +143,19 @@ class WINDOWINFO(ctypes.Structure):
     ]
 
 
+class DWM_THUMBNAIL_PROPERTIES(ctypes.Structure):
+    """Class holding ctypes.Structure data for DWM thumbnail properties."""
+
+    _fields_ = [
+        ("dwFlags", ctypes.wintypes.DWORD),
+        ("rcDestination", ctypes.wintypes.RECT),
+        ("rcSource", ctypes.wintypes.RECT),
+        ("opacity", ctypes.wintypes.BYTE),
+        ("fVisible", ctypes.wintypes.BOOL),
+        ("fSourceClientAreaOnly", ctypes.wintypes.BOOL),
+    ]
+
+
 class Helpers(object):
     """Helper class for calls to WinDLL API."""
 
@@ -150,6 +163,7 @@ class Helpers(object):
         """Calls setup methods."""
         self._setup_base()
         self._setup_common_helpers()
+        self._setup_thumbnail_helpers()
         if platform_supports_packages():
             self._setup_win8_helpers()
 
@@ -162,12 +176,15 @@ class Helpers(object):
         :type _kernel32: :class:`ctypes.WinDLL`
         :var _psapi: object holding API functions from psapi domain
         :type _psapi: :class:`ctypes.WinDLL`
+        :var _dwmapi: object holding API functions from dwmapi domain
+        :type _dwmapi: :class:`ctypes.WinDLL`
         :var WNDENUMPROC: helper function for windows enumeration
         :type WNDENUMPROC: :class:`ctypes.WINFUNCTYPE`
         """
         self._user32 = ctypes.WinDLL("user32", use_last_error=True)
         self._kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
         self._psapi = ctypes.WinDLL("psapi", use_last_error=True)
+        self._dwmapi = ctypes.WinDLL("dwmapi", use_last_error=True)
         self.WNDENUMPROC = ctypes.WINFUNCTYPE(
             ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
         )
@@ -194,8 +211,29 @@ class Helpers(object):
 
     def _setup_common_helpers(self):
         """Sets helper methods common to all MS Windows versions."""
-        WNDENUMPROC = ctypes.WINFUNCTYPE(
-            ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM
+        self._get_ancestor = self._setup_helper(
+            self._user32,
+            "GetAncestor",
+            (ctypes.wintypes.HWND, ctypes.wintypes.UINT),
+            ctypes.wintypes.HWND,
+        )
+        self._get_last_active_popup = self._setup_helper(
+            self._user32,
+            "GetLastActivePopup",
+            (ctypes.wintypes.HWND,),
+            ctypes.wintypes.HWND,
+        )
+        self._get_titlebar_info = self._setup_helper(
+            self._user32,
+            "GetTitleBarInfo",
+            (ctypes.wintypes.HWND, ctypes.POINTER(TITLEBARINFO)),
+            ctypes.wintypes.BOOL,
+        )
+        self._get_window_info = self._setup_helper(
+            self._user32,
+            "GetWindowInfo",
+            (ctypes.wintypes.HWND, ctypes.POINTER(WINDOWINFO)),
+            ctypes.wintypes.BOOL,
         )
         self._get_windows_thread_process_id = self._setup_helper(
             self._user32,
@@ -206,13 +244,13 @@ class Helpers(object):
         self._enum_windows = self._setup_helper(
             self._user32,
             "EnumWindows",
-            (WNDENUMPROC, ctypes.wintypes.LPARAM),
+            (self.WNDENUMPROC, ctypes.wintypes.LPARAM),
             ctypes.wintypes.BOOL,
         )
         self._enum_child_windows = self._setup_helper(
             self._user32,
             "EnumChildWindows",
-            (ctypes.wintypes.HWND, WNDENUMPROC, ctypes.wintypes.LPARAM),
+            (ctypes.wintypes.HWND, self.WNDENUMPROC, ctypes.wintypes.LPARAM),
             ctypes.wintypes.BOOL,
         )
         self._open_process = self._setup_helper(
@@ -231,6 +269,42 @@ class Helpers(object):
             self._psapi,
             "GetProcessImageFileNameA",
             (ctypes.wintypes.HANDLE, ctypes.wintypes.LPSTR, ctypes.wintypes.DWORD),
+            ctypes.wintypes.DWORD,
+        )
+        self._dwm_get_window_attribute = self._setup_helper(
+            self._dwmapi,
+            "DwmGetWindowAttribute",
+            (
+                ctypes.wintypes.HWND,
+                ctypes.wintypes.DWORD,
+                ctypes.wintypes.LPVOID,
+                ctypes.wintypes.DWORD,
+            ),
+            ctypes.wintypes.DWORD,
+        )
+
+    def _setup_thumbnail_helpers(self):
+        """Sets helper methods for DWM thumnails."""
+        self._dwm_register_thumbnail = self._setup_helper(
+            self._dwmapi,
+            "DwmRegisterThumbnail",
+            (
+                ctypes.wintypes.HANDLE,
+                ctypes.wintypes.HANDLE,
+                ctypes.POINTER(ctypes.wintypes.HANDLE),
+            ),
+            ctypes.wintypes.DWORD,
+        )
+        self._dwm_update_thumbnail_properties = self._setup_helper(
+            self._dwmapi,
+            "DwmUpdateThumbnailProperties",
+            (ctypes.wintypes.HANDLE, ctypes.POINTER(DWM_THUMBNAIL_PROPERTIES)),
+            ctypes.wintypes.DWORD,
+        )
+        self._dwm_unregister_thumbnail = self._setup_helper(
+            self._dwmapi,
+            "DwmUnregisterThumbnail",
+            (ctypes.wintypes.HANDLE,),
             ctypes.wintypes.DWORD,
         )
 
@@ -589,6 +663,26 @@ class Api(object):
 
         return package_info_reference
 
+    def dwm_window_attribute_value(self, hwnd, attribute):
+        """Helper function to return DWM attribute value for window with provided hwnd.
+
+        TODO try-except in Windows 7, XP, ...
+        TODO check what to do with cloaked in another workspaces
+
+        :param hwnd: window id
+        :type hwnd: int
+        :param attribute: DWM attribute type
+        :type attribute: int
+        :var dwm_value: flag holding non-zero value if window has attribute
+        :type dwm_value: :class:`ctypes.wintypes.INT`
+        :returns: int`
+        """
+        dwm_value = ctypes.wintypes.DWORD()
+        self.helpers._dwm_get_window_attribute(
+            hwnd, attribute, ctypes.byref(dwm_value), ctypes.sizeof(dwm_value)
+        )
+        return dwm_value.value
+
     def enum_windows(self, hwnd=None, enum_children=False):
         """Helper function to enumerate either desktop windows or children windows
 
@@ -646,6 +740,26 @@ class Api(object):
         if ret_val:
             return extract_name_from_bytes_path(path_buffer.value)
 
+    def get_ancestor_by_type(self, hwnd, ancestor_type):
+        """Helper function to return hwnd of ancestor window of window with given hwnd.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :param ancestor_type: window ancestor type
+        :type ancestor_type: int
+        :returns: int
+        """
+        return self.helpers._get_ancestor(hwnd, ancestor_type)
+
+    def get_last_active_popup(self, hwnd):
+        """Helper function to return hwnd of last popup of window with provided hwnd.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: int
+        """
+        return self.helpers._get_last_active_popup(hwnd)
+
     def get_package(self, hwnd):
         """Returns :class:`Package` holding needed package data from provided window id.
 
@@ -673,3 +787,38 @@ class Api(object):
         package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
         self.helpers._close_package_info(package_info_reference.contents)
         return Package(package_info.path)
+
+    def title_info_state(self, hwnd, state):
+        """Helper function to return title bar info state for window with provided hwnd.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :param state: title bar info state type
+        :type state: int
+        :var title_info: title bar information structure
+        :type title_info: :class:`TITLEBARINFO`
+        :var success: value indicating is call successful
+        :type success: bool
+        :returns: int`
+        """
+        title_info = TITLEBARINFO()
+        title_info.cbSize = ctypes.sizeof(title_info)
+        success = self.helpers._get_titlebar_info(hwnd, ctypes.byref(title_info))
+        return title_info.rgstate[0] & state if success else None
+
+    def window_info_extended_style(self, hwnd, style):
+        """Helper function to return extended window style for window with given hwnd.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :param style: extended window style type
+        :type style: int
+        :var window_info: window information structure
+        :type window_info: :class:`WINDOWINFO`
+        :var success: value indicating is call successful
+        :type success: bool
+        :returns: int`
+        """
+        window_info = WINDOWINFO()
+        success = self.helpers._get_window_info(hwnd, ctypes.byref(window_info))
+        return window_info.dwExStyle & style if success else None

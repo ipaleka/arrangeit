@@ -14,9 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import ctypes
-import ctypes.wintypes
-
 from PIL import Image
 
 from arrangeit.base import BaseCollector
@@ -172,9 +169,7 @@ class Collector(BaseCollector):
         :type hwnd: int
         :returns: Boolean
         """
-        window_info = WINDOWINFO()
-        ctypes.windll.user32.GetWindowInfo(hwnd, ctypes.byref(window_info))
-        return window_info.dwExStyle & WS_EX_NOACTIVATE == 0
+        return self.api.window_info_extended_style(hwnd, WS_EX_NOACTIVATE) == 0
 
     def _is_alt_tab_applicable(self, hwnd):
         """Checks if provided hwnd represents window visible in "Alt+Tab screen".
@@ -186,10 +181,10 @@ class Collector(BaseCollector):
         :returns: Boolean
         """
         hwnd_walk = NULL
-        hwnd_try = ctypes.windll.user32.GetAncestor(hwnd, GA_ROOTOWNER)
+        hwnd_try = self.api.get_ancestor_by_type(hwnd, GA_ROOTOWNER)
         while hwnd_try != hwnd_walk:
             hwnd_walk = hwnd_try
-            hwnd_try = ctypes.windll.user32.GetLastActivePopup(hwnd_walk)
+            hwnd_try = self.api.get_last_active_popup(hwnd_walk)
             if IsWindowVisible(hwnd_try):
                 break
         if hwnd_walk != hwnd:
@@ -199,21 +194,11 @@ class Collector(BaseCollector):
     def _is_cloaked(self, hwnd):
         """Checks if provided hwnd represents window that is "cloaked".
 
-        TODO try-except in Windows 7, XP, ...
-
-        TODO check what to do with cloaked in another workspaces
-
         :param hwnd: window id
         :type hwnd: int
-        :var cloaked: flag holding non-zero value if window is cloaked
-        :type cloaked: :class:`wintypes.INT`
         :returns: Boolean
         """
-        cloaked = ctypes.wintypes.INT()
-        ctypes.windll.dwmapi.DwmGetWindowAttribute(
-            hwnd, DWMWA_CLOAKED, ctypes.byref(cloaked), ctypes.sizeof(cloaked)
-        )
-        return cloaked.value != 0
+        return self.api.dwm_window_attribute_value(hwnd, DWMWA_CLOAKED) != 0
 
     def _is_tool_window(self, hwnd):
         """Checks if provided hwnd represents tool window.
@@ -225,20 +210,13 @@ class Collector(BaseCollector):
         return GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW != 0
 
     def _is_tray_window(self, hwnd):
-        """Checks if provided hwnd represents window residing in system tray
-
-        or "Program Manager" window.
-
-        https://github.com/Answeror/lit/blob/master/windows.py
+        """Checks if provided hwnd represents window residing in system tray.
 
         :param hwnd: window id
         :type hwnd: int
         :returns: Boolean
         """
-        title_info = TITLEBARINFO()
-        title_info.cbSize = ctypes.sizeof(title_info)
-        ctypes.windll.user32.GetTitleBarInfo(hwnd, ctypes.byref(title_info))
-        return title_info.rgstate[0] & STATE_SYSTEM_INVISIBLE != 0
+        return self.api.title_info_state(hwnd, STATE_SYSTEM_INVISIBLE) != 0
 
     def add_window(self, hwnd):
         """Creates WindowModel instance from provided hwnd and adds it to collection.

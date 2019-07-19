@@ -3,18 +3,11 @@ import pytest
 from arrangeit.settings import Settings
 from arrangeit.windows.api import Package
 from arrangeit.windows.app import App
-from arrangeit.windows.collector import (
-    DWMWA_CLOAKED,
-    GCL_HICON,
-    WM_GETICON,
-    Collector,
-)
+from arrangeit.windows.collector import DWMWA_CLOAKED, GCL_HICON, WM_GETICON, Collector
 from arrangeit.windows.controller import Controller
-from arrangeit.windows.utils import (
-    extract_name_from_bytes_path,
-    user_data_path,
-)
+from arrangeit.windows.utils import extract_name_from_bytes_path, user_data_path
 from win32con import (
+    GA_ROOTOWNER,
     STATE_SYSTEM_INVISIBLE,
     SW_MINIMIZE,
     SW_RESTORE,
@@ -545,91 +538,99 @@ class TestWindowsCollector(object):
         assert Collector()._get_window_title(SAMPLE_HWND) == value
 
     ## WindowsCollector._is_activable
-    @pytest.mark.parametrize("method", ["ctypes.windll.user32.GetWindowInfo"])
-    def test_WindowsCollector__is_activable_calls(self, mocker, method):
-        mocked = mocker.patch(method)
+    def test_WindowsCollector__is_activable_calls_window_info_extended_style(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.windows.collector.Api.window_info_extended_style"
+        )
         Collector()._is_activable(SAMPLE_HWND)
         mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND, WS_EX_NOACTIVATE)
 
     @pytest.mark.parametrize(
-        "dwExStyle,expected", [(WS_EX_NOACTIVATE, False), (WS_EX_NOACTIVATE - 1, True)]
+        "value,expected", [(0, True), (1, False)]
     )
-    def test_WindowsCollector__is_activable_return(self, mocker, dwExStyle, expected):
-        mocked = mocker.patch("arrangeit.windows.collector.WINDOWINFO")
-        mocker.patch("ctypes.byref")
-        mocker.patch("ctypes.windll.user32.GetWindowInfo")
-        type(mocked.return_value).dwExStyle = mocker.PropertyMock(
-            return_value=dwExStyle
+    def test_WindowsCollector__is_activable_return(self, mocker, value, expected):
+        mocker.patch(
+            "arrangeit.windows.collector.Api.window_info_extended_style",
+            return_value=value,
         )
         assert Collector()._is_activable(SAMPLE_HWND) == expected
 
     ## WindowsCollector._is_alt_tab_applicable
-    @pytest.mark.parametrize(
-        "method,value",
-        [
-            ("ctypes.windll.user32.GetAncestor", 500),
-            ("ctypes.windll.user32.GetLastActivePopup", 500),
-            ("arrangeit.windows.collector.IsWindowVisible", True),
-        ],
-    )
-    def test_WindowsCollector__is_alt_tab_applicable_calls(self, mocker, method, value):
-        mocker.patch("ctypes.windll.user32.GetAncestor", return_value=500)
-        mocked = mocker.patch(method, return_value=value)
+    def test_WindowsCollector__is_alt_tab_applicable_calls_get_ancestor_by_type(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.Api.get_last_active_popup")
+        mocker.patch("arrangeit.windows.collector.IsWindowVisible")
+        mocked = mocker.patch("arrangeit.windows.collector.Api.get_ancestor_by_type")
         Collector()._is_alt_tab_applicable(SAMPLE_HWND)
         mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND, GA_ROOTOWNER)
+
+    def test_WindowsCollector__is_alt_tab_applicable_calls_get_last_active_popup(
+        self, mocker
+    ):
+        mocked_ancestor = mocker.patch("arrangeit.windows.collector.Api.get_ancestor_by_type")
+        mocker.patch("arrangeit.windows.collector.IsWindowVisible")
+        mocked = mocker.patch("arrangeit.windows.collector.Api.get_last_active_popup")
+        Collector()._is_alt_tab_applicable(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_ancestor.return_value)
+
+    def test_WindowsCollector__is_alt_tab_applicable_calls_IsWindowVisible(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.Api.get_ancestor_by_type")
+        mocked_popup = mocker.patch(
+            "arrangeit.windows.collector.Api.get_last_active_popup"
+        )
+        mocked = mocker.patch("arrangeit.windows.collector.IsWindowVisible")
+        Collector()._is_alt_tab_applicable(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_popup.return_value)
 
     def test_WindowsCollector__is_alt_tab_applicable_return_True(self, mocker):
         VALUE = 500
+        mocker.patch(
+            "arrangeit.windows.collector.Api.get_ancestor_by_type", return_value=VALUE
+        )
+        mocker.patch(
+            "arrangeit.windows.collector.Api.get_last_active_popup", return_value=VALUE
+        )
         mocker.patch("ctypes.windll.user32.GetAncestor", return_value=VALUE)
         mocker.patch("ctypes.windll.user32.GetLastActivePopup", return_value=VALUE)
         mocker.patch("arrangeit.windows.collector.IsWindowVisible", return_value=True)
         assert Collector()._is_alt_tab_applicable(VALUE)
 
     def test_WindowsCollector__is_alt_tab_applicable_return_False(self, mocker):
-        mocker.patch("ctypes.windll.user32.GetAncestor", return_value=500)
-        mocker.patch("ctypes.windll.user32.GetLastActivePopup", return_value=499)
+        mocker.patch(
+            "arrangeit.windows.collector.Api.get_ancestor_by_type", return_value=500
+        )
+        mocker.patch(
+            "arrangeit.windows.collector.Api.get_last_active_popup", return_value=499
+        )
         mocker.patch("arrangeit.windows.collector.IsWindowVisible", return_value=True)
         assert not Collector()._is_alt_tab_applicable(SAMPLE_HWND)
 
     ## WindowsCollector._is_cloaked
-    def test_WindowsCollector__is_cloaked_calls_DwmGetWindowAttribute(self, mocker):
-        mocked_byref = mocker.patch("ctypes.byref")
-        mocked_syzeof = mocker.patch("ctypes.sizeof")
-        mocked = mocker.patch("ctypes.windll.dwmapi.DwmGetWindowAttribute")
-        Collector()._is_cloaked(SAMPLE_HWND)
-        mocked.assert_called_once()
-        mocked.assert_called_with(
-            SAMPLE_HWND,
-            DWMWA_CLOAKED,
-            mocked_byref.return_value,
-            mocked_syzeof.return_value,
+    def test_WindowsCollector__is_cloaked_calls_dwm_window_attribute_value(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.windows.collector.Api.dwm_window_attribute_value"
         )
-
-    def test_WindowsCollector__is_cloaked_calls_byref(self, mocker):
-        mocked_int = mocker.patch("ctypes.wintypes.INT")
-        mocked = mocker.patch("ctypes.byref")
-        mocker.patch("ctypes.sizeof")
-        mocker.patch("ctypes.windll.dwmapi.DwmGetWindowAttribute")
         Collector()._is_cloaked(SAMPLE_HWND)
         mocked.assert_called_once()
-        mocked.assert_called_with(mocked_int.return_value)
-
-    def test_WindowsCollector__is_cloaked_calls_sizeof(self, mocker):
-        mocked_int = mocker.patch("ctypes.wintypes.INT")
-        mocker.patch("ctypes.byref")
-        mocked = mocker.patch("ctypes.sizeof")
-        mocker.patch("ctypes.windll.dwmapi.DwmGetWindowAttribute")
-        Collector()._is_cloaked(SAMPLE_HWND)
-        mocked.assert_called_once()
-        mocked.assert_called_with(mocked_int.return_value)
+        mocked.assert_called_with(SAMPLE_HWND, DWMWA_CLOAKED)
 
     @pytest.mark.parametrize("value,expected", [(0, False), (1, True), (2, True)])
     def test_WindowsCollector__is_cloaked_return(self, mocker, value, expected):
-        mocked = mocker.patch("ctypes.wintypes.INT")
-        mocker.patch("ctypes.byref")
-        mocker.patch("ctypes.sizeof")
-        mocker.patch("ctypes.windll.dwmapi.DwmGetWindowAttribute")
-        type(mocked.return_value).value = mocker.PropertyMock(return_value=value)
+        mocker.patch(
+            "arrangeit.windows.collector.Api.dwm_window_attribute_value",
+            return_value=value,
+        )
         assert Collector()._is_cloaked(SAMPLE_HWND) == expected
 
     ## WindowsCollector._is_tool_window
@@ -647,24 +648,20 @@ class TestWindowsCollector(object):
         assert Collector()._is_tool_window(SAMPLE_HWND)
 
     ## WindowsCollector._is_tray_window
-    @pytest.mark.parametrize(
-        "method", ["ctypes.windll.user32.GetTitleBarInfo", "ctypes.sizeof"]
-    )
-    def test_WindowsCollector__is_tray_window_calls(self, mocker, method):
-        mocked = mocker.patch(method)
+    def test_WindowsCollector__is_tray_window_calls_title_info_state(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.collector.Api.title_info_state")
         Collector()._is_tray_window(SAMPLE_HWND)
         mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND, STATE_SYSTEM_INVISIBLE)
 
     @pytest.mark.parametrize(
-        "rgstate,expected",
-        [((STATE_SYSTEM_INVISIBLE,), True), ((STATE_SYSTEM_INVISIBLE - 1,), False)],
+        "value,expected",
+        [(0, False), (1, True)],
     )
-    def test_WindowsCollector__is_tray_window_return(self, mocker, rgstate, expected):
-        mocked = mocker.patch("arrangeit.windows.collector.TITLEBARINFO")
-        mocker.patch("ctypes.byref")
-        mocker.patch("ctypes.sizeof")
-        mocker.patch("ctypes.windll.user32.GetTitleBarInfo")
-        type(mocked.return_value).rgstate = mocker.PropertyMock(return_value=rgstate)
+    def test_WindowsCollector__is_tray_window_return(self, mocker, value, expected):
+        mocker.patch(
+            "arrangeit.windows.collector.Api.title_info_state", return_value=value
+        )
         assert Collector()._is_tray_window(SAMPLE_HWND) == expected
 
     ## WindowsCollector.add_window

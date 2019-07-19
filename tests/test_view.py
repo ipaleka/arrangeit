@@ -33,6 +33,13 @@ class TestViewFunctions(object):
         mocked.assert_called_once()
         mocked.assert_called_with(className="arrangeit")
 
+    def test_view_get_tkinter_root_withdraw_root(self, mocker):
+        mocker.patch("arrangeit.view.set_icon")
+        mocked = mocker.patch("arrangeit.view.tk.Tk")
+        get_tkinter_root()
+        mocked.return_value.withdraw.assert_called_once()
+        mocked.return_value.withdraw.assert_called_with()
+
     def test_view_get_tkinter_root_sets_title(self, mocker):
         mocker.patch("arrangeit.view.set_icon")
         mocked = mocker.patch("arrangeit.view.tk.Tk")
