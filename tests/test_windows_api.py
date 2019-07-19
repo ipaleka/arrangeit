@@ -244,7 +244,7 @@ class TestWINDOWINFO(object):
             ("cxWindowBorders", ctypes.wintypes.UINT),
             ("cyWindowBorders", ctypes.wintypes.UINT),
             ("atomWindowType", ctypes.wintypes.ATOM),
-            ("win32conreatorVersion", ctypes.wintypes.DWORD),
+            ("wCreatorVersion", ctypes.wintypes.DWORD),
         ],
     )
     def test_windows_api_WINDOWINFO_field_and_type(self, field, typ):

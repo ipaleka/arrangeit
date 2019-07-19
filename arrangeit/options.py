@@ -15,7 +15,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import platform
-import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 import webbrowser
@@ -256,7 +255,7 @@ class OptionsDialog(tk.Toplevel):
             activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.destroy,
         ).pack(
-            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            padx=Settings.OPTIONS_WIDGETS_PADX,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
             side=tk.RIGHT,
@@ -268,7 +267,7 @@ class OptionsDialog(tk.Toplevel):
             activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.on_show_about,
         ).pack(
-            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            padx=Settings.OPTIONS_WIDGETS_PADX,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
             side=tk.RIGHT,
@@ -596,7 +595,18 @@ class AboutDialog(tk.Toplevel):
             activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.destroy,
         ).pack(
-            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            padx=Settings.OPTIONS_WIDGETS_PADX,
+            pady=Settings.OPTIONS_WIDGETS_PADY * 2,
+            anchor="se",
+            side=tk.RIGHT,
+        )
+        tk.Button(
+            self,
+            text=_("Releases"),
+            activeforeground=Settings.HIGHLIGHTED_COLOR,
+            command=self.on_releases_click,
+        ).pack(
+            padx=Settings.OPTIONS_WIDGETS_PADX,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
             side=tk.RIGHT,
@@ -607,7 +617,7 @@ class AboutDialog(tk.Toplevel):
             activeforeground=Settings.HIGHLIGHTED_COLOR,
             command=self.on_help_click,
         ).pack(
-            padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+            padx=Settings.OPTIONS_WIDGETS_PADX,
             pady=Settings.OPTIONS_WIDGETS_PADY * 2,
             anchor="se",
             side=tk.RIGHT,
@@ -616,3 +626,7 @@ class AboutDialog(tk.Toplevel):
     def on_help_click(self):
         """Opens documentation page in user's default web browser."""
         webbrowser.open(Settings.HELP_PAGE_URL, new=2)
+
+    def on_releases_click(self):
+        """Opens download releases page in user's default web browser."""
+        webbrowser.open(Settings.RELEASES_PAGE_URL, new=2)

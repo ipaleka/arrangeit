@@ -81,7 +81,7 @@ SETTINGS = {
     "NAME_LABEL_HEIGHT": (int, 2),
     "NAME_LABEL_PADX": (int, 2),
     "NAME_LABEL_PADY": (int, 0),
-    "WORKSPACES_FRAME_RELHEIGHT": (float, 0.60),
+    "WORKSPACES_FRAME_RELHEIGHT": (float, 0.62),
     "WORKSPACES_FRAME_RELWIDTH": (float, 0.25),
     "WORKSPACE_NUMBER_RELHEIGHT": (float, 0.75),
     "WORKSPACE_NUMBER_RELWIDTH": (float, 1.0),
@@ -209,6 +209,7 @@ class Settings(metaclass=SettingsMetaclass):
     HELP_PAGE_URL = (
         "https://github.com/ipaleka/arrangeit/blob/master/docs/userguide.rst"
     )
+    RELEASES_PAGE_URL = "https://github.com/ipaleka/arrangeit/releases"
 
     @classmethod
     def is_setting(cls, name, value):

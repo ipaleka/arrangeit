@@ -1477,7 +1477,6 @@ class TestToolbar(object):
         assert mocked.call_count == 2
         calls = [
             mocker.call(
-                rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
                 relx=Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
                 relheight=Settings.OPTIONS_BUTTON_RELHEIGHT
                 - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,
@@ -1486,7 +1485,6 @@ class TestToolbar(object):
                 anchor=Settings.OPTIONS_BUTTON_ANCHOR,
             ),
             mocker.call(
-                rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
                 relx=0.5 + Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
                 relheight=Settings.QUIT_BUTTON_RELHEIGHT
                 - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,

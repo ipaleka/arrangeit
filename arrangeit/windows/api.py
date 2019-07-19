@@ -139,7 +139,7 @@ class WINDOWINFO(ctypes.Structure):
         ("cxWindowBorders", ctypes.wintypes.UINT),
         ("cyWindowBorders", ctypes.wintypes.UINT),
         ("atomWindowType", ctypes.wintypes.ATOM),
-        ("win32conreatorVersion", ctypes.wintypes.DWORD),
+        ("wCreatorVersion", ctypes.wintypes.DWORD),
     ]
 
 

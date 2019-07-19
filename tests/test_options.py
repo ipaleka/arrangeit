@@ -1,5 +1,4 @@
 import platform
-import sys
 import tkinter as tk
 from gettext import gettext as _
 from importlib import import_module
@@ -516,7 +515,7 @@ class TestOptionsDialog(object):
         dialog.setup_widgets()
         calls = [
             mocker.call(
-                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+                padx=Settings.OPTIONS_WIDGETS_PADX,
                 pady=Settings.OPTIONS_WIDGETS_PADY * 2,
                 anchor="se",
                 side=tk.RIGHT,
@@ -548,7 +547,7 @@ class TestOptionsDialog(object):
         dialog.setup_widgets()
         calls = [
             mocker.call(
-                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+                padx=Settings.OPTIONS_WIDGETS_PADX,
                 pady=Settings.OPTIONS_WIDGETS_PADY * 2,
                 anchor="se",
                 side=tk.RIGHT,
@@ -1403,7 +1402,7 @@ class TestAboutDialog(object):
         ]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_AboutDialog_setup_widgets_calls_exit_button_pack(self, mocker):
+    def test_AboutDialog_setup_widgets_sets_releases_button(self, mocker):
         mocked_for_about_setup(mocker)
         mocked = mocker.patch("arrangeit.options.tk.Button")
         dialog = AboutDialog(mocker.MagicMock())
@@ -1411,15 +1410,16 @@ class TestAboutDialog(object):
         dialog.setup_widgets()
         calls = [
             mocker.call(
-                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
-                pady=Settings.OPTIONS_WIDGETS_PADY * 2,
-                anchor="se",
-                side=tk.RIGHT,
+                dialog,
+                text=_("Releases"),
+                activeforeground=Settings.HIGHLIGHTED_COLOR,
+                command=dialog.on_releases_click,
             )
         ]
-        mocked.return_value.pack.assert_has_calls(calls, any_order=True)
+        mocked.assert_has_calls(calls, any_order=True)
 
-    def test_AboutDialog_setup_widgets_sets_about_button(self, mocker):
+
+    def test_AboutDialog_setup_widgets_sets_help_button(self, mocker):
         mocked_for_about_setup(mocker)
         mocked = mocker.patch("arrangeit.options.tk.Button")
         dialog = AboutDialog(mocker.MagicMock())
@@ -1435,7 +1435,7 @@ class TestAboutDialog(object):
         ]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_AboutDialog_setup_widgets_calls_about_button_pack(self, mocker):
+    def test_AboutDialog_setup_widgets_calls_buttons_pack(self, mocker):
         mocked_for_about_setup(mocker)
         mocked = mocker.patch("arrangeit.options.tk.Button")
         dialog = AboutDialog(mocker.MagicMock())
@@ -1443,13 +1443,14 @@ class TestAboutDialog(object):
         dialog.setup_widgets()
         calls = [
             mocker.call(
-                padx=Settings.OPTIONS_WIDGETS_PADX * 2,
+                padx=Settings.OPTIONS_WIDGETS_PADX,
                 pady=Settings.OPTIONS_WIDGETS_PADY * 2,
                 anchor="se",
                 side=tk.RIGHT,
             )
         ]
         mocked.return_value.pack.assert_has_calls(calls, any_order=True)
+        assert mocked.return_value.pack.call_count == 3
 
     ## AboutDialog.on_help_click
     def test_AboutDialog_on_help_click_opens_webbrowser(self, mocker):
@@ -1458,4 +1459,13 @@ class TestAboutDialog(object):
         dialog = AboutDialog(mocker.MagicMock())
         dialog.on_help_click()
         calls = [mocker.call(Settings.HELP_PAGE_URL, new=2)]
+        mocked.open.assert_has_calls(calls, any_order=True)
+
+    ## AboutDialog.on_releases_click
+    def test_AboutDialog_on_releases_click_opens_webbrowser(self, mocker):
+        mocked_for_about(mocker)
+        mocked = mocker.patch("arrangeit.options.webbrowser")
+        dialog = AboutDialog(mocker.MagicMock())
+        dialog.on_releases_click()
+        calls = [mocker.call(Settings.RELEASES_PAGE_URL, new=2)]
         mocked.open.assert_has_calls(calls, any_order=True)

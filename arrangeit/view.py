@@ -1005,7 +1005,6 @@ class Toolbar(tk.Frame):
             command=self.on_options_click,
         )
         options_button.place(
-            rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
             relx=Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
             relheight=Settings.OPTIONS_BUTTON_RELHEIGHT
             - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,
@@ -1028,7 +1027,6 @@ class Toolbar(tk.Frame):
             command=self.master.controller.shutdown,
         )
         quit_button.place(
-            rely=Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT / 2,
             relx=0.5 + Settings.TOOLBAR_BUTTON_SHRINK_WIDTH / 2,
             relheight=Settings.QUIT_BUTTON_RELHEIGHT
             - Settings.TOOLBAR_BUTTON_SHRINK_HEIGHT,
