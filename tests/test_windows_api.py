@@ -656,6 +656,22 @@ class TestWindowsApiHelpersCommon(object):
         assert helpers._dwm_get_window_attribute.restype == ctypes.wintypes.DWORD
 
     # _setup_thumbnail_helpers
+    def test_windows_api_Helpers__setup_thumbnail_helpers__dwm_is_composition_enabled(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers._setup_common_helpers")
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_packages", return_value=False
+        )
+        mocker.patch("arrangeit.windows.api.Helpers._setup_win8_helpers")
+        helpers = Helpers()
+        helpers._setup_thumbnail_helpers()
+        assert helpers._dwm_is_composition_enabled == helpers._dwmapi.DwmIsCompositionEnabled
+        argtypes = helpers._dwm_is_composition_enabled.argtypes
+        assert isinstance(argtypes[0], type(ctypes._Pointer))
+        assert argtypes[0]._type_ == ctypes.wintypes.BOOL
+        assert helpers._dwm_is_composition_enabled.restype == ctypes.wintypes.DWORD
+
     def test_windows_api_Helpers__setup_thumbnail_helpers__dwm_register_thumbnail(
         self, mocker
     ):
@@ -1187,6 +1203,42 @@ class TestWindowsApiApiPublic(object):
         mocked.assert_called_once()
         mocked.assert_called_with()
         assert api.helpers == mocked.return_value
+
+    # dwm_is_composition_enabled
+    def test_Api_dwm_is_composition_enabled_calls__wintypes_BOOL(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.BOOL")
+        Api().dwm_is_composition_enabled()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_Api_dwm_is_composition_enabled_calls_ctypes_byref(self, mocker):
+        mocked_enabled = mocker.patch("ctypes.wintypes.BOOL")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.byref")
+        Api().dwm_is_composition_enabled()
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_enabled.return_value)
+
+    def test_Api_dwm_is_composition_enabled_calls__dwm_is_composition_enabled(
+        self, mocker
+    ):
+        mocker.patch("ctypes.wintypes.BOOL")
+        mocked_byref = mocker.patch("ctypes.byref")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        Api().dwm_is_composition_enabled()
+        mocked_helpers.return_value._dwm_is_composition_enabled.assert_called_once()
+        mocked_helpers.return_value._dwm_is_composition_enabled.assert_called_with(
+            mocked_byref.return_value
+        )
+
+    def test_Api_dwm_is_composition_enabled_returns_value(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.BOOL")
+        returned = Api().dwm_is_composition_enabled()
+        assert returned is mocked.return_value.value
 
     # dwm_window_attribute_value
     def test_Api_dwm_window_attribute_value_calls__wintypes_DWORD(self, mocker):

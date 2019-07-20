@@ -77,8 +77,9 @@ class App(BaseApp):
         :type model: :class:`WindowModel`
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
+        if self.collector.api.dwm_is_composition_enabled():
+            return ImageTk.PhotoImage(self.thumbnail(root_hwnd, model)), (0, 0)
         return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)
-        # return ImageTk.PhotoImage(self.thumbnail(root_hwnd, model)), (0, 0)
 
     def thumbnail(self, root_hwnd, model):
         self.thumbnail_id = ctypes.wintypes.HANDLE()

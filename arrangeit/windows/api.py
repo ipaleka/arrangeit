@@ -285,6 +285,12 @@ class Helpers(object):
 
     def _setup_thumbnail_helpers(self):
         """Sets helper methods for DWM thumnails."""
+        self._dwm_is_composition_enabled = self._setup_helper(
+            self._dwmapi,
+            "DwmIsCompositionEnabled",
+            (ctypes.POINTER(ctypes.wintypes.BOOL),),
+            ctypes.wintypes.DWORD,
+        )
         self._dwm_register_thumbnail = self._setup_helper(
             self._dwmapi,
             "DwmRegisterThumbnail",
@@ -663,10 +669,20 @@ class Api(object):
 
         return package_info_reference
 
+    def dwm_is_composition_enabled(self):
+        """Helper function returning True if DWM composition is enabled in system.
+
+        :var enabled: composition enabled or not value
+        :type enabled: :class:`ctypes.wintypes.BOOL`
+        :returns: Boolean
+        """
+        enabled = ctypes.wintypes.BOOL()
+        self.helpers._dwm_is_composition_enabled(ctypes.byref(enabled))
+        return enabled.value
+
     def dwm_window_attribute_value(self, hwnd, attribute):
         """Helper function to return DWM attribute value for window with provided hwnd.
 
-        TODO try-except in Windows 7, XP, ...
         TODO check what to do with cloaked in another workspaces
 
         :param hwnd: window id
@@ -675,7 +691,7 @@ class Api(object):
         :type attribute: int
         :var dwm_value: flag holding non-zero value if window has attribute
         :type dwm_value: :class:`ctypes.wintypes.INT`
-        :returns: int`
+        :returns: int
         """
         dwm_value = ctypes.wintypes.DWORD()
         self.helpers._dwm_get_window_attribute(
@@ -799,7 +815,7 @@ class Api(object):
         :type title_info: :class:`TITLEBARINFO`
         :var success: value indicating is call successful
         :type success: bool
-        :returns: int`
+        :returns: int
         """
         title_info = TITLEBARINFO()
         title_info.cbSize = ctypes.sizeof(title_info)
@@ -817,7 +833,7 @@ class Api(object):
         :type window_info: :class:`WINDOWINFO`
         :var success: value indicating is call successful
         :type success: bool
-        :returns: int`
+        :returns: int
         """
         window_info = WINDOWINFO()
         success = self.helpers._get_window_info(hwnd, ctypes.byref(window_info))
