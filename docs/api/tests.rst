@@ -122,9 +122,18 @@
 
 
 :mod:`tests.test_windows_api` -- Unit tests for MS Windows api helpers module
-------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 .. automodule:: tests.test_windows_api
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.test_windows_api_api` -- Unit tests for MS Windows api helpers module Api class
+-------------------------------------------------------------------------------------------
+
+.. automodule:: tests.test_windows_api_api
   :members:
   :undoc-members:
   :show-inheritance:

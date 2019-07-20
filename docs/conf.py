@@ -12,6 +12,7 @@
 #
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
@@ -22,6 +23,7 @@ author = "Ivica Paleka"
 
 # The full version, including alpha/beta/rc tags
 from arrangeit import __version__
+
 release = __version__
 
 # -- General configuration ---------------------------------------------------
@@ -32,10 +34,18 @@ release = __version__
 extensions = ["sphinx.ext.autodoc"]
 
 # mocks by Sphinx so autodoc of all modules is possible from GNU/Linux
-autodoc_mock_imports = ["AppKit", "Quartz", "win32api", "win32gui", "win32ui"]
+autodoc_mock_imports = [
+    "AppKit",
+    "Quartz",
+    "win32api",
+    "win32gui",
+    "win32ui",
+    "PIL.ImageGrab",
+]
 
 # custom mocks so autodoc of all modules is possible from GNU/Linux
 from unittest.mock import Mock
+
 
 class MockedObject(Mock):
     USHORT = 0
@@ -48,6 +58,7 @@ class MockedObject(Mock):
     STATE_SYSTEM_INVISIBLE = 0
     WS_THICKFRAME = 0
 
+
 MOCK_MODULES = ["ctypes", "ctypes.wintypes", "win32con"]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = MockedObject()
@@ -59,7 +70,6 @@ templates_path = ["_templates"]
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -78,7 +88,6 @@ html_favicon = "../arrangeit/resources/favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-
 
 # -- Options for LaTeX output ---------------------------------------------
 

@@ -208,15 +208,213 @@ class TestWindowsApp(object):
     def test_WindowsApp_move_to_workspace_(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
 
-    ## WindowsApp.grab_window_screen
-    @pytest.mark.skip("implement this ASAP")
-    def test_WindowsApp_grab_window_screen(self, mocker):
+    ## WindowsApp._window_area_desktop_screenshot
+    def test_WindowsApp__window_area_desktop_screenshot_calls_GetWindowRect(
+        self, mocker
+    ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocker.patch("arrangeit.windows.app.ImageGrab")
+        mocked = mocker.patch("arrangeit.windows.app.GetWindowRect")
+        HWND = 101
+        App()._window_area_desktop_screenshot(HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(HWND)
 
-    ## WindowsApp.thumbnail
-    @pytest.mark.skip("implement this ASAP")
-    def test_WindowsApp_thumbnail(self, mocker):
+    def test_WindowsApp__window_area_desktop_screenshot_calls_and_returns_grab(
+        self, mocker
+    ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_rect = mocker.patch("arrangeit.windows.app.GetWindowRect")
+        mocked = mocker.patch("arrangeit.windows.app.ImageGrab")
+        returned = App()._window_area_desktop_screenshot(102)
+        mocked.grab.assert_called_once()
+        mocked.grab.assert_called_with(mocked_rect.return_value)
+        assert returned == mocked.grab.return_value
+
+    ## WindowsApp.grab_window_screen
+    def test_WindowsApp_grab_window_screen_calls_dwm_is_composition_enabled(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App._screenshot_with_thumbnails")
+        mocker.patch("arrangeit.windows.app.get_prepared_screenshot")
+        mocker.patch("arrangeit.windows.app.ImageTk")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        App().grab_window_screen(None, None)
+        mocked.return_value.return_value.api.dwm_is_composition_enabled.assert_called_once()
+        mocked.return_value.return_value.api.dwm_is_composition_enabled.assert_called_with()
+
+    def test_WindowsApp_grab_window_screen_calls__screenshot_with_thumbnails(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.get_prepared_screenshot")
+        mocker.patch("arrangeit.windows.app.ImageTk")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.api.dwm_is_composition_enabled.return_value = True
+        mocked = mocker.patch("arrangeit.windows.app.App._screenshot_with_thumbnails")
+        MODEL, ROOT_WID = 1, 2
+        App().grab_window_screen(MODEL, ROOT_WID)
+        mocked.assert_called_once()
+        mocked.assert_called_with(MODEL, ROOT_WID)
+
+    def test_WindowsApp_grab_window_screen_calls_get_prepared_screenshot(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_screenhot = mocker.patch(
+            "arrangeit.windows.app.App._screenshot_with_thumbnails"
+        )
+        mocker.patch("arrangeit.windows.app.ImageTk")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.api.dwm_is_composition_enabled.return_value = True
+        mocked = mocker.patch("arrangeit.windows.app.get_prepared_screenshot")
+        returned = App().grab_window_screen(2, 3)
+        mocked.assert_called_once()
+        mocked.assert_called_with(
+            mocked_screenhot.return_value,
+            blur_size=Settings.SCREENSHOT_BLUR_PIXELS,
+            grayscale=Settings.SCREENSHOT_TO_GRAYSCALE,
+        )
+        assert returned == (mocked.return_value, (0, 0))
+
+    def test_WindowsApp_grab_window_screen_returns_blank(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App._screenshot_with_thumbnails")
+        mocker.patch("arrangeit.windows.app.get_prepared_screenshot")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.api.dwm_is_composition_enabled.return_value = False
+        mocked = mocker.patch("arrangeit.windows.app.ImageTk")
+        returned = App().grab_window_screen(None, None)
+        mocked.PhotoImage.assert_called_once()
+        mocked.PhotoImage.assert_called_with(Settings.BLANK_ICON)
+        assert returned == (mocked.PhotoImage.return_value, (0, 0))
+
+    ## WindowsApp._screenshot_with_thumbnails
+    def test_WindowsApp__screenshot_with_thumbnails_calls_Rectangle_lower(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocker.patch("arrangeit.windows.app.App._window_area_desktop_screenshot")
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        WIDTH, HEIGHT = 200, 300
+        mocked_controller.return_value.return_value.default_size = (WIDTH, HEIGHT)
+        mocked = mocker.patch("arrangeit.windows.app.Rectangle")
+        model = mocker.MagicMock()
+        App()._screenshot_with_thumbnails(model, 2050)
+        calls = [mocker.call(0, HEIGHT, WIDTH, model.h)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_WindowsApp__screenshot_with_thumbnails_calls_setup_thumbnail_lower(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.app.App._window_area_desktop_screenshot")
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        ROOT_WID = 2051
+        mocked_controller.return_value.return_value.default_size = (3201, 301)
+        mocked_rect = mocker.patch("arrangeit.windows.app.Rectangle")
+        model = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        App()._screenshot_with_thumbnails(model, ROOT_WID)
+        calls = [mocker.call(model.wid, ROOT_WID, mocked_rect.return_value)]
+        mocked.return_value.return_value.api.setup_thumbnail.assert_has_calls(
+            calls, any_order=True
+        )
+
+    def test_WindowsApp__screenshot_with_thumbnails_returns_blank_lower(self, mocker):
+        mocker.patch("arrangeit.windows.app.App._window_area_desktop_screenshot")
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_controller.return_value.return_value.default_size = (3202, 302)
+        mocker.patch("arrangeit.windows.app.Rectangle")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked.return_value.return_value.api.setup_thumbnail.side_effect = [None, "foo"]
+        assert App()._screenshot_with_thumbnails(mocker.MagicMock(), 2052) is Settings.BLANK_ICON
+
+    def test_WindowsApp__screenshot_with_thumbnails_calls_Rectangle_right(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocker.patch("arrangeit.windows.app.App._window_area_desktop_screenshot")
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        WIDTH = 205
+        mocked_controller.return_value.return_value.default_size = (WIDTH, 305)
+        mocked = mocker.patch("arrangeit.windows.app.Rectangle")
+        model = mocker.MagicMock()
+        App()._screenshot_with_thumbnails(model, 2070)
+        calls = [mocker.call(WIDTH, 0, model.w, model.h)]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_WindowsApp__screenshot_with_thumbnails_calls_setup_thumbnail_right(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.app.App._window_area_desktop_screenshot")
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_controller.return_value.return_value.default_size = (3207, 321)
+        mocker.patch("arrangeit.windows.app.Rectangle")
+        model = mocker.MagicMock()
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        App()._screenshot_with_thumbnails(model, 2088)
+        assert mocked.return_value.return_value.api.setup_thumbnail.call_count == 2
+
+    def test_WindowsApp__screenshot_with_thumbnails_returns_blank_right(self, mocker):
+        mocker.patch("arrangeit.windows.app.App._window_area_desktop_screenshot")
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_controller.return_value.return_value.default_size = (202, 304)
+        mocker.patch("arrangeit.windows.app.Rectangle")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked.return_value.return_value.api.setup_thumbnail.side_effect = ["foo", None]
+        assert App()._screenshot_with_thumbnails(mocker.MagicMock(), 2094) is Settings.BLANK_ICON
+
+    def test_WindowsApp__screenshot_with_thumbnails_calls__window_area_desktop_scsh(
+        self, mocker
+    ):
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_controller.return_value.return_value.default_size = (587, 785)
+        mocker.patch("arrangeit.windows.app.Rectangle")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.api.setup_thumbnail.side_effect = [
+            "foo",
+            "foo",
+        ]
+        mocked = mocker.patch(
+            "arrangeit.windows.app.App._window_area_desktop_screenshot"
+        )
+        ROOT_WID = 5095
+        App()._screenshot_with_thumbnails(mocker.MagicMock(), ROOT_WID)
+        mocked.assert_called_once()
+        mocked.assert_called_with(ROOT_WID)
+
+    def test_WindowsApp__screenshot_with_thumbnails_calls_unregister_thumbnail(
+        self, mocker
+    ):
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_controller.return_value.return_value.default_size = (588, 795)
+        mocker.patch("arrangeit.windows.app.Rectangle")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        THUMBNAIL1, THUMBNAIL2 = 500, 501
+        mocked.return_value.return_value.api.setup_thumbnail.side_effect = [
+            THUMBNAIL1,
+            THUMBNAIL2,
+        ]
+        mocker.patch(
+            "arrangeit.windows.app.App._window_area_desktop_screenshot"
+        )
+        App()._screenshot_with_thumbnails(mocker.MagicMock(), 5097)
+        calls = [mocker.call(THUMBNAIL1), mocker.call(THUMBNAIL2)]
+        mocked.return_value.return_value.api.unregister_thumbnail.assert_has_calls(calls, any_order=True)
+
+    def test_WindowsApp__screenshot_with_thumbnails_returns__window_area_desktop_scsh(
+        self, mocker
+    ):
+        mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_controller.return_value.return_value.default_size = (587, 785)
+        mocker.patch("arrangeit.windows.app.Rectangle")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.api.setup_thumbnail.side_effect = [
+            "foo",
+            "foo",
+        ]
+        mocked = mocker.patch(
+            "arrangeit.windows.app.App._window_area_desktop_screenshot"
+        )
+        returned = App()._screenshot_with_thumbnails(mocker.MagicMock(), 5096)
+        assert returned == mocked.return_value
 
 
 ## arrangeit.windows.collector
@@ -552,9 +750,7 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_HWND, WS_EX_NOACTIVATE)
 
-    @pytest.mark.parametrize(
-        "value,expected", [(0, True), (1, False)]
-    )
+    @pytest.mark.parametrize("value,expected", [(0, True), (1, False)])
     def test_WindowsCollector__is_activable_return(self, mocker, value, expected):
         mocker.patch(
             "arrangeit.windows.collector.Api.window_info_extended_style",
@@ -576,7 +772,9 @@ class TestWindowsCollector(object):
     def test_WindowsCollector__is_alt_tab_applicable_calls_get_last_active_popup(
         self, mocker
     ):
-        mocked_ancestor = mocker.patch("arrangeit.windows.collector.Api.get_ancestor_by_type")
+        mocked_ancestor = mocker.patch(
+            "arrangeit.windows.collector.Api.get_ancestor_by_type"
+        )
         mocker.patch("arrangeit.windows.collector.IsWindowVisible")
         mocked = mocker.patch("arrangeit.windows.collector.Api.get_last_active_popup")
         Collector()._is_alt_tab_applicable(SAMPLE_HWND)
@@ -658,10 +856,7 @@ class TestWindowsCollector(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_HWND, STATE_SYSTEM_INVISIBLE)
 
-    @pytest.mark.parametrize(
-        "value,expected",
-        [(0, False), (1, True)],
-    )
+    @pytest.mark.parametrize("value,expected", [(0, False), (1, True)])
     def test_WindowsCollector__is_tray_window_return(self, mocker, value, expected):
         mocker.patch(
             "arrangeit.windows.collector.Api.title_info_state", return_value=value

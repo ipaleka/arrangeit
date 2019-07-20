@@ -31,7 +31,7 @@ from arrangeit.windows.utils import extract_name_from_bytes_path
 
 APPMODEL_ERROR_NO_PACKAGE = 15700
 ERROR_INSUFFICIENT_BUFFER = 0x7A
-ERROR_SUCCESS = 0x0
+ERROR_SUCCESS = S_OK = 0x00000000
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 PACKAGE_FILTER_HEAD = 0x00000010
 UWP_ICON_SUFFIXES = (
@@ -41,6 +41,11 @@ UWP_ICON_SUFFIXES = (
     "",  # as is
     ".scale-100",
 )
+DWM_TNP_RECTDESTINATION = 0x00000001
+DWM_TNP_RECTSOURCE = 0x00000002
+DWM_TNP_OPACITY = 0x00000004
+DWM_TNP_VISIBLE = 0x00000008
+DWM_TNP_SOURCECLIENTAREAONLY = 0x00000010
 
 
 def platform_supports_packages():
@@ -530,7 +535,7 @@ class Api(object):
         :type handle: int
         :var length: buffer size in characters
         :type length: :class:`ctypes.c_uint`
-        :var ret_val: function return value indicating error/success status
+        :var ret_val: function returned value indicating error/success status
         :type ret_val: int
         :var full_name: buffer holding package full name
         :type full_name: array of :class:`ctypes.c_wchar`
@@ -599,7 +604,7 @@ class Api(object):
         :type length: :class:`ctypes.c_uint`
         :var count: number of elements in buffer array
         :type count: :class:`ctypes.c_uint`
-        :var ret_val: function return value indicating error/success status
+        :var ret_val: function returned value indicating error/success status
         :type ret_val: int
         :var buffer: buffer holding reference to package info structure
         :type buffer: array of :class:`ctypes.c_char`
@@ -651,7 +656,7 @@ class Api(object):
         :type full_name: array of :class:`ctypes.c_wchar`
         :var package_info_reference: reference to package info structure pointer
         :type package_info_reference: int
-        :var ret_val: function return value indicating error/success status
+        :var ret_val: function returned value indicating error/success status
         :type ret_val: int
         :returns: int
         """
@@ -668,6 +673,62 @@ class Api(object):
             return None
 
         return package_info_reference
+
+    def _rectangle_to_wintypes_rect(self, rectangle):
+        """Creates and returns wintypes RECT instance from provided rectangle.
+
+        :param rectangle: area in source window
+        :type rectangle: :class:`arrangeit.utils.Rectangle`
+        :var winrect: rectangle as ctypes.wintypes type
+        :type winrect: :class:`ctypes.wintypes.RECT`
+        :returns: :class:`ctypes.wintypes.RECT`
+        """
+        winrect = ctypes.wintypes.RECT()
+        winrect.left, winrect.top, winrect.right, winrect.bottom = rectangle
+        return winrect
+
+    def _update_thumbnail(self, thumbnail_id, rectangle):
+        """Updates thumbnail with provided id based on provided rectangle.
+
+        :param thumbnail_id: id of thumbnail to update
+        :type thumbnail_id: :class:`ctypes.wintypes.HANDLE`
+        :param rectangle: area occupied by thumbnail
+        :type rectangle: :class:`arrangeit.utils.Rectangle`
+        :var winrect: rectangle as ctypes.wintypes type
+        :type winrect: :class:`ctypes.wintypes.RECT`
+        :var properties: thumbnail properties
+        :type properties: :class:`DWM_THUMBNAIL_PROPERTIES`
+        :var ret_val: function returned value indicating error/success status
+        :type ret_val: int
+        :returns: :class:`ctypes.wintypes.HANDLE`
+        """
+        properties = DWM_THUMBNAIL_PROPERTIES()
+        properties.dwFlags = (
+            DWM_TNP_RECTDESTINATION
+            | DWM_TNP_RECTSOURCE
+            | DWM_TNP_OPACITY
+            | DWM_TNP_VISIBLE
+            | DWM_TNP_SOURCECLIENTAREAONLY
+        )
+        winrect = self._rectangle_to_wintypes_rect(rectangle)
+        properties.rcDestination = winrect
+        properties.rcSource = winrect
+        properties.opacity = ctypes.wintypes.BYTE(255)
+        properties.fVisible = True
+        properties.fSourceClientAreaOnly = False
+
+        ret_val = self.helpers._dwm_update_thumbnail_properties(
+            thumbnail_id, ctypes.byref(properties)
+        )
+        if ret_val != S_OK:
+            logging.info(
+                "_update_thumbnail: error -> {}".format(
+                    str(ctypes.WinError(ctypes.get_last_error()))
+                )
+            )
+            return None
+
+        return thumbnail_id
 
     def dwm_is_composition_enabled(self):
         """Helper function returning True if DWM composition is enabled in system.
@@ -741,7 +802,7 @@ class Api(object):
         :type hprocess: int
         :var path_buffer: buffer holding executable path
         :type path_buffer: array of :class:`ctypes.c_wchar`
-        :var ret_val: return value indicating success for value > 0
+        :var ret_val: function returned value indicating success for value > 0
         :type ret_val: int
         :returns: str
         """
@@ -804,6 +865,37 @@ class Api(object):
         self.helpers._close_package_info(package_info_reference.contents)
         return Package(package_info.path)
 
+    def setup_thumbnail(self, from_hwnd, root_hwnd, rectangle):
+        """Create, updates and returns handle of thumbnail of provided source window
+
+        created in root window.
+
+        :param from_hwnd: identifier of window to make thumbnail of
+        :type from_hwnd: int
+        :param root_hwnd: identifier of root window to make thumbnail in
+        :type root_hwnd: int
+        :param rectangle: area occupied by thumbnail
+        :type rectangle: :class:`arrangeit.utils.Rectangle`
+        :var thumbnail_id: id of created thumbnail
+        :type thumbnail_id: :class:`ctypes.wintypes.HANDLE`
+        :var ret_val: function returned value indicating error/success status
+        :type ret_val: int
+        :returns: :class:`ctypes.wintypes.HANDLE`
+        """
+        thumbnail_id = ctypes.wintypes.HANDLE()
+        ret_val = self.helpers._dwm_register_thumbnail(
+            root_hwnd, from_hwnd, ctypes.byref(thumbnail_id)
+        )
+        if ret_val != S_OK:
+            logging.info(
+                "setup_thumbnail: error -> {}".format(
+                    str(ctypes.WinError(ctypes.get_last_error()))
+                )
+            )
+            return None
+
+        return self._update_thumbnail(thumbnail_id, rectangle)
+
     def title_info_state(self, hwnd, state):
         """Helper function to return title bar info state for window with provided hwnd.
 
@@ -821,6 +913,24 @@ class Api(object):
         title_info.cbSize = ctypes.sizeof(title_info)
         success = self.helpers._get_titlebar_info(hwnd, ctypes.byref(title_info))
         return title_info.rgstate[0] & state if success else None
+
+    def unregister_thumbnail(self, thumbnail_id):
+        """Unregisters thumbnail with provided identifier.
+
+        :param thumbnail_id: identifier of thumbnail to unregister
+        :type thumbnail_id: :class:`ctypes.wintypes.HANDLE`
+        :var ret_val: function returned value indicating error/success status
+        :type ret_val: int
+        :returns: :class:`ctypes.wintypes.HANDLE`
+        """
+        ret_val = self.helpers._dwm_unregister_thumbnail(thumbnail_id)
+        if ret_val != S_OK:
+            logging.info(
+                "unregister_thumbnail: error -> {}".format(
+                    str(ctypes.WinError(ctypes.get_last_error()))
+                )
+            )
+            return True
 
     def window_info_extended_style(self, hwnd, style):
         """Helper function to return extended window style for window with given hwnd.

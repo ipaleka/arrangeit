@@ -518,12 +518,6 @@ class TestBaseControllerDomainLogic(object):
         controller.next(True)
         mocked.assert_not_called()
 
-    def test_BaseController_next_calls_set_screenshot(self, mocker):
-        controller = controller_mocked_for_next(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.set_screenshot")
-        controller.next(True)
-        mocked.assert_called_once()
-
     def test_BaseController_next_calls_create_snapping_sources(self, mocker):
         controller = controller_mocked_for_next(mocker)
         controller.next(True)

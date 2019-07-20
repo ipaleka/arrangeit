@@ -251,14 +251,14 @@ class BaseController(object):
     :type BaseController.mouse: :class:`BaseMouse`
     :var state: controller's state (LOCATE+0..3, RESIZE+0..3 or OTHER)
     :type state: int
-    :var default_size: available screen size (width, height)
+    :var default_size: default root window size (width, height)
     :type default_size: (int, int)
     :var screenshot_widget: widget holding background image
     :type screenshot_widget: :class:`tk.Label`
     :var screenshot: screenshot image of the window model
     :type screenshot: :class:`tk.PhotoImage`
-    :var screenshot_when_exposed: should screenshot gathering wait for window exposition
-    :type screenshot_when_exposed: Boolean
+    :var BaseController.screenshot_when_exposed: should wait for window exposure
+    :type BaseController.screenshot_when_exposed: Boolean
     :var snapping_targets: dictionary of snapping rectangles grouped by workspace number
     :type snapping_targets: dict
     """
@@ -511,12 +511,11 @@ class BaseController(object):
             if self.model.workspace != old_workspace:
                 self.switch_workspace()
 
-        if not self.screenshot_when_exposed:
-            self.set_screenshot()
-
         self.snapping_targets = self.app.create_snapping_sources(self.model)
         self.set_default_geometry(self.view.master)
         self.view.update_widgets(self.model)
+        if not self.screenshot_when_exposed:
+            self.set_screenshot()
         self.place_on_top_left()
         if first_time:
             self.view.master.geometry(
