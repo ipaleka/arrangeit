@@ -506,6 +506,20 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_next_calls_set_screenshot(self, mocker):
         controller = controller_mocked_for_next(mocker)
+        controller.screenshot_when_exposed = False
+        mocked = mocker.patch("arrangeit.base.BaseController.set_screenshot")
+        controller.next(True)
+        mocked.assert_called_once()
+
+    def test_BaseController_next_not_calling_set_screenshot(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        controller.screenshot_when_exposed = True
+        mocked = mocker.patch("arrangeit.base.BaseController.set_screenshot")
+        controller.next(True)
+        mocked.assert_not_called()
+
+    def test_BaseController_next_calls_set_screenshot(self, mocker):
+        controller = controller_mocked_for_next(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.set_screenshot")
         controller.next(True)
         mocked.assert_called_once()
@@ -747,7 +761,7 @@ class TestBaseControllerDomainLogic(object):
         mocked_next.assert_not_called()
         controller.app.run_task.assert_not_called()
 
-    def test_BaseController_update_positioning_for_resizable_calls_place_on_right(
+    def test_BaseController_update_positioning_for_resizable_calls_place_on_opposite(
         self, mocker
     ):
         controller = controller_mocked_next(mocker)
@@ -756,6 +770,43 @@ class TestBaseControllerDomainLogic(object):
         controller.update_positioning(101, 202)
         mocked.assert_called_once()
 
+    def test_BaseController_update_positioning_for_resizable_calls_master_update(
+        self, mocker
+    ):
+        controller = controller_mocked_next(mocker)
+        controller.model.resizable = True
+        controller.screenshot_when_exposed = True
+        mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
+        mocker.patch("arrangeit.base.BaseController.set_screenshot")
+        controller.update_positioning(109, 243)
+        controller.view.master.update.assert_called_once()
+        controller.view.master.update.assert_called_with()
+
+    def test_BaseController_update_positioning_for_resizable_calls_set_screenshot(
+        self, mocker
+    ):
+        controller = controller_mocked_next(mocker)
+        controller.model.resizable = True
+        controller.screenshot_when_exposed = True
+        mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
+        mocked = mocker.patch("arrangeit.base.BaseController.set_screenshot")
+        controller.update_positioning(110, 244)
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseController_update_positioning_for_resizable_not_calling_set_screenshot(
+        self, mocker
+    ):
+        controller = controller_mocked_next(mocker)
+        controller.model.resizable = True
+        controller.screenshot_when_exposed = False
+        mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
+        mocked = mocker.patch("arrangeit.base.BaseController.set_screenshot")
+        controller.update_positioning(110, 244)
+        mocked.assert_not_called()
+        controller.view.master.update.assert_not_called()
+
+    ## BaseController.update_resizing
     def test_BaseController_update_resizing_corner_0_calls_set_changed(self, mocker):
         view = mocked_setup_view(mocker)
         mocker.patch("arrangeit.base.BaseController.next")

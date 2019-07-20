@@ -34,6 +34,9 @@ class TestBaseController(object):
     def test_BaseController_inits_attr_as_None(self, attr):
         assert getattr(base.BaseController, attr) is None
 
+    def test_BaseController_inits_screenshot_when_exposed_as_False(self):
+        assert base.BaseController.screenshot_when_exposed is False
+
     ## BaseController.__init__
     def test_BaseController_init_sets_app_attribute(self, mocker):
         mocker.patch("arrangeit.base.BaseController.setup")
@@ -109,7 +112,7 @@ class TestBaseController(object):
         controller.default_size = None
         controller.set_default_geometry(root)
         assert mocked.call_count == 1
-        mocked.assert_called_with(w, h , Settings.ROOT_SIZE_DENOMINATOR)
+        mocked.assert_called_with(w, h, Settings.ROOT_SIZE_DENOMINATOR)
 
     def test_BaseController_set_default_geometry_sets_default_size(self, mocker):
         mocked_setup(mocker)
@@ -162,7 +165,9 @@ class TestBaseController(object):
         controller = base.BaseController(app)
         controller.set_screenshot()
         app.grab_window_screen.assert_called_once()
-        app.grab_window_screen.assert_called_with(controller.model)
+        app.grab_window_screen.assert_called_with(
+            controller.model, root_wid=controller.view.get_root_wid.return_value
+        )
 
     def test_BaseController_set_screenshot_sets_screenshot_reference_variable(
         self, mocker
@@ -173,8 +178,6 @@ class TestBaseController(object):
         app.grab_window_screen.return_value = (SAMPLE, (0, 0))
         controller = base.BaseController(app)
         controller.set_screenshot()
-        app.grab_window_screen.assert_called_once()
-        app.grab_window_screen.assert_called_with(controller.model)
         assert controller.screenshot == 50
 
     def test_BaseController_set_screenshot_configures_screenshot_widget(self, mocker):
@@ -1248,7 +1251,7 @@ class TestBaseController(object):
         controller_mocked_key_press(mocker, key)
         mocked.assert_called_with(x, y)
 
-    @pytest.mark.parametrize("key", ["space",])
+    @pytest.mark.parametrize("key", ["space"])
     def test_BaseController_on_key_pressed_calls_skip_current_window(self, mocker, key):
         mocked_setup(mocker)
         mocked = mocker.patch("arrangeit.base.BaseController.skip_current_window")

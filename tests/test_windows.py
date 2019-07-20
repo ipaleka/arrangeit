@@ -209,10 +209,14 @@ class TestWindowsApp(object):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
 
     ## WindowsApp.grab_window_screen
-    @pytest.mark.skip("Research how to deal with black screen for some apps")
+    @pytest.mark.skip("implement this ASAP")
     def test_WindowsApp_grab_window_screen(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        # https://stackoverflow.com/questions/20601813/trouble-capturing-window-with-winapi-bitblt-for-some-applications-only
+
+    ## WindowsApp.thumbnail
+    @pytest.mark.skip("implement this ASAP")
+    def test_WindowsApp_thumbnail(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
 
 
 ## arrangeit.windows.collector
@@ -1006,6 +1010,10 @@ class TestWindowsCollector(object):
 ## arrangeit.windows.controller
 class TestWindowsController(object):
     """Testing class for :py:class:`arrangeit.windows.controller.Controller` class."""
+
+    ## Controller
+    def test_WindowsController_inits_screenshot_when_exposed_as_True(self):
+        assert Controller.screenshot_when_exposed is True
 
     ## Controller.setup_root_window
     def test_WindowsController_setup_root_window_calls_root_overrideredirect(

@@ -71,13 +71,15 @@ class App(BaseApp):
         return False
 
     ## COMMANDS
-    def grab_window_screen(self, model):
+    def grab_window_screen(self, model, root_wid=None):
         """Grabs and returns screenshot of the window from provided model.
 
         TODO implement
 
         :param model: model of the window we want screenshot from
         :type model: :class:`WindowModel`
+        :param root_wid: root window identifier
+        :type root_wid: int
         :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
         """
         return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)

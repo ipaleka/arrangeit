@@ -70,26 +70,33 @@ class App(BaseApp):
         pass
 
     ## COMMANDS
-    def grab_window_screen(self, model, root_hwnd=None):
-        """TODO implement
+    def grab_window_screen(self, model, root_wid=None):
+        """TODO implement and tests
 
         :param model: model of the window we want screenshot from
         :type model: :class:`WindowModel`
+        :param root_wid: root window identifier
+        :type root_wid: int
         :returns: :class:`PIL.ImageTk.PhotoImage`
         """
         if self.collector.api.dwm_is_composition_enabled():
-            return ImageTk.PhotoImage(self.thumbnail(root_hwnd, model)), (0, 0)
+            return ImageTk.PhotoImage(self.thumbnail(model, root_wid)), (0, 0)
         return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)
 
-    def thumbnail(self, root_hwnd, model):
+    def thumbnail(self, model, root_wid):
+        """TODO implement and tests
+
+        :param model: model of the window we want thumbnail from
+        :type model: :class:`WindowModel`
+        :param root_wid: root window identifier
+        :type root_wid: int
+        :returns: :class:`PIL.ImageTk.PhotoImage`
+        """
         self.thumbnail_id = ctypes.wintypes.HANDLE()
-        # ret_val = ctypes.windll.dwmapi.DwmRegisterThumbnail(
-        #     root_hwnd, model.wid, ctypes.byref(self.thumbnail_id)
-        # )
         ret_val = self.collector.api.helpers._dwm_register_thumbnail(
-            root_hwnd, model.wid, ctypes.byref(self.thumbnail_id)
+            root_wid, model.wid, ctypes.byref(self.thumbnail_id)
         )
-        print(hex(ret_val), "start:", self.thumbnail_id, root_hwnd, model.wid)
+        print(hex(ret_val), "start:", self.thumbnail_id, root_wid, model.wid)
 
         from arrangeit.windows.api import DWM_THUMBNAIL_PROPERTIES
 
@@ -117,9 +124,6 @@ class App(BaseApp):
         properties.opacity = opacity
         properties.fVisible = True
         properties.fSourceClientAreaOnly = False
-        # ret_val = ctypes.windll.dwmapi.DwmUpdateThumbnailProperties(
-        #     self.thumbnail_id, ctypes.byref(properties)
-        # )
         ret_val = self.collector.api.helpers._dwm_update_thumbnail_properties(
             self.thumbnail_id, ctypes.byref(properties)
         )
@@ -128,10 +132,9 @@ class App(BaseApp):
         from win32gui import GetWindowRect
         from PIL import ImageGrab
 
-        bbox = GetWindowRect(root_hwnd)
+        bbox = GetWindowRect(root_wid)
         img = ImageGrab.grab(bbox)
 
-        # ret_val = ctypes.windll.dwmapi.DwmUnregisterThumbnail(self.thumbnail_id)
         ret_val = self.collector.api.helpers._dwm_unregister_thumbnail(
             self.thumbnail_id
         )

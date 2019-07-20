@@ -231,7 +231,7 @@ class BaseApp(object):
             )
         return sources
 
-    def grab_window_screen(self, model):
+    def grab_window_screen(self, model, root_wid=None):
         """Method must be overridden."""
         raise NotImplementedError
 
@@ -257,6 +257,8 @@ class BaseController(object):
     :type screenshot_widget: :class:`tk.Label`
     :var screenshot: screenshot image of the window model
     :type screenshot: :class:`tk.PhotoImage`
+    :var screenshot_when_exposed: should screenshot gathering wait for window exposition
+    :type screenshot_when_exposed: Boolean
     :var snapping_targets: dictionary of snapping rectangles grouped by workspace number
     :type snapping_targets: dict
     """
@@ -270,6 +272,7 @@ class BaseController(object):
     default_size = None
     screenshot_widget = None
     screenshot = None
+    screenshot_when_exposed = False
     snapping_targets = None
 
     def __init__(self, app):
@@ -325,10 +328,9 @@ class BaseController(object):
         :var offset: offset (x, y)
         :type offset: (int, int)
         """
-        # self.screenshot, offset = self.app.grab_window_screen(
-            # self.model, root_hwnd=self.view.get_root_wid()
-        # )  # NOTE DWM
-        self.screenshot, offset = self.app.grab_window_screen(self.model)
+        self.screenshot, offset = self.app.grab_window_screen(
+            self.model, root_wid=self.view.get_root_wid()
+        )
         self.screenshot_widget.config(image=self.screenshot)
         self.screenshot_widget.place(
             x=offset[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
@@ -509,7 +511,9 @@ class BaseController(object):
             if self.model.workspace != old_workspace:
                 self.switch_workspace()
 
-        self.set_screenshot()
+        if not self.screenshot_when_exposed:
+            self.set_screenshot()
+
         self.snapping_targets = self.app.create_snapping_sources(self.model)
         self.set_default_geometry(self.view.master)
         self.view.update_widgets(self.model)
@@ -585,8 +589,9 @@ class BaseController(object):
         else:
             self.state = self.resizing_state_counterpart()
             self.place_on_opposite_corner()
-            # self.view.master.update()  # NOTE DWM
-            # self.set_screenshot()  # NOTE DWM
+            if self.screenshot_when_exposed:
+                self.view.master.update()
+                self.set_screenshot()
 
     def update_resizing(self, x, y):
         """Updates model related to provided cursor position and current root size

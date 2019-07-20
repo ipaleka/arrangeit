@@ -164,7 +164,7 @@ class App(BaseApp):
         )
 
     ## COMMANDS
-    def grab_window_screen(self, model):
+    def grab_window_screen(self, model, root_wid=None):
         """Grabs and returns screenshot of the window from provided model.
 
         We can't include window decoration in image so offset in pixels
@@ -172,13 +172,15 @@ class App(BaseApp):
 
         :param model: model of the window we want screenshot from
         :type model: :class:`WindowModel`
-        :param window: model window instance
+        :param root_wid: root window identifier - not needed for GNU/Linux
+        :type root_wid: int
+        :var window: model window instance
         :type window: :class:`Gdk.Window`
-        :param pixbuf: X11 pixbuf image
+        :var pixbuf: X11 pixbuf image
         :type pixbuf: binary data
-        :param width: window width in pixels without window manager decoration
+        :var width: window width in pixels without window manager decoration
         :type width: int
-        :param height: window height in pixels without window manager decoration
+        :var height: window height in pixels without window manager decoration
         :type height: int
         :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
         """
