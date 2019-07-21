@@ -4,15 +4,17 @@ import ctypes.wintypes
 import pytest
 
 import arrangeit.windows.api as api
-from arrangeit.utils import Rectangle
 from arrangeit.windows.api import (
+    DWM_TNP_OPACITY,
     DWM_TNP_RECTDESTINATION,
     DWM_TNP_RECTSOURCE,
-    DWM_TNP_OPACITY,
-    DWM_TNP_VISIBLE,
     DWM_TNP_SOURCECLIENTAREAONLY,
+    DWM_TNP_VISIBLE,
+    DWMWA_CLOAKED,
+    DWMWA_EXTENDED_FRAME_BOUNDS,
     S_OK,
     Api,
+    Rectangle,
     platform_supports_packages,
 )
 
@@ -184,6 +186,19 @@ class TestWindowsApiApiPrivate(object):
         returned = Api()._update_thumbnail(THUMBNAIL_ID, Rectangle(0, 0, 0, 0))
         assert returned is THUMBNAIL_ID
 
+    # Api._wintypes_rect_to_rectangle
+    def test_api_Api__wintypes_rect_to_rectangle_calls_and_returns_Rectangle(
+        self, mocker
+    ):
+        winrect = ctypes.wintypes.RECT()
+        winrect.left = 100
+        winrect.top = 200
+        winrect.right = 700
+        winrect.bottom = 800
+        returned = Api()._wintypes_rect_to_rectangle(winrect)
+        assert isinstance(returned, Rectangle)
+        assert tuple(returned) == (100, 200, 700, 800)
+
 
 # Api class public methods
 class TestWindowsApiApiPublic(object):
@@ -206,91 +221,66 @@ class TestWindowsApiApiPublic(object):
         mocked.assert_called_with()
         assert api.helpers == mocked.return_value
 
-    # dwm_is_composition_enabled
-    def test_Api_dwm_is_composition_enabled_calls_wintypes_BOOL(self, mocker):
-        mocker.patch("ctypes.byref")
-        mocker.patch("arrangeit.windows.api.Helpers")
-        mocked = mocker.patch("ctypes.wintypes.BOOL")
-        Api().dwm_is_composition_enabled()
-        mocked.assert_called_once()
-        mocked.assert_called_with()
-
-    def test_Api_dwm_is_composition_enabled_calls_ctypes_byref(self, mocker):
-        mocked_enabled = mocker.patch("ctypes.wintypes.BOOL")
-        mocker.patch("arrangeit.windows.api.Helpers")
-        mocked = mocker.patch("ctypes.byref")
-        Api().dwm_is_composition_enabled()
-        mocked.assert_called_once()
-        mocked.assert_called_with(mocked_enabled.return_value)
-
-    def test_Api_dwm_is_composition_enabled_calls__dwm_is_composition_enabled(
-        self, mocker
-    ):
-        mocker.patch("ctypes.wintypes.BOOL")
-        mocked_byref = mocker.patch("ctypes.byref")
-        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        Api().dwm_is_composition_enabled()
-        mocked_helpers.return_value._dwm_is_composition_enabled.assert_called_once()
-        mocked_helpers.return_value._dwm_is_composition_enabled.assert_called_with(
-            mocked_byref.return_value
-        )
-
-    def test_Api_dwm_is_composition_enabled_returns_value(self, mocker):
-        mocker.patch("ctypes.byref")
-        mocker.patch("arrangeit.windows.api.Helpers")
-        mocked = mocker.patch("ctypes.wintypes.BOOL")
-        returned = Api().dwm_is_composition_enabled()
-        assert returned is mocked.return_value.value
-
-    # dwm_window_attribute_value
-    def test_Api_dwm_window_attribute_value_calls_wintypes_DWORD(self, mocker):
+    # cloaked_value
+    def test_Api_cloaked_value_calls_wintypes_DWORD(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
-        Api().dwm_window_attribute_value(5070, 14)
+        Api().cloaked_value(5070)
         calls = [mocker.call()]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_Api_dwm_window_attribute_value_calls_ctypes_byref(self, mocker):
+    def test_Api_cloaked_value_calls_ctypes_byref(self, mocker):
         mocked_value = mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.sizeof")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.byref")
-        Api().dwm_window_attribute_value(5071, 14)
+        Api().cloaked_value(5071)
         mocked.assert_called_once()
         mocked.assert_called_with(mocked_value.return_value)
 
-    def test_Api_dwm_window_attribute_value_calls_ctypes_sizeof(self, mocker):
+    def test_Api_cloaked_value_calls_ctypes_sizeof(self, mocker):
         mocked_value = mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.sizeof")
-        Api().dwm_window_attribute_value(5072, 14)
+        Api().cloaked_value(5072)
         mocked.assert_called_once()
         mocked.assert_called_with(mocked_value.return_value)
 
-    def test_Api_dwm_window_attribute_value_calls__dwm_get_window_attribute(
+    def test_Api_cloaked_value_calls__dwm_get_window_attribute(
         self, mocker
     ):
         mocker.patch("ctypes.wintypes.DWORD")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_sizeof = mocker.patch("ctypes.sizeof")
-        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        HWND, ATTRIBUTE = 5073, 14
-        Api().dwm_window_attribute_value(HWND, ATTRIBUTE)
-        mocked_helpers.return_value._dwm_get_window_attribute.assert_called_once()
-        mocked_helpers.return_value._dwm_get_window_attribute.assert_called_with(
-            HWND, ATTRIBUTE, mocked_byref.return_value, mocked_sizeof.return_value
+        mocked = mocker.patch("arrangeit.windows.api.Helpers")
+        HWND = 5073
+        Api().cloaked_value(HWND)
+        mocked.return_value._dwm_get_window_attribute.assert_called_once()
+        mocked.return_value._dwm_get_window_attribute.assert_called_with(
+            HWND, DWMWA_CLOAKED, mocked_byref.return_value, mocked_sizeof.return_value
         )
 
-    def test_Api_dwm_window_attribute_value_returns_value(self, mocker):
+    def test_Api_cloaked_value_returns_0(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
-        mocker.patch("arrangeit.windows.api.Helpers")
+        mocker.patch("ctypes.wintypes.DWORD")
+        mocked = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked.return_value._dwm_get_window_attribute.return_value = 1
+        returned = Api().cloaked_value(5075)
+        assert returned == 0
+
+    def test_Api_cloaked_value_returns_value(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("ctypes.create_string_buffer")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
-        returned = Api().dwm_window_attribute_value(5074, 14)
+        mocked_helpers.return_value._dwm_get_window_attribute.return_value = S_OK
+        returned = Api().cloaked_value(5076)
         assert returned is mocked.return_value.value
 
     # enum_windows
@@ -435,6 +425,71 @@ class TestWindowsApiApiPublic(object):
         mocked.assert_not_called()
         assert returned is None
 
+    # extended_frame_rect
+    def test_Api_extended_frame_rect_calls_wintypes_RECT(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.RECT")
+        Api().extended_frame_rect(7070)
+        calls = [mocker.call()]
+        mocked.assert_has_calls(calls, any_order=True)
+
+    def test_Api_extended_frame_rect_calls_ctypes_byref(self, mocker):
+        mocked_value = mocker.patch("ctypes.wintypes.RECT")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.byref")
+        Api().extended_frame_rect(7071)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_value.return_value)
+
+    def test_Api_extended_frame_rect_calls_ctypes_sizeof(self, mocker):
+        mocked_value = mocker.patch("ctypes.wintypes.RECT")
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.sizeof")
+        Api().extended_frame_rect(7072)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_value.return_value)
+
+    def test_Api_extended_frame_rect_calls__dwm_get_window_attribute(
+        self, mocker
+    ):
+        mocker.patch("ctypes.wintypes.RECT")
+        mocked_byref = mocker.patch("ctypes.byref")
+        mocked_sizeof = mocker.patch("ctypes.sizeof")
+        mocked = mocker.patch("arrangeit.windows.api.Helpers")
+        HWND = 7073
+        Api().extended_frame_rect(HWND)
+        mocked.return_value._dwm_get_window_attribute.assert_called_once()
+        mocked.return_value._dwm_get_window_attribute.assert_called_with(
+            HWND, DWMWA_EXTENDED_FRAME_BOUNDS, mocked_byref.return_value, mocked_sizeof.return_value
+        )
+
+    def test_Api_extended_frame_rect_returns_None(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("ctypes.wintypes.RECT")
+        mocked = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked.return_value._dwm_get_window_attribute.return_value = 1
+        returned = Api().extended_frame_rect(7075)
+        assert returned is None
+
+    def test_Api_extended_frame_rect_calls_and_returns_wintypes_rect_to_rectangle(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("ctypes.create_string_buffer")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked_rect = mocker.patch("ctypes.wintypes.RECT")
+        mocked = mocker.patch("arrangeit.windows.api.Api._wintypes_rect_to_rectangle")
+        mocked_helpers.return_value._dwm_get_window_attribute.return_value = S_OK
+        returned = Api().extended_frame_rect(7076)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_rect.return_value)
+        assert returned == mocked.return_value
+
     # get_ancestor_by_type
     def test_Api_get_ancestor_by_type_calls_and_returns__get_ancestor(self, mocker):
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -454,6 +509,42 @@ class TestWindowsApiApiPublic(object):
         assert (
             returned == mocked_helpers.return_value._get_last_active_popup.return_value
         )
+
+    # is_dwm_composition_enabled
+    def test_Api_is_dwm_composition_enabled_calls_wintypes_BOOL(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.BOOL")
+        Api().is_dwm_composition_enabled()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_Api_is_dwm_composition_enabled_calls_ctypes_byref(self, mocker):
+        mocked_enabled = mocker.patch("ctypes.wintypes.BOOL")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.byref")
+        Api().is_dwm_composition_enabled()
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_enabled.return_value)
+
+    def test_Api_is_dwm_composition_enabled_calls__dwm_is_composition_enabled(
+        self, mocker
+    ):
+        mocker.patch("ctypes.wintypes.BOOL")
+        mocked_byref = mocker.patch("ctypes.byref")
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        Api().is_dwm_composition_enabled()
+        mocked_helpers.return_value._dwm_is_composition_enabled.assert_called_once()
+        mocked_helpers.return_value._dwm_is_composition_enabled.assert_called_with(
+            mocked_byref.return_value
+        )
+
+    def test_Api_is_dwm_composition_enabled_returns_value(self, mocker):
+        mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.BOOL")
+        returned = Api().is_dwm_composition_enabled()
+        assert returned is mocked.return_value.value
 
     # setup_thumbnail
     def test_Api_setup_thumbnail_calls_wintypes_HANDLE(self, mocker):

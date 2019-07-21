@@ -38,7 +38,6 @@ from win32gui import (
     GetClassName,
     GetDC,
     GetWindowLong,
-    GetWindowPlacement,
     GetWindowText,
     IsIconic,
     IsWindow,
@@ -47,8 +46,6 @@ from win32gui import (
     SendMessageTimeout,
 )
 from win32ui import CreateBitmap, CreateDCFromHandle
-
-DWMWA_CLOAKED = 14
 
 
 class Collector(BaseCollector):
@@ -148,10 +145,17 @@ class Collector(BaseCollector):
 
         :param hwnd: window id
         :type hwnd: int
+        :param rectangle: window rectangle
+        :type rectangle: :class:`arrangeit.utils.Rectangle`
         :returns: (int, int, int, int)
         """
-        left, top, right, bottom = GetWindowPlacement(hwnd)[-1]
-        return (left, top, right - left, bottom - top)
+        rectangle = self.api.extended_frame_rect(hwnd)
+        return (
+            rectangle.x0,
+            rectangle.y0,
+            rectangle.x1 - rectangle.x0,
+            rectangle.y1 - rectangle.y0,
+        )
 
     def _get_window_title(self, hwnd):
         """Returns title/caption of the window represented by provided handle.
@@ -194,11 +198,13 @@ class Collector(BaseCollector):
     def _is_cloaked(self, hwnd):
         """Checks if provided hwnd represents window that is "cloaked".
 
+        TODO check what to do with cloaked in another workspaces
+
         :param hwnd: window id
         :type hwnd: int
         :returns: Boolean
         """
-        return self.api.dwm_window_attribute_value(hwnd, DWMWA_CLOAKED) != 0
+        return self.api.cloaked_value(hwnd) != 0
 
     def _is_tool_window(self, hwnd):
         """Checks if provided hwnd represents tool window.

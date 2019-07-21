@@ -26,7 +26,7 @@ from itertools import product
 from PIL import Image
 
 from arrangeit.settings import Settings
-from arrangeit.utils import open_image
+from arrangeit.utils import Rectangle, open_image
 from arrangeit.windows.utils import extract_name_from_bytes_path
 
 APPMODEL_ERROR_NO_PACKAGE = 15700
@@ -41,6 +41,8 @@ UWP_ICON_SUFFIXES = (
     "",  # as is
     ".scale-100",
 )
+DWMWA_CLOAKED = 14
+DWMWA_EXTENDED_FRAME_BOUNDS = 9
 DWM_TNP_RECTDESTINATION = 0x00000001
 DWM_TNP_RECTSOURCE = 0x00000002
 DWM_TNP_OPACITY = 0x00000004
@@ -677,7 +679,7 @@ class Api(object):
     def _rectangle_to_wintypes_rect(self, rectangle):
         """Creates and returns wintypes RECT instance from provided rectangle.
 
-        :param rectangle: area in source window
+        :param rectangle: area represented with x0 y0 x1 y1 points
         :type rectangle: :class:`arrangeit.utils.Rectangle`
         :var winrect: rectangle as ctypes.wintypes type
         :type winrect: :class:`ctypes.wintypes.RECT`
@@ -730,35 +732,34 @@ class Api(object):
 
         return thumbnail_id
 
-    def dwm_is_composition_enabled(self):
-        """Helper function returning True if DWM composition is enabled in system.
+    def _wintypes_rect_to_rectangle(self, winrect):
+        """Creates and returns Rectangle from provided wintypes RECT instance.
 
-        :var enabled: composition enabled or not value
-        :type enabled: :class:`ctypes.wintypes.BOOL`
-        :returns: Boolean
+        :param winrect: rectangle as ctypes.wintypes type
+        :type winrect: :class:`ctypes.wintypes.RECT`
+        :returns: :class:`arrangeit.utils.Rectangle`
         """
-        enabled = ctypes.wintypes.BOOL()
-        self.helpers._dwm_is_composition_enabled(ctypes.byref(enabled))
-        return enabled.value
+        return Rectangle(winrect.left, winrect.top, winrect.right, winrect.bottom)
 
-    def dwm_window_attribute_value(self, hwnd, attribute):
-        """Helper function to return DWM attribute value for window with provided hwnd.
+    def cloaked_value(self, hwnd):
+        """Helper function to return DWM cloaked value for window with provided hwnd.
 
-        TODO check what to do with cloaked in another workspaces
+        0 is returned for Windows 7 and earlier versions (helper method returns
+        error value).
 
         :param hwnd: window id
         :type hwnd: int
-        :param attribute: DWM attribute type
-        :type attribute: int
-        :var dwm_value: flag holding non-zero value if window has attribute
-        :type dwm_value: :class:`ctypes.wintypes.INT`
+        :var cloaked: flag holding non-zero value if window is cloaked
+        :type cloaked: :class:`ctypes.wintypes.INT`
+        :var ret_val: function returned value indicating error/success status
+        :type ret_val: int
         :returns: int
         """
-        dwm_value = ctypes.wintypes.DWORD()
-        self.helpers._dwm_get_window_attribute(
-            hwnd, attribute, ctypes.byref(dwm_value), ctypes.sizeof(dwm_value)
+        cloaked = ctypes.wintypes.DWORD()
+        ret_val = self.helpers._dwm_get_window_attribute(
+            hwnd, DWMWA_CLOAKED, ctypes.byref(cloaked), ctypes.sizeof(cloaked)
         )
-        return dwm_value.value
+        return cloaked.value if ret_val == S_OK else 0
 
     def enum_windows(self, hwnd=None, enum_children=False):
         """Helper function to enumerate either desktop windows or children windows
@@ -817,6 +818,34 @@ class Api(object):
         if ret_val:
             return extract_name_from_bytes_path(path_buffer.value)
 
+    def extended_frame_rect(self, hwnd):
+        """Helper function to return DWM frame rect for window with provided hwnd.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :var winrect: area of window extended bounds
+        :type winrect: :class:`ctypes.wintypes.RECT`
+        :var ret_val: function returned value indicating success for value > 0
+        :type ret_val: int
+        :returns: int
+        """
+        winrect = ctypes.wintypes.RECT()
+        ret_val = self.helpers._dwm_get_window_attribute(
+            hwnd,
+            DWMWA_EXTENDED_FRAME_BOUNDS,
+            ctypes.byref(winrect),
+            ctypes.sizeof(winrect),
+        )
+        if ret_val != S_OK:
+            logging.info(
+                "extended_frame_rect: error -> {}".format(
+                    str(ctypes.WinError(ctypes.get_last_error()))
+                )
+            )
+            return None
+
+        return self._wintypes_rect_to_rectangle(winrect)
+
     def get_ancestor_by_type(self, hwnd, ancestor_type):
         """Helper function to return hwnd of ancestor window of window with given hwnd.
 
@@ -864,6 +893,17 @@ class Api(object):
         package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
         self.helpers._close_package_info(package_info_reference.contents)
         return Package(package_info.path)
+
+    def is_dwm_composition_enabled(self):
+        """Helper function returning True if DWM composition is enabled in system.
+
+        :var enabled: composition enabled or not value
+        :type enabled: :class:`ctypes.wintypes.BOOL`
+        :returns: Boolean
+        """
+        enabled = ctypes.wintypes.BOOL()
+        self.helpers._dwm_is_composition_enabled(ctypes.byref(enabled))
+        return enabled.value
 
     def setup_thumbnail(self, from_hwnd, root_hwnd, rectangle):
         """Create, updates and returns handle of thumbnail of provided source window

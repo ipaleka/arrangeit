@@ -3,7 +3,7 @@ import pytest
 from arrangeit.settings import Settings
 from arrangeit.windows.api import Package
 from arrangeit.windows.app import App
-from arrangeit.windows.collector import DWMWA_CLOAKED, GCL_HICON, WM_GETICON, Collector
+from arrangeit.windows.collector import GCL_HICON, WM_GETICON, Collector
 from arrangeit.windows.controller import Controller
 from arrangeit.windows.utils import extract_name_from_bytes_path, user_data_path
 from win32con import (
@@ -209,32 +209,34 @@ class TestWindowsApp(object):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
 
     ## WindowsApp._window_area_desktop_screenshot
-    def test_WindowsApp__window_area_desktop_screenshot_calls_GetWindowRect(
+    def test_WindowsApp__window_area_desktop_screenshot_calls_extended_frame_rect(
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.windows.app.ImageGrab")
-        mocked = mocker.patch("arrangeit.windows.app.GetWindowRect")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         HWND = 101
         App()._window_area_desktop_screenshot(HWND)
-        mocked.assert_called_once()
-        mocked.assert_called_with(HWND)
+        mocked.return_value.return_value.api.extended_frame_rect.assert_called_once()
+        mocked.return_value.return_value.api.extended_frame_rect.assert_called_with(
+            HWND
+        )
 
     def test_WindowsApp__window_area_desktop_screenshot_calls_and_returns_grab(
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.base.BaseApp.setup_collector")
-        mocked_rect = mocker.patch("arrangeit.windows.app.GetWindowRect")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.windows.app.ImageGrab")
         returned = App()._window_area_desktop_screenshot(102)
         mocked.grab.assert_called_once()
-        mocked.grab.assert_called_with(mocked_rect.return_value)
+        mocked.grab.assert_called_with(
+            mocked_collector.return_value.return_value.api.extended_frame_rect.return_value
+        )
         assert returned == mocked.grab.return_value
 
     ## WindowsApp.grab_window_screen
-    def test_WindowsApp_grab_window_screen_calls_dwm_is_composition_enabled(
+    def test_WindowsApp_grab_window_screen_calls_is_dwm_composition_enabled(
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
@@ -243,8 +245,8 @@ class TestWindowsApp(object):
         mocker.patch("arrangeit.windows.app.ImageTk")
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         App().grab_window_screen(None, None)
-        mocked.return_value.return_value.api.dwm_is_composition_enabled.assert_called_once()
-        mocked.return_value.return_value.api.dwm_is_composition_enabled.assert_called_with()
+        mocked.return_value.return_value.api.is_dwm_composition_enabled.assert_called_once()
+        mocked.return_value.return_value.api.is_dwm_composition_enabled.assert_called_with()
 
     def test_WindowsApp_grab_window_screen_calls__screenshot_with_thumbnails(
         self, mocker
@@ -253,7 +255,9 @@ class TestWindowsApp(object):
         mocker.patch("arrangeit.windows.app.get_prepared_screenshot")
         mocker.patch("arrangeit.windows.app.ImageTk")
         mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
-        mocked_collector.return_value.return_value.api.dwm_is_composition_enabled.return_value = True
+        mocked_collector.return_value.return_value.api.is_dwm_composition_enabled.return_value = (
+            True
+        )
         mocked = mocker.patch("arrangeit.windows.app.App._screenshot_with_thumbnails")
         MODEL, ROOT_WID = 1, 2
         App().grab_window_screen(MODEL, ROOT_WID)
@@ -267,7 +271,9 @@ class TestWindowsApp(object):
         )
         mocker.patch("arrangeit.windows.app.ImageTk")
         mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
-        mocked_collector.return_value.return_value.api.dwm_is_composition_enabled.return_value = True
+        mocked_collector.return_value.return_value.api.is_dwm_composition_enabled.return_value = (
+            True
+        )
         mocked = mocker.patch("arrangeit.windows.app.get_prepared_screenshot")
         returned = App().grab_window_screen(2, 3)
         mocked.assert_called_once()
@@ -283,7 +289,9 @@ class TestWindowsApp(object):
         mocker.patch("arrangeit.windows.app.App._screenshot_with_thumbnails")
         mocker.patch("arrangeit.windows.app.get_prepared_screenshot")
         mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
-        mocked_collector.return_value.return_value.api.dwm_is_composition_enabled.return_value = False
+        mocked_collector.return_value.return_value.api.is_dwm_composition_enabled.return_value = (
+            False
+        )
         mocked = mocker.patch("arrangeit.windows.app.ImageTk")
         returned = App().grab_window_screen(None, None)
         mocked.PhotoImage.assert_called_once()
@@ -326,7 +334,10 @@ class TestWindowsApp(object):
         mocker.patch("arrangeit.windows.app.Rectangle")
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked.return_value.return_value.api.setup_thumbnail.side_effect = [None, "foo"]
-        assert App()._screenshot_with_thumbnails(mocker.MagicMock(), 2052) is Settings.BLANK_ICON
+        assert (
+            App()._screenshot_with_thumbnails(mocker.MagicMock(), 2052)
+            is Settings.BLANK_ICON
+        )
 
     def test_WindowsApp__screenshot_with_thumbnails_calls_Rectangle_right(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_collector")
@@ -359,7 +370,10 @@ class TestWindowsApp(object):
         mocker.patch("arrangeit.windows.app.Rectangle")
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked.return_value.return_value.api.setup_thumbnail.side_effect = ["foo", None]
-        assert App()._screenshot_with_thumbnails(mocker.MagicMock(), 2094) is Settings.BLANK_ICON
+        assert (
+            App()._screenshot_with_thumbnails(mocker.MagicMock(), 2094)
+            is Settings.BLANK_ICON
+        )
 
     def test_WindowsApp__screenshot_with_thumbnails_calls__window_area_desktop_scsh(
         self, mocker
@@ -392,12 +406,12 @@ class TestWindowsApp(object):
             THUMBNAIL1,
             THUMBNAIL2,
         ]
-        mocker.patch(
-            "arrangeit.windows.app.App._window_area_desktop_screenshot"
-        )
+        mocker.patch("arrangeit.windows.app.App._window_area_desktop_screenshot")
         App()._screenshot_with_thumbnails(mocker.MagicMock(), 5097)
         calls = [mocker.call(THUMBNAIL1), mocker.call(THUMBNAIL2)]
-        mocked.return_value.return_value.api.unregister_thumbnail.assert_has_calls(calls, any_order=True)
+        mocked.return_value.return_value.api.unregister_thumbnail.assert_has_calls(
+            calls, any_order=True
+        )
 
     def test_WindowsApp__screenshot_with_thumbnails_returns__window_area_desktop_scsh(
         self, mocker
@@ -702,30 +716,26 @@ class TestWindowsCollector(object):
         assert returned == mocked.return_value
 
     ## WindowsCollector._get_window_geometry
-    def test_WindowsCollector__get_window_geometry_calls(self, mocker):
-        mocked = mocker.patch(
-            "arrangeit.windows.collector.GetWindowPlacement",
-            return_value=(0, 0, (0, 0), (0, 0), (0, 0, 0, 0)),
-        )
+    def test_WindowsCollector__get_window_geometry_calls_extended_frame_rect(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
         Collector()._get_window_geometry(SAMPLE_HWND)
         mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND)
 
-    @pytest.mark.parametrize(
-        "rect,expected",
-        [
-            ((0, 0, (0, 0), (0, 0), (0, 0, 200, 300)), (0, 0, 200, 300)),
-            ((0, 0, (0, 0), (0, 0), (100, 200, 200, 300)), (100, 200, 100, 100)),
-            ((0, 0, (0, 0), (0, 0), (500, 400, 700, 500)), (500, 400, 200, 100)),
-            ((0, 0, (0, 0), (0, 0), (200, 200, 200, 300)), (200, 200, 0, 100)),
-        ],
-    )
-    def test_WindowsCollector__get_window_geometry_functionality(
-        self, mocker, rect, expected
+    def test_WindowsCollector__get_window_geometry_returns_tuple_rect(
+        self, mocker
     ):
-        mocker.patch(
-            "arrangeit.windows.collector.GetWindowPlacement", return_value=rect
-        )
-        assert Collector()._get_window_geometry(SAMPLE_HWND) == expected
+        rect = mocker.MagicMock()
+        rect.x0 = 100
+        rect.y0 = 200
+        rect.x1 = 500
+        rect.y1 = 400
+        mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect", return_value=rect)
+        returned = Collector()._get_window_geometry(SAMPLE_HWND)
+        assert isinstance(returned, tuple)
+        assert returned == (100, 200, 400, 200)
 
     ## WindowsCollector._get_window_title
     @pytest.mark.parametrize("method", ["GetWindowText"])
@@ -817,21 +827,16 @@ class TestWindowsCollector(object):
         assert not Collector()._is_alt_tab_applicable(SAMPLE_HWND)
 
     ## WindowsCollector._is_cloaked
-    def test_WindowsCollector__is_cloaked_calls_dwm_window_attribute_value(
-        self, mocker
-    ):
-        mocked = mocker.patch(
-            "arrangeit.windows.collector.Api.dwm_window_attribute_value"
-        )
+    def test_WindowsCollector__is_cloaked_calls_cloaked_value(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.collector.Api.cloaked_value")
         Collector()._is_cloaked(SAMPLE_HWND)
         mocked.assert_called_once()
-        mocked.assert_called_with(SAMPLE_HWND, DWMWA_CLOAKED)
+        mocked.assert_called_with(SAMPLE_HWND)
 
     @pytest.mark.parametrize("value,expected", [(0, False), (1, True), (2, True)])
     def test_WindowsCollector__is_cloaked_return(self, mocker, value, expected):
         mocker.patch(
-            "arrangeit.windows.collector.Api.dwm_window_attribute_value",
-            return_value=value,
+            "arrangeit.windows.collector.Api.cloaked_value", return_value=value
         )
         assert Collector()._is_cloaked(SAMPLE_HWND) == expected
 
@@ -1148,19 +1153,48 @@ class TestWindowsCollector(object):
         assert Collector().is_restored(SAMPLE_HWND) == expected
 
     ## WindowsCollector.is_valid_state
-    @pytest.mark.parametrize("method", ["_is_activable"])
-    def test_WindowsCollector_is_valid_state_calls(self, mocker, method):
-        mocked = mocker.patch("arrangeit.windows.collector.Collector.{}".format(method))
+    def test_WindowsCollector_is_valid_state_calls__is_activable(self, mocker ):
+        mocker.patch("arrangeit.windows.collector.Collector._is_cloaked")
+        mocked = mocker.patch("arrangeit.windows.collector.Collector._is_activable")
         Collector().is_valid_state(SAMPLE_HWND)
         mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND)
+
+    def test_WindowsCollector_is_valid_state_calls__is_cloaked(self, mocker ):
+        mocker.patch("arrangeit.windows.collector.Collector._is_activable", return_value=True)
+        mocked = mocker.patch("arrangeit.windows.collector.Collector._is_cloaked")
+        Collector().is_valid_state(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND)
 
     @pytest.mark.parametrize(
         "method,value,expected",
         [("_is_activable", True, True), ("_is_activable", False, False)],
     )
-    def test_WindowsCollector_is_valid_state_return_value(
+    def test_WindowsCollector_is_valid_state_return_value_for_activable(
         self, mocker, method, value, expected
     ):
+        mocker.patch(
+            "arrangeit.windows.collector.Collector._is_cloaked",
+            return_value=False,
+        )
+        mocker.patch(
+            "arrangeit.windows.collector.Collector.{}".format(method),
+            return_value=value,
+        )
+        assert Collector().is_valid_state(SAMPLE_HWND) == expected
+
+    @pytest.mark.parametrize(
+        "method,value,expected",
+        [("_is_cloaked", True, False), ("_is_cloaked", False, True)],
+    )
+    def test_WindowsCollector_is_valid_state_return_value_for_cloaked(
+        self, mocker, method, value, expected
+    ):
+        mocker.patch(
+            "arrangeit.windows.collector.Collector._is_activable",
+            return_value=True,
+        )
         mocker.patch(
             "arrangeit.windows.collector.Collector.{}".format(method),
             return_value=value,

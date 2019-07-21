@@ -20,7 +20,7 @@ from arrangeit.base import BaseApp
 from arrangeit.settings import Settings
 from arrangeit.utils import Rectangle, get_prepared_screenshot
 from win32con import SW_MINIMIZE, SW_RESTORE
-from win32gui import GetWindowRect, IsIconic, MoveWindow, SetActiveWindow, ShowWindow
+from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 
 
 class App(BaseApp):
@@ -74,7 +74,7 @@ class App(BaseApp):
         :type hwnd: int
         :returns: :class:`PIL.Image.Image`
         """
-        return ImageGrab.grab(GetWindowRect(hwnd))
+        return ImageGrab.grab(self.collector.api.extended_frame_rect(hwnd))
 
     def grab_window_screen(self, model, root_wid=None):
         """Setups and returns screenshot of the window from provided model.
@@ -88,7 +88,7 @@ class App(BaseApp):
         :type root_wid: int
         :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
         """
-        if self.collector.api.dwm_is_composition_enabled():
+        if self.collector.api.is_dwm_composition_enabled():
             return (
                 get_prepared_screenshot(
                     self._screenshot_with_thumbnails(model, root_wid),
