@@ -154,6 +154,10 @@ class BaseApp(object):
         with open(os.path.join(directory, "default.json"), "w") as default:
             json.dump(self.collector.collection.export(), default)
 
+    def screenshot_cleanup(self, *args):
+        """Override if platform needs cleanup after screenshot is taken."""
+        pass
+
     ## COMMANDS
     def _save_setting(self, names, value):
         """Saves user settings with provided names with provided value
@@ -336,6 +340,8 @@ class BaseController(object):
             x=offset[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
             y=offset[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
         )
+        self.view.master.update_idletasks()
+        self.app.run_task("screenshot_cleanup")
 
     def setup(self):
         """Initializes Tkinter ViewApplication with root window and self as arguments.
@@ -589,7 +595,7 @@ class BaseController(object):
             self.state = self.resizing_state_counterpart()
             self.place_on_opposite_corner()
             if self.screenshot_when_exposed:
-                self.view.master.update()
+                self.view.master.update_idletasks()
                 self.set_screenshot()
 
     def update_resizing(self, x, y):

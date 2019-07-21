@@ -207,6 +207,25 @@ class TestBaseController(object):
         ]
         mocked.return_value.place.assert_has_calls(calls, any_order=True)
 
+    def test_BaseController_set_screenshot_calls_master_update(self, mocker):
+        view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.get_screenshot_widget")
+        app = mocker.MagicMock()
+        app.grab_window_screen.return_value = (None, (10, 11))
+        controller = base.BaseController(app)
+        controller.set_screenshot()
+        view.return_value.master.update_idletasks.assert_called_once()
+
+    def test_BaseController_set_screenshot_calls_run_task(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.get_screenshot_widget")
+        app = mocker.MagicMock()
+        app.grab_window_screen.return_value = (None, (15, 16))
+        controller = base.BaseController(app)
+        controller.set_screenshot()
+        app.run_task.assert_called_once()
+        app.run_task.assert_called_with("screenshot_cleanup")
+
     ## BaseController.setup
     def test_BaseController_setup_calls_get_tkinter_root(self, mocker):
         mocked = mocked_setup_root(mocker)

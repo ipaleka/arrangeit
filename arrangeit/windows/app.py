@@ -26,6 +26,8 @@ from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 class App(BaseApp):
     """Main app class with MS Windows specific code."""
 
+    thumbnails = None
+
     ## TASKS
     def activate_root(self, hwnd):
         """Activates/focuses root window identified by provided ``hwnd``."""
@@ -66,39 +68,17 @@ class App(BaseApp):
         """TODO implement"""
         pass
 
+    def screenshot_cleanup(self, *args):
+        """Unregisters DWM thumbnails kept in instance's ``thumbnails`` attribute.
+
+        :var thumbnail: DWM thumbnail identifier
+        :type thumbnail: int
+        """
+        for thumbnail in self.thumbnails:
+            self.collector.api.unregister_thumbnail(thumbnail)
+        self.thumbnails = ()
+
     ## COMMANDS
-    def _window_area_desktop_screenshot(self, hwnd):
-        """Takes desktop screenshot of the area occupied by window with given hwnd.
-
-        :param hwnd: root window identifier
-        :type hwnd: int
-        :returns: :class:`PIL.Image.Image`
-        """
-        return ImageGrab.grab(self.collector.api.extended_frame_rect(hwnd))
-
-    def grab_window_screen(self, model, root_wid=None):
-        """Setups and returns screenshot of the window from provided model.
-
-        If DWM composition settings allows then surface of model window
-        is taken from root window after thumbnails are created in it.
-
-        :param model: model of the window we want screenshot from
-        :type model: :class:`WindowModel`
-        :param root_wid: root window identifier
-        :type root_wid: int
-        :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
-        """
-        if self.collector.api.is_dwm_composition_enabled():
-            return (
-                get_prepared_screenshot(
-                    self._screenshot_with_thumbnails(model, root_wid),
-                    blur_size=Settings.SCREENSHOT_BLUR_PIXELS,
-                    grayscale=Settings.SCREENSHOT_TO_GRAYSCALE,
-                ),
-                (0, 0),
-            )
-        return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)
-
     def _screenshot_with_thumbnails(self, model, root_wid):
         """Takes and returns screenshot of root window after DWM thumbnails are created
 
@@ -135,9 +115,38 @@ class App(BaseApp):
         if right_thumbnail is None:
             return Settings.BLANK_ICON
 
-        screenshot = self._window_area_desktop_screenshot(root_wid)
+        self.thumbnails = (lower_thumbnail, right_thumbnail)
 
-        self.collector.api.unregister_thumbnail(lower_thumbnail)
-        self.collector.api.unregister_thumbnail(right_thumbnail)
+        return self._window_area_desktop_screenshot(root_wid)
 
-        return screenshot
+    def _window_area_desktop_screenshot(self, hwnd):
+        """Takes desktop screenshot of the area occupied by window with given hwnd.
+
+        :param hwnd: root window identifier
+        :type hwnd: int
+        :returns: :class:`PIL.Image.Image`
+        """
+        return ImageGrab.grab(self.collector.api.extended_frame_rect(hwnd))
+
+    def grab_window_screen(self, model, root_wid=None):
+        """Setups and returns screenshot of the window from provided model.
+
+        If DWM composition settings allows then surface of model window
+        is taken from root window after thumbnails are created in it.
+
+        :param model: model of the window we want screenshot from
+        :type model: :class:`WindowModel`
+        :param root_wid: root window identifier
+        :type root_wid: int
+        :returns: (:class:`PIL.ImageTk.PhotoImage`, (int, int))
+        """
+        if self.collector.api.is_dwm_composition_enabled():
+            return (
+                get_prepared_screenshot(
+                    self._screenshot_with_thumbnails(model, root_wid),
+                    blur_size=Settings.SCREENSHOT_BLUR_PIXELS,
+                    grayscale=Settings.SCREENSHOT_TO_GRAYSCALE,
+                ),
+                (-1, -1),
+            )
+        return ImageTk.PhotoImage(Settings.BLANK_ICON), (0, 0)

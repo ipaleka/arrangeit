@@ -773,8 +773,8 @@ class TestBaseControllerDomainLogic(object):
         mocker.patch("arrangeit.base.BaseController.place_on_opposite_corner")
         mocker.patch("arrangeit.base.BaseController.set_screenshot")
         controller.update_positioning(109, 243)
-        controller.view.master.update.assert_called_once()
-        controller.view.master.update.assert_called_with()
+        controller.view.master.update_idletasks.assert_called_once()
+        controller.view.master.update_idletasks.assert_called_with()
 
     def test_BaseController_update_positioning_for_resizable_calls_set_screenshot(
         self, mocker

@@ -310,6 +310,11 @@ class TestBaseApp(object):
         base.BaseApp().save_default()
         mocked.assert_called_once()
 
+    ## BaseApp.screenshot_cleanup
+    def test_BaseApp_defines_screenshot_cleanup(self):
+        assert hasattr(base.BaseApp, "screenshot_cleanup")
+        assert callable(base.BaseApp.screenshot_cleanup)
+
     ## BaseApp._save_setting
     def test_BaseApp__save_setting_calls_platform_user_data_path(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
