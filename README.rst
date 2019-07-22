@@ -1,16 +1,14 @@
-.. figure:: https://github.com/ipaleka/arrangeit/raw/master/arrangeit/resources/logo.png
+.. image:: https://github.com/ipaleka/arrangeit/raw/master/arrangeit/resources/logo.png
    :width: 400px
    :alt: arrangeit logo with slogan
    :align: left
 
-   arrangeit - cross-platform desktop utility for easy windows management
-
 About
 =====
 
-**arrangeit** is a cross-platform desktop utility helping you place your desktop's
-open windows. It is a utility mostly based on the mouse movements, with some
-keyboard shortcuts as helpers.
+**arrangeit** is a cross-platform desktop utility that helps you placing your
+desktop's open windows. It is a utility mostly based on the mouse movements, with
+some keyboard shortcuts as helpers.
 
 
 Installation
@@ -33,17 +31,17 @@ temporary directory:
 
 .. code-block:: bash
 
-  sudo apt-get install python3-pil.imagetk python3-xlib
-  cd tmp_directory
-  sudo dpkg -i python3-pynput_1.4.2_all.deb
-  sudo dpkg -i arrangeit_0.3alpha_all.deb
+  $ sudo apt-get install python3-pil.imagetk python3-xlib
+  $ cd tmp_directory
+  $ sudo dpkg -i python3-pynput_1.4.2_all.deb
+  $ sudo dpkg -i arrangeit_0.3alpha_all.deb
 
 
 Run the executable with:
 
 .. code-block:: bash
 
-  arrangeit
+  $ arrangeit
 
 
 MS Windows
@@ -62,7 +60,7 @@ Use the following commands in Ubuntu for a quick start:
 
 .. code-block:: bash
 
-  sudo apt-get install python3-dev git gcc libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
+  $ sudo apt-get install python3-dev git gcc libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
 
   $ cd ~/projects
   $ git clone https://github.com/ipaleka/arrangeit.git
@@ -84,7 +82,7 @@ Basic usage
 Licence
 =======
 
-This project is licensed under the GNU General Public License v3 - see the
+This project is licensed under the GNU General Public License v3.0 - see the
 legal_ page for details.
 
 .. _installation: https://github.com/ipaleka/arrangeit/blob/master/docs/installation.rst

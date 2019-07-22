@@ -22,17 +22,17 @@ Download binaries of your choice and place them in a temporary directory. Instal
 
 .. code-block:: bash
 
-  sudo apt-get install python3-pil.imagetk python3-xlib
-  cd tmp_directory
-  sudo dpkg -i python3-pynput_1.4.2_all.deb
-  sudo dpkg -i arrangeit_0.3alpha_all.deb
+  $ sudo apt-get install python3-pil.imagetk python3-xlib
+  $ cd tmp_directory
+  $ sudo dpkg -i python3-pynput_1.4.2_all.deb
+  $ sudo dpkg -i arrangeit_0.3alpha_all.deb
 
 
 Run the executable with:
 
 .. code-block:: bash
 
-  arrangeit
+  $ arrangeit
 
 
 Uninstallation
@@ -42,8 +42,8 @@ If you want you may uninstall the software with:
 
 .. code-block:: bash
 
-  sudo apt-get purge arrangeit
-  sudo apt-get autoremove --purge
+  $ sudo apt-get purge arrangeit
+  $ sudo apt-get autoremove --purge
 
 
 Also, if you've saved some data or changed some settings from the Options dialog,
@@ -51,7 +51,7 @@ then you may delete every trace of that by removing the data directory:
 
 .. code-block:: bash
 
-  rm -rf ~/.local/share/arrangeit
+  $ rm -rf ~/.local/share/arrangeit
 
 
 Source distribution
@@ -63,15 +63,15 @@ Use the following commands in Ubuntu to prepare and run **arrangeit**:
 
   # install requirements
   $ sudo apt-get install python3-dev git gcc \
-    libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
+      libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
 
   # change current directory to the one where you keep your projects
   $ cd ~/projects
 
-  # clone arrangeit repository (or you may download it as an compressed directory)
+  # clone arrangeit repository (or you may download it as a compressed directory)
   $ git clone https://github.com/ipaleka/arrangeit.git
 
-  # create a directory for the virtual environments if you don't have it already
+  # create directory for the virtual environments if you don't have it already
   $ mkdir venvs
   # create virtual environment for arrangeit
   $ python3 -m venv venvs/arrangeit
@@ -118,7 +118,7 @@ where you extracted the binary distribution.
 Source distribution
 ^^^^^^^^^^^^^^^^^^^
 
-You should install `Python 3`_ first in order to run **arrangeit** from source in
+You should install `Python 3`_ first in order to run **arrangeit** from the source in
 MS Windows.
 
 Then you should either download `source archive`_ and extract it in a directory of
@@ -129,7 +129,7 @@ the development_ page).
 .. _source archive: https://github.com/ipaleka/arrangeit/archive/master.zip
 .. _development: https://github.com/ipaleka/arrangeit/blob/master/docs/development.rst
 
-You should make the following steps in order to prepare and run **arrangeit** from
+You should take the following steps in order to prepare and run **arrangeit** from
 source distribution in MS Windows:
 
 .. code-block:: batch
@@ -137,14 +137,14 @@ source distribution in MS Windows:
   :: change current directory to the one where you keep your projects
   cd projects
 
-  :: create a directory for the virtual environments if you don't have it already
+  :: create directory for the virtual environments if you don't have it already
   mkdir venvs
   :: create virtual environment for arrangeit
   python -m venv venvs\arrangeit
   :: activate newly created virtual environment with
   venvs\arrangeit\Scripts\activate.bat
 
-  :: enter the directory with extracted source distribution
+  :: enter the extracted source distribution directory
   (arrangeit) cd arrangeit
 
   :: install Python dependencies

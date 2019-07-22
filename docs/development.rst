@@ -17,8 +17,8 @@ by issuing the following command:
 
 .. code-block:: bash
 
-  sudo apt-get install python3-dev git gcc \
-    libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
+  $ sudo apt-get install python3-dev git gcc \
+      libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
 
 
 If you are planning to build latexpdf documentation then you should install some
@@ -26,7 +26,7 @@ additional packages with:
 
 .. code-block:: bash
 
-  sudo apt-get install texlive texlive-latex-extra latexmk
+  $ sudo apt-get install texlive texlive-latex-extra latexmk
 
 
 elementaryOS 5.0 (juno)
@@ -34,8 +34,8 @@ elementaryOS 5.0 (juno)
 
 .. code-block:: bash
 
-  apt-get install python3-dev python3-venv git python3-tk \
-    pkg-config libgirepository1.0-dev
+  $ sudo apt-get install python3-dev python3-venv git python3-tk \
+      pkg-config libgirepository1.0-dev
 
 
 Debian Stretch
@@ -43,9 +43,9 @@ Debian Stretch
 
 .. code-block:: bash
 
-  su
-  apt-get install python3-dev python3-venv python3-tk git pkg-config \
-    libcairo2-dev libgirepository1.0-dev gir1.2-gtk-3.0 gir1.2-wnck-3.0
+  $ su
+  # apt-get install python3-dev python3-venv python3-tk git pkg-config \
+      libcairo2-dev libgirepository1.0-dev gir1.2-gtk-3.0 gir1.2-wnck-3.0
 
 
 Debian Buster
@@ -53,9 +53,9 @@ Debian Buster
 
 .. code-block:: bash
 
-  su
-  apt-get install python3-dev python3-venv python3-tk git gcc \
-    pkg-config libcairo2-dev libgirepository1.0-dev
+  $ su
+  # apt-get install python3-dev python3-venv python3-tk git gcc \
+      pkg-config libcairo2-dev libgirepository1.0-dev
 
 
 Manjaro 18.04 Xfce
@@ -63,7 +63,7 @@ Manjaro 18.04 Xfce
 
 .. code-block:: bash
 
-  sudo pacman -S gobject-introspection tk
+  $ sudo pacman -S gobject-introspection tk
 
 
 MS Windows
@@ -90,7 +90,7 @@ Python requirements
 
 You should develop **arrangeit** in a dedicated virtual environment. If you don't
 have any other preferred way, then probably the easiest way to create a virtual
-environment would be **venv** integrated in Python 3.5+.
+environment would be **venv** integrated with Python 3.5+.
 
 For example, if you place your projects in ``projects`` directory and path to
 arrangeit root directory is ``/home/yourusername/projects/arrangeit`` (or
@@ -99,23 +99,23 @@ a directory inside projects directory to hold your virtual environments.
 
 .. code-block:: bash
 
-  cd ~/projects
-  mkdir venvs
-  cd venvs
+  $ cd ~/projects
+  $ mkdir venvs
+  $ cd venvs
 
 
 Create a new virtual environment with:
 
 .. code-block:: bash
 
-  python3 -m venv arrangeit
+  $ python3 -m venv arrangeit
 
 
 The virtual environment is activated on GNU/Linux from ``venvs`` directory with:
 
 .. code-block:: bash
 
-  source arrangeit/bin/activate
+  $ source arrangeit/bin/activate
 
 
 Or in MS Windows with:
@@ -130,14 +130,14 @@ directory:
 
 .. code-block:: bash
 
-  python -m pip install -U -r requirements/linux.txt  # or requirements/windows.txt
+  (arrangeit) $ python -m pip install -U -r requirements/linux.txt
 
 
 And all the necessary Python dependency packages for **arrangeit** development with:
 
 .. code-block:: bash
 
-  python -m pip install -U -r requirements/base_development.txt
+  (arrangeit) $ python -m pip install -U -r requirements/base_development.txt
 
 
 Additional tools
@@ -154,14 +154,14 @@ install it separately with:
 
 .. code-block:: bash
 
-  python3 -m pip install black
+  $ python3 -m pip install black
 
 
 Run it from the root directory by:
 
 .. code-block:: bash
 
-  black arrangeit
+  $ black arrangeit
 
 
 pyflakes
@@ -171,14 +171,14 @@ Install **pyflakes** linter with:
 
 .. code-block:: bash
 
-  python3 -m pip install pyflakes
+  $ python3 -m pip install pyflakes
 
 
 Run it from the project's root directory by:
 
 .. code-block:: bash
 
-  python3 -m pyflakes arrangeit
+  $ python3 -m pyflakes arrangeit
 
 
 py2deb
@@ -193,22 +193,22 @@ Run the following command to install py2deb and its dependencies on Debian/Ubunt
 
 .. code-block:: bash
 
-  apt-get install dpkg-dev fakeroot lintian python3-pip
-  pip3 install py2deb --user
-  pip3 install pip-accel --user  # it will downgrade pip to version <8.0
+  $ sudo apt-get install dpkg-dev fakeroot lintian python3-pip
+  $ pip3 install py2deb --user
+  $ pip3 install pip-accel --user  # it will downgrade pip to version <8.0
 
 
-And then run the following command inside project's root directory to create Debian
-installation package in `./dist/` directory:
+And then run the following command inside the project's root directory to create
+Debian installation package in `./dist/` directory:
 
 .. code-block:: bash
 
-  mkdir dist
-  py2deb -r ./dist/ --no-name-prefix=arrangeit -y \
-    --use-system-package=Pillow,python3-pil \
-    --use-system-package=python-xlib,python3-xlib \
-    --use-system-package=six,python3-six \
-    .
+  $ mkdir dist
+  $ py2deb -r ./dist/ --no-name-prefix=arrangeit -y \
+      --use-system-package=Pillow,python3-pil \
+      --use-system-package=python-xlib,python3-xlib \
+      --use-system-package=six,python3-six \
+      .
 
 
 PyInstaller
@@ -225,7 +225,7 @@ executable by the following call:
 
 .. code-block:: bash
 
-  python -OO -m PyInstaller arrangeit_pyinstaller.spec
+  (arrangeit) python -OO -m PyInstaller arrangeit_pyinstaller.spec
 
 
 SonarQube
@@ -242,7 +242,7 @@ Starting server
 
 .. code-block:: bash
 
-  ~/opt/repos/sonarqube-7.7/bin/linux-x86-64/sonar.sh console
+  $ ~/opt/repos/sonarqube-7.7/bin/linux-x86-64/sonar.sh console
 
 
 Starting scanner
@@ -260,7 +260,7 @@ To start scanning, run the scanner in the root directory of the project with:
 
 .. code-block:: bash
 
-  sonar-scanner
+  $ sonar-scanner
 
 For additional information read the scanner `documentation`_.
 
@@ -270,12 +270,12 @@ For additional information read the scanner `documentation`_.
 Administration
 """"""""""""""
 
-Prepare coverage's xml report by running the following in the project's root
+Prepare coverage's XML report by running the following in the project's root
 directory:
 
 .. code-block:: bash
 
-  python -m pytest -v --cov-report xml:tests/coverage-linux.xml --cov=arrangeit
+  (arrangeit) $ python -m pytest -v --cov-report xml:tests/coverage-linux.xml --cov=arrangeit
 
 
 Overview

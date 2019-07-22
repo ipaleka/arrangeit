@@ -81,8 +81,8 @@ html_theme = "sphinx_rtd_theme"
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = "../arrangeit/resources/logo.png"
-html_favicon = "../arrangeit/resources/favicon.ico"
+html_logo = "_static/logo.png"
+html_favicon = "_static/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
