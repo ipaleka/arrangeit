@@ -156,7 +156,7 @@ class BaseApp(object):
 
     def screenshot_cleanup(self, *args):
         """Override if platform needs cleanup after screenshot is taken."""
-        pass
+        return None
 
     ## COMMANDS
     def _save_setting(self, names, value):

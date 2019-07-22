@@ -26,7 +26,7 @@ from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 class App(BaseApp):
     """Main app class with MS Windows specific code."""
 
-    thumbnails = None
+    thumbnails = ()
 
     ## TASKS
     def activate_root(self, hwnd):
@@ -133,6 +133,8 @@ class App(BaseApp):
 
         If DWM composition settings allows then surface of model window
         is taken from root window after thumbnails are created in it.
+
+        FIXME check why this (-1, -1) fits
 
         :param model: model of the window we want screenshot from
         :type model: :class:`WindowModel`

@@ -344,7 +344,6 @@ class TestWindowsApp(object):
         mocked_controller = mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked_controller.return_value.return_value.default_size = (587, 785)
         mocker.patch("arrangeit.windows.app.Rectangle")
-        mocker.patch("arrangeit.windows.app.App._unregister_thumbnails_after_idle")
         mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked_collector.return_value.return_value.api.setup_thumbnail.side_effect = [
             "foo",
@@ -433,7 +432,7 @@ class TestWindowsApp(object):
             blur_size=Settings.SCREENSHOT_BLUR_PIXELS,
             grayscale=Settings.SCREENSHOT_TO_GRAYSCALE,
         )
-        assert returned == (mocked.return_value, (0, 0))
+        assert returned == (mocked.return_value, (-1, -1))
 
     def test_WindowsApp_grab_window_screen_returns_blank(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")

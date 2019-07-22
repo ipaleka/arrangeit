@@ -315,6 +315,11 @@ class TestBaseApp(object):
         assert hasattr(base.BaseApp, "screenshot_cleanup")
         assert callable(base.BaseApp.screenshot_cleanup)
 
+    def test_BaseApp_screenshot_cleanup_returns_None(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        assert base.BaseApp().screenshot_cleanup() is None
+
     ## BaseApp._save_setting
     def test_BaseApp__save_setting_calls_platform_user_data_path(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")

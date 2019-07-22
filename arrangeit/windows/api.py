@@ -63,7 +63,7 @@ def platform_supports_packages():
             return True
         return False
     except AttributeError:  # Sphinx
-        pass
+        return None
 
 
 class PACKAGE_SUBVERSION(ctypes.Structure):

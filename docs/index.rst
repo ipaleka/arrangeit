@@ -6,7 +6,12 @@
 arrangeit v0.3alpha documentation
 =================================
 
-It should be possible to run **arrangeit v0.3alpha** under X Windows in GNU/Linux (Wayland is not supported. Yet...) and under MS Windows.
+**arrangeit** is a cross-platform desktop utility helping you place your desktop's
+open windows. It is a utility mostly based on the mouse movements, with some
+keyboard shortcuts as helpers.
+
+It should be possible to run **arrangeit v0.3alpha** under X Windows in
+GNU/Linux (Wayland is not supported. Yet...) and under MS Windows.
 
 Mac OS X support is expected in the next **v0.4beta** release.
 

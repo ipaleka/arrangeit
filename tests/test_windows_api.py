@@ -53,6 +53,12 @@ class TestWindowsapiCustomFunctions(object):
         )
         assert platform_supports_packages() == expected
 
+    def test_windows_api_platform_supports_packages_for_exception(self, mocker):
+        mocker.patch(
+            "arrangeit.windows.api.sys.getwindowsversion", side_effect=AttributeError()
+        )
+        assert platform_supports_packages() is None
+
 
 ## structures
 class TestPACKAGE_SUBVERSION(object):
