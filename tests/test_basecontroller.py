@@ -1,6 +1,6 @@
 import pytest
 
-from arrangeit import base, data
+from arrangeit import base, data, utils
 from arrangeit.settings import MESSAGES, Settings
 
 from .mock_helpers import (
@@ -112,7 +112,7 @@ class TestBaseController(object):
         controller.default_size = None
         controller.set_default_geometry(root)
         assert mocked.call_count == 1
-        mocked.assert_called_with(w, h, Settings.ROOT_SIZE_DENOMINATOR)
+        mocked.assert_called_with(w, h, Settings.ROOT_SIZE)
 
     def test_BaseController_set_default_geometry_sets_default_size(self, mocker):
         mocked_setup(mocker)
@@ -158,10 +158,26 @@ class TestBaseController(object):
         root.geometry.assert_called_with("{}x{}".format(w, h))
 
     ## BaseController.set_screenshot
+    def test_BaseController_set_screenshot_returns_True_for_disabled(self, mocker):
+        mocked_setup(mocker)
+        controller = base.BaseController(mocker.MagicMock())
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SCREENSHOT_DISABLED = mocker.PropertyMock(
+            return_value=True
+        )
+        assert controller.set_screenshot() is True
+
     def test_BaseController_set_screenshot_calls_grab_window_screen(self, mocker):
         mocked_setup(mocker)
         app = mocker.MagicMock()
         app.grab_window_screen.return_value = (None, (0, 0))
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SCREENSHOT_DISABLED = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_settings).SCREENSHOT_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=10
+        )
         controller = base.BaseController(app)
         controller.set_screenshot()
         app.grab_window_screen.assert_called_once()
@@ -173,6 +189,13 @@ class TestBaseController(object):
         self, mocker
     ):
         mocked_setup(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SCREENSHOT_DISABLED = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_settings).SCREENSHOT_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=10
+        )
         app = mocker.MagicMock()
         SAMPLE = 50
         app.grab_window_screen.return_value = (SAMPLE, (0, 0))
@@ -182,6 +205,13 @@ class TestBaseController(object):
 
     def test_BaseController_set_screenshot_configures_screenshot_widget(self, mocker):
         mocked_setup(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SCREENSHOT_DISABLED = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_settings).SCREENSHOT_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=10
+        )
         mocked = mocker.patch("arrangeit.base.get_screenshot_widget")
         app = mocker.MagicMock()
         SAMPLE = 50
@@ -193,22 +223,32 @@ class TestBaseController(object):
 
     def test_BaseController_set_screenshot_places_screenshot_widget(self, mocker):
         mocked_setup(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SCREENSHOT_DISABLED = mocker.PropertyMock(
+            return_value=False
+        )
+        SHIFT = 10
+        type(mocked_settings).SCREENSHOT_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=SHIFT
+        )
         mocked = mocker.patch("arrangeit.base.get_screenshot_widget")
         app = mocker.MagicMock()
         SAMPLE = (8, 9)
         app.grab_window_screen.return_value = (None, SAMPLE)
         controller = base.BaseController(app)
         controller.set_screenshot()
-        calls = [
-            mocker.call(
-                x=SAMPLE[0] + Settings.SCREENSHOT_SHIFT_PIXELS,
-                y=SAMPLE[1] + Settings.SCREENSHOT_SHIFT_PIXELS,
-            )
-        ]
+        calls = [mocker.call(x=SAMPLE[0] + SHIFT, y=SAMPLE[1] + SHIFT)]
         mocked.return_value.place.assert_has_calls(calls, any_order=True)
 
     def test_BaseController_set_screenshot_calls_master_update(self, mocker):
         view = mocked_setup_view(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SCREENSHOT_DISABLED = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_settings).SCREENSHOT_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=10
+        )
         mocker.patch("arrangeit.base.get_screenshot_widget")
         app = mocker.MagicMock()
         app.grab_window_screen.return_value = (None, (10, 11))
@@ -218,6 +258,13 @@ class TestBaseController(object):
 
     def test_BaseController_set_screenshot_calls_run_task(self, mocker):
         mocked_setup(mocker)
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).SCREENSHOT_DISABLED = mocker.PropertyMock(
+            return_value=False
+        )
+        type(mocked_settings).SCREENSHOT_SHIFT_PIXELS = mocker.PropertyMock(
+            return_value=10
+        )
         mocker.patch("arrangeit.base.get_screenshot_widget")
         app = mocker.MagicMock()
         app.grab_window_screen.return_value = (None, (15, 16))
@@ -1074,14 +1121,29 @@ class TestBaseController(object):
         )
 
     ## BaseController.setup_corner
+    def test_BaseController_setup_corner_calls_get_cursor_name(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.get_cursor_name")
+        controller = controller_mocked_app(mocker)
+        STATE = 1
+        controller.state = STATE
+        controller.setup_corner()
+        mocked.assert_called_once()
+        mocked.assert_called_with(STATE, with_arrow=Settings.CORNER_CURSOR_ARROW)
+
     @pytest.mark.parametrize("state", [0, 1, 2, 3])
     def test_BaseController_setup_corner_calls_cursor_config(self, mocker, state):
         view = mocked_setup_view(mocker)
-        mocker.patch("arrangeit.base.BaseMouse.move_cursor")
         controller = controller_mocked_app(mocker)
         controller.state = state
         controller.setup_corner()
-        calls = [mocker.call(cursor=Settings.CORNER_CURSOR[state])]
+        calls = [
+            mocker.call(
+                cursor=utils.get_cursor_name(
+                    state, with_arrow=Settings.CORNER_CURSOR_ARROW
+                )
+            )
+        ]
         view.return_value.master.config.assert_has_calls(calls, any_order=True)
 
     def test_BaseController_setup_corner_calls_view_corner_set_corner(self, mocker):
@@ -1089,7 +1151,7 @@ class TestBaseController(object):
         controller = controller_mocked_app(mocker)
         CORNER = 3
         controller.state = CORNER
-        mocker.patch("arrangeit.base.BaseMouse.move_cursor")
+        mocker.patch("arrangeit.base.get_cursor_name")
         controller.setup_corner()
         view.return_value.corner.set_corner.assert_called_once()
         view.return_value.corner.set_corner.assert_called_with(CORNER)

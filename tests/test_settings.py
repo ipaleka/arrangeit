@@ -280,7 +280,7 @@ class TestSettings(object):
         [
             (
                 "_CURSOR",
-                ["SHIFT_CURSOR", "DEFAULT_CURSOR", "SELECT_CURSOR", "CORNER_CURSOR"],
+                ["SHIFT_CURSOR", "DEFAULT_CURSOR", "SELECT_CURSOR"],
             ),
             ("_SELF", ["SNAP_INCLUDE_SELF"]),
         ],

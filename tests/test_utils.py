@@ -73,6 +73,23 @@ class TestUtils(object):
         mocked.assert_called_once()
         mocked.assert_called_with("Foo", platform="bar")
 
+    ## get_cursor_name
+    @pytest.mark.parametrize(
+        "corner,with_arrow,expected",
+        [
+            (0, True, "top_left_corner"),
+            (1, True, "top_right_corner"),
+            (2, True, "bottom_right_corner"),
+            (3, True, "bottom_left_corner"),
+            (0, False, "ul_angle"),
+            (1, False, "ur_angle"),
+            (2, False, "lr_angle"),
+            (3, False, "ll_angle"),
+        ],
+    )
+    def test_utils_get_cursor_name_functionality(self, corner, with_arrow, expected):
+        assert utils.get_cursor_name(corner, with_arrow) == expected
+
     ## get_prepared_screenshot
     def test_utils_get_prepared_screenshot_calls_filter(self, mocker):
         image = Settings.BLANK_ICON
@@ -182,7 +199,9 @@ class TestUtils(object):
     @pytest.mark.parametrize(
         "value,typ", [(None, int), (None, float), (None, str), (None, (int, int))]
     )
-    def test_utils_get_value_if_valid_type_returns_None_for_None_value(self, value, typ):
+    def test_utils_get_value_if_valid_type_returns_None_for_None_value(
+        self, value, typ
+    ):
         assert utils.get_value_if_valid_type(value, typ) is None
 
     @pytest.mark.parametrize(
@@ -199,7 +218,9 @@ class TestUtils(object):
             (False, bool),
         ],
     )
-    def test_utils_get_value_if_valid_type_for_single_type_returns_value(self, value, typ):
+    def test_utils_get_value_if_valid_type_for_single_type_returns_value(
+        self, value, typ
+    ):
         assert utils.get_value_if_valid_type(value, typ) == value
 
     @pytest.mark.parametrize(
@@ -217,7 +238,9 @@ class TestUtils(object):
             (-1, bool),
         ],
     )
-    def test_utils_get_value_if_valid_type_for_single_type_returns_None(self, value, typ):
+    def test_utils_get_value_if_valid_type_for_single_type_returns_None(
+        self, value, typ
+    ):
         assert utils.get_value_if_valid_type(value, typ) is None
 
     @pytest.mark.parametrize(
@@ -245,7 +268,9 @@ class TestUtils(object):
             ((2, 5, 0, 3), (int, int, str, int)),
         ],
     )
-    def test_utils_get_value_if_valid_type_for_collection_returns_empty(self, value, typ):
+    def test_utils_get_value_if_valid_type_for_collection_returns_empty(
+        self, value, typ
+    ):
         assert utils.get_value_if_valid_type(value, typ) is ()
 
     ## increased_by_fraction
@@ -323,30 +348,30 @@ class TestUtils(object):
 
     ## quarter_by_smaller
     @pytest.mark.parametrize(
-        "w,h,denominator,expected",
+        "w,h,size,expected",
         [
-            (3200, 1080, 4, (480, 270)),
-            (1920, 1080, 4, (480, 270)),
-            (1280, 960, 4, (426, 240)),
-            (800, 600, 4, (266, 150)),
-            (600, 800, 4, (150, 84)),
-            (1920, 2160, 4, (480, 270)),
-            (1920, 1080, 3, (640, 360)),
-            (1920, 2160, 3, (640, 360)),
-            (1920, 1080, 5, (384, 216)),
-            (1920, 2160, 5, (384, 216)),
-            (1920, 1080, 6, (320, 180)),
-            (1920, 2160, 6, (320, 180)),
+            (3200, 1080, 3, (480, 270)),
+            (1920, 1080, 3, (480, 270)),
+            (1280, 960, 3, (426, 240)),
+            (800, 600, 3, (266, 150)),
+            (600, 800, 3, (150, 84)),
+            (1920, 2160, 3, (480, 270)),
+            (1920, 1080, 4, (640, 360)),
+            (1920, 2160, 4, (640, 360)),
+            (1920, 1080, 2, (384, 216)),
+            (1920, 2160, 2, (384, 216)),
+            (1920, 1080, 1, (320, 180)),
+            (1920, 2160, 1, (320, 180)),
         ],
     )
-    def test_utils_quarter_by_smaller(self, w, h, denominator, expected):
-        assert utils.quarter_by_smaller(w, h, denominator=denominator) == expected
+    def test_utils_quarter_by_smaller(self, w, h, size, expected):
+        assert utils.quarter_by_smaller(w, h, size=size) == expected
 
-    @pytest.mark.parametrize("denominator", [0, 1, 2, 7, 8, 9, 10])
-    def test_utils_quarter_by_smaller_out_of_range(self, denominator):
+    @pytest.mark.parametrize("size", [0, 5, 10, -1])
+    def test_utils_quarter_by_smaller_out_of_range(self, size):
         w, h = 1920, 1080
         expected = (480, 270)
-        assert utils.quarter_by_smaller(w, h, denominator) == expected
+        assert utils.quarter_by_smaller(w, h, size) == expected
 
     ## set_icon
     def test_utils_set_icon_calls_get_resource_path(self, mocker):
@@ -369,7 +394,9 @@ class TestUtils(object):
         widget = mocker.MagicMock()
         utils.set_icon(widget)
         widget.tk.call.assert_called_once()
-        widget.tk.call.assert_called_with('wm', 'iconphoto', widget._w, mocked_image.return_value)
+        widget.tk.call.assert_called_with(
+            "wm", "iconphoto", widget._w, mocked_image.return_value
+        )
 
     ## _get_snapping_source_by_ordinal
     @pytest.mark.parametrize("rect,expected", SAMPLE_SNAPPING_SOURCES_FOR_RECT)
@@ -394,19 +421,27 @@ class TestUtils(object):
         assert utils._offset_for_intersecting_pair(False, 10) == (0, 0)
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[0])
-    def test_utils_offset_for_intersecting_pair_corner_0_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_0_functionality(
+        self, pair, offset
+    ):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[1])
-    def test_utils_offset_for_intersecting_pair_corner_1_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_1_functionality(
+        self, pair, offset
+    ):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[2])
-    def test_utils_offset_for_intersecting_pair_corner_2_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_2_functionality(
+        self, pair, offset
+    ):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     @pytest.mark.parametrize("pair,offset", OFFSET_INTERSECTING_PAIR_SAMPLES[3])
-    def test_utils_offset_for_intersecting_pair_corner_3_functionality(self, pair, offset):
+    def test_utils_offset_for_intersecting_pair_corner_3_functionality(
+        self, pair, offset
+    ):
         assert utils._offset_for_intersecting_pair(pair, 10) == offset
 
     ## check_intersections
@@ -517,7 +552,9 @@ class TestUtils(object):
     ):
         assert utils.offset_for_intersections(False, 10) == (0, 0)
 
-    def test_utils_offset_for_intersections_calls__offset_once_for_single_pair(self, mocker):
+    def test_utils_offset_for_intersections_calls__offset_once_for_single_pair(
+        self, mocker
+    ):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
         RECTS, SNAP = (
             [
@@ -530,7 +567,9 @@ class TestUtils(object):
         mocked.assert_called_once()
         mocked.assert_called_with(RECTS, SNAP)
 
-    def test_utils_offset_for_intersections_calls__offset_twice_for_two_pairs(self, mocker):
+    def test_utils_offset_for_intersections_calls__offset_twice_for_two_pairs(
+        self, mocker
+    ):
         mocked = mocker.patch("arrangeit.utils._offset_for_intersecting_pair")
         RECTS = [
             (
@@ -546,7 +585,9 @@ class TestUtils(object):
         calls = [mocker.call(RECTS[0], SNAP)]
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_utils_offset_for_intersections_returns_opposite_tuple_element(self, mocker):
+    def test_utils_offset_for_intersections_returns_opposite_tuple_element(
+        self, mocker
+    ):
         SAMPLE = (7, 5)
         mocker.patch(
             "arrangeit.utils._offset_for_intersecting_pair", return_value=SAMPLE

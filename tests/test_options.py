@@ -358,7 +358,7 @@ class TestOptionsDialog(object):
         mocked = mocker.patch("arrangeit.options.OptionsDialog.create_frame")
         dialog = OptionsDialog(mocker.MagicMock())
         dialog.setup_section("appearance")
-        calls = len(WIDGETS["appearance"]) / 4
+        calls = len(WIDGETS["appearance"]) / 6
         assert mocked.call_count == calls
 
     def test_OptionsDialog_setup_section_calls_Frame_pack(self, mocker):

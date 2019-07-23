@@ -68,7 +68,6 @@ class TestFiles(object):
             "blank.png",
             "white.png",
             "arrangeit.ico",
-            "favicon.ico",
             "icon128.png",
             "icon32.png",
         ],

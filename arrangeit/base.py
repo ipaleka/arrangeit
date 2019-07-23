@@ -28,6 +28,7 @@ from arrangeit.utils import (
     Rectangle,
     check_intersections,
     get_component_class,
+    get_cursor_name,
     get_snapping_sources_for_rect,
     offset_for_intersections,
     platform_user_data_path,
@@ -317,8 +318,7 @@ class BaseController(object):
         """
         if self.default_size is None:
             width, height = quarter_by_smaller(
-                *self.app.collector.get_smallest_monitor_size(),
-                Settings.ROOT_SIZE_DENOMINATOR
+                *self.app.collector.get_smallest_monitor_size(), Settings.ROOT_SIZE
             )
             self.default_size = (width, height)
         root.geometry("{}x{}".format(*self.default_size))
@@ -332,6 +332,9 @@ class BaseController(object):
         :var offset: offset (x, y)
         :type offset: (int, int)
         """
+        if Settings.SCREENSHOT_DISABLED:
+            return True
+
         self.screenshot, offset = self.app.grab_window_screen(
             self.model, root_wid=self.view.get_root_wid()
         )
@@ -954,7 +957,11 @@ class BaseController(object):
 
     def setup_corner(self):
         """Configures mouse pointer and background to current corner."""
-        self.view.master.config(cursor=Settings.CORNER_CURSOR[self.state % 10])
+        self.view.master.config(
+            cursor=get_cursor_name(
+                self.state % 10, with_arrow=Settings.CORNER_CURSOR_ARROW
+            )
+        )
         self.view.corner.set_corner(self.state % 10)
 
     def skip_current_window(self):

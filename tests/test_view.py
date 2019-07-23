@@ -62,8 +62,10 @@ class TestViewFunctions(object):
     ## get_screenshot_widget
     def test_view_get_screenshot_widget_initializes_Label(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label")
-        get_screenshot_widget(mocker.MagicMock())
-        mocked.assert_called()
+        root = mocker.MagicMock()
+        get_screenshot_widget(root)
+        mocked.assert_called_once()
+        mocked.assert_called_with(root, background=Settings.MAIN_BG)
 
     def test_view_get_screenshot_widget_calls_label_place(self, mocker):
         mocked = mocker.patch("arrangeit.view.tk.Label.place")
@@ -812,7 +814,7 @@ class TestWindowsList(object):
         windows.place_widget_on_position(mocked, 0)
         calls = [
             mocker.call(
-                relheight=Settings.LISTED_WINDOW_RELHEIGHT,
+                relheight=1.0/Settings.WINDOWS_LIST_COUNT,
                 relwidth=1.0,
                 relx=0.0,
                 rely=0,
@@ -822,10 +824,10 @@ class TestWindowsList(object):
         windows.place_widget_on_position(mocked, 4)
         calls = [
             mocker.call(
-                relheight=Settings.LISTED_WINDOW_RELHEIGHT,
+                relheight=1.0/Settings.WINDOWS_LIST_COUNT,
                 relwidth=1.0,
                 relx=0.0,
-                rely=4 * Settings.LISTED_WINDOW_RELHEIGHT,
+                rely=4 * 1.0/Settings.WINDOWS_LIST_COUNT,
             )
         ]
         mocked.place.assert_has_calls(calls, any_order=True)

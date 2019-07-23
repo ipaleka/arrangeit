@@ -44,7 +44,7 @@ def get_screenshot_widget(root):
     :type root: :class:`tk.Tk`
     :returns: :class:`tk.Label`
     """
-    label = tk.Label(root)
+    label = tk.Label(root, background=Settings.MAIN_BG)
     label.place(x=Settings.SCREENSHOT_SHIFT_PIXELS, y=Settings.SCREENSHOT_SHIFT_PIXELS)
     return label
 
@@ -696,10 +696,10 @@ class WindowsList(tk.Frame):
         :type position: int
         """
         widget.place(
-            relheight=Settings.LISTED_WINDOW_RELHEIGHT,
+            relheight=1.0 / Settings.WINDOWS_LIST_COUNT,
             relwidth=1.0,
             relx=0.0,
-            rely=position * Settings.LISTED_WINDOW_RELHEIGHT,
+            rely=position * 1.0 / Settings.WINDOWS_LIST_COUNT,
         )
 
     def place_children(self):

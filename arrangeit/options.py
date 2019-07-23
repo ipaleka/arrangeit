@@ -26,52 +26,66 @@ from arrangeit.settings import Settings
 from arrangeit.utils import get_resized_image, get_resource_path, set_icon
 
 MESSAGES = {
-    "options_title": _("arrangeit options"),
+    "_BG": _("Background:"),
+    "_FG": _("Foreground:"),
+    "CORNER_CURSOR_ARROW": _("Corner cursor with arrow"),
+    "HIGHLIGHTED_COLOR": _("Highlighted:"),
+    "ROOT_ALPHA": _("Main window opacity [%]:"),
+    "ROOT_SIZE": _("Main window size"),
+    "SCREENSHOT_TO_GRAYSCALE": _("Grayscale background image"),
+    "SCREENSHOT_BLUR_PIXELS": _("Background image blur [pixels]:"),
+    "SCREENSHOT_DISABLED": _("Don't show background image"),
+    "SELECTED_COLOR": _("Selected:"),
+    "SHIFT_CURSOR": _("Corner cursor shift [pixels]:"),
+    "SNAP_INCLUDE_SELF": _("Include itself in snapping"),
+    "SNAP_PIXELS": _("Snapping size [pixels]:"),
+    "SNAPPING_IS_ON": _("Use snapping"),
+    "TITLE_LABEL_BG": _("Title background:"),
+    "TITLE_LABEL_FG": _("Title foreground:"),
+    "TRANSPARENCY_IS_ON": _("Use transparency"),
+    "WINDOWS_LIST_COUNT": _("Queued windows shown:"),
+    "about_title": _("About arrangeit"),
     "appearance": _("Appearance"),
     "colors": _("Colors"),
     "files": _("Files"),
+    "options_title": _("arrangeit options"),
+    "save_default": _("Collected windows data saved to default file."),
     "setting_changed": _(
         "Setting is changed - some settings may require\n"
         "program restart in order for the change to take effect."
     ),
-    "save_default": _("Collected windows data saved to default file."),
-    "TRANSPARENCY_IS_ON": _("Use transparency"),
-    "ROOT_ALPHA": _("Main window opacity [%]:"),
-    "SCREENSHOT_TO_GRAYSCALE": _("Convert screenshot to grayscale"),
-    "SCREENSHOT_BLUR_PIXELS": _("Screenshot blur size [pixels]:"),
-    "SNAPPING_IS_ON": _("Use snapping"),
-    "SNAP_INCLUDE_SELF": _("Include itself in snapping"),
-    "SHIFT_CURSOR": _("Corner cursor shift [pixels]:"),
-    "SNAP_PIXELS": _("Snapping size [pixels]:"),
-    "SELECTED_COLOR": _("Selected:"),
-    "HIGHLIGHTED_COLOR": _("Highlighted:"),
-    "_BG": _("Background:"),
-    "_FG": _("Foreground:"),
-    "TITLE_LABEL_BG": _("Title background:"),
-    "TITLE_LABEL_FG": _("Title foreground:"),
-    "about_title": _("About arrangeit"),
 }
 CLASSES = {int: "Scale", float: "FloatScale", bool: "Check", str: "Color"}
 WIDGETS = {
     "appearance": (
+        ("SCREENSHOT_DISABLED", {}),
+        (
+            "ROOT_SIZE",
+            {"from_": 1, "to": 4, "resolution": 1, "tickinterval": 1, "digits": 1},
+        ),
         ("TRANSPARENCY_IS_ON", {}),
         (
             "ROOT_ALPHA",
             {"from_": 50, "to": 99, "resolution": 2, "tickinterval": 20, "digits": 3},
+        ),
+        ("SNAP_INCLUDE_SELF", {}),
+        (
+            "WINDOWS_LIST_COUNT",
+            {"from_": 4, "to": 10, "resolution": 1, "tickinterval": 3, "digits": 1},
         ),
         ("SCREENSHOT_TO_GRAYSCALE", {}),
         (
             "SCREENSHOT_BLUR_PIXELS",
             {"from_": 0, "to": 8, "resolution": 1, "tickinterval": 2, "digits": 1},
         ),
+        ("CORNER_CURSOR_ARROW", {}),
+        (
+            "SHIFT_CURSOR",
+            {"from_": 1, "to": 12, "resolution": 1, "tickinterval": 3, "digits": 1},
+        ),
         ("SNAPPING_IS_ON", {}),
         (
             "SNAP_PIXELS",
-            {"from_": 1, "to": 12, "resolution": 1, "tickinterval": 3, "digits": 1},
-        ),
-        ("SNAP_INCLUDE_SELF", {}),
-        (
-            "SHIFT_CURSOR",
             {"from_": 1, "to": 12, "resolution": 1, "tickinterval": 3, "digits": 1},
         ),
     ),
@@ -86,25 +100,27 @@ WIDGETS = {
 }
 COLORS = (
     "white",
+    "black",
     "gray",
-    "slate gray",
+    "slategray",
     "gray25",
     "gray75",
-    "light blue",
+    "lightblue",
     "blue",
-    "royal blue",
+    "royalblue",
     "cyan",
     "orange",
     "salmon",
-    "indian red",
+    "indianred",
     "red",
     "orchid",
     "pink",
     "green",
-    "olive drab",
+    "olivedrab",
     "wheat",
     "khaki",
     "tan",
+    "lightgoldenrodyellow",
     "yellow",
 )
 
@@ -198,7 +214,7 @@ class OptionsDialog(tk.Toplevel):
         )
         return files
 
-    def setup_section(self, name, denominator=4):
+    def setup_section(self, name, denominator=6):
         """Creates and packs widgets for section with provided name.
 
         :returns: :class:`ttk.LabelFrame`

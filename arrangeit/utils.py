@@ -82,6 +82,25 @@ def get_component_class(name, platform=None):
 
 
 ## HELPERS
+def get_cursor_name(corner, with_arrow=False):
+    """Returns cursor name for provided corner.
+
+    :param corner: corner number
+    :type corner: int
+    :param with_arrow: indicating should cursor contain an arrow
+    :type with_arrow: Boolean
+    :returns: str
+    """
+    if with_arrow:
+        return (
+            "top_left_corner",
+            "top_right_corner",
+            "bottom_right_corner",
+            "bottom_left_corner",
+        )[corner]
+    return ("ul_angle", "ur_angle", "lr_angle", "ll_angle")[corner]
+
+
 def get_prepared_screenshot(image, blur_size=2, grayscale=False):
     """Filters provided image and converts it to format suitable for Tkinter.
 
@@ -178,7 +197,7 @@ def open_image(filename, background="white", colorized=False, foreground="red"):
     return ImageOps.colorize(image, foreground if colorized else "black", background)
 
 
-def quarter_by_smaller(width, height, denominator=4):
+def quarter_by_smaller(width, height, size=3):
     """Helper method for retrieving one-forth (default) for given ``width`` and ``height``
 
     with aspect ratio of 16:9.
@@ -190,12 +209,13 @@ def quarter_by_smaller(width, height, denominator=4):
     :type width: int
     :param height: total desktop area height
     :type height: int
-    :param height: total desktop area height
-    :type height: int
+    :param size: window size from 1 to 4
+    :type size: int
+    :var denominator: window size denominator from 6 to 3
+    :type denominator: int
     :returns: (int, int)
     """
-    if denominator > 6 or denominator < 3:
-        denominator = 4
+    denominator = (6, 5, 4, 3)[size - 1] if size in range(1, 5) else 4
     if width > height:
         return (int((height / denominator) * 16 / 9), height // denominator)
     return (width // denominator, int((width / denominator) * 9 / 16))
