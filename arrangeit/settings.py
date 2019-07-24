@@ -140,7 +140,7 @@ SETTINGS = {
     "OPTIONS_WIDGETS_PADX": (int, 4),
     "OPTIONS_WIDGETS_PADY": (int, 2),
     "OPTIONS_MESSAGE_HEIGHT": (int, 2),
-    "OPTIONS_TIMER_DELAY": (int, 5000),
+    "TIMER_DELAY": (int, 5000),
     "ABOUT_LOGO_SIZE": (tuple, (400, 128)),
 }
 

@@ -632,7 +632,7 @@ class TestBaseControllerDomainLogic(object):
         controller = controller_mocked_for_run(mocker)
         controller.run(mocker.MagicMock())
         mocked.assert_called_once()
-        mocked.assert_called_with(MESSAGES["msg_release_mouse"])
+        mocked.assert_called_with(MESSAGES["msg_release_mouse"], permanent=True)
 
     def test_BaseController_run_calls_activate_root_task(self, mocker):
         controller = controller_mocked_for_run(mocker)

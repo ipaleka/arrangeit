@@ -279,6 +279,7 @@ class BaseController(object):
     screenshot = None
     screenshot_when_exposed = False
     snapping_targets = None
+    timer = None
 
     def __init__(self, app):
         """Sets app attribute to provided argument, model attribute to new empty model
@@ -556,7 +557,7 @@ class BaseController(object):
 
         self.view.startup()
 
-        self.display_message(MESSAGES["msg_release_mouse"])
+        self.display_message(MESSAGES["msg_release_mouse"], permanent=True)
 
         self.app.run_task("activate_root", self.view.get_root_wid())
 
@@ -762,13 +763,15 @@ class BaseController(object):
                 self.state = self.state - 1 if self.state > 0 else 3
             self.move_to_corner()
 
-    def display_message(self, message):
+    def display_message(self, message, permanent=False):
         """Displays informational message in view's status bar.
 
         :var message: message to display
         :type message: str
         """
         self.view.statusbar.message.set(message)
+        if not permanent:
+            self.set_timer()
 
     def get_root_rect(self, x, y):
         """Returns current root position and size calculated from provided x, y.
@@ -953,6 +956,14 @@ class BaseController(object):
         """
         self.view.master.geometry(
             "{}x{}+{}+{}".format(Settings.MIN_WIDTH, Settings.MIN_HEIGHT, x, y)
+        )
+
+    def set_timer(self):
+        """Cancels previous timer if it exists and creates a new one."""
+        if self.timer is not None:
+            self.view.master.after_cancel(self.timer)
+        self.timer = self.view.master.after(
+            Settings.TIMER_DELAY, self.view.statusbar.message.set, ""
         )
 
     def setup_corner(self):

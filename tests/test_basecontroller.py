@@ -29,6 +29,7 @@ class TestBaseController(object):
             "screenshot_widget",
             "screenshot",
             "snapping_targets",
+            "timer",
         ],
     )
     def test_BaseController_inits_attr_as_None(self, attr):
@@ -639,11 +640,29 @@ class TestBaseController(object):
     ## BaseController.display_message
     def test_BaseController_display_message_sets_statusbar_message(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.set_timer")
         controller = controller_mocked_app(mocker)
         MESSAGE = "foobar"
         controller.display_message(MESSAGE)
         view.return_value.statusbar.message.set.assert_called_once()
         view.return_value.statusbar.message.set.assert_called_with(MESSAGE)
+
+    def test_BaseController_display_message_calls_set_timer_by_default(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.set_timer")
+        controller = controller_mocked_app(mocker)
+        controller.display_message("barfoo")
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseController_display_message_not_calling_set_timer_for_permanent(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.set_timer")
+        controller = controller_mocked_app(mocker)
+        controller.display_message("barfoo", permanent=True)
+        mocked.assert_not_called()
 
     ## BaseController.get_root_rect
     @pytest.mark.parametrize(
@@ -1119,6 +1138,40 @@ class TestBaseController(object):
         view.return_value.master.geometry.assert_called_with(
             "{}x{}+{}+{}".format(Settings.MIN_WIDTH, Settings.MIN_HEIGHT, x, y)
         )
+
+    ## BaseController.set_timer
+    def test_BaseController_set_timer_calls_after_cancel(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = controller_mocked_app(mocker)
+        TIMER = 10
+        controller.timer = TIMER
+        controller.set_timer()
+        view.return_value.master.after_cancel.assert_called_once()
+        view.return_value.master.after_cancel.assert_called_with(TIMER)
+
+    def test_BaseController_set_timer_not_calling_after_cancel(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = controller_mocked_app(mocker)
+        controller.timer = None
+        controller.set_timer()
+        view.return_value.master.after_cancel.assert_not_called()
+
+    def test_BaseController_set_timer_calls_after(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = controller_mocked_app(mocker)
+        controller.timer = 8
+        controller.set_timer()
+        view.return_value.master.after.assert_called_once()
+        view.return_value.master.after.assert_called_with(
+            Settings.TIMER_DELAY, view.return_value.statusbar.message.set, ""
+        )
+
+    def test_BaseController_set_timer_sets_timer_attribute(self, mocker):
+        view = mocked_setup_view(mocker)
+        controller = controller_mocked_app(mocker)
+        controller.timer = 5
+        controller.set_timer()
+        assert controller.timer == view.return_value.master.after.return_value
 
     ## BaseController.setup_corner
     def test_BaseController_setup_corner_calls_get_cursor_name(self, mocker):

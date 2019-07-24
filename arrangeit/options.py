@@ -320,7 +320,7 @@ class OptionsDialog(tk.Toplevel):
         """Cancels previous timer if it exists and creates a new one."""
         if self.timer is not None:
             self.after_cancel(self.timer)
-        self.timer = self.after(Settings.OPTIONS_TIMER_DELAY, self.message.set, "")
+        self.timer = self.after(Settings.TIMER_DELAY, self.message.set, "")
 
     ## EVENTS CALLBACKS
     def on_destroy_options(self, event):

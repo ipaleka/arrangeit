@@ -674,7 +674,7 @@ class TestOptionsDialog(object):
         dialog = OptionsDialog(mocker.MagicMock())
         dialog.message = mocker.PropertyMock(return_value="foobar")
         dialog.set_timer()
-        calls = [mocker.call(Settings.OPTIONS_TIMER_DELAY, dialog.message.set, "")]
+        calls = [mocker.call(Settings.TIMER_DELAY, dialog.message.set, "")]
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_OptionsDialog_set_timer_sets_timer_attribute(self, mocker):
