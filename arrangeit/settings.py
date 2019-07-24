@@ -29,10 +29,18 @@ user_settings.json file created and located in arrangeit user data directory.
 
 MESSAGES = {
     "default_saved": _("Collected windows data saved to default file."),
-    "msg_release_mouse": _("Mouse middle click or Space for cursor release"),
     "msg_capture_mouse": _("Click title or icon to restart positioning"),
+    "msg_corner_changed": _("Positioning corner is changed"),
+    "msg_finished_positioning": _("Positioning phase is finished"),
+    "msg_finished_resizing": _("Resizing phase is finished"),
+    "msg_listed_window": _("Listed window activated"),
+    "msg_release_mouse": _("Mouse middle click or Space for cursor release"),
+    "msg_resizable_changed": _("Window's resizable property is changed"),
+    "msg_restored_changed": _("Window's minimize property is changed"),
+    "msg_switch_workspace": _("New workspace is entered"),
+    "msg_window_skipped": _("Window is skipped"),
+    "msg_workspace_changed": _("Workspace is changed"),
 }
-
 
 SETTINGS = {
     "MIN_WIDTH": (int, 100),

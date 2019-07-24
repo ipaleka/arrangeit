@@ -594,6 +594,7 @@ class TestBaseController(object):
     ## BaseController.cycle_corners
     def test_BaseController_cycle_corners_calls_move_to_corner(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.base.BaseController.move_to_corner")
         controller = controller_mocked_app(mocker)
         controller.state = Settings.LOCATE
@@ -602,6 +603,7 @@ class TestBaseController(object):
 
     def test_BaseController_cycle_corners_not_calling_move_to_corner(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.base.BaseController.move_to_corner")
         controller = controller_mocked_app(mocker)
         controller.state = Settings.RESIZE
@@ -618,6 +620,7 @@ class TestBaseController(object):
         self, mocker, state, expected
     ):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.move_to_corner")
         controller = controller_mocked_app(mocker)
         controller.state = state
@@ -631,11 +634,22 @@ class TestBaseController(object):
         self, mocker, state, expected
     ):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.move_to_corner")
         controller = controller_mocked_app(mocker)
         controller.state = state
         controller.cycle_corners(counter=True)
         assert controller.state == expected
+
+    def test_BaseController_cycle_corners_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.move_to_corner")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = controller_mocked_app(mocker)
+        controller.state = Settings.LOCATE
+        controller.cycle_corners()
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_corner_changed"])
 
     ## BaseController.display_message
     def test_BaseController_display_message_sets_statusbar_message(self, mocker):
@@ -1212,16 +1226,28 @@ class TestBaseController(object):
     ## BaseController.skip_current_window
     def test_BaseController_skip_current_window_calls_model_clear_changed(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.next")
         mocked = mocker.patch("arrangeit.data.WindowModel.clear_changed")
         controller_mocked_app(mocker).skip_current_window()
-        assert mocked.call_count == 1
+        mocked.assert_called_once()
+        mocked.assert_called_with()
 
     def test_BaseController_skip_current_window_calls_next(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.base.BaseController.next")
         controller_mocked_app(mocker).skip_current_window()
-        assert mocked.call_count == 1
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_BaseController_skip_current_window_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller_mocked_app(mocker).skip_current_window()
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_window_skipped"])
 
     ## BaseController.switch_resizable
     @pytest.mark.parametrize("resizable,expected", [(False, True), (True, False)])
@@ -1229,6 +1255,7 @@ class TestBaseController(object):
         self, mocker, resizable, expected
     ):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         controller = base.BaseController(mocker.MagicMock())
         controller.model.resizable = resizable
         controller.switch_resizable()
@@ -1236,6 +1263,7 @@ class TestBaseController(object):
 
     def test_BaseController_switch_resizable_calls_widget_set_value(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         controller = base.BaseController(mocker.MagicMock())
         VALUE = False
         controller.model.resizable = VALUE
@@ -1243,12 +1271,21 @@ class TestBaseController(object):
         view.return_value.resizable.set_value.assert_called_once()
         view.return_value.resizable.set_value.assert_called_with(not VALUE)
 
+    def test_BaseController_switch_resizable_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.switch_resizable()
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_resizable_changed"])
+
     ## BaseController.switch_restored
     @pytest.mark.parametrize("restored,expected", [(False, True), (True, False)])
     def test_BaseController_switch_restored_functionality(
         self, mocker, restored, expected
     ):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         controller = base.BaseController(mocker.MagicMock())
         controller.model.restored = restored
         controller.switch_restored()
@@ -1256,6 +1293,7 @@ class TestBaseController(object):
 
     def test_BaseController_switch_restored_calls_widget_set_value(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         controller = base.BaseController(mocker.MagicMock())
         VALUE = False
         controller.model.restored = VALUE
@@ -1263,15 +1301,26 @@ class TestBaseController(object):
         view.return_value.restored.set_value.assert_called_once()
         view.return_value.restored.set_value.assert_called_with(not VALUE)
 
+    def test_BaseController_switch_restored_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.switch_restored()
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_restored_changed"])
+
     ## BaseController.switch_workspace
     def test_BaseController_switch_workspace_calls_get_root_wid(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         controller = controller_mocked_app(mocker)
         controller.switch_workspace()
-        view.return_value.get_root_wid.call_count == 1
+        view.return_value.get_root_wid.assert_called_once()
+        view.return_value.get_root_wid.assert_called_with()
 
     def test_BaseController_switch_workspace_calls_task_move_to_workspace(self, mocker):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         number = 1051
         model = mocker.patch("arrangeit.base.WindowModel")
         type(model.return_value).workspace = mocker.PropertyMock(return_value=number)
@@ -1280,6 +1329,14 @@ class TestBaseController(object):
         controller.app.run_task.assert_called_with(
             "move_to_workspace", view.return_value.get_root_wid.return_value, number
         )
+
+    def test_BaseController_switch_workspace_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = controller_mocked_app(mocker)
+        controller.switch_workspace()
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_switch_workspace"])
 
     ## BaseController.workspace_activated_by_digit
     def test_BaseController_workspace_activated_by_digit_calls_winfo_children(

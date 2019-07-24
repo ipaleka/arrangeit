@@ -357,6 +357,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_listed_window_activated_calls_windows_clear_list(
         self, mocker
     ):
+        mocker.patch("arrangeit.base.BaseController.display_message")
         controller = controller_mocked_next(mocker)
         controller.listed_window_activated(90192)
         assert controller.view.windows.clear_list.call_count == 1
@@ -365,6 +366,7 @@ class TestBaseControllerDomainLogic(object):
         self, mocker
     ):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.next")
         windows_list = [0, 1, 2]
         controller = base.BaseController(mocker.MagicMock())
@@ -377,6 +379,7 @@ class TestBaseControllerDomainLogic(object):
         self, mocker
     ):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.next")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         controller = base.BaseController(mocker.MagicMock())
@@ -389,6 +392,7 @@ class TestBaseControllerDomainLogic(object):
         self, mocker, state
     ):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.next")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         controller = base.BaseController(mocker.MagicMock())
@@ -398,6 +402,7 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_listed_window_activated_initializes_generator(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.next")
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90147)
@@ -405,6 +410,7 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_listed_window_activated_sets_generator_attr(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.base.BaseController.next")
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90152)
@@ -415,11 +421,23 @@ class TestBaseControllerDomainLogic(object):
 
     def test_BaseController_listed_window_activated_calls_next(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.base.BaseController.next")
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90423)
         mocked.assert_called_once()
         mocked.assert_called_with(first_time=True)
+
+    def test_BaseController_listed_window_activated_calls_display_message(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.next")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.listed_window_activated(90424)
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_listed_window"])
+
+
 
     ## BaseController.next
     def test_BaseController_next_sets_state_attr_to_positioning_corner_0(self, mocker):
@@ -649,24 +667,46 @@ class TestBaseControllerDomainLogic(object):
         mocked.assert_called_once()
 
     ## BaseController.update
+    def test_BaseController_update_calls_display_message_for_LOCATE(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.update_positioning")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.LOCATE
+        controller.update(420, 520)
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_finished_positioning"])
+
     def test_BaseController_update_calls_update_positioning_for_LOCATE(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.base.BaseController.update_positioning")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.LOCATE
         x, y = 400, 500
         controller.update(x, y)
-        assert mocked.call_count == 1
+        mocked.assert_called_once()
         mocked.assert_called_with(x, y)
+
+    def test_BaseController_update_calls_display_message_for_RESIZE(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.update_resizing")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.state = Settings.RESIZE
+        controller.update(540, 640)
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_finished_resizing"])
 
     def test_BaseController_update_calls_update_resizing_for_RESIZE(self, mocker):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.base.BaseController.update_resizing")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.RESIZE
         x, y = 500, 600
         controller.update(x, y)
-        assert mocked.call_count == 1
+        mocked.assert_called_once()
         mocked.assert_called_with(x, y)
 
     @pytest.mark.parametrize("state", [Settings.OTHER, 150, 5000])
@@ -897,6 +937,7 @@ class TestBaseControllerDomainLogic(object):
         self, mocker
     ):
         view = mocked_setup_view(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         controller = base.BaseController(mocker.MagicMock())
         SAMPLE = 1003
@@ -908,6 +949,7 @@ class TestBaseControllerDomainLogic(object):
     def test_BaseController_workspace_activated_calls_set_changed(self, mocker):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.data.WindowModel.set_changed")
         controller = base.BaseController(mocker.MagicMock())
         SAMPLE = 1044
@@ -918,6 +960,7 @@ class TestBaseControllerDomainLogic(object):
         self, mocker
     ):
         mocked_setup(mocker)
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = Settings.OTHER
@@ -930,9 +973,22 @@ class TestBaseControllerDomainLogic(object):
     ):
         mocker.patch("arrangeit.base.get_tkinter_root")
         mocker.patch("arrangeit.base.ViewApplication")
+        mocker.patch("arrangeit.base.BaseController.display_message")
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         mocked = mocker.patch("arrangeit.base.BaseController.recapture_mouse")
         controller = base.BaseController(mocker.MagicMock())
         controller.state = state
         controller.workspace_activated(1074)
         mocked.assert_not_called()
+
+    def test_BaseController_workspace_activated_calls_display_message(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        mocker.patch("arrangeit.data.WindowModel.set_changed")
+        mocked = mocker.patch("arrangeit.base.BaseController.display_message")
+        controller = base.BaseController(mocker.MagicMock())
+        controller.workspace_activated(1278)
+        mocked.assert_called_once()
+        mocked.assert_called_with(MESSAGES["msg_workspace_changed"])
+

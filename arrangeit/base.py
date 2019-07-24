@@ -487,6 +487,7 @@ class BaseController(object):
             self.recapture_mouse()
         self.generator = self.app.collector.collection.generator()
         self.next(first_time=True)
+        self.display_message(MESSAGES["msg_listed_window"])
 
     def next(self, first_time=False):
         """Sets controller ``model`` attribute from the value yielded from ``generator``
@@ -572,9 +573,11 @@ class BaseController(object):
         :type y: int
         """
         if self.state < Settings.RESIZE:  # implies LOCATE
+            self.display_message(MESSAGES["msg_finished_positioning"])
             return self.update_positioning(x, y)
 
         elif self.state < Settings.OTHER:  # implies RESIZE
+            self.display_message(MESSAGES["msg_finished_resizing"])
             return self.update_resizing(x, y)
 
     def update_positioning(self, x, y):
@@ -644,6 +647,7 @@ class BaseController(object):
         self.model.set_changed(ws=number)
         if self.state == Settings.OTHER:
             self.recapture_mouse()
+        self.display_message(MESSAGES["msg_workspace_changed"])
 
     ## COMMANDS
     def change_position(self, x, y):
@@ -762,6 +766,7 @@ class BaseController(object):
             else:
                 self.state = self.state - 1 if self.state > 0 else 3
             self.move_to_corner()
+            self.display_message(MESSAGES["msg_corner_changed"])
 
     def display_message(self, message, permanent=False):
         """Displays informational message in view's status bar.
@@ -979,22 +984,26 @@ class BaseController(object):
         """Calls :func:`next` and then destroys that new window from the windows list."""
         self.model.clear_changed()
         self.next()
+        self.display_message(MESSAGES["msg_window_skipped"])
 
     def switch_resizable(self):
         """Changes current model resizable Boolean value and updates view."""
         self.model.resizable = not self.model.resizable
         self.view.resizable.set_value(self.model.resizable)
+        self.display_message(MESSAGES["msg_resizable_changed"])
 
     def switch_restored(self):
         """Changes current model restored Boolean value and updates view."""
         self.model.restored = not self.model.restored
         self.view.restored.set_value(self.model.restored)
+        self.display_message(MESSAGES["msg_restored_changed"])
 
     def switch_workspace(self):
         """Activates workspace and moves root window onto it."""
         self.app.run_task(
             "move_to_workspace", self.view.get_root_wid(), self.model.workspace
         )
+        self.display_message(MESSAGES["msg_switch_workspace"])
 
     def workspace_activated_by_digit(self, number):
         """Activates workspace with humanized number equal to provided number.

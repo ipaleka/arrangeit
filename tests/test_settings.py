@@ -17,7 +17,19 @@ class TestSettingsModule(object):
         assert isinstance(settings.MESSAGES, dict)
 
     @pytest.mark.parametrize(
-        "key", ["default_saved", "msg_release_mouse", "msg_capture_mouse"]
+        "key",
+        [
+            "default_saved",
+            "msg_capture_mouse",
+            "msg_corner_changed",
+            "msg_listed_window",
+            "msg_release_mouse",
+            "msg_resizable_changed",
+            "msg_restored_changed",
+            "msg_switch_workspace",
+            "msg_window_skipped",
+            "msg_workspace_changed",
+        ],
     )
     def test_settings_module_initializes_MESSAGES_key(self, key):
         assert settings.MESSAGES.get(key) is not None
@@ -278,10 +290,7 @@ class TestSettings(object):
     @pytest.mark.parametrize(
         "group,expected",
         [
-            (
-                "_CURSOR",
-                ["SHIFT_CURSOR", "DEFAULT_CURSOR", "SELECT_CURSOR"],
-            ),
+            ("_CURSOR", ["SHIFT_CURSOR", "DEFAULT_CURSOR", "SELECT_CURSOR"]),
             ("_SELF", ["SNAP_INCLUDE_SELF"]),
         ],
     )
