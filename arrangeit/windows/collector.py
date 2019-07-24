@@ -15,11 +15,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from PIL import Image
-
-from arrangeit.base import BaseCollector
-from arrangeit.data import WindowModel
-from arrangeit.settings import Settings
-from arrangeit.windows.api import Api
 from win32api import EnumDisplayMonitors
 from win32con import (
     GA_ROOTOWNER,
@@ -38,6 +33,7 @@ from win32gui import (
     GetClassName,
     GetDC,
     GetWindowLong,
+    GetWindowPlacement,
     GetWindowText,
     IsIconic,
     IsWindow,
@@ -46,6 +42,12 @@ from win32gui import (
     SendMessageTimeout,
 )
 from win32ui import CreateBitmap, CreateDCFromHandle
+
+from arrangeit.base import BaseCollector
+from arrangeit.data import WindowModel
+from arrangeit.settings import Settings
+from arrangeit.utils import Rectangle
+from arrangeit.windows.api import Api
 
 
 class Collector(BaseCollector):
@@ -149,7 +151,11 @@ class Collector(BaseCollector):
         :type rectangle: :class:`arrangeit.utils.Rectangle`
         :returns: (int, int, int, int)
         """
-        rectangle = self.api.extended_frame_rect(hwnd)
+        rectangle = (
+            self.api.extended_frame_rect(hwnd)
+            if self.api.is_dwm_composition_enabled()  # TODO test if this works on Win7
+            else Rectangle(*GetWindowPlacement(hwnd)[-1])
+        )
         return (
             rectangle.x0,
             rectangle.y0,

@@ -734,15 +734,55 @@ class TestWindowsCollector(object):
         assert returned == mocked.return_value
 
     ## WindowsCollector._get_window_geometry
+    def test_WindowsCollector__get_window_geometry_calls_is_dwm_composition_enabled(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
+        mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
+        mocker.patch("arrangeit.windows.collector.Rectangle")
+        mocked = mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled")
+        Collector()._get_window_geometry(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_WindowsCollector__get_window_geometry_calls_GetWindowPlacement(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.Rectangle")
+        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=False)
+        mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
+        mocked = mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
+        Collector()._get_window_geometry(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(SAMPLE_HWND)
+
+    def test_WindowsCollector__get_window_geometry_calls_Rectangle(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=False)
+        mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
+        RECT = (0, 0, 100, 200)
+        mocker.patch("arrangeit.windows.collector.GetWindowPlacement", return_value=(0, 0, RECT))
+        mocked = mocker.patch("arrangeit.windows.collector.Rectangle")
+        Collector()._get_window_geometry(SAMPLE_HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(*RECT)
+
     def test_WindowsCollector__get_window_geometry_calls_extended_frame_rect(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
+        mocker.patch("arrangeit.windows.collector.Rectangle")
+        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=True)
         mocked = mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
         Collector()._get_window_geometry(SAMPLE_HWND)
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_HWND)
 
     def test_WindowsCollector__get_window_geometry_returns_tuple_rect(self, mocker):
+        mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
+        mocker.patch("arrangeit.windows.collector.Rectangle")
+        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=True)
         rect = mocker.MagicMock()
         rect.x0 = 100
         rect.y0 = 200
