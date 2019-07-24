@@ -14,9 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import gettext
 import json
 import os
-from gettext import gettext as _
 
 from PIL import Image
 
@@ -27,6 +27,8 @@ DO NOT EDIT SETTINGS IN THIS FILE FOR USER SIDE CONFIGURATION - for such purpose
 user_settings.json file created and located in arrangeit user data directory.
 """
 
+_ = gettext.translation("arrangeit", "arrangeit/locale", fallback=True).gettext
+
 MESSAGES = {
     "default_saved": _("Collected windows data saved to default file."),
     "msg_capture_mouse": _("Click title or icon to restart positioning"),
@@ -34,7 +36,7 @@ MESSAGES = {
     "msg_finished_positioning": _("Positioning phase is finished"),
     "msg_finished_resizing": _("Resizing phase is finished"),
     "msg_listed_window": _("Listed window activated"),
-    "msg_release_mouse": _("Mouse middle click or Space for cursor release"),
+    "msg_release_mouse": _("Mouse middle click or Shift for cursor release"),
     "msg_resizable_changed": _("Window's resizable property is changed"),
     "msg_restored_changed": _("Window's minimize property is changed"),
     "msg_switch_workspace": _("New workspace is entered"),
@@ -138,7 +140,7 @@ SETTINGS = {
     "TOOLBAR_BG": (str, "white"),
     "TOOLBAR_BUTTON_FONT_INCREASE": (float, -0.1),
     "TOOLBAR_BUTTON_SHRINK_HEIGHT": (float, 0.05),
-    "TOOLBAR_BUTTON_SHRINK_WIDTH": (float, 0.04),
+    "TOOLBAR_BUTTON_SHRINK_WIDTH": (float, 0.01),
     "OPTIONS_BUTTON_RELHEIGHT": (float, 0.7),
     "OPTIONS_BUTTON_RELWIDTH": (float, 0.5),
     "OPTIONS_BUTTON_ANCHOR": (str, "nw"),

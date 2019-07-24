@@ -3,7 +3,10 @@
 
 block_cipher = None
 
-datas = [('./arrangeit/resources', './arrangeit/resources')]
+datas = [
+    ('./arrangeit/resources', './arrangeit/resources'),
+    ('./arrangeit/locale', './arrangeit/locale')
+]
 
 hiddenimports = [
     'arrangeit.windows',

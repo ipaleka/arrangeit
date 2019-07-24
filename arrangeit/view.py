@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import gettext
 import tkinter as tk
-from gettext import gettext as _
 from tkinter.font import ITALIC, NORMAL, nametofont
 
 from PIL import Image, ImageTk
@@ -23,6 +23,8 @@ from PIL import Image, ImageTk
 from arrangeit.options import OptionsDialog
 from arrangeit.settings import Settings
 from arrangeit.utils import increased_by_fraction, open_image, set_icon
+
+_ = gettext.translation("arrangeit", "arrangeit/locale", fallback=True).gettext
 
 
 def get_tkinter_root():

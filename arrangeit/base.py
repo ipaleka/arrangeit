@@ -266,6 +266,8 @@ class BaseController(object):
     :type BaseController.screenshot_when_exposed: Boolean
     :var snapping_targets: dictionary of snapping rectangles grouped by workspace number
     :type snapping_targets: dict
+    :var BaseController.timer: id of active timer
+    :type BaseController.timer: int
     """
 
     app = None

@@ -18,7 +18,6 @@ import logging
 import os
 import sys
 from collections import namedtuple
-from gettext import gettext as _
 from importlib import import_module
 from itertools import chain, islice, product
 from platform import system
@@ -27,7 +26,7 @@ from PIL import Image, ImageFilter, ImageOps, ImageTk
 
 Rectangle = namedtuple("Rectangle", "x0 y0 x1 y1")
 
-MESSAGES = {"platform_error": _("arrangeit can't run on your platform. :(")}
+MESSAGES = {"platform_error": "arrangeit can't run on your platform. :("}
 
 
 ## PLATFORM

@@ -14,16 +14,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import gettext
 import platform
 import tkinter as tk
 import tkinter.ttk as ttk
 import webbrowser
-from gettext import gettext as _
 
 import arrangeit
 from arrangeit import options
 from arrangeit.settings import Settings
 from arrangeit.utils import get_resized_image, get_resource_path, set_icon
+
+_ = gettext.translation("arrangeit", "arrangeit/locale", fallback=True).gettext
 
 MESSAGES = {
     "_BG": _("Background:"),
@@ -31,7 +33,7 @@ MESSAGES = {
     "CORNER_CURSOR_ARROW": _("Corner cursor with arrow"),
     "HIGHLIGHTED_COLOR": _("Highlighted:"),
     "ROOT_ALPHA": _("Main window opacity [%]:"),
-    "ROOT_SIZE": _("Main window size"),
+    "ROOT_SIZE": _("Main window size:"),
     "SCREENSHOT_TO_GRAYSCALE": _("Grayscale background image"),
     "SCREENSHOT_BLUR_PIXELS": _("Background image blur [pixels]:"),
     "SCREENSHOT_DISABLED": _("Don't show background image"),
@@ -44,11 +46,11 @@ MESSAGES = {
     "TITLE_LABEL_FG": _("Title foreground:"),
     "TRANSPARENCY_IS_ON": _("Use transparency"),
     "WINDOWS_LIST_COUNT": _("Queued windows shown:"),
-    "about_title": _("About arrangeit"),
+    "about_title": _("About - arrangeit"),
     "appearance": _("Appearance"),
     "colors": _("Colors"),
     "files": _("Files"),
-    "options_title": _("arrangeit options"),
+    "options_title": _("Options - arrangeit"),
     "save_default": _("Collected windows data saved to default file."),
     "setting_changed": _(
         "Setting is changed - some settings may require\n"
@@ -132,8 +134,8 @@ class OptionsDialog(tk.Toplevel):
     :type OptionsDialog.master: :class:`tk.Tk`
     :var message: variable holding message log
     :type message: :class:`tk.StringVar`
-    :var timer: id of active timer
-    :type timer: int
+    :var OptionsDialog.timer: id of active timer
+    :type OptionsDialog.timer: int
     """
 
     master = None
@@ -582,15 +584,15 @@ class AboutDialog(tk.Toplevel):
             expand=True,
         )
 
-        version = "Version: {}".format(arrangeit.__version__)
+        version = "{}: {}".format(_("Version"), arrangeit.__version__)
         tk.Label(self, text=version, anchor="w").pack(
             padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
         )
-        python = "Python version: {}".format(platform.python_version())
+        python = "Python {}: {}".format(_("version"), platform.python_version())
         tk.Label(self, text=python, anchor="w").pack(
             padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
         )
-        tcl_tk = "Tcl/Tk version: {}".format(tk.TkVersion)
+        tcl_tk = "Tcl/Tk {}: {}".format(_("version"), tk.TkVersion)
         tk.Label(self, text=tcl_tk, anchor="w").pack(
             padx=Settings.OPTIONS_WIDGETS_PADX * 2, fill=tk.X, side=tk.TOP
         )

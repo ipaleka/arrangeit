@@ -76,8 +76,8 @@ way to start development on MS Windows.
 .. _git for Windows: https://gitforwindows.org/
 
 
-Darwin
-^^^^^^
+Mac OS X
+^^^^^^^^
 
 Download the `official installer`_ and install Python 3 by executing .pkg file.
 Finally, run post-install script **Install Certificates.command**.
@@ -142,6 +142,54 @@ And all the necessary Python dependency packages for **arrangeit** development w
 
 Additional tools
 ----------------
+
+pygettext
+^^^^^^^^^
+
+**pygettext** is a Python wrapper for *xgettext* and it ships with Python. To prepare
+translation template, run the following command on Ubuntu from the project's root
+directory:
+
+.. code-block:: bash
+
+  find ./arrangeit -iname "*.py" | xargs pygettext3 --verbose --extract-all \
+    --default-domain=arrangeit --output-dir=./arrangeit/locale
+
+
+Create a language_ directory inside ``locale`` directory, and inside that language
+directory create another directory with the name ``LC_MESSAGES``. Finally, copy
+arrangeit translation template into that directory and rename it to ``arrangeit.po``.
+
+Here's how it was done from the project's root directory for the Croatian language:
+
+.. code-block:: bash
+
+  $ mkdir -p arrangeit/locale/hr_HR/LC_MESSAGES
+  $ cp arrangeit/locale/arrangeit.pot arrangeit/locale/hr_HR/LC_MESSAGES/arrangeit.po
+
+If an existing translation needs to be updated after ``arrangeit.pot`` has been
+changed, then you should update the differences with **msgmerge**:
+
+.. code-block:: bash
+
+  $ msgmerge --update arrangeit/locale/hr_HR/LC_MESSAGES/arrangeit.po arrangeit/locale/arrangeit.pot
+
+
+After the translation is finished, compile the language file with **msgfmt**:
+
+.. code-block:: bash
+
+  $ cd arrangeit/locale/hr_HR/LC_MESSAGES
+  $ msgfmt -o arrangeit.mo arrangeit.po
+
+
+If you use Poedit_ for translation, then instead of the last command you may create
+compiled file by clicking the Save button in Poedit.
+
+
+.. _language: https://www.gnu.org/software/gettext/manual/html_node/Locale-Names.html
+.. _Poedit: https://poedit.net/
+
 
 black
 ^^^^^

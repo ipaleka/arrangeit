@@ -48,7 +48,7 @@ MS Windows
 ^^^^^^^^^^
 
 Extract the archive in a directory of your choice and run the ``arrangeit.exe``
-executable.
+executable inside it.
 
 
 Source distribution

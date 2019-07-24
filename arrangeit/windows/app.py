@@ -14,13 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import locale
+import os
+
 from PIL import ImageGrab, ImageTk
+from win32con import SW_MINIMIZE, SW_RESTORE
+from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
+
+# gettext requirement on MS Windows
+if os.getenv('LANG') is None:
+    os.environ['LANG'] = locale.getdefaultlocale()[0]
 
 from arrangeit.base import BaseApp
 from arrangeit.settings import Settings
 from arrangeit.utils import Rectangle, get_prepared_screenshot
-from win32con import SW_MINIMIZE, SW_RESTORE
-from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 
 
 class App(BaseApp):
