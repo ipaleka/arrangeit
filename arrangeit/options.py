@@ -63,32 +63,80 @@ WIDGETS = {
         ("SCREENSHOT_DISABLED", {}),
         (
             "ROOT_SIZE",
-            {"from_": 1, "to": 4, "resolution": 1, "tickinterval": 1, "digits": 1},
+            {
+                "configs": {
+                    "from_": 1,
+                    "to": 4,
+                    "resolution": 1,
+                    "tickinterval": 1,
+                    "digits": 1,
+                }
+            },
         ),
         ("TRANSPARENCY_IS_ON", {}),
         (
             "ROOT_ALPHA",
-            {"from_": 50, "to": 99, "resolution": 2, "tickinterval": 20, "digits": 3},
+            {
+                "configs": {
+                    "from_": 50,
+                    "to": 99,
+                    "resolution": 2,
+                    "tickinterval": 20,
+                    "digits": 3,
+                }
+            },
         ),
         ("SNAP_INCLUDE_SELF", {}),
         (
             "WINDOWS_LIST_COUNT",
-            {"from_": 4, "to": 10, "resolution": 1, "tickinterval": 3, "digits": 1},
+            {
+                "configs": {
+                    "from_": 4,
+                    "to": 10,
+                    "resolution": 1,
+                    "tickinterval": 3,
+                    "digits": 1,
+                }
+            },
         ),
         ("SCREENSHOT_TO_GRAYSCALE", {}),
         (
             "SCREENSHOT_BLUR_PIXELS",
-            {"from_": 0, "to": 8, "resolution": 1, "tickinterval": 2, "digits": 1},
+            {
+                "configs": {
+                    "from_": 0,
+                    "to": 8,
+                    "resolution": 1,
+                    "tickinterval": 2,
+                    "digits": 1,
+                }
+            },
         ),
         ("CORNER_CURSOR_ARROW", {}),
         (
             "SHIFT_CURSOR",
-            {"from_": 1, "to": 12, "resolution": 1, "tickinterval": 3, "digits": 1},
+            {
+                "configs": {
+                    "from_": 1,
+                    "to": 12,
+                    "resolution": 1,
+                    "tickinterval": 3,
+                    "digits": 1,
+                }
+            },
         ),
         ("SNAPPING_IS_ON", {}),
         (
             "SNAP_PIXELS",
-            {"from_": 1, "to": 12, "resolution": 1, "tickinterval": 3, "digits": 1},
+            {
+                "configs": {
+                    "from_": 1,
+                    "to": 12,
+                    "resolution": 1,
+                    "tickinterval": 3,
+                    "digits": 1,
+                }
+            },
         ),
     ),
     "colors": (
@@ -360,17 +408,13 @@ class ScaleOption(tk.Scale):
         change_callback=None,
         initial=0,
         label="",
-        from_=0,
-        to=8,
-        resolution=1,
-        tickinterval=1,
-        digits=1,
+        configs={},
     ):
         """Sets master attribute and configs scale widget from provided arguments
 
-        after super __init__ is called.
-
-        Also sets command callback and orientation.
+        after super __init__ is called. Also sets command callback and orientation.
+        Provided argument `configs` is a dictionary with `from_`, `to`, `resolution`,
+        `tickinterval` and `digits` keys and related values to config.
 
         :param master: parent widget
         :param master: :class:`tk.Toplevel`
@@ -382,16 +426,8 @@ class ScaleOption(tk.Scale):
         :param initial: float/int
         :param label: explanation text/label for this scale
         :param label: str
-        :param from_: starting value
-        :param from_: float/int
-        :param to: ending value
-        :param to: float/int
-        :param resolution: minimum step
-        :param resolution: float/int
-        :param tickinterval: named values on scale
-        :param tickinterval: float/int
-        :param digits: how many digits are shown on tick intervals
-        :param digits: int
+        :param configs: collection of configuration's key:value pairs
+        :param configs: dict
         """
         super().__init__(master)
         self.master = master
@@ -399,11 +435,11 @@ class ScaleOption(tk.Scale):
         self.change_callback = change_callback
         self.config(
             label=label,
-            from_=from_,
-            to=to,
-            resolution=resolution,
-            tickinterval=tickinterval,
-            digits=digits,
+            from_=configs.get("from_", 0),
+            to=configs.get("to", 1),
+            resolution=configs.get("resolution", 1),
+            tickinterval=configs.get("tickinterval", 1),
+            digits=configs.get("digits", 1),
             orient=tk.HORIZONTAL,
         )
         self.set(initial)

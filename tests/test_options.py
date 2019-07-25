@@ -648,7 +648,7 @@ class TestOptionsDialog(object):
         mocked.assert_called_with()
 
     def test_OptionsDialog_change_setting_not_called_upon_startup(self, mocker):
-        # NOTE this test shows window - move it into integration tests in the future 
+        # NOTE this test shows window - move it into integration tests in the future
         mocked = mocker.patch("arrangeit.options.OptionsDialog.change_setting")
         options = OptionsDialog(tk.Frame(tk.Frame()))
         mocked.assert_not_called()
@@ -803,7 +803,15 @@ class TestScaleOption(object):
         mocked = mocker.patch("arrangeit.options.tk.Scale.config")
         master = mocker.MagicMock()
         ScaleOption(
-            master, label="foo", from_=1, to=10, resolution=1, tickinterval=3, digits=2
+            master,
+            label="foo",
+            configs={
+                "from_": 1,
+                "to": 10,
+                "resolution": 1,
+                "tickinterval": 3,
+                "digits": 2,
+            },
         )
         calls = [
             mocker.call(
@@ -834,7 +842,15 @@ class TestScaleOption(object):
         mocked = mocker.patch("arrangeit.options.tk.Scale.config")
         master = mocker.MagicMock()
         scale = ScaleOption(
-            master, label="foo", from_=1, to=10, resolution=1, tickinterval=3, digits=2
+            master,
+            label="foo",
+            configs={
+                "from_": 1,
+                "to": 10,
+                "resolution": 1,
+                "tickinterval": 3,
+                "digits": 2,
+            },
         )
         calls = [mocker.call(command=scale.on_update_value)]
         mocked.assert_has_calls(calls, any_order=True)
@@ -1369,7 +1385,7 @@ class TestAboutDialog(object):
         master = mocker.MagicMock()
         dialog = AboutDialog(master)
         mocked.reset_mock()
-        master.master.tk.call.assert_called_with('winfo', 'server', master.master._w)
+        master.master.tk.call.assert_called_with("winfo", "server", master.master._w)
         master.master.tk.call.return_value = "foobar"
         dialog.setup_widgets()
         calls = [mocker.call(dialog, text="GUI: foobar", anchor="w")]
@@ -1418,7 +1434,6 @@ class TestAboutDialog(object):
             )
         ]
         mocked.assert_has_calls(calls, any_order=True)
-
 
     def test_AboutDialog_setup_widgets_sets_help_button(self, mocker):
         mocked_for_about_setup(mocker)
