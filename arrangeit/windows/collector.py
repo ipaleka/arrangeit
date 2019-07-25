@@ -268,15 +268,14 @@ class Collector(BaseCollector):
         return True
 
     def get_available_workspaces(self):
-        """
+        """Returns custom list of workspaces available on default screen.
 
-        TODO implement
+        Returned list contains two-tuples of workspace number in order
+        and corresponding name.
 
-        :param hwnd: window id
-        :type hwnd: int
-        :returns: str
+        :returns: [(int, str)]
         """
-        return [(0, "")]
+        return self.api.get_desktops()
 
     def get_monitors_rects(self):
         """Returns list of available monitors position and size rectangles.
@@ -293,13 +292,13 @@ class Collector(BaseCollector):
         return self.api.enum_windows()
 
     def get_workspace_number_for_window(self, hwnd):
-        """TODO implement
+        """Returns workspace number for the window with provided hwnd.
 
         :param hwnd: window id
         :type hwnd: int
-        :returns: str
+        :returns: int
         """
-        return 0
+        return self.api.get_desktop_ordinal_for_window(hwnd)
 
     def is_applicable(self, hwnd):
         """Checks if provided hwnd represents window type that should be collected.

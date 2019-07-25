@@ -22,8 +22,8 @@ from win32con import SW_MINIMIZE, SW_RESTORE
 from win32gui import IsIconic, MoveWindow, SetActiveWindow, ShowWindow
 
 # gettext requirement on MS Windows
-if os.getenv('LANG') is None:
-    os.environ['LANG'] = locale.getdefaultlocale()[0]
+if os.getenv("LANG") is None:
+    os.environ["LANG"] = locale.getdefaultlocale()[0]
 
 from arrangeit.base import BaseApp
 from arrangeit.settings import Settings
@@ -72,8 +72,14 @@ class App(BaseApp):
         return True
 
     def move_to_workspace(self, hwnd, number):
-        """TODO implement"""
-        pass
+        """Moves root window to provided workspace number.
+
+        :param hwnd: root id got from Tkinter
+        :type hwnd: int
+        :param number: workspace number
+        :type number: int
+        """
+        return self.collector.api.move_window_to_desktop(hwnd, number)
 
     def screenshot_cleanup(self, *args):
         """Unregisters DWM thumbnails kept in instance's ``thumbnails`` attribute.

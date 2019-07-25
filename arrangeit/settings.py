@@ -92,6 +92,7 @@ SETTINGS = {
     "NAME_LABEL_HEIGHT": (int, 2),
     "NAME_LABEL_PADX": (int, 2),
     "NAME_LABEL_PADY": (int, 0),
+    "DESKTOP_STR": (str, _("Desktop")),
     "WORKSPACES_FRAME_RELHEIGHT": (float, 0.62),
     "WORKSPACES_FRAME_RELWIDTH": (float, 0.25),
     "WORKSPACE_NUMBER_RELHEIGHT": (float, 0.75),

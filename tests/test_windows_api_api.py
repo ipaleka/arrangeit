@@ -4,6 +4,8 @@ import ctypes.wintypes
 import pytest
 
 import arrangeit.windows.api as api
+
+from arrangeit.settings import Settings
 from arrangeit.windows.api import (
     DWM_TNP_OPACITY,
     DWM_TNP_RECTDESTINATION,
@@ -29,13 +31,17 @@ class TestWindowsApiApiPrivate(object):
     def test_api_Api__rectangle_to_wintypes_rect_calls_and_returns_wintypes_RECT(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.RECT")
         returned = Api()._rectangle_to_wintypes_rect(Rectangle(0, 0, 0, 0))
         mocked.assert_called_once()
         mocked.assert_called_with()
         assert returned == mocked.return_value
 
-    def test_api_Api__rectangle_to_wintypes_rect_sets_attributtes(self):
+    def test_api_Api__rectangle_to_wintypes_rect_sets_attributtes(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        mocker.patch("arrangeit.windows.api.Helpers")
         returned = Api()._rectangle_to_wintypes_rect(Rectangle(1, 2, 3, 4))
         assert returned.left == 1
         assert returned.top == 2
@@ -44,6 +50,7 @@ class TestWindowsApiApiPrivate(object):
 
     # Api._update_thumbnail
     def test_api_Api__update_thumbnail_calls_DWM_THUMBNAIL_PROPERTIES(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
         mocker.patch("ctypes.wintypes.BYTE")
         mocker.patch("arrangeit.windows.api.Helpers")
@@ -54,6 +61,7 @@ class TestWindowsApiApiPrivate(object):
         mocked.assert_called_with()
 
     def test_api_Api__update_thumbnail_sets_dwFlags(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
         mocker.patch("ctypes.wintypes.BYTE")
         mocker.patch("arrangeit.windows.api.Helpers")
@@ -69,6 +77,7 @@ class TestWindowsApiApiPrivate(object):
         )
 
     def test_api_Api__update_thumbnail_calls__rectangle_to_wintypes_rect(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
         mocker.patch("ctypes.wintypes.BYTE")
         mocker.patch("arrangeit.windows.api.Helpers")
@@ -84,6 +93,7 @@ class TestWindowsApiApiPrivate(object):
             "arrangeit.windows.api.Api._rectangle_to_wintypes_rect"
         )
         mocker.patch("ctypes.wintypes.BYTE")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
@@ -95,6 +105,7 @@ class TestWindowsApiApiPrivate(object):
             "arrangeit.windows.api.Api._rectangle_to_wintypes_rect"
         )
         mocker.patch("ctypes.wintypes.BYTE")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
@@ -102,10 +113,9 @@ class TestWindowsApiApiPrivate(object):
         assert mocked.return_value.rcSource == mocked_rect.return_value
 
     def test_api_Api__update_thumbnail_sets_opacity(self, mocker):
-        mocker.patch(
-            "arrangeit.windows.api.Api._rectangle_to_wintypes_rect"
-        )
+        mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
         mocked_byte = mocker.patch("ctypes.wintypes.BYTE")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
@@ -115,6 +125,7 @@ class TestWindowsApiApiPrivate(object):
     def test_api_Api__update_thumbnail_sets_fVisible(self, mocker):
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
         mocker.patch("ctypes.wintypes.BYTE")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
@@ -124,6 +135,7 @@ class TestWindowsApiApiPrivate(object):
     def test_api_Api__update_thumbnail_sets_fSourceClientAreaOnly(self, mocker):
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
         mocker.patch("ctypes.wintypes.BYTE")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
@@ -132,6 +144,7 @@ class TestWindowsApiApiPrivate(object):
 
     def test_api_Api__update_thumbnail_calls_wintypes_BYTE(self, mocker):
         mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
@@ -142,6 +155,7 @@ class TestWindowsApiApiPrivate(object):
 
     def test_api_Api__update_thumbnail_calls_wintypes_byref(self, mocker):
         mocked_prop = mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.BYTE")
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
@@ -153,6 +167,7 @@ class TestWindowsApiApiPrivate(object):
     def test_api_Api__update_thumbnail_calls__dwm_update_thumbnail_properties(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
         mocker.patch("ctypes.wintypes.BYTE")
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
@@ -166,6 +181,7 @@ class TestWindowsApiApiPrivate(object):
         )
 
     def test_api_Api__update_thumbnail_calls_returns_None(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
         mocker.patch("ctypes.wintypes.BYTE")
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
@@ -176,6 +192,7 @@ class TestWindowsApiApiPrivate(object):
         assert returned is None
 
     def test_api_Api__update_thumbnail_calls_returns_thumbnail_id(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES")
         mocker.patch("ctypes.wintypes.BYTE")
         mocker.patch("arrangeit.windows.api.Api._rectangle_to_wintypes_rect")
@@ -190,6 +207,8 @@ class TestWindowsApiApiPrivate(object):
     def test_api_Api__wintypes_rect_to_rectangle_calls_and_returns_Rectangle(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        mocker.patch("arrangeit.windows.api.Helpers")
         winrect = ctypes.wintypes.RECT()
         winrect.left = 100
         winrect.top = 200
@@ -209,22 +228,32 @@ class TestWindowsApiApiPublic(object):
     def test_api_Api_inits_empty_attr(self, attr):
         assert getattr(Api, attr) == {}
 
-    @pytest.mark.parametrize("attr", ["helpers"])
+    @pytest.mark.parametrize("attr", ["helpers", "vdi"])
     def test_api_Api_inits_attr_as_None(self, attr):
         assert getattr(Api, attr) is None
 
     # Api.__init__
     def test_api_Api__init__initializes_and_sets_helpers(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         api = Api()
         mocked.assert_called_once()
         mocked.assert_called_with()
         assert api.helpers == mocked.return_value
 
+    def test_api_Api__init__initializes_and_sets_vdi(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        api = Api()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+        assert api.vdi == mocked.return_value
+
     # cloaked_value
     def test_Api_cloaked_value_calls_wintypes_DWORD(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
         Api().cloaked_value(5070)
@@ -234,6 +263,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_cloaked_value_calls_ctypes_byref(self, mocker):
         mocked_value = mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.byref")
         Api().cloaked_value(5071)
@@ -243,16 +273,16 @@ class TestWindowsApiApiPublic(object):
     def test_Api_cloaked_value_calls_ctypes_sizeof(self, mocker):
         mocked_value = mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.sizeof")
         Api().cloaked_value(5072)
         mocked.assert_called_once()
         mocked.assert_called_with(mocked_value.return_value)
 
-    def test_Api_cloaked_value_calls__dwm_get_window_attribute(
-        self, mocker
-    ):
+    def test_Api_cloaked_value_calls__dwm_get_window_attribute(self, mocker):
         mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_sizeof = mocker.patch("ctypes.sizeof")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
@@ -268,6 +298,7 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
         mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         mocked.return_value._dwm_get_window_attribute.return_value = 1
         returned = Api().cloaked_value(5075)
@@ -277,6 +308,7 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
         mocked_helpers.return_value._dwm_get_window_attribute.return_value = S_OK
@@ -285,17 +317,20 @@ class TestWindowsApiApiPublic(object):
 
     # enum_windows
     def test_api_Api_enum_windows_nested_append_to_collection(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         nested_func = nested(Api().enum_windows, "append_to_collection", hwnds=[])
         returned = nested_func("foo", None)
         assert returned is True
 
     def test_api_Api_enum_windows_calls_WNDENUMPROC(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         Api().enum_windows()
         mocked.return_value.WNDENUMPROC.assert_called_once()
 
     def test_api_Api_enum_windows_calls__enum_windows(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         Api().enum_windows()
         mocked.return_value._enum_windows.assert_called_once()
@@ -304,6 +339,7 @@ class TestWindowsApiApiPublic(object):
         )
 
     def test_api_Api_enum_windows_calls__enum_child_windows(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         SAMPLE = 1874
         Api().enum_windows(SAMPLE, enum_children=True)
@@ -313,6 +349,7 @@ class TestWindowsApiApiPublic(object):
         )
 
     def test_api_Api_enum_windows_returns_non_empty_list(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         assert isinstance(Api().enum_windows(), list)
 
@@ -320,6 +357,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_executable_name_for_hwnd_calls_wintypes_DWORD(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_process_image_file_name.return_value = False
         mocked = mocker.patch("ctypes.wintypes.DWORD")
@@ -332,6 +370,7 @@ class TestWindowsApiApiPublic(object):
     ):
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_process_image_file_name.return_value = False
         mocked_byref = mocker.patch("ctypes.byref")
@@ -345,6 +384,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_executable_name_for_hwnd_calls__open_process(self, mocker):
         mocked_dword = mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_process_image_file_name.return_value = False
         mocker.patch("ctypes.byref")
@@ -360,6 +400,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_executable_name_for_hwnd_calls_create_string_buffer(self, mocker):
         mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_process_image_file_name.return_value = False
         mocker.patch("ctypes.byref")
@@ -372,6 +413,7 @@ class TestWindowsApiApiPublic(object):
         self, mocker
     ):
         mocker.patch("ctypes.wintypes.DWORD")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked_buffer = mocker.patch("ctypes.create_string_buffer")
@@ -391,6 +433,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_executable_name_for_hwnd_calls__close_handle(self, mocker):
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.create_string_buffer")
         mocked_helpers.return_value._get_process_image_file_name.return_value = False
@@ -405,6 +448,7 @@ class TestWindowsApiApiPublic(object):
     ):
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_buffer = mocker.patch("ctypes.create_string_buffer")
         mocked_helpers.return_value._get_process_image_file_name.return_value = True
@@ -418,6 +462,7 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_process_image_file_name.return_value = False
         mocked = mocker.patch("arrangeit.windows.api.extract_name_from_bytes_path")
@@ -429,6 +474,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_extended_frame_rect_calls_wintypes_RECT(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.RECT")
         Api().extended_frame_rect(7070)
@@ -438,6 +484,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_extended_frame_rect_calls_ctypes_byref(self, mocker):
         mocked_value = mocker.patch("ctypes.wintypes.RECT")
         mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.byref")
         Api().extended_frame_rect(7071)
@@ -447,16 +494,16 @@ class TestWindowsApiApiPublic(object):
     def test_Api_extended_frame_rect_calls_ctypes_sizeof(self, mocker):
         mocked_value = mocker.patch("ctypes.wintypes.RECT")
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.sizeof")
         Api().extended_frame_rect(7072)
         mocked.assert_called_once()
         mocked.assert_called_with(mocked_value.return_value)
 
-    def test_Api_extended_frame_rect_calls__dwm_get_window_attribute(
-        self, mocker
-    ):
+    def test_Api_extended_frame_rect_calls__dwm_get_window_attribute(self, mocker):
         mocker.patch("ctypes.wintypes.RECT")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_sizeof = mocker.patch("ctypes.sizeof")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
@@ -464,7 +511,10 @@ class TestWindowsApiApiPublic(object):
         Api().extended_frame_rect(HWND)
         mocked.return_value._dwm_get_window_attribute.assert_called_once()
         mocked.return_value._dwm_get_window_attribute.assert_called_with(
-            HWND, DWMWA_EXTENDED_FRAME_BOUNDS, mocked_byref.return_value, mocked_sizeof.return_value
+            HWND,
+            DWMWA_EXTENDED_FRAME_BOUNDS,
+            mocked_byref.return_value,
+            mocked_sizeof.return_value,
         )
 
     def test_Api_extended_frame_rect_returns_None(self, mocker):
@@ -472,15 +522,19 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
         mocker.patch("ctypes.wintypes.RECT")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         mocked.return_value._dwm_get_window_attribute.return_value = 1
         returned = Api().extended_frame_rect(7075)
         assert returned is None
 
-    def test_Api_extended_frame_rect_calls_and_returns_wintypes_rect_to_rectangle(self, mocker):
+    def test_Api_extended_frame_rect_calls_and_returns_wintypes_rect_to_rectangle(
+        self, mocker
+    ):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_rect = mocker.patch("ctypes.wintypes.RECT")
         mocked = mocker.patch("arrangeit.windows.api.Api._wintypes_rect_to_rectangle")
@@ -492,15 +546,49 @@ class TestWindowsApiApiPublic(object):
 
     # get_ancestor_by_type
     def test_Api_get_ancestor_by_type_calls_and_returns__get_ancestor(self, mocker):
-        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        mocked = mocker.patch("arrangeit.windows.api.Helpers")
         HWND, TYPE = 50020, 1
         returned = Api().get_ancestor_by_type(HWND, TYPE)
-        mocked_helpers.return_value._get_ancestor.assert_called_once()
-        mocked_helpers.return_value._get_ancestor.assert_called_with(HWND, TYPE)
-        assert returned == mocked_helpers.return_value._get_ancestor.return_value
+        mocked.return_value._get_ancestor.assert_called_once()
+        mocked.return_value._get_ancestor.assert_called_with(HWND, TYPE)
+        assert returned == mocked.return_value._get_ancestor.return_value
+
+    # get_desktop_ordinal_for_window
+    def test_Api_get_desktop_ordinal_for_window_calls_and_rets_vdi_get_window_desktop(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        NUMBER = 5
+        mocked.return_value.get_window_desktop.return_value = (NUMBER, "foo")
+        HWND = 50250
+        returned = Api().get_desktop_ordinal_for_window(HWND)
+        mocked.return_value.get_window_desktop.assert_called_once()
+        mocked.return_value.get_window_desktop.assert_called_with(HWND)
+        assert returned == NUMBER
+
+    # get_desktops
+    def test_Api_get_desktops_calls_vdi_get_desktops(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        Api().get_desktops()
+        mocked.return_value.get_desktops.assert_called_once()
+        mocked.return_value.get_desktops.assert_called_with()
+
+    def test_Api_get_desktops_returns_list_of_two_tuples(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers")
+        DESKTOPS = [(0, "foo"), (1, "bar")]
+        mocked = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        mocked.return_value.get_desktops.return_value = DESKTOPS
+        returned = Api().get_desktops()
+        assert returned == [
+            (d[0], "{} {}".format(Settings.DESKTOP_STR, d[0] + 1)) for d in DESKTOPS
+        ]
 
     # get_last_active_popup
     def test_Api_get_last_active_popup_calls_and_returns__get_ancestor(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         HWND = 50021
         returned = Api().get_last_active_popup(HWND)
@@ -513,6 +601,7 @@ class TestWindowsApiApiPublic(object):
     # is_dwm_composition_enabled
     def test_Api_is_dwm_composition_enabled_calls_wintypes_BOOL(self, mocker):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.BOOL")
         Api().is_dwm_composition_enabled()
@@ -521,6 +610,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_is_dwm_composition_enabled_calls_ctypes_byref(self, mocker):
         mocked_enabled = mocker.patch("ctypes.wintypes.BOOL")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.byref")
         Api().is_dwm_composition_enabled()
@@ -531,6 +621,7 @@ class TestWindowsApiApiPublic(object):
         self, mocker
     ):
         mocker.patch("ctypes.wintypes.BOOL")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         Api().is_dwm_composition_enabled()
@@ -541,14 +632,26 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_is_dwm_composition_enabled_returns_value(self, mocker):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.BOOL")
         returned = Api().is_dwm_composition_enabled()
         assert returned is mocked.return_value.value
 
+    # move_window_to_desktop
+    def test_Api_move_window_to_desktop_calls_and_returns_move_window_to_desktop(self, mocker):
+        mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        HWND, NUMBER = 4144, 2
+        returned = Api().move_window_to_desktop(HWND, NUMBER)
+        mocked.return_value.move_window_to_desktop.assert_called_once()
+        mocked.return_value.move_window_to_desktop.assert_called_with(HWND, NUMBER)
+        assert returned == mocked.return_value.move_window_to_desktop.return_value
+
     # setup_thumbnail
     def test_Api_setup_thumbnail_calls_wintypes_HANDLE(self, mocker):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("arrangeit.windows.api.Api._update_thumbnail")
         mocked = mocker.patch("ctypes.wintypes.HANDLE")
@@ -558,6 +661,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_setup_thumbnail_calls_wintypes_byref(self, mocker):
         mocked_handle = mocker.patch("ctypes.wintypes.HANDLE")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("arrangeit.windows.api.Api._update_thumbnail")
         mocked = mocker.patch("ctypes.byref")
@@ -568,6 +672,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_setup_thumbnail_calls__dwm_register_thumbnail(self, mocker):
         mocker.patch("ctypes.wintypes.HANDLE")
         mocker.patch("arrangeit.windows.api.Api._update_thumbnail")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         FROM, ROOT = 272, 372
@@ -580,6 +685,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_setup_thumbnail_returns_None(self, mocker):
         mocker.patch("ctypes.wintypes.HANDLE")
         mocker.patch("arrangeit.windows.api.Api._update_thumbnail")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         mocked.return_value._dwm_register_thumbnail.return_value = 1
@@ -589,21 +695,21 @@ class TestWindowsApiApiPublic(object):
     def test_Api_setup_thumbnail_calls_and_returns__update_thumbnail(self, mocker):
         mocked_handle = mocker.patch("ctypes.wintypes.HANDLE")
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         RECTANGLE = "foo"
         mocked_helpers.return_value._dwm_register_thumbnail.return_value = S_OK
         mocked = mocker.patch("arrangeit.windows.api.Api._update_thumbnail")
         returned = Api().setup_thumbnail(273, 373, RECTANGLE)
         mocked.assert_called_once()
-        mocked.assert_called_with(
-            mocked_handle.return_value, RECTANGLE
-        )
+        mocked.assert_called_with(mocked_handle.return_value, RECTANGLE)
         assert returned is mocked.return_value
 
     # title_info_state
     def test_Api_title_info_state_calls_TITLEBARINFO(self, mocker):
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
         Api().title_info_state(30040, 1)
@@ -612,6 +718,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_title_info_state_calls_ctypes_sizeof(self, mocker):
         mocked_info = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("ctypes.sizeof")
@@ -621,6 +728,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_title_info_state_calls_ctypes_byref(self, mocker):
         mocked_info = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.sizeof")
         mocked = mocker.patch("ctypes.byref")
@@ -631,6 +739,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_title_info_state_calls__get_titlebar_info(self, mocker):
         mocker.patch("arrangeit.windows.api.TITLEBARINFO")
         mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         HWND = 30043
@@ -643,6 +752,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_title_info_state_returns_value(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_info = mocker.patch("arrangeit.windows.api.TITLEBARINFO")
         RGSTATE = 40
         mocked_info.return_value.rgstate = [RGSTATE]
@@ -656,6 +766,7 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
         mocker.patch("arrangeit.windows.api.TITLEBARINFO")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_titlebar_info.return_value = False
         returned = Api().title_info_state(30045, 1)
@@ -663,6 +774,7 @@ class TestWindowsApiApiPublic(object):
 
     # unregister_thumbnail
     def test_Api_unregister_thumbnail_calls__dwm_unregister_thumbnail(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         THUMBNAIL_ID = 100
         Api().unregister_thumbnail(THUMBNAIL_ID)
@@ -670,6 +782,7 @@ class TestWindowsApiApiPublic(object):
         mocked.return_value._dwm_unregister_thumbnail.assert_called_with(THUMBNAIL_ID)
 
     def test_Api_unregister_thumbnail_returns_True_on_error(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("arrangeit.windows.api.Helpers")
         mocked.return_value._dwm_unregister_thumbnail.return_value = 1
         assert Api().unregister_thumbnail(101) is True
@@ -677,6 +790,7 @@ class TestWindowsApiApiPublic(object):
     # window_info_extended_style
     def test_Api_window_info_extended_style_calls_WINDOWINFO(self, mocker):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("arrangeit.windows.api.WINDOWINFO")
         Api().window_info_extended_style(20040, 1)
@@ -685,6 +799,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_window_info_extended_style_calls_ctypes_byref(self, mocker):
         mocked_info = mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.byref")
         Api().window_info_extended_style(20041, 1)
@@ -693,6 +808,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_window_info_extended_style_calls__get_window_info(self, mocker):
         mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         HWND = 20042
@@ -704,6 +820,7 @@ class TestWindowsApiApiPublic(object):
 
     def test_Api_window_info_extended_style_returns_value(self, mocker):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_info = mocker.patch("arrangeit.windows.api.WINDOWINFO")
         DWEXSTYLE = 40
         mocked_info.return_value.dwExStyle = DWEXSTYLE
@@ -716,6 +833,7 @@ class TestWindowsApiApiPublic(object):
     def test_Api_window_info_extended_style_returns_None(self, mocker):
         mocker.patch("ctypes.byref")
         mocker.patch("arrangeit.windows.api.WINDOWINFO")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_window_info.return_value = False
         returned = Api().window_info_extended_style(20044, 1)
@@ -730,6 +848,7 @@ class TestWindowsApiApiPublicWin8(object):
     # get_package
     def test_api_Api_get_package_calls__package_full_name_from_hwnd(self, mocker):
         mocker.patch("arrangeit.windows.api.Package")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("arrangeit.windows.api.Api._package_full_name_from_hwnd")
         mocker.patch("arrangeit.windows.api.Api._package_info_buffer_from_reference")
@@ -741,6 +860,7 @@ class TestWindowsApiApiPublicWin8(object):
         mocked.assert_called_with(SAMPLE)
 
     def test_api_Api_get_package_returns_empty_Package(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._package_full_name_from_hwnd.return_value = False
         mocked = mocker.patch("arrangeit.windows.api.Package")
@@ -754,6 +874,7 @@ class TestWindowsApiApiPublicWin8(object):
         self, mocker
     ):
         FULL_NAME = "foobar"
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch(
             "arrangeit.windows.api.Api._package_info_reference_from_full_name"
@@ -771,6 +892,7 @@ class TestWindowsApiApiPublicWin8(object):
     def test_api_Api_get_package_calls__package_info_buffer_from_reference(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch(
             "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
@@ -788,6 +910,7 @@ class TestWindowsApiApiPublicWin8(object):
         mocked.assert_called_with(mocked_ref.return_value)
 
     def test_api_Api_get_package_calls_PACKAGE_INFO_from_buffer(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch(
             "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
@@ -806,6 +929,7 @@ class TestWindowsApiApiPublicWin8(object):
         mocked.from_buffer.assert_called_with(SAMPLE)
 
     def test_api_Api_get_package_calls__close_package_info(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch(
             "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
@@ -823,6 +947,7 @@ class TestWindowsApiApiPublicWin8(object):
         )
 
     def test_api_Api_get_package_calls_Package(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch(
             "arrangeit.windows.api.Api._package_full_name_from_hwnd", return_value="foo"
@@ -845,6 +970,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_full_name_from_handle_calls_first_time__get_package_full_name(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_package_full_name.return_value = 0
@@ -859,6 +985,7 @@ class TestWindowsApiApiPrivateWin8(object):
         self, mocker
     ):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_package_full_name.return_value = (
             api.APPMODEL_ERROR_NO_PACKAGE
@@ -869,6 +996,7 @@ class TestWindowsApiApiPrivateWin8(object):
         self, mocker
     ):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_uint = mocker.patch("ctypes.c_uint")
         LENGTH = 10
         mocked_uint.return_value.value = LENGTH
@@ -882,6 +1010,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_full_name_from_handle_calls_again__get_package_full_name(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_buffer = mocker.patch("ctypes.create_unicode_buffer")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -899,12 +1028,14 @@ class TestWindowsApiApiPrivateWin8(object):
         self, mocker
     ):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_package_full_name.side_effect = [0, "foo"]
         assert Api()._package_full_name_from_handle(100) is None
 
     def test_Api__package_full_name_from_handle_returns_full_name(self, mocker):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_package_full_name.side_effect = [
             0,
@@ -916,6 +1047,8 @@ class TestWindowsApiApiPrivateWin8(object):
 
     # _package_full_name_from_hwnd
     def test_Api__package_full_name_from_hwnd_calls_enum_windows(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("arrangeit.windows.api.Api.enum_windows", return_value=())
         mocked.reset_mock()
         SAMPLE = 2840
@@ -924,6 +1057,7 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Api__package_full_name_from_hwnd_calls_wintypes_DWORD(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.byref")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
@@ -935,6 +1069,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_full_name_from_hwnd_calls__get_windows_thread_process_id(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.DWORD")
         mocked_byref = mocker.patch("ctypes.byref")
@@ -947,6 +1082,7 @@ class TestWindowsApiApiPrivateWin8(object):
         )
 
     def test_Api__package_full_name_from_hwnd_calls__open_process(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_dword = mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
@@ -964,6 +1100,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_full_name_from_hwnd_calls__package_full_name_from_handle(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
@@ -976,6 +1113,7 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Api__package_full_name_from_hwnd_calls__close_handle(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.DWORD")
         mocker.patch("ctypes.byref")
@@ -990,6 +1128,7 @@ class TestWindowsApiApiPrivateWin8(object):
         )
 
     def test_Api__package_full_name_from_hwnd_returns_full_name(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.DWORD")
         FULL_NAME = "foobar"
@@ -1003,6 +1142,7 @@ class TestWindowsApiApiPrivateWin8(object):
         assert returned == FULL_NAME
 
     def test_Api__package_full_name_from_hwnd_returns_None(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocker.patch("ctypes.wintypes.DWORD")
         mocked_helpers.return_value._package_full_name_from_handle.return_value = None
@@ -1015,6 +1155,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_info_buffer_from_reference_calls_first_time__get_package_info(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_package_info.return_value = 0
@@ -1037,6 +1178,7 @@ class TestWindowsApiApiPrivateWin8(object):
         self, mocker
     ):
         mocker.patch("ctypes.byref")
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked_helpers.return_value._get_package_info.return_value = 0
         assert Api()._package_info_buffer_from_reference(mocker.MagicMock()) is None
@@ -1044,6 +1186,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_info_buffer_from_reference_calls_create_string_buffer(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.cast")
         mocked_uint = mocker.patch("ctypes.c_uint")
@@ -1059,6 +1202,7 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Api__package_info_buffer_from_reference_calls_cast(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("ctypes.byref")
         mocked_buffer = mocker.patch("ctypes.create_string_buffer")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -1075,6 +1219,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_info_buffer_from_reference_calls_again__get_package_info(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_byref = mocker.patch("ctypes.byref")
         mocker.patch("ctypes.create_string_buffer")
         mocked_bytes = mocker.patch("ctypes.cast")
@@ -1100,6 +1245,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_info_buffer_from_reference_returns_None_for_no_success(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.create_string_buffer")
         mocker.patch("ctypes.cast")
@@ -1111,6 +1257,7 @@ class TestWindowsApiApiPrivateWin8(object):
         assert Api()._package_info_buffer_from_reference(mocker.MagicMock()) is None
 
     def test_Api__package_info_buffer_from_reference_returns_buffer(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.cast")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -1126,6 +1273,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_info_reference_from_full_name_calls_PACKAGE_INFO_REFERENCE(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("ctypes.pointer")
         mocked = mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -1138,6 +1286,7 @@ class TestWindowsApiApiPrivateWin8(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_Api__package_info_reference_from_full_name_calls_pointer(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("ctypes.pointer")
         mocked_ref = mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -1152,6 +1301,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_info_ref_from_full_name_calls__open_package_info_by_full_name(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_pointer = mocker.patch("ctypes.pointer")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -1169,6 +1319,7 @@ class TestWindowsApiApiPrivateWin8(object):
     def test_Api__package_info_reference_from_full_name_returns_package_info_reference(
         self, mocker
     ):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked = mocker.patch("ctypes.pointer")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
@@ -1179,6 +1330,7 @@ class TestWindowsApiApiPrivateWin8(object):
         assert returned == mocked.return_value
 
     def test_Api__package_info_reference_from_full_name_returns_None(self, mocker):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("ctypes.pointer")
         mocker.patch("arrangeit.windows.api.PACKAGE_INFO_REFERENCE")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")

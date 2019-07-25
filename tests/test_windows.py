@@ -49,6 +49,7 @@ class TestWindowsApp(object):
     ## WindowsApp.move_and_resize
     def test_WindowsApp_move_and_resize_calls_get_model_by_wid(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked.return_value).is_changed = mocker.PropertyMock(return_value=False)
         app = App()
@@ -91,6 +92,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_calls_IsIconic(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).changed = mocker.PropertyMock(
             return_value=(72, 82, 501, 501)
@@ -105,6 +107,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_calls_ShowWindow_if_iconic(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).changed = mocker.PropertyMock(
             return_value=(73, 83, 501, 501)
@@ -122,6 +125,7 @@ class TestWindowsApp(object):
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).changed = mocker.PropertyMock(
             return_value=(74, 84, 501, 501)
@@ -135,6 +139,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_calls_MoveWindow(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         CHANGED = (71, 81, 501, 501)
         type(mocked_model.return_value).changed = mocker.PropertyMock(
@@ -149,6 +154,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_not_calling_MoveWindow(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).is_changed = mocker.PropertyMock(
             return_value=False
@@ -161,6 +167,7 @@ class TestWindowsApp(object):
     def test_WindowsApp_move_and_resize_calls_ShowWindow_minimized(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.windows.app.MoveWindow")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         mocker.patch("arrangeit.windows.app.IsIconic", return_value=False)
         type(mocked_model.return_value).changed = mocker.PropertyMock(
@@ -179,6 +186,7 @@ class TestWindowsApp(object):
     def test_WindowsApp_move_and_resize_not_calling_ShowWindow_minimized(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.windows.app.MoveWindow")
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         mocker.patch("arrangeit.windows.app.IsIconic", return_value=False)
         type(mocked_model.return_value).changed = mocker.PropertyMock(
@@ -193,6 +201,7 @@ class TestWindowsApp(object):
         mocked.assert_not_called()
 
     def test_WindowsApp_move_and_resize_returns_False(self, mocker):
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         mocker.patch("arrangeit.windows.app.MoveWindow")
@@ -200,6 +209,7 @@ class TestWindowsApp(object):
         assert app.move_and_resize(100) is False
 
     def test_WindowsApp_move_and_resize_returns_True(self, mocker):
+        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).is_changed = mocker.PropertyMock(
@@ -209,9 +219,22 @@ class TestWindowsApp(object):
         assert app.move_and_resize(100) is True
 
     ## WindowsApp.move_to_workspace
-    @pytest.mark.skip("Research how to deal with workspaces in MS Windows")
-    def test_WindowsApp_move_to_workspace_(self, mocker):
+    def test_WindowsApp_move_to_workspace_calls_and_returns_api_move_window_to_desktop(
+        self, mocker
+    ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        HWND, NUMBER = 10050, 1
+        app = App()
+        returned = app.move_to_workspace(HWND, NUMBER)
+        mocked.return_value.return_value.api.move_window_to_desktop.assert_called_once()
+        mocked.return_value.return_value.api.move_window_to_desktop.assert_called_with(
+            HWND, NUMBER
+        )
+        assert (
+            returned
+            == mocked.return_value.return_value.api.move_window_to_desktop.return_value
+        )
 
     ## WindowsApp.screenshot_cleanup
     def test_WindowsApp_screenshot_cleanup_calls_unregister_thumbnail(self, mocker):
@@ -227,7 +250,9 @@ class TestWindowsApp(object):
         )
         assert mocked.return_value.return_value.api.unregister_thumbnail.call_count == 2
 
-    def test_WindowsApp_screenshot_cleanup_not_calling_unregister_thumbnail_for_empty(self, mocker):
+    def test_WindowsApp_screenshot_cleanup_not_calling_unregister_thumbnail_for_empty(
+        self, mocker
+    ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         app = App()
@@ -235,7 +260,9 @@ class TestWindowsApp(object):
         app.screenshot_cleanup()
         mocked.return_value.return_value.api.unregister_thumbnail.assert_not_called()
 
-    def test_WindowsApp_screenshot_cleanup_sets_thumbnails_attribute_to_empty_tuple(self, mocker):
+    def test_WindowsApp_screenshot_cleanup_sets_thumbnails_attribute_to_empty_tuple(
+        self, mocker
+    ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.BaseApp.setup_collector")
         app = App()
@@ -740,7 +767,9 @@ class TestWindowsCollector(object):
         mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
         mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
         mocker.patch("arrangeit.windows.collector.Rectangle")
-        mocked = mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled")
+        mocked = mocker.patch(
+            "arrangeit.windows.collector.Api.is_dwm_composition_enabled"
+        )
         Collector()._get_window_geometry(SAMPLE_HWND)
         mocked.assert_called_once()
         mocked.assert_called_with()
@@ -749,20 +778,26 @@ class TestWindowsCollector(object):
         self, mocker
     ):
         mocker.patch("arrangeit.windows.collector.Rectangle")
-        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=False)
+        mocker.patch(
+            "arrangeit.windows.collector.Api.is_dwm_composition_enabled",
+            return_value=False,
+        )
         mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
         mocked = mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
         Collector()._get_window_geometry(SAMPLE_HWND)
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_HWND)
 
-    def test_WindowsCollector__get_window_geometry_calls_Rectangle(
-        self, mocker
-    ):
-        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=False)
+    def test_WindowsCollector__get_window_geometry_calls_Rectangle(self, mocker):
+        mocker.patch(
+            "arrangeit.windows.collector.Api.is_dwm_composition_enabled",
+            return_value=False,
+        )
         mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
         RECT = (0, 0, 100, 200)
-        mocker.patch("arrangeit.windows.collector.GetWindowPlacement", return_value=(0, 0, RECT))
+        mocker.patch(
+            "arrangeit.windows.collector.GetWindowPlacement", return_value=(0, 0, RECT)
+        )
         mocked = mocker.patch("arrangeit.windows.collector.Rectangle")
         Collector()._get_window_geometry(SAMPLE_HWND)
         mocked.assert_called_once()
@@ -773,7 +808,10 @@ class TestWindowsCollector(object):
     ):
         mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
         mocker.patch("arrangeit.windows.collector.Rectangle")
-        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=True)
+        mocker.patch(
+            "arrangeit.windows.collector.Api.is_dwm_composition_enabled",
+            return_value=True,
+        )
         mocked = mocker.patch("arrangeit.windows.collector.Api.extended_frame_rect")
         Collector()._get_window_geometry(SAMPLE_HWND)
         mocked.assert_called_once()
@@ -782,7 +820,10 @@ class TestWindowsCollector(object):
     def test_WindowsCollector__get_window_geometry_returns_tuple_rect(self, mocker):
         mocker.patch("arrangeit.windows.collector.GetWindowPlacement")
         mocker.patch("arrangeit.windows.collector.Rectangle")
-        mocker.patch("arrangeit.windows.collector.Api.is_dwm_composition_enabled", return_value=True)
+        mocker.patch(
+            "arrangeit.windows.collector.Api.is_dwm_composition_enabled",
+            return_value=True,
+        )
         rect = mocker.MagicMock()
         rect.x0 = 100
         rect.y0 = 200
@@ -928,6 +969,7 @@ class TestWindowsCollector(object):
 
     ## WindowsCollector.add_window
     def test_WindowsCollector_add_window_calls_WindowsCollection_add(self, mocker):
+        mocker.patch("arrangeit.windows.collector.Collector.get_workspace_number_for_window", return_value=0)
         mocked = mocker.patch("arrangeit.data.WindowsCollection.add")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
@@ -986,6 +1028,7 @@ class TestWindowsCollector(object):
         ],
     )
     def test_WindowsCollector_add_window_calls_methods(self, mocker, method):
+        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
         mocker.patch("arrangeit.windows.collector.Collector.get_application_name")
@@ -1028,9 +1071,14 @@ class TestWindowsCollector(object):
         assert Collector().check_window(SAMPLE_HWND) == expected
 
     ## WindowsCollector.get_available_workspaces
-    @pytest.mark.skip("Research how to deal with workspaces in MS Windows")
-    def test_WindowsCollector_get_available_workspaces_(self, mocker):
-        pass
+    def test_WindowsCollector_get_available_calls_and_returns_api_get_desktops(
+        self, mocker
+    ):
+        mocked = mocker.patch("arrangeit.windows.collector.Api.get_desktops")
+        returned = Collector().get_available_workspaces()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+        assert returned == mocked.return_value
 
     ## WindowsCollector.get_monitors_rects
     def test_WindowsCollector_get_monitors_rects_calls_EnumDisplayMonitors(
@@ -1064,9 +1112,17 @@ class TestWindowsCollector(object):
         assert returned == mocked.return_value
 
     ## WindowsCollector.get_workspace_number_for_window
-    @pytest.mark.skip("Research how to deal with workspaces in MS Windows")
-    def test_WindowsCollector_get_workspace_number_for_window_(self, mocker):
-        pass
+    def test_WindowsCollector_get_workspace_number_for_window_returns_api_get_ordinal(
+        self, mocker
+    ):
+        mocked = mocker.patch(
+            "arrangeit.windows.collector.Api.get_desktop_ordinal_for_window"
+        )
+        HWND = 741
+        returned = Collector().get_workspace_number_for_window(HWND)
+        mocked.assert_called_once()
+        mocked.assert_called_with(HWND)
+        assert returned == mocked.return_value
 
     ## WindowsCollector.is_applicable
     @pytest.mark.parametrize(
@@ -1273,6 +1329,7 @@ class TestWindowsCollector(object):
     def test_WindowsCollector_run_functionality(
         self, mocker, is_applicable, is_valid_state, value
     ):
+        mocker.patch("arrangeit.windows.collector.Collector.get_workspace_number_for_window", return_value=0)
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
         mocker.patch("arrangeit.windows.collector.Collector.get_application_name")

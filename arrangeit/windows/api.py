@@ -28,6 +28,7 @@ from PIL import Image
 from arrangeit.settings import Settings
 from arrangeit.utils import Rectangle, open_image
 from arrangeit.windows.utils import extract_name_from_bytes_path
+from arrangeit.windows.virtualdesktops import VirtualDesktopsWin10
 
 APPMODEL_ERROR_NO_PACKAGE = 15700
 ERROR_INSUFFICIENT_BUFFER = 0x7A
@@ -501,7 +502,7 @@ class Package(object):
     def setup_package(self):
         """Retrieves and sets package data.
 
-        TODO add call to this method after exposion if window was minimized
+        TODO add call to this method after window is exposed if it was minimized
 
         :var root: root element of XML document
         :type root: :class:`xml.etree.ElementTree.Element`
@@ -518,14 +519,18 @@ class Api(object):
     :type packages: dictionary of :class:`Package`
     :var helpers: object holding helper methods for Windows API functions
     :type helpers: :class:`Helpers`
+    :var vdi: object holding methods of virtual desktop interface
+    :type vdi: :class:`VirtualDesktopsWin10`
     """
 
     packages = {}
     helpers = None
+    vdi = None
 
     def __init__(self):
         """Initializes and sets attribute for helpers instance."""
         self.helpers = Helpers()
+        self.vdi = VirtualDesktopsWin10()
 
     def _package_full_name_from_handle(self, handle):
         """Returns full name of the package associated with provided process handle.
@@ -857,6 +862,29 @@ class Api(object):
         """
         return self.helpers._get_ancestor(hwnd, ancestor_type)
 
+    def get_desktop_ordinal_for_window(self, hwnd):
+        """Returns corresponding desktop ordinal of the window with provided hwnd.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :returns: int
+        """
+        return self.vdi.get_window_desktop(hwnd)[0]
+
+    def get_desktops(self):
+        """Returns list of virtual desktops.
+
+        Returned list contains two-tuples of desktop numbers in order
+        and their corresponding names. A name is formatted from "Desktop "
+        translation forllowed by ordinal increased by 1.
+
+        :returns: [(int, str)]
+        """
+        return [
+            (i, "{} {}".format(Settings.DESKTOP_STR, i + 1))
+            for (i, _a) in self.vdi.get_desktops()
+        ]
+
     def get_last_active_popup(self, hwnd):
         """Helper function to return hwnd of last popup of window with provided hwnd.
 
@@ -904,6 +932,17 @@ class Api(object):
         enabled = ctypes.wintypes.BOOL()
         self.helpers._dwm_is_composition_enabled(ctypes.byref(enabled))
         return enabled.value
+
+    def move_window_to_desktop(self, hwnd, number):
+        """Moves window with provided hwnd to desktop with provided ordinal.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :param number: desktop ordinal
+        :type number: int
+        :returns: int
+        """
+        return self.vdi.move_window_to_desktop(hwnd, number)
 
     def setup_thumbnail(self, from_hwnd, root_hwnd, rectangle):
         """Create, updates and returns handle of thumbnail of provided source window
