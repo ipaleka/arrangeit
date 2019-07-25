@@ -19,7 +19,7 @@ setup(
     long_description=readme,
     packages=find_packages(),
     test_suite='tests',
-    python_requires="~=3.4",
+    python_requires="~=3.5",
     install_requires=[
         "Pillow",
         "pynput",

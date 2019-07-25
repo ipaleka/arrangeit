@@ -267,13 +267,12 @@ PyInstaller_ is used to build MS Windows installation package.
 .. _PyInstaller: https://www.pyinstaller.org/
 
 `starter.py` script is created in the project's root directory for the purpose of
-PyInstaller's dependencies collecting. There's specification file
-``arrangeit_pyinstaller.spec`` in the same directory used to produce MS Windows
-executable by the following call:
+PyInstaller's dependencies collecting. The specification file ``pyinstaller.spec``
+in the same directory is used to produce MS Windows executable by the following call:
 
 .. code-block:: bash
 
-  (arrangeit) python -OO -m PyInstaller arrangeit_pyinstaller.spec
+  (arrangeit) python -OO -m PyInstaller pyinstaller.spec
 
 
 SonarQube
@@ -304,7 +303,7 @@ line to your ``~/.bashrc``:
   export PATH=$PATH:~/opt/repos/sonar-scanner/bin
 
 
-To start scanning, run the scanner in the root directory of the project with:
+To start scanning, run the scanner from the root directory of the project with:
 
 .. code-block:: bash
 
