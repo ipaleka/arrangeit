@@ -379,7 +379,7 @@ class BaseController(object):
         """Moves cursor and sets new state and corner if snapping occured on new side.
 
         State and corner can change only for positioning phase, so for resizing phase
-        this function calls and returns :func:`BaseMouse.move_cursor` at the very beginning.
+        this method just calls and returns :func:`BaseMouse.move_cursor`.
 
         :param new_x: new cursor position on x-axis
         :type new_x: int
@@ -391,43 +391,24 @@ class BaseController(object):
         :type intersections: tuple
         :var new_state: positioning state
         :type new_state: int
-        :var index0: position of root's first intersected snapping rectangle in sources
-        :type index0: int
-        :var index1: position of root's second intersected snapping rectangle in sources
-        :type index1: int
         """
-        if not self.state < Settings.RESIZE:
-            return self.mouse.move_cursor(new_x, new_y)
+        if self.state < Settings.RESIZE:
 
-        new_state = self.state
+            new_state = self.check_snapping_state(sources, intersections)
 
-        if isinstance(intersections[0], Rectangle):  # single axis snap
-            index0 = sources.index(intersections[0])
-            if not index0 in Settings.CORNER_RECT_INDEXES[self.state]:
-                new_state = Settings.CORNER_RECT_INDEXES.index(
-                    (Settings.CORNER_RECT_INDEXES[self.state][0], index0)
-                    if index0 % 2
-                    else (index0, Settings.CORNER_RECT_INDEXES[self.state][1])
-                )
+            if new_state is not None:
+                if new_state in (1, 2) and self.state in (0, 3):
+                    new_x += self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
+                elif new_state in (0, 3) and self.state in (1, 2):
+                    new_x -= self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
 
-        else:  # both axes snapped
-            index0 = sources.index(intersections[0][0])
-            index1 = sources.index(intersections[1][0])
-            if Settings.CORNER_RECT_INDEXES[self.state] != (index0, index1):
-                new_state = Settings.CORNER_RECT_INDEXES.index((index0, index1))
+                if new_state in (2, 3) and self.state in (0, 1):
+                    new_y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
+                elif new_state in (0, 1) and self.state in (2, 3):
+                    new_y -= self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
 
-        if new_state != self.state:
-            if new_state in (1, 2) and self.state in (0, 3):
-                new_x += self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
-            elif new_state in (0, 3) and self.state in (1, 2):
-                new_x -= self.view.master.winfo_width() - 2 * Settings.SHIFT_CURSOR
-
-            if new_state in (2, 3) and self.state in (0, 1):
-                new_y += self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
-            elif new_state in (0, 1) and self.state in (2, 3):
-                new_y -= self.view.master.winfo_height() - 2 * Settings.SHIFT_CURSOR
-            self.state = new_state
-            self.setup_corner()
+                self.state = new_state
+                self.setup_corner()
 
         self.mouse.move_cursor(new_x, new_y)
 
@@ -471,6 +452,39 @@ class BaseController(object):
                 return True
 
         return False
+
+    def check_snapping_state(self, sources, intersections):
+        """Returns new state changed by snapping or None if state should not be changed.
+
+        :param sources: four-tuple of root window snapping rectangles
+        :type sources: tuple of :class:`Rectangle`
+        :param intersections: one or two pairs of snapping rectangles that intersect
+        :type intersections: tuple
+        :var new_state: positioning state
+        :type new_state: int
+        :var index0: position of root's first intersected snapping rectangle in sources
+        :type index0: int
+        :var index1: position of root's second intersected snapping rectangle in sources
+        :type index1: int
+        """
+        new_state = self.state
+
+        if isinstance(intersections[0], Rectangle):  # single axis snap
+            index0 = sources.index(intersections[0])
+            if not index0 in Settings.CORNER_RECT_INDEXES[self.state]:
+                new_state = Settings.CORNER_RECT_INDEXES.index(
+                    (Settings.CORNER_RECT_INDEXES[self.state][0], index0)
+                    if index0 % 2
+                    else (index0, Settings.CORNER_RECT_INDEXES[self.state][1])
+                )
+
+        else:  # both axes snapped
+            index0 = sources.index(intersections[0][0])
+            index1 = sources.index(intersections[1][0])
+            if Settings.CORNER_RECT_INDEXES[self.state] != (index0, index1):
+                new_state = Settings.CORNER_RECT_INDEXES.index((index0, index1))
+
+        return None if new_state == self.state else self.state
 
     def listed_window_activated(self, wid):
         """Calls task that restarts positioning routine from provided window id

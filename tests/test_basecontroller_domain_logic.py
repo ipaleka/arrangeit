@@ -19,94 +19,71 @@ class TestBaseControllerDomainLogic(object):
     """Testing class for base Controller class' domain logic methods."""
 
     ## BaseController.apply_snapping
-    def test_BaseController_apply_snapping_calls_and_returns_move_cursor_for_RESIZE(
-        self, mocker
-    ):
+    def test_BaseController_apply_snapping_calls_move_cursor_for_RESIZE(self, mocker):
         mocked_setup(mocker)
+        mocked_check = mocker.patch(
+            "arrangeit.base.BaseController.check_snapping_state"
+        )
         mocked = mocker.patch("arrangeit.base.BaseMouse.move_cursor")
         controller = controller_mocked_app(mocker)
         controller.state = Settings.RESIZE
         NEW_X, NEW_Y = 101, 202
-        returned = controller.apply_snapping(NEW_X, NEW_Y, [], [])
+        controller.apply_snapping(NEW_X, NEW_Y, [], [])
         mocked.assert_called_once()
         mocked.assert_called_with(NEW_X, NEW_Y)
-        assert returned is mocked.return_value
+        mocked_check.assert_not_called()
 
-    def test_BaseController_apply_snapping_changes_state_for_single_axis_snapping(
-        self, mocker
-    ):
+    def test_BaseController_apply_snapping_calls_check_snapping_state(self, mocker):
         mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
         mocker.patch("arrangeit.base.BaseMouse.move_cursor")
+        mocker.patch("arrangeit.base.BaseController.setup_corner")
+        mocked = mocker.patch("arrangeit.base.BaseController.check_snapping_state")
         controller = controller_mocked_app(mocker)
-        STATE = Settings.LOCATE
-        controller.state = STATE
-        INTERSECTIONS = (
-            ROOT_SNAPPING_RECTANGLES_SOURCES[1],
-            Rectangle(1278, 25, 1282, 1082),
-        )
-        controller.apply_snapping(
-            102, 203, ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
-        )
-        assert controller.state != STATE
+        controller.state = Settings.LOCATE
+        SOURCES, INTERSECTIONS = 401, 502
+        controller.apply_snapping(1, 1, SOURCES, INTERSECTIONS)
         mocked.assert_called_once()
+        mocked.assert_called_with(SOURCES, INTERSECTIONS)
 
-    def test_BaseController_apply_snapping_not_changing_state_for_single_axis_snapping(
-        self, mocker
-    ):
+    def test_BaseController_apply_snapping_not_calling_setup_corner(self, mocker):
         mocked_setup(mocker)
+        mocker.patch(
+            "arrangeit.base.BaseController.check_snapping_state", return_value=None
+        )
+        mocked_move = mocker.patch("arrangeit.base.BaseMouse.move_cursor")
         mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
-        mocker.patch("arrangeit.base.BaseMouse.move_cursor")
         controller = controller_mocked_app(mocker)
-        STATE = Settings.LOCATE
-        controller.state = STATE
-        INTERSECTIONS = (
-            ROOT_SNAPPING_RECTANGLES_SOURCES[0],
-            Rectangle(420, 295, 1050, 299),
-        )
-        controller.apply_snapping(
-            103, 204, ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
-        )
-        assert controller.state == STATE
+        controller.state = Settings.LOCATE
+        controller.apply_snapping(1, 1, 402, 503)
         mocked.assert_not_called()
+        mocked_move.assert_called_once()
 
-    def test_BaseController_apply_snapping_changes_state_for_both_axes_snapping(
-        self, mocker
-    ):
+    def test_BaseController_apply_snapping_changes_state(self, mocker):
         mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
+        STATE = 3
+        mocker.patch(
+            "arrangeit.base.BaseController.check_snapping_state", return_value=STATE
+        )
         mocker.patch("arrangeit.base.BaseMouse.move_cursor")
+        mocker.patch("arrangeit.base.BaseController.setup_corner")
         controller = controller_mocked_app(mocker)
-        STATE = Settings.LOCATE
-        controller.state = STATE
-        INTERSECTIONS = (
-            (ROOT_SNAPPING_RECTANGLES_SOURCES[0], Rectangle(420, 295, 1050, 299)),
-            (ROOT_SNAPPING_RECTANGLES_SOURCES[1], Rectangle(1278, 25, 1282, 1082)),
+        controller.state = Settings.LOCATE
+        controller.apply_snapping(1, 1, 403, 504)
+        assert controller.state == STATE
+
+    def test_BaseController_apply_snapping_calls_setup_corner(self, mocker):
+        mocked_setup(mocker)
+        mocker.patch(
+            "arrangeit.base.BaseController.check_snapping_state", return_value=1
         )
-        controller.apply_snapping(
-            104, 205, ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
-        )
-        assert controller.state != STATE
+        mocked_move = mocker.patch("arrangeit.base.BaseMouse.move_cursor")
+        mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
+        controller = controller_mocked_app(mocker)
+        controller.state = Settings.LOCATE
+        controller.apply_snapping(1, 1, 402, 503)
         mocked.assert_called_once()
-
-    def test_BaseController_apply_snapping_not_changing_state_for_both_axes_snapping(
-        self, mocker
-    ):
-        mocked_setup(mocker)
-        mocked = mocker.patch("arrangeit.base.BaseController.setup_corner")
-        mocker.patch("arrangeit.base.BaseMouse.move_cursor")
-        controller = controller_mocked_app(mocker)
-        STATE = Settings.LOCATE + 1
-        controller.state = STATE
-        INTERSECTIONS = (
-            (ROOT_SNAPPING_RECTANGLES_SOURCES[0], Rectangle(420, 295, 1050, 299)),
-            (ROOT_SNAPPING_RECTANGLES_SOURCES[1], Rectangle(1278, 25, 1282, 1082)),
-        )
-        controller.apply_snapping(
-            104, 205, ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
-        )
-        assert controller.state == STATE
-        mocked.assert_not_called()
+        mocked.assert_called_with()
+        mocked_move.assert_called_once()
 
     @pytest.mark.parametrize(
         "new_state,state,added_x,added_y",
@@ -138,6 +115,9 @@ class TestBaseControllerDomainLogic(object):
         view.return_value.master.winfo_height.return_value = WIDHEI
         mocked_corner = mocker.patch("arrangeit.base.BaseController.setup_corner")
         mocked = mocker.patch("arrangeit.base.BaseMouse.move_cursor")
+        mocker.patch(
+            "arrangeit.base.BaseController.check_snapping_state", return_value=new_state
+        )
         controller = controller_mocked_app(mocker)
         controller.state = state
         NEW_X, NEW_Y = 505, 506
@@ -342,6 +322,71 @@ class TestBaseControllerDomainLogic(object):
         mocked_check.assert_not_called()
         assert returned is False
 
+    ## BaseController.check_snapping_state
+    def test_BaseController_check_snapping_state_returns_state_for_single_axis_snapping(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        controller = controller_mocked_app(mocker)
+        STATE = Settings.LOCATE
+        controller.state = STATE
+        INTERSECTIONS = (
+            ROOT_SNAPPING_RECTANGLES_SOURCES[1],
+            Rectangle(1278, 25, 1282, 1082),
+        )
+        returned = controller.check_snapping_state(
+            ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
+        )
+        assert returned is not None
+
+    def test_BaseController_check_snapping_state_returns_None_for_single_axis_snapping(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        controller = controller_mocked_app(mocker)
+        STATE = Settings.LOCATE
+        controller.state = STATE
+        INTERSECTIONS = (
+            ROOT_SNAPPING_RECTANGLES_SOURCES[0],
+            Rectangle(420, 295, 1050, 299),
+        )
+        returned = controller.check_snapping_state(
+            ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
+        )
+        assert returned is None
+
+    def test_BaseController_check_snapping_state_returns_state_for_both_axes_snapping(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        controller = controller_mocked_app(mocker)
+        STATE = Settings.LOCATE
+        controller.state = STATE
+        INTERSECTIONS = (
+            (ROOT_SNAPPING_RECTANGLES_SOURCES[0], Rectangle(420, 295, 1050, 299)),
+            (ROOT_SNAPPING_RECTANGLES_SOURCES[1], Rectangle(1278, 25, 1282, 1082)),
+        )
+        returned = controller.check_snapping_state(
+            ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
+        )
+        assert returned is not None
+
+    def test_BaseController_check_snapping_state_returns_None_for_both_axes_snapping(
+        self, mocker
+    ):
+        mocked_setup(mocker)
+        controller = controller_mocked_app(mocker)
+        STATE = Settings.LOCATE + 1
+        controller.state = STATE
+        INTERSECTIONS = (
+            (ROOT_SNAPPING_RECTANGLES_SOURCES[0], Rectangle(420, 295, 1050, 299)),
+            (ROOT_SNAPPING_RECTANGLES_SOURCES[1], Rectangle(1278, 25, 1282, 1082)),
+        )
+        returned = controller.check_snapping_state(
+            ROOT_SNAPPING_RECTANGLES_SOURCES, INTERSECTIONS
+        )
+        assert returned is None
+
     ## BaseController.listed_window_activated
     def test_BaseController_listed_window_activated_calls_task_rerun_from_window(
         self, mocker
@@ -436,8 +481,6 @@ class TestBaseControllerDomainLogic(object):
         controller.listed_window_activated(90424)
         mocked.assert_called_once()
         mocked.assert_called_with(MESSAGES["msg_listed_window"])
-
-
 
     ## BaseController.next
     def test_BaseController_next_sets_state_attr_to_positioning_corner_0(self, mocker):
@@ -981,9 +1024,7 @@ class TestBaseControllerDomainLogic(object):
         controller.workspace_activated(1074)
         mocked.assert_not_called()
 
-    def test_BaseController_workspace_activated_calls_display_message(
-        self, mocker
-    ):
+    def test_BaseController_workspace_activated_calls_display_message(self, mocker):
         mocked_setup(mocker)
         mocker.patch("arrangeit.data.WindowModel.set_changed")
         mocked = mocker.patch("arrangeit.base.BaseController.display_message")
