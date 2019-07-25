@@ -1,5 +1,4 @@
 -r base.txt
-# pygobject
-PyGObject==3.32.1
-# python-xlib - dependency number copied from pynput
-python-xlib >= 0.17
+# gui
+PyGObject>=3.32
+python-xlib>=0.17

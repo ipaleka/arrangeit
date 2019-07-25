@@ -1,3 +1,4 @@
 -r base.txt
-# pywin32
-pywin32==224
+# gui
+pywin32>=222
+comtypes>=1.1.4

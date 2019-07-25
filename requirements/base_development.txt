@@ -1,14 +1,13 @@
 -r base.txt
-## pytest
-pytest==5.0.1
-pytest-cov==2.7.1
-pytest-mock==1.10.4
-## black
-black==19.3b0
-## pylint
-pylint==2.3.1
-## Sphinx
-Sphinx==2.1.2
-sphinx-rtd-theme==0.4.3
-## PyInstaller
-PyInstaller==3.5
+## unit testing
+pytest>=4.0
+pytest-cov>=2.6
+pytest-mock>=1.10
+## linting
+black>=19.3b0
+pylint>=2.3
+## documentation
+Sphinx>=2.0.0
+sphinx-rtd-theme>=0.4.2
+## distribution
+PyInstaller>=3.5
