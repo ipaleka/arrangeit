@@ -501,7 +501,7 @@ class Package(object):
     def setup_package(self):
         """Retrieves and sets package data.
 
-        TODO add call to this method if window is minimized
+        TODO add call to this method after exposion if window was minimized
 
         :var root: root element of XML document
         :type root: :class:`xml.etree.ElementTree.Element`

@@ -91,10 +91,10 @@ class TestPropertyIcon(object):
         "attr,value",
         [
             ("master", None),
-            ("images", {True: None, False: None}),
-            ("colorized", {True: None, False: None}),
+            ("images", {1: None, 0: None}),
+            ("colorized", {1: None, 0: None}),
             ("background", "white"),
-            ("value", True),
+            ("value", 1),
             ("on_name", None),
             ("off_name", None),
             ("callback", None),
@@ -140,10 +140,10 @@ class TestPropertyIcon(object):
     @pytest.mark.parametrize(
         "value,path",
         [
-            (True, "resize.png"),
-            (False, "move.png"),
-            (True, "restore.png"),
-            (False, "minimize.png"),
+            (1, "resize.png"),
+            (0, "move.png"),
+            (1, "restore.png"),
+            (0, "minimize.png"),
         ],
     )
     def test_view_PropertyIcon_setup_widgets_sets_icon_image(self, mocker, value, path):
@@ -162,15 +162,15 @@ class TestPropertyIcon(object):
         mocked_image.assert_has_calls(calls, any_order=True)
         calls = [mocker.call(mocked_image.return_value)]
         mocked.assert_has_calls(calls, any_order=True)
-        assert property_icon.images[True] == mocked.return_value
+        assert property_icon.images[1] == mocked.return_value
 
     @pytest.mark.parametrize(
         "value,path",
         [
-            (True, "resize.png"),
-            (False, "move.png"),
-            (True, "restore.png"),
-            (False, "minimize.png"),
+            (1, "resize.png"),
+            (0, "move.png"),
+            (1, "restore.png"),
+            (0, "minimize.png"),
         ],
     )
     def test_view_PropertyIcon_setup_widgets_sets_colorized_icon_image(
@@ -208,7 +208,7 @@ class TestPropertyIcon(object):
         property_icon = PropertyIcon(mocker.MagicMock(), background=SAMPLE)
         mocked.reset_mock()
         property_icon.setup_widgets()
-        calls = [mocker.call(image=property_icon.images[True])]
+        calls = [mocker.call(image=property_icon.images[1])]
         mocked.assert_has_calls(calls, any_order=True)
 
     ## PropertyIcon.setup_bindings
@@ -248,7 +248,7 @@ class TestPropertyIcon(object):
         property_icon = PropertyIcon(mocker.MagicMock())
         VALUE = False
         property_icon.set_value(VALUE)
-        assert property_icon.value == VALUE
+        assert property_icon.value == int(VALUE)
 
     def test_view_PropertyIcon_set_value_calls_config(self, mocker):
         mocker.patch("arrangeit.view.PropertyIcon.setup_widgets")
@@ -258,7 +258,7 @@ class TestPropertyIcon(object):
         VALUE = True
         property_icon.set_value(VALUE)
         mocked.assert_called_once()
-        mocked.assert_called_with(image=property_icon.images[VALUE])
+        mocked.assert_called_with(image=property_icon.images[int(VALUE)])
 
     ## PropertyIcon.on_widget_enter
     def test_view_PropertyIcon_on_widget_enter_configures_image(self, mocker):
@@ -292,7 +292,7 @@ class TestPropertyIcon(object):
         mocked.reset_mock()
         property_icon.on_widget_leave(mocker.MagicMock())
         assert mocked.call_count == 1
-        calls = [mocker.call(image=property_icon.images[VALUE])]
+        calls = [mocker.call(image=property_icon.images[int(VALUE)])]
         mocked.assert_has_calls(calls, any_order=True)
 
     def test_view_PropertyIcon_on_widget_leave_returns_break(self, mocker):
@@ -313,8 +313,8 @@ class TestResizable(object):
     @pytest.mark.parametrize(
         "attr,value",
         [
-            ("images", {True: None, False: None}),
-            ("colorized", {True: None, False: None}),
+            ("images", {1: None, 0: None}),
+            ("colorized", {1: None, 0: None}),
         ],
     )
     def test_view_Resizable_inits_attr_as_empty(self, attr, value):
@@ -349,8 +349,8 @@ class TestRestored(object):
     @pytest.mark.parametrize(
         "attr,value",
         [
-            ("images", {True: None, False: None}),
-            ("colorized", {True: None, False: None}),
+            ("images", {1: None, 0: None}),
+            ("colorized", {1: None, 0: None}),
         ],
     )
     def test_view_Restored_inits_attr_as_empty(self, attr, value):

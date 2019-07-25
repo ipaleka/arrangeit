@@ -34,8 +34,6 @@ class App(BaseApp):
     def activate_root(self, wid):
         """Activates/focuses root window identified by provided ``wid``.
 
-        FIXME possible nasty hack wid+1
-
         :param wid: windows id
         :type wid: int
         """
@@ -96,8 +94,6 @@ class App(BaseApp):
 
         Calls :func:`_move_window_to_workspace` with wid increased by 1.
 
-        FIXME possible nasty hack wid+1
-
         :param wid: root id got from Tkinter
         :type wid: int
         :param number: our custom workspace number
@@ -142,7 +138,6 @@ class App(BaseApp):
         if workspace:
             win = self.collector.get_window_by_wid(wid)
             win.move_to_workspace(workspace)
-            # FIXME X.CurrentTime/0 activates with a warning
             win.activate(X.CurrentTime)
             return False
         return True

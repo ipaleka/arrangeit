@@ -141,7 +141,7 @@ class App(BaseApp):
         If DWM composition settings allows then surface of model window
         is taken from root window after thumbnails are created in it.
 
-        FIXME check why this (-1, -1) fits
+        TODO check why this (-1, -1) fits
 
         :param model: model of the window we want screenshot from
         :type model: :class:`WindowModel`

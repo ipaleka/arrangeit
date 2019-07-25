@@ -302,8 +302,8 @@ class PropertyIcon(tk.Label):
     :type PropertyIcon.colorized: dict
     :var PropertyIcon.background: main background color
     :type PropertyIcon.background: str
-    :var PropertyIcon.value: current widget value
-    :type PropertyIcon.value: Boolean
+    :var PropertyIcon.value: current widget value (0 or 1)
+    :type PropertyIcon.value: int
     :var PropertyIcon.on_name: image name when the property is on
     :type PropertyIcon.on_name: str
     :var PropertyIcon.off_name: image name when the property is off
@@ -313,10 +313,10 @@ class PropertyIcon(tk.Label):
     """
 
     master = None
-    images = {True: None, False: None}
-    colorized = {True: None, False: None}
+    images = {1: None, 0: None}
+    colorized = {1: None, 0: None}
     background = "white"
-    value = True
+    value = 1
     on_name = None
     off_name = None
     callback = None
@@ -337,13 +337,13 @@ class PropertyIcon(tk.Label):
 
     def setup_widgets(self):
         """Configures widgets images and sets current image."""
-        self.images[True] = ImageTk.PhotoImage(
+        self.images[1] = ImageTk.PhotoImage(
             open_image(self.on_name, background=self.background)
         )
-        self.images[False] = ImageTk.PhotoImage(
+        self.images[0] = ImageTk.PhotoImage(
             open_image(self.off_name, background=self.background)
         )
-        self.colorized[True] = ImageTk.PhotoImage(
+        self.colorized[1] = ImageTk.PhotoImage(
             open_image(
                 self.on_name,
                 background=self.background,
@@ -351,7 +351,7 @@ class PropertyIcon(tk.Label):
                 foreground=Settings.HIGHLIGHTED_COLOR,
             )
         )
-        self.colorized[False] = ImageTk.PhotoImage(
+        self.colorized[0] = ImageTk.PhotoImage(
             open_image(
                 self.off_name,
                 background=self.background,
@@ -359,7 +359,7 @@ class PropertyIcon(tk.Label):
                 foreground=Settings.HIGHLIGHTED_COLOR,
             )
         )
-        self.config(image=self.images[True])
+        self.config(image=self.images[1])
 
     def setup_bindings(self):
         """Binds relevant events to related callback."""
@@ -373,7 +373,7 @@ class PropertyIcon(tk.Label):
         :param value: is property on or not
         :type value: Boolean
         """
-        self.value = value
+        self.value = int(value)
         self.config(image=self.images[self.value])
 
     def on_widget_enter(self, event):
@@ -400,8 +400,8 @@ class Resizable(PropertyIcon):
     :type Resizable.off_name: str
     """
 
-    images = {True: None, False: None}
-    colorized = {True: None, False: None}
+    images = {1: None, 0: None}
+    colorized = {1: None, 0: None}
     on_name = "resize.png"
     off_name = "move.png"
 
@@ -432,8 +432,8 @@ class Restored(PropertyIcon):
     :type Restored.off_name: str
     """
 
-    images = {True: None, False: None}
-    colorized = {True: None, False: None}
+    images = {1: None, 0: None}
+    colorized = {1: None, 0: None}
     on_name = "restore.png"
     off_name = "minimize.png"
 
