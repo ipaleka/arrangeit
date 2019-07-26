@@ -202,6 +202,15 @@
   :show-inheritance:
 
 
+:mod:`arrangeit.windows.vdi` -- Virtual desktop interfaces for MS Windows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: arrangeit.windows.vdi
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`arrangeit.windows.utils` -- MS Windows specific utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

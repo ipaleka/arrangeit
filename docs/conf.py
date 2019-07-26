@@ -41,6 +41,7 @@ autodoc_mock_imports = [
     "win32gui",
     "win32ui",
     "PIL.ImageGrab",
+    "comtypes",
 ]
 
 # custom mocks so autodoc of all modules is possible from GNU/Linux

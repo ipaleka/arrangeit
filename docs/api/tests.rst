@@ -130,6 +130,15 @@
   :show-inheritance:
 
 
+:mod:`tests.test_windows_vdi` -- Unit tests for MS Windows virtual desktop interfaces module
+--------------------------------------------------------------------------------------------
+
+.. automodule:: tests.test_windows_vdi
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 :mod:`tests.test_windows_api_api` -- Unit tests for MS Windows api helpers module Api class
 -------------------------------------------------------------------------------------------
 

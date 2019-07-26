@@ -28,7 +28,7 @@ from PIL import Image
 from arrangeit.settings import Settings
 from arrangeit.utils import Rectangle, open_image
 from arrangeit.windows.utils import extract_name_from_bytes_path
-from arrangeit.windows.virtualdesktops import VirtualDesktopsWin10
+from arrangeit.windows.vdi import VirtualDesktopsWin10
 
 APPMODEL_ERROR_NO_PACKAGE = 15700
 ERROR_INSUFFICIENT_BUFFER = 0x7A
@@ -65,6 +65,62 @@ def platform_supports_packages():
         return False
     except AttributeError:  # Sphinx
         return None
+
+
+def platform_supports_virtual_desktops():
+    """Returns Boolean indicating if Windows version supports virtual desktops.
+
+    :var version: platform version data
+    :type version: named tuple
+    :returns: Boolean
+    """
+    try:
+        version = sys.getwindowsversion()
+        if version.major >= 10:
+            return True
+        return False
+    except AttributeError:  # Sphinx
+        return None
+
+
+class DWM_THUMBNAIL_PROPERTIES(ctypes.Structure):
+    """Class holding ctypes.Structure data for DWM thumbnail properties."""
+
+    _fields_ = [
+        ("dwFlags", ctypes.wintypes.DWORD),
+        ("rcDestination", ctypes.wintypes.RECT),
+        ("rcSource", ctypes.wintypes.RECT),
+        ("opacity", ctypes.wintypes.BYTE),
+        ("fVisible", ctypes.wintypes.BOOL),
+        ("fSourceClientAreaOnly", ctypes.wintypes.BOOL),
+    ]
+
+
+class TITLEBARINFO(ctypes.Structure):
+    """Class holding ctypes.Structure data for title bar information."""
+
+    _fields_ = [
+        ("cbSize", ctypes.wintypes.DWORD),
+        ("rcTitleBar", ctypes.wintypes.RECT),
+        ("rgstate", ctypes.wintypes.DWORD * 6),
+    ]
+
+
+class WINDOWINFO(ctypes.Structure):
+    """Class holding ctypes.Structure data for window information."""
+
+    _fields_ = [
+        ("cbSize", ctypes.wintypes.DWORD),
+        ("rcWindow", ctypes.wintypes.RECT),
+        ("rcClient", ctypes.wintypes.RECT),
+        ("dwStyle", ctypes.wintypes.DWORD),
+        ("dwExStyle", ctypes.wintypes.DWORD),
+        ("dwWindowStatus", ctypes.wintypes.DWORD),
+        ("cxWindowBorders", ctypes.wintypes.UINT),
+        ("cyWindowBorders", ctypes.wintypes.UINT),
+        ("atomWindowType", ctypes.wintypes.ATOM),
+        ("wCreatorVersion", ctypes.wintypes.DWORD),
+    ]
 
 
 class PACKAGE_SUBVERSION(ctypes.Structure):
@@ -122,46 +178,6 @@ class PACKAGE_INFO_REFERENCE(ctypes.Structure):
     """Class holding ctypes.Structure pointer to package information struture."""
 
     _fields_ = [("reserved", ctypes.c_void_p)]
-
-
-class TITLEBARINFO(ctypes.Structure):
-    """Class holding ctypes.Structure data for title bar information."""
-
-    _fields_ = [
-        ("cbSize", ctypes.wintypes.DWORD),
-        ("rcTitleBar", ctypes.wintypes.RECT),
-        ("rgstate", ctypes.wintypes.DWORD * 6),
-    ]
-
-
-class WINDOWINFO(ctypes.Structure):
-    """Class holding ctypes.Structure data for window information."""
-
-    _fields_ = [
-        ("cbSize", ctypes.wintypes.DWORD),
-        ("rcWindow", ctypes.wintypes.RECT),
-        ("rcClient", ctypes.wintypes.RECT),
-        ("dwStyle", ctypes.wintypes.DWORD),
-        ("dwExStyle", ctypes.wintypes.DWORD),
-        ("dwWindowStatus", ctypes.wintypes.DWORD),
-        ("cxWindowBorders", ctypes.wintypes.UINT),
-        ("cyWindowBorders", ctypes.wintypes.UINT),
-        ("atomWindowType", ctypes.wintypes.ATOM),
-        ("wCreatorVersion", ctypes.wintypes.DWORD),
-    ]
-
-
-class DWM_THUMBNAIL_PROPERTIES(ctypes.Structure):
-    """Class holding ctypes.Structure data for DWM thumbnail properties."""
-
-    _fields_ = [
-        ("dwFlags", ctypes.wintypes.DWORD),
-        ("rcDestination", ctypes.wintypes.RECT),
-        ("rcSource", ctypes.wintypes.RECT),
-        ("opacity", ctypes.wintypes.BYTE),
-        ("fVisible", ctypes.wintypes.BOOL),
-        ("fSourceClientAreaOnly", ctypes.wintypes.BOOL),
-    ]
 
 
 class Helpers(object):
@@ -512,6 +528,22 @@ class Package(object):
         self._setup_icon(root)
 
 
+class DummyVirtualDesktops(object):
+    """Helper class for systems that don't support virtual desktops."""
+
+    def get_desktops(self, refresh=False):
+        """Returns list with single two-tuple of 0 and empty string."""
+        return [(0, "")]
+
+    def get_window_desktop(self, hwnd, refresh=False):
+        """Returns two-tuple of 0 and empty string."""
+        return (0, "")
+
+    def move_window_to_desktop(self, hwnd, desktop_ordinal):
+        """Just returns None."""
+        return None
+
+
 class Api(object):
     """Helper class for calls to Windows API.
 
@@ -519,8 +551,8 @@ class Api(object):
     :type packages: dictionary of :class:`Package`
     :var helpers: object holding helper methods for Windows API functions
     :type helpers: :class:`Helpers`
-    :var vdi: object holding methods of virtual desktop interface
-    :type vdi: :class:`VirtualDesktopsWin10`
+    :var Api.vdi: object holding methods of virtual desktop interface
+    :type Api.vdi: :class:`VirtualDesktopsWin10`
     """
 
     packages = {}
@@ -530,7 +562,11 @@ class Api(object):
     def __init__(self):
         """Initializes and sets attribute for helpers instance."""
         self.helpers = Helpers()
-        self.vdi = VirtualDesktopsWin10()
+        self.vdi = (
+            DummyVirtualDesktops()
+            if not platform_supports_virtual_desktops()
+            else VirtualDesktopsWin10()
+        )
 
     def _package_full_name_from_handle(self, handle):
         """Returns full name of the package associated with provided process handle.

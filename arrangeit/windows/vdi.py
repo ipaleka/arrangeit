@@ -1,44 +1,40 @@
-# -*- coding: utf-8 -*-
-#
-# This file is a plugin for EventGhost.
-# Copyright © 2005-2019 EventGhost Project <http://www.eventghost.net/>
-#
-# EventGhost is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 2 of the License, or (at your option)
-# any later version.
-#
-# EventGhost is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-# more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with EventGhost. If not, see <http://www.gnu.org/licenses/>.
+# arrangeit - cross-platform desktop utility for easy windows management
+# Copyright (C) 1999-2019 Ivica Paleka
 
-u"""
-    Name: VirtualDesktopsWin10
-    Author: Kgschlosser
-    Version: 0.1
-    Description: Creates events based on Virtual desktop interactions.
-    GUID: {5DFFBD61-7582-4D6F-8EA9-9CB36284C9CF}
-    URL: http://eventghost.net/forum/viewtopic.php?f=10&p=53389#p53389
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>
+
 """
-# import eg
+Code from this module is influenced by the code from Virtual_Desktops_Plugin
+<https://github.com/DanEdens/Virtual_Desktops_Plugin> authored by Kgschlosser.
+That code was shipped with the following copyright notice:
 
-# eg.RegisterPlugin(
-#     name = "Virtual Desktops",
-#     author = "Kgschlosser",
-#     version = "0.0.004",
-#     guid = "{C2F03A33-21F5-47FA-B4BB-156362A2F239}",
-#     canMultiLoad = False,
-#     url = "http://eventghost.net/forum/viewtopic.php?f=10&p=53389#p53389",
-#     description = "Creates events based on Virtual desktop interactions.",
+ This file is a plugin for EventGhost.
+ Copyright © 2005-2019 EventGhost Project <http://www.eventghost.net/>
 
-# )
+ EventGhost is free software: you can redistribute it and/or modify it under
+ the terms of the GNU General Public License as published by the Free
+ Software Foundation, either version 2 of the License, or (at your option)
+ any later version.
 
+ EventGhost is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
 
-# from ctypes.wintypes import HRESULT, HWND, BOOL, POINTER, DWORD, INT, UINT, LPVOID, ULONG
+ You should have received a copy of the GNU General Public License along
+ with EventGhost. If not, see <http://www.gnu.org/licenses/>.
+"""
 
 import comtypes
 import ctypes

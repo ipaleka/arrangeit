@@ -17,14 +17,16 @@ from arrangeit.windows.api import (
     PACKAGE_VERSION_U,
     TITLEBARINFO,
     WINDOWINFO,
+    DummyVirtualDesktops,
     Helpers,
     Package,
     platform_supports_packages,
+    platform_supports_virtual_desktops,
 )
 
 
 ## custom functions
-class TestWindowsapiCustomFunctions(object):
+class TestWindowsApiCustomFunctions(object):
     """Testing class for :py:mod:`arrangeit.windows.api` custom functions."""
 
     # platform_supports_packages
@@ -60,7 +62,123 @@ class TestWindowsapiCustomFunctions(object):
         assert platform_supports_packages() is None
 
 
-## structures
+    # platform_supports_virtual_desktops
+    def test_windows_api_platform_supports_virtual_desktops_calls_getwindowsversion(
+        self, mocker
+    ):
+        Version = namedtuple("version", ["major", "minor"])
+        mocked = mocker.patch(
+            "arrangeit.windows.api.sys.getwindowsversion", return_value=Version(6, 1)
+        )
+        platform_supports_virtual_desktops()
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    @pytest.mark.parametrize(
+        "major,minor,expected",
+        [(5, 1, False), (6, 2, False), (7, 0, False), (10, 0, True)],
+    )
+    def test_windows_api_platform_supports_virtual_desktops_functionality(
+        self, mocker, major, minor, expected
+    ):
+        Version = namedtuple("version", ["major", "minor"])
+        mocker.patch(
+            "arrangeit.windows.api.sys.getwindowsversion",
+            return_value=Version(major, minor),
+        )
+        assert platform_supports_virtual_desktops() == expected
+
+    def test_windows_api_platform_supports_virtual_desktops_for_exception(self, mocker):
+        mocker.patch(
+            "arrangeit.windows.api.sys.getwindowsversion", side_effect=AttributeError()
+        )
+        assert platform_supports_virtual_desktops() is None
+
+
+## basic structures
+class TestDWM_THUMBNAIL_PROPERTIES(object):
+    """Testing class for :py:class:`arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES` class."""
+
+    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_is_Structure_subclass(self):
+        assert issubclass(DWM_THUMBNAIL_PROPERTIES, ctypes.Structure)
+
+    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_inits__fields_(self):
+        assert getattr(DWM_THUMBNAIL_PROPERTIES, "_fields_", None) is not None
+        assert isinstance(DWM_THUMBNAIL_PROPERTIES._fields_, list)
+        for elem in DWM_THUMBNAIL_PROPERTIES._fields_:
+            assert isinstance(elem, tuple)
+
+    @pytest.mark.parametrize(
+        "field,typ",
+        [
+            ("dwFlags", ctypes.wintypes.DWORD),
+            ("rcDestination", ctypes.wintypes.RECT),
+            ("rcSource", ctypes.wintypes.RECT),
+            ("opacity", ctypes.wintypes.BYTE),
+            ("fVisible", ctypes.wintypes.BOOL),
+            ("fSourceClientAreaOnly", ctypes.wintypes.BOOL),
+        ],
+    )
+    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_field_and_type(self, field, typ):
+        assert (field, typ) in DWM_THUMBNAIL_PROPERTIES._fields_
+
+
+class TestTITLEBARINFO(object):
+    """Testing class for :py:class:`arrangeit.windows.api.TITLEBARINFO` class."""
+
+    def test_windows_api_TITLEBARINFO_is_Structure_subclass(self):
+        assert issubclass(TITLEBARINFO, ctypes.Structure)
+
+    def test_windows_api_TITLEBARINFO_inits__fields_(self):
+        assert getattr(TITLEBARINFO, "_fields_", None) is not None
+        assert isinstance(TITLEBARINFO._fields_, list)
+        for elem in TITLEBARINFO._fields_:
+            assert isinstance(elem, tuple)
+
+    @pytest.mark.parametrize(
+        "field,typ",
+        [
+            ("cbSize", ctypes.wintypes.DWORD),
+            ("rcTitleBar", ctypes.wintypes.RECT),
+            ("rgstate", ctypes.wintypes.DWORD * 6),
+        ],
+    )
+    def test_windows_api_TITLEBARINFO_field_and_type(self, field, typ):
+        assert (field, typ) in TITLEBARINFO._fields_
+
+
+class TestWINDOWINFO(object):
+    """Testing class for :py:class:`arrangeit.windows.api.WINDOWINFO` class."""
+
+    def test_windows_api_WINDOWINFO_is_Structure_subclass(self):
+        assert issubclass(WINDOWINFO, ctypes.Structure)
+
+    def test_windows_api_WINDOWINFO_inits__fields_(self):
+        assert getattr(WINDOWINFO, "_fields_", None) is not None
+        assert isinstance(WINDOWINFO._fields_, list)
+        for elem in WINDOWINFO._fields_:
+            assert isinstance(elem, tuple)
+
+    @pytest.mark.parametrize(
+        "field,typ",
+        [
+            ("cbSize", ctypes.wintypes.DWORD),
+            ("rcWindow", ctypes.wintypes.RECT),
+            ("rcClient", ctypes.wintypes.RECT),
+            ("dwStyle", ctypes.wintypes.DWORD),
+            ("dwExStyle", ctypes.wintypes.DWORD),
+            ("dwWindowStatus", ctypes.wintypes.DWORD),
+            ("cxWindowBorders", ctypes.wintypes.UINT),
+            ("cyWindowBorders", ctypes.wintypes.UINT),
+            ("atomWindowType", ctypes.wintypes.ATOM),
+            ("wCreatorVersion", ctypes.wintypes.DWORD),
+        ],
+    )
+    def test_windows_api_WINDOWINFO_field_and_type(self, field, typ):
+        assert (field, typ) in WINDOWINFO._fields_
+
+
+## packages structures
 class TestPACKAGE_SUBVERSION(object):
     """Testing class for :py:class:`arrangeit.windows.api.PACKAGE_SUBVERSION` class."""
 
@@ -198,88 +316,6 @@ class TestPACKAGE_INFO_REFERENCE(object):
     @pytest.mark.parametrize("field,typ", [("reserved", ctypes.c_void_p)])
     def test_windows_api_PACKAGE_INFO_REFERENCE_field_and_type(self, field, typ):
         assert (field, typ) in PACKAGE_INFO_REFERENCE._fields_
-
-
-class TestTITLEBARINFO(object):
-    """Testing class for :py:class:`arrangeit.windows.api.TITLEBARINFO` class."""
-
-    def test_windows_api_TITLEBARINFO_is_Structure_subclass(self):
-        assert issubclass(TITLEBARINFO, ctypes.Structure)
-
-    def test_windows_api_TITLEBARINFO_inits__fields_(self):
-        assert getattr(TITLEBARINFO, "_fields_", None) is not None
-        assert isinstance(TITLEBARINFO._fields_, list)
-        for elem in TITLEBARINFO._fields_:
-            assert isinstance(elem, tuple)
-
-    @pytest.mark.parametrize(
-        "field,typ",
-        [
-            ("cbSize", ctypes.wintypes.DWORD),
-            ("rcTitleBar", ctypes.wintypes.RECT),
-            ("rgstate", ctypes.wintypes.DWORD * 6),
-        ],
-    )
-    def test_windows_api_TITLEBARINFO_field_and_type(self, field, typ):
-        assert (field, typ) in TITLEBARINFO._fields_
-
-
-class TestWINDOWINFO(object):
-    """Testing class for :py:class:`arrangeit.windows.api.WINDOWINFO` class."""
-
-    def test_windows_api_WINDOWINFO_is_Structure_subclass(self):
-        assert issubclass(WINDOWINFO, ctypes.Structure)
-
-    def test_windows_api_WINDOWINFO_inits__fields_(self):
-        assert getattr(WINDOWINFO, "_fields_", None) is not None
-        assert isinstance(WINDOWINFO._fields_, list)
-        for elem in WINDOWINFO._fields_:
-            assert isinstance(elem, tuple)
-
-    @pytest.mark.parametrize(
-        "field,typ",
-        [
-            ("cbSize", ctypes.wintypes.DWORD),
-            ("rcWindow", ctypes.wintypes.RECT),
-            ("rcClient", ctypes.wintypes.RECT),
-            ("dwStyle", ctypes.wintypes.DWORD),
-            ("dwExStyle", ctypes.wintypes.DWORD),
-            ("dwWindowStatus", ctypes.wintypes.DWORD),
-            ("cxWindowBorders", ctypes.wintypes.UINT),
-            ("cyWindowBorders", ctypes.wintypes.UINT),
-            ("atomWindowType", ctypes.wintypes.ATOM),
-            ("wCreatorVersion", ctypes.wintypes.DWORD),
-        ],
-    )
-    def test_windows_api_WINDOWINFO_field_and_type(self, field, typ):
-        assert (field, typ) in WINDOWINFO._fields_
-
-
-class TestDWM_THUMBNAIL_PROPERTIES(object):
-    """Testing class for :py:class:`arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES` class."""
-
-    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_is_Structure_subclass(self):
-        assert issubclass(DWM_THUMBNAIL_PROPERTIES, ctypes.Structure)
-
-    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_inits__fields_(self):
-        assert getattr(DWM_THUMBNAIL_PROPERTIES, "_fields_", None) is not None
-        assert isinstance(DWM_THUMBNAIL_PROPERTIES._fields_, list)
-        for elem in DWM_THUMBNAIL_PROPERTIES._fields_:
-            assert isinstance(elem, tuple)
-
-    @pytest.mark.parametrize(
-        "field,typ",
-        [
-            ("dwFlags", ctypes.wintypes.DWORD),
-            ("rcDestination", ctypes.wintypes.RECT),
-            ("rcSource", ctypes.wintypes.RECT),
-            ("opacity", ctypes.wintypes.BYTE),
-            ("fVisible", ctypes.wintypes.BOOL),
-            ("fSourceClientAreaOnly", ctypes.wintypes.BOOL),
-        ],
-    )
-    def test_windows_api_DWM_THUMBNAIL_PROPERTIES_field_and_type(self, field, typ):
-        assert (field, typ) in DWM_THUMBNAIL_PROPERTIES._fields_
 
 
 # Helpers class
@@ -1173,3 +1209,23 @@ class TestWindowsApiPackage(object):
         package.setup_package()
         mocked.assert_called_once()
         mocked.assert_called_with(mocked_root.return_value)
+
+
+# DummyVirtualDesktops class
+class TestDummyVirtualDesktops(object):
+    """Testing class for :py:class:`arrangeit.windows.api.DummyVirtualDesktops`."""
+
+    def test_api_DummyVirtualDesktops_defines_get_desktops(self, mocker):
+        assert hasattr(DummyVirtualDesktops, "get_desktops")
+        assert callable(DummyVirtualDesktops.get_desktops)
+        assert DummyVirtualDesktops().get_desktops() == [(0, ""),]
+
+    def test_api_DummyVirtualDesktops_defines_get_window_desktop(self, mocker):
+        assert hasattr(DummyVirtualDesktops, "get_window_desktop")
+        assert callable(DummyVirtualDesktops.get_window_desktop)
+        assert DummyVirtualDesktops().get_window_desktop(1) == (0, "")
+
+    def test_api_DummyVirtualDesktops_defines_move_window_to_desktop(self, mocker):
+        assert hasattr(DummyVirtualDesktops, "move_window_to_desktop")
+        assert callable(DummyVirtualDesktops.move_window_to_desktop)
+        assert DummyVirtualDesktops().move_window_to_desktop(1, 0) is None
