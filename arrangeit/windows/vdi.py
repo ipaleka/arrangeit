@@ -56,14 +56,18 @@ IID_IVirtualDesktopManagerInternal = GUID("{F31574D6-B682-4CDC-BD56-1827860ABEC6
 
 
 class AdjacentDesktop(ctypes.wintypes.INT):
+    """Enum used to identify neighbouring desktops."""
+
     LeftDirection = 3
     RightDirection = 4
 
 
 class IServiceProvider(comtypes.IUnknown):
+    """Service provider interface used to locate internal desktop manager interface."""
+
     _case_insensitive_ = True
-    _idlflags_ = []
     _iid_ = IID_IServiceProvider
+    _idlflags_ = []
     _methods_ = [
         COMMETHOD(
             [helpstring("Method QueryService"), "local", "in"],
@@ -77,13 +81,11 @@ class IServiceProvider(comtypes.IUnknown):
 
 
 class IObjectArray(comtypes.IUnknown):
-    """
-    Unknown Object Array
-    """
+    """Object array interface used to retrieve pointer to virtual desktops."""
 
     _case_insensitive_ = True
-    _idlflags_ = []
     _iid_ = None
+    _idlflags_ = []
     _methods_ = [
         COMMETHOD(
             [helpstring("Method GetCount")],
@@ -103,6 +105,8 @@ class IObjectArray(comtypes.IUnknown):
 
 
 class IVirtualDesktop(comtypes.IUnknown):
+    """Class defining virtual desktop instance accessible through its pointer."""
+
     _case_insensitive_ = True
     _iid_ = IID_IVirtualDesktop
     _idlflags_ = []
@@ -124,6 +128,8 @@ class IVirtualDesktop(comtypes.IUnknown):
 
 
 class IVirtualDesktopManager(comtypes.IUnknown):
+    """Interface to publicly documented methods dealing with virtual dektops."""
+
     _case_insensitive_ = True
     _iid_ = IID_IVirtualDesktopManager
     _idlflags_ = []
@@ -153,6 +159,8 @@ class IVirtualDesktopManager(comtypes.IUnknown):
 
 
 class IVirtualDesktopManagerInternal(comtypes.IUnknown):
+    """Interface to methods dealing with virtual dektops documented by community."""
+
     _case_insensitive_ = True
     _iid_ = IID_IVirtualDesktopManagerInternal
     _idlflags_ = []
@@ -292,7 +300,7 @@ class VirtualDesktopsWin10(object):
 
         ret_val = self.internal_manager.GetDesktops(ctypes.byref(array))
         if ret_val != S_OK:
-            return None
+            return [(0, None)]
 
         count = ctypes.wintypes.UINT()
         array.GetCount(ctypes.byref(count))
@@ -361,7 +369,7 @@ class VirtualDesktopsWin10(object):
         desktop_id = GUID()
         ret_val = self.manager.GetWindowDesktopId(hwnd, ctypes.byref(desktop_id))
         if ret_val != S_OK:
-            return None
+            return (0, None)
 
         return next(
             (
@@ -369,7 +377,7 @@ class VirtualDesktopsWin10(object):
                 for desktop in self.get_desktops(refresh)
                 if desktop[1] == desktop_id
             ),
-            None,
+            (0, None),
         )
 
     def move_window_to_desktop(self, hwnd, desktop_ordinal):
@@ -385,7 +393,7 @@ class VirtualDesktopsWin10(object):
         :type desktop: pointer to :class:`IVirtualDesktop`
         :returns: False on success, None on failure
         """
-        desktop_id = self.desktops[desktop_ordinal][1]
+        desktop_id = self.get_desktops()[desktop_ordinal][1]
         ret_val = self.manager.MoveWindowToDesktop(hwnd, ctypes.byref(desktop_id))
         if ret_val != S_OK:
             return None
