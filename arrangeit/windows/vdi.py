@@ -36,187 +36,28 @@ That code was shipped with the following copyright notice:
  with EventGhost. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import comtypes
 import ctypes
 import ctypes.wintypes
-from comtypes import helpstring, COMMETHOD
-from comtypes.GUID import GUID
 
-REFGUID = ctypes.POINTER(GUID)
-REFIID = REFGUID
-ENUM = ctypes.wintypes.INT
-IID = GUID
-INT32 = ctypes.c_int32
-INT64 = ctypes.c_int64
+import comtypes
+from comtypes import COMMETHOD, helpstring
+from comtypes.GUID import GUID
 
 S_OK = 0x00000000
 
 CLSID_ImmersiveShell = GUID("{C2F03A33-21F5-47FA-B4BB-156362A2F239}")
-
-CLSID_IVirtualNotificationService = GUID("{A501FDEC-4A09-464C-AE4E-1B9C21B84918}")
-
-
-class HSTRING__(ctypes.Structure):
-    _fields_ = [("unused", ctypes.wintypes.INT)]
-
-
-HSTRING = ctypes.POINTER(HSTRING__)
-
-
-class EventRegistrationToken(ctypes.Structure):
-    _fields_ = [("value", INT64)]
-
-
-class AdjacentDesktop(ENUM):
-    LeftDirection = 3
-    RightDirection = 4
-
-
-class ApplicationViewOrientation(ENUM):
-    ApplicationViewOrientation_Landscape = 0
-    ApplicationViewOrientation_Portrait = 1
-
-
-class TrustLevel(ENUM):
-    BaseTrust = 0
-    PartialTrust = BaseTrust + 1
-    FullTrust = PartialTrust + 1
-
-
-IID_IInspectable = GUID("{AF86E2E0-B12D-4C6A-9C5A-D7AA65101E90}")
-
-
-class IInspectable(comtypes.IUnknown):
-    _case_insensitive_ = True
-    _idlflags_ = []
-    _iid_ = IID_IInspectable
-    _methods_ = [
-        COMMETHOD(
-            [helpstring("Method GetIids")],
-            ctypes.HRESULT,
-            "GetIids",
-            (["out"], ctypes.POINTER(ctypes.wintypes.ULONG), "iidCount"),
-            (["out"], ctypes.POINTER(ctypes.POINTER(IID)), "iids"),
-        ),
-        COMMETHOD(
-            [helpstring("Method GetRuntimeClassName")],
-            ctypes.HRESULT,
-            "GetRuntimeClassName",
-            (["out"], ctypes.POINTER(HSTRING), "className"),
-        ),
-        COMMETHOD(
-            [helpstring("Method GetTrustLevel")],
-            ctypes.HRESULT,
-            "GetTrustLevel",
-            (["out"], ctypes.POINTER(TrustLevel), "trustLevel"),
-        ),
-    ]
-
-
-IID_IApplicationViewConsolidatedEventArgs = GUID(
-    "{514449EC-7EA2-4DE7-A6A6-7DFBAAEBB6FB}"
-)
-
-
-class IApplicationViewConsolidatedEventArgs(IInspectable):
-    _case_insensitive_ = True
-    _iid_ = IID_IApplicationViewConsolidatedEventArgs
-    _idlflags_ = []
-    _methods_ = [
-        COMMETHOD(
-            [helpstring("Method get_IsUserInitiated")],
-            ctypes.HRESULT,
-            "get_IsUserInitiated",
-            (["retval", "out"], ctypes.POINTER(ctypes.wintypes.BOOL), "value"),
-        )
-    ]
-
-
-IID_IApplicationView = GUID("{D222D519-4361-451E-96C4-60F4F9742DB0}")
-
-
-class IApplicationView(IInspectable):
-    _case_insensitive_ = True
-    _iid_ = IID_IApplicationView
-    _idlflags_ = []
-    _methods_ = [
-        COMMETHOD(
-            [helpstring("Method get_Orientation")],
-            ctypes.HRESULT,
-            "get_Orientation",
-            (["retval", "out"], ctypes.POINTER(ApplicationViewOrientation), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method get_AdjacentToLeftDisplayEdge")],
-            ctypes.HRESULT,
-            "get_AdjacentToLeftDisplayEdge",
-            (["retval", "out"], ctypes.POINTER(ctypes.wintypes.BOOL), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method get_AdjacentToRightDisplayEdge")],
-            ctypes.HRESULT,
-            "get_AdjacentToRightDisplayEdge",
-            (["retval", "out"], ctypes.POINTER(ctypes.wintypes.BOOL), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method get_IsFullScreen")],
-            ctypes.HRESULT,
-            "get_IsFullScreen",
-            (["retval", "out"], ctypes.POINTER(ctypes.wintypes.BOOL), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method get_IsOnLockScreen")],
-            ctypes.HRESULT,
-            "get_IsOnLockScreen",
-            (["retval", "out"], ctypes.POINTER(ctypes.wintypes.BOOL), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method get_IsScreenCaptureEnabled")],
-            ctypes.HRESULT,
-            "get_IsScreenCaptureEnabled",
-            (["retval", "out"], ctypes.POINTER(ctypes.wintypes.BOOL), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method put_IsScreenCaptureEnabled")],
-            ctypes.HRESULT,
-            "put_IsScreenCaptureEnabled",
-            (["in"], ctypes.wintypes.BOOL, "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method put_Title")],
-            ctypes.HRESULT,
-            "put_Title",
-            (["in"], HSTRING, "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method get_Title")],
-            ctypes.HRESULT,
-            "get_Title",
-            (["retval", "out"], ctypes.POINTER(HSTRING), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method get_Id")],
-            ctypes.HRESULT,
-            "get_Id",
-            (["retval", "out"], ctypes.POINTER(INT32), "value"),
-        ),
-        COMMETHOD(
-            [helpstring("Method add_Consolidated")],
-            ctypes.HRESULT,
-            "add_Consolidated",
-            (["in"], ctypes.POINTER(IApplicationViewConsolidatedEventArgs), "handler"),
-            (["retval", "out"], ctypes.POINTER(EventRegistrationToken), "token"),
-        ),
-        COMMETHOD(
-            [helpstring("Method remove_Consolidated")],
-            ctypes.HRESULT,
-            "remove_Consolidated",
-            (["in"], EventRegistrationToken, "EventRegistrationToken"),
-        ),
-    ]
-
+CLSID_VirtualDesktopManager = GUID("{AA509086-5CA9-4C25-8F95-589D3C07B48A}")
+CLSID_VirtualDesktopManagerInternal = GUID("{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}")
 
 IID_IServiceProvider = GUID("{6D5140C1-7436-11CE-8034-00AA006009FA}")
+IID_IVirtualDesktop = GUID("{FF72FFDD-BE7E-43FC-9C03-AD81681E88E4}")
+IID_IVirtualDesktopManager = GUID("{A5CD92FF-29BE-454C-8D04-D82879FB3F1B}")
+IID_IVirtualDesktopManagerInternal = GUID("{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
+
+
+class AdjacentDesktop(ctypes.wintypes.INT):
+    LeftDirection = 3
+    RightDirection = 4
 
 
 class IServiceProvider(comtypes.IUnknown):
@@ -228,14 +69,11 @@ class IServiceProvider(comtypes.IUnknown):
             [helpstring("Method QueryService"), "local", "in"],
             ctypes.HRESULT,
             "QueryService",
-            (["in"], REFGUID, "guidService"),
-            (["in"], REFIID, "riid"),
+            (["in"], ctypes.POINTER(GUID), "guidService"),
+            (["in"], ctypes.POINTER(GUID), "riid"),
             (["out"], ctypes.POINTER(ctypes.wintypes.LPVOID), "ppvObject"),
         )
     ]
-
-
-IID_IObjectArray = GUID("{92CA9DCD-5622-4BBA-A805-5E9F541BD8C9}")
 
 
 class IObjectArray(comtypes.IUnknown):
@@ -246,7 +84,6 @@ class IObjectArray(comtypes.IUnknown):
     _case_insensitive_ = True
     _idlflags_ = []
     _iid_ = None
-
     _methods_ = [
         COMMETHOD(
             [helpstring("Method GetCount")],
@@ -259,13 +96,10 @@ class IObjectArray(comtypes.IUnknown):
             ctypes.HRESULT,
             "GetAt",
             (["in"], ctypes.wintypes.UINT, "uiIndex"),
-            (["in"], REFIID, "riid"),
+            (["in"], ctypes.POINTER(GUID), "riid"),
             (["in", "iid_is"], ctypes.POINTER(ctypes.wintypes.LPVOID), "ppv"),
         ),
     ]
-
-
-IID_IVirtualDesktop = GUID("{FF72FFDD-BE7E-43FC-9C03-AD81681E88E4}")
 
 
 class IVirtualDesktop(comtypes.IUnknown):
@@ -277,7 +111,7 @@ class IVirtualDesktop(comtypes.IUnknown):
             [helpstring("Method IsViewVisible")],
             ctypes.HRESULT,
             "IsViewVisible",
-            (["out"], ctypes.POINTER(IApplicationView), "pView"),
+            (["out"], ctypes.POINTER(comtypes.IUnknown), "pView"),
             (["out"], ctypes.POINTER(ctypes.wintypes.INT), "pfVisible"),
         ),
         COMMETHOD(
@@ -287,10 +121,6 @@ class IVirtualDesktop(comtypes.IUnknown):
             (["in"], ctypes.POINTER(GUID), "pGuid"),
         ),
     ]
-
-
-CLSID_VirtualDesktopManager = GUID("{AA509086-5CA9-4C25-8F95-589D3C07B48A}")
-IID_IVirtualDesktopManager = GUID("{A5CD92FF-29BE-454C-8D04-D82879FB3F1B}")
 
 
 class IVirtualDesktopManager(comtypes.IUnknown):
@@ -317,23 +147,9 @@ class IVirtualDesktopManager(comtypes.IUnknown):
             ctypes.HRESULT,
             "MoveWindowToDesktop",
             (["in"], ctypes.wintypes.HWND, "topLevelWindow"),
-            (["in"], REFGUID, "desktopId"),
+            (["in"], ctypes.POINTER(GUID), "desktopId"),
         ),
     ]
-
-
-CLSID_VirtualDesktopManagerInternal = GUID("{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}")
-
-IID_IVirtualDesktopManagerInternal = GUID("{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
-
-
-# IID_IVirtualDesktopManagerInternal = GUID(
-#     '{AF8DA486-95BB-4460-B3B7-6E7A6B2962B5}'
-# )
-
-# IID_IVirtualDesktopManagerInternal = GUID(
-#     '{EF9F1A6C-D3CC-4358-B712-F84B635BEBE7}'
-# )
 
 
 class IVirtualDesktopManagerInternal(comtypes.IUnknown):
@@ -351,14 +167,14 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
             [helpstring("Method MoveViewToDesktop")],
             ctypes.HRESULT,
             "MoveViewToDesktop",
-            (["out"], ctypes.POINTER(IApplicationView), "pView"),
+            (["out"], ctypes.POINTER(comtypes.IUnknown), "pView"),
             (["out"], ctypes.POINTER(IVirtualDesktop), "pDesktop"),
         ),
         COMMETHOD(
             [helpstring("Method CanViewMoveDesktops")],
             ctypes.HRESULT,
             "CanViewMoveDesktops",
-            (["out"], ctypes.POINTER(IApplicationView), "pView"),
+            (["out"], ctypes.POINTER(comtypes.IUnknown), "pView"),
             (["out"], ctypes.POINTER(ctypes.wintypes.INT), "pfCanViewMoveDesktops"),
         ),
         COMMETHOD(
@@ -387,7 +203,6 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
         ),
         COMMETHOD(
             [helpstring("Method SwitchDesktop")],
-            # ctypes.c_void_p,
             ctypes.HRESULT,
             "SwitchDesktop",
             (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktop"),
@@ -411,81 +226,6 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
             "FindDesktop",
             (["in"], ctypes.POINTER(GUID), "desktopId"),
             (["out"], ctypes.POINTER(ctypes.POINTER(IVirtualDesktop)), "ppDesktop"),
-        ),
-    ]
-
-
-IID_IVirtualDesktopNotification = GUID("{C179334C-4295-40D3-BEA1-C654D965605A}")
-
-
-class IVirtualDesktopNotification(comtypes.IUnknown):
-    _case_insensitive_ = True
-    _iid_ = IID_IVirtualDesktopNotification
-    _idlflags_ = []
-    _methods_ = [
-        COMMETHOD(
-            [helpstring("Method VirtualDesktopCreated")],
-            ctypes.HRESULT,
-            "VirtualDesktopCreated",
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktop"),
-        ),
-        COMMETHOD(
-            [helpstring("Method VirtualDesktopDestroyBegin")],
-            ctypes.HRESULT,
-            "VirtualDesktopDestroyBegin",
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopDestroyed"),
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopFallback"),
-        ),
-        COMMETHOD(
-            [helpstring("Method VirtualDesktopDestroyFailed")],
-            ctypes.HRESULT,
-            "VirtualDesktopDestroyFailed",
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopDestroyed"),
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopFallback"),
-        ),
-        COMMETHOD(
-            [helpstring("Method VirtualDesktopDestroyed")],
-            ctypes.HRESULT,
-            "VirtualDesktopDestroyed",
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopDestroyed"),
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopFallback"),
-        ),
-        COMMETHOD(
-            [helpstring("Method ViewVirtualDesktopChanged")],
-            ctypes.HRESULT,
-            "ViewVirtualDesktopChanged",
-            (["in"], ctypes.POINTER(IApplicationView), "pView"),
-        ),
-        COMMETHOD(
-            [helpstring("Method CurrentVirtualDesktopChanged")],
-            ctypes.HRESULT,
-            "CurrentVirtualDesktopChanged",
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopOld"),
-            (["in"], ctypes.POINTER(IVirtualDesktop), "pDesktopNew"),
-        ),
-    ]
-
-
-IID_IVirtualDesktopNotificationService = GUID("{0CD45E71-D927-4F15-8B0A-8FEF525337BF}")
-
-
-class IVirtualDesktopNotificationService(comtypes.IUnknown):
-    _case_insensitive_ = True
-    _iid_ = IID_IVirtualDesktopNotificationService
-    _idlflags_ = []
-    _methods_ = [
-        COMMETHOD(
-            [helpstring("Method Register")],
-            ctypes.HRESULT,
-            "Register",
-            (["in"], ctypes.POINTER(IVirtualDesktopNotification), "pNotification"),
-            (["out"], ctypes.POINTER(ctypes.wintypes.DWORD), "pdwCookie"),
-        ),
-        COMMETHOD(
-            [helpstring("Method Unregister")],
-            ctypes.HRESULT,
-            "Unregister",
-            (["in"], ctypes.wintypes.DWORD, "dwCookie"),
         ),
     ]
 
@@ -650,7 +390,7 @@ class VirtualDesktopsWin10(object):
         if ret_val != S_OK:
             return None
 
-        desktop = ctypes.POINTER(IVirtualDesktop)()
-        self.internal_manager.SwitchDesktop(ctypes.byref(desktop))
+        # desktop = ctypes.POINTER(IVirtualDesktop)()
+        # self.internal_manager.SwitchDesktop(ctypes.byref(desktop))
 
         return False
