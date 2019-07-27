@@ -502,10 +502,10 @@ class BaseController(object):
         if self.state == Settings.OTHER:
             self.recapture_mouse()
         self.generator = self.app.collector.collection.generator()
-        self.next(first_time=True)
+        self.next(first_time=True, from_workspace=self.model.workspace)
         self.display_message(MESSAGES["msg_listed_window"])
 
-    def next(self, first_time=False):
+    def next(self, first_time=False, from_workspace=None):
         """Sets controller ``model`` attribute from the value yielded from ``generator``
 
         and populates view widgets with new model data.
@@ -516,15 +516,20 @@ class BaseController(object):
         If there are no values left in collection then saves and exits app.
         Switches workspace if it's changed.
 
-        :var old_workspace: old model's workspace number
-        :type old_workspace: ind
-        :var first_time: is method called for the very first time
+        :param first_time: is method called for the very first time
         :type first_time: Boolean
+        :param from_workspace: workspace passed if listed window activated
+        :type from_workspace: int
+        :var old_workspace: old model's workspace number
+        :type old_workspace: int
         :returns: Boolean
         """
         self.state = Settings.LOCATE
-
-        old_workspace = self.model.changed_ws or self.model.workspace
+        old_workspace = (
+            from_workspace
+            if from_workspace is not None
+            else self.model.changed_ws or self.model.workspace
+        )
         try:
             self.model = next(self.generator)
         except StopIteration:
@@ -535,8 +540,11 @@ class BaseController(object):
 
         if not first_time:
             self.remove_listed_window(self.model.wid)
-            if self.model.workspace != old_workspace:
-                self.switch_workspace()
+
+        if self.model.workspace != old_workspace and (
+            not first_time or from_workspace is not None
+        ):
+            self.switch_workspace()
 
         self.snapping_targets = self.app.create_snapping_sources(self.model)
         self.set_default_geometry(self.view.master)

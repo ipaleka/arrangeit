@@ -487,7 +487,9 @@ class TestBaseControllerDomainLogic(object):
         controller = base.BaseController(mocker.MagicMock())
         controller.listed_window_activated(90423)
         mocked.assert_called_once()
-        mocked.assert_called_with(first_time=True)
+        mocked.assert_called_with(
+            first_time=True, from_workspace=controller.model.workspace
+        )
 
     def test_BaseController_listed_window_activated_calls_display_message(self, mocker):
         mocked_setup(mocker)
@@ -555,16 +557,7 @@ class TestBaseControllerDomainLogic(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE)
 
-    def test_BaseController_next_calls_switch_workspace(self, mocker):
-        controller = controller_mocked_for_next(mocker)
-        mocker.patch("arrangeit.base.BaseController.remove_listed_window")
-        mocked = mocker.patch("arrangeit.base.BaseController.switch_workspace")
-        controller.next()
-        mocked.assert_called_once()
-
-    def test_BaseController_next_not_calling_remove_listed_and_switch_workspace_first(
-        self, mocker
-    ):
+    def test_BaseController_next_not_calling_remove_listed(self, mocker):
         controller = controller_mocked_for_next(mocker)
         mocked_lw = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
         mocked_ws = mocker.patch("arrangeit.base.BaseController.switch_workspace")
@@ -572,13 +565,45 @@ class TestBaseControllerDomainLogic(object):
         mocked_lw.assert_not_called()
         mocked_ws.assert_not_called()
 
-    def test_BaseController_next_not_calling_switch_workspace(self, mocker):
+    def test_BaseController_next_calls_switch_workspace_not_first_time(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        mocker.patch("arrangeit.base.BaseController.remove_listed_window")
+        mocked = mocker.patch("arrangeit.base.BaseController.switch_workspace")
+        controller.next()
+        mocked.assert_called_once()
+
+    def test_BaseController_next_calls_switch_workspace_from_workspace(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        mocker.patch("arrangeit.base.BaseController.remove_listed_window")
+        mocked = mocker.patch("arrangeit.base.BaseController.switch_workspace")
+        controller.next(first_time=True, from_workspace=1)
+        mocked.assert_called_once()
+
+    def test_BaseController_next_not_calling_switch_workspace_first_time(self, mocker):
+        controller = controller_mocked_for_next(mocker)
+        mocked_ws = mocker.patch("arrangeit.base.BaseController.switch_workspace")
+        controller.next(first_time=True)
+        mocked_ws.assert_not_called()
+
+    def test_BaseController_next_not_calling_switch_workspace_same_workspace(
+        self, mocker
+    ):
         controller = controller_mocked_for_next(mocker)
         mocked_lw = mocker.patch("arrangeit.base.BaseController.remove_listed_window")
         mocked_ws = mocker.patch("arrangeit.base.BaseController.switch_workspace")
         controller.generator.__next__.return_value = base.WindowModel(workspace=1)
         controller.next()
         mocked_lw.assert_called()
+        mocked_ws.assert_not_called()
+
+    def test_BaseController_next_not_calling_switch_workspace_from_workspace(
+        self, mocker
+    ):
+        controller = controller_mocked_for_next(mocker)
+        mocker.patch("arrangeit.base.BaseController.remove_listed_window")
+        mocked_ws = mocker.patch("arrangeit.base.BaseController.switch_workspace")
+        controller.generator.__next__.return_value = base.WindowModel(workspace=1,rect=(0,0,100,100))
+        controller.next(first_time=True, from_workspace=1)
         mocked_ws.assert_not_called()
 
     def test_BaseController_next_calls_set_screenshot(self, mocker):
