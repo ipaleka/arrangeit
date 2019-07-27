@@ -539,6 +539,10 @@ class DummyVirtualDesktops(object):
         """Returns two-tuple of 0 and empty string."""
         return (0, "")
 
+    def is_window_in_current_desktop(self, hwnd):
+        """Just returns True."""
+        return True
+
     def move_window_to_desktop(self, hwnd, desktop_ordinal):
         """Just returns None."""
         return None
@@ -782,26 +786,6 @@ class Api(object):
         """
         return Rectangle(winrect.left, winrect.top, winrect.right, winrect.bottom)
 
-    def cloaked_value(self, hwnd):
-        """Helper function to return DWM cloaked value for window with provided hwnd.
-
-        0 is returned for Windows 7 and earlier versions (helper method returns
-        error value).
-
-        :param hwnd: window id
-        :type hwnd: int
-        :var cloaked: flag holding non-zero value if window is cloaked
-        :type cloaked: :class:`ctypes.wintypes.INT`
-        :var ret_val: function returned value indicating error/success status
-        :type ret_val: int
-        :returns: int
-        """
-        cloaked = ctypes.wintypes.DWORD()
-        ret_val = self.helpers._dwm_get_window_attribute(
-            hwnd, DWMWA_CLOAKED, ctypes.byref(cloaked), ctypes.sizeof(cloaked)
-        )
-        return cloaked.value if ret_val == S_OK else 0
-
     def enum_windows(self, hwnd=None, enum_children=False):
         """Helper function to enumerate either desktop windows or children windows
 
@@ -957,6 +941,36 @@ class Api(object):
         package_info = PACKAGE_INFO.from_buffer(package_info_buffer)
         self.helpers._close_package_info(package_info_reference.contents)
         return Package(package_info.path)
+
+    def is_cloaked(self, hwnd):
+        """Returns True if window with provided hwnd is cloaked/hidden.
+
+        False is returned for Windows 7 and earlier versions (helper method returns
+        error value).
+
+        If DWM value confirms cloaked state, then the value from a call to
+        ``is_window_in_current_desktop`` is returned as all the windows from the
+        other desktops are presented as *cloaked*, so it is implied they are really 
+        cloaked. NOTE this behaviour needs additional testing
+
+        :param hwnd: window id
+        :type hwnd: int
+        :var cloaked: flag holding non-zero value if window is cloaked
+        :type cloaked: :class:`ctypes.wintypes.INT`
+        :var ret_val: function returned value indicating error/success status
+        :type ret_val: int
+        :returns: Boolean
+        """
+        cloaked = ctypes.wintypes.DWORD()
+        ret_val = self.helpers._dwm_get_window_attribute(
+            hwnd, DWMWA_CLOAKED, ctypes.byref(cloaked), ctypes.sizeof(cloaked)
+        )
+        if ret_val != S_OK:
+            return False
+
+        return (
+            False if cloaked.value == 0 else self.vdi.is_window_in_current_desktop(hwnd)
+        )
 
     def is_dwm_composition_enabled(self):
         """Helper function returning True if DWM composition is enabled in system.

@@ -77,7 +77,6 @@ class TestWindowsApiCustomFunctions(object):
         )
         assert platform_supports_packages() is None
 
-
     # platform_supports_virtual_desktops
     def test_windows_api_platform_supports_virtual_desktops_calls_getwindowsversion(
         self, mocker
@@ -1234,12 +1233,19 @@ class TestDummyVirtualDesktops(object):
     def test_api_DummyVirtualDesktops_defines_get_desktops(self, mocker):
         assert hasattr(DummyVirtualDesktops, "get_desktops")
         assert callable(DummyVirtualDesktops.get_desktops)
-        assert DummyVirtualDesktops().get_desktops() == [(0, ""),]
+        assert DummyVirtualDesktops().get_desktops() == [(0, "")]
 
     def test_api_DummyVirtualDesktops_defines_get_window_desktop(self, mocker):
         assert hasattr(DummyVirtualDesktops, "get_window_desktop")
         assert callable(DummyVirtualDesktops.get_window_desktop)
         assert DummyVirtualDesktops().get_window_desktop(1) == (0, "")
+
+    def test_api_DummyVirtualDesktops_defines_is_window_in_current_desktop(
+        self, mocker
+    ):
+        assert hasattr(DummyVirtualDesktops, "is_window_in_current_desktop")
+        assert callable(DummyVirtualDesktops.is_window_in_current_desktop)
+        assert DummyVirtualDesktops().is_window_in_current_desktop(1) == True
 
     def test_api_DummyVirtualDesktops_defines_move_window_to_desktop(self, mocker):
         assert hasattr(DummyVirtualDesktops, "move_window_to_desktop")

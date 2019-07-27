@@ -139,7 +139,7 @@ class IVirtualDesktopManager(comtypes.IUnknown):
             ctypes.HRESULT,
             "IsWindowOnCurrentVirtualDesktop",
             (["in"], ctypes.wintypes.HWND, "topLevelWindow"),
-            (["out"], ctypes.POINTER(ctypes.wintypes.BOOL), "onCurrentDesktop"),
+            (["in"], ctypes.POINTER(ctypes.wintypes.BOOL), "onCurrentDesktop"),
         ),
         COMMETHOD(
             [helpstring("Method GetWindowDesktopId")],
@@ -379,6 +379,19 @@ class VirtualDesktopsWin10(object):
             ),
             (0, None),
         )
+
+    def is_window_in_current_desktop(self, hwnd):
+        """Checks if window with provided ``hwnd`` is placed in current desktop.
+
+        :param hwnd: window handle
+        :type hwnd: int
+        :returns: Boolean
+        """
+        in_current = ctypes.wintypes.BOOL()
+        ret_val = self.manager.IsWindowOnCurrentVirtualDesktop(hwnd, ctypes.byref(in_current))
+        if ret_val != S_OK:
+            return None
+        return in_current.value
 
     def move_window_to_desktop(self, hwnd, desktop_ordinal):
         """Returns virtual desktop in which window with provided ``hwnd`` is placed.

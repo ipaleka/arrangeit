@@ -411,7 +411,7 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         vd.internal_manager = mocker.MagicMock()
         vd.internal_manager.GetDesktops.return_value = 1
         returned = vd._get_desktops()
-        assert returned == [(0, None),]
+        assert returned == [(0, None)]
 
     def test_windows_vdi_VDWin10__get_desktops_calls_UINT(self, mocker):
         mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
@@ -459,7 +459,9 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         vd.internal_manager.GetDesktops.return_value = vdi.S_OK
         vd._get_desktops()
         mocked.return_value.return_value.GetCount.assert_called_once()
-        mocked.return_value.return_value.GetCount.assert_called_with(mocked_byref.return_value)
+        mocked.return_value.return_value.GetCount.assert_called_with(
+            mocked_byref.return_value
+        )
 
     def test_windows_vdi_VDWin10__get_desktops_calls__get_desktop_id_from_array(
         self, mocker
@@ -717,6 +719,68 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         returned = vd.get_window_desktop(977)
         assert returned == (0, None)
 
+    # VirtualDesktopsWin10.is_window_in_current_desktop
+    def test_windows_vdi_VDWin10_is_window_in_current_desktop_calls_BOOL(self, mocker):
+        mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
+        mocker.patch("ctypes.byref")
+        mocked = mocker.patch("ctypes.wintypes.BOOL")
+        vd = VirtualDesktopsWin10()
+        vd.manager = mocker.MagicMock()
+        vd.is_window_in_current_desktop(20)
+        mocked.assert_called_once()
+        mocked.assert_called_with()
+
+    def test_windows_vdi_VDWin10_is_window_in_current_desktop_calls_byref(self, mocker):
+        mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
+        mocked_bool = mocker.patch("ctypes.wintypes.BOOL")
+        mocked = mocker.patch("ctypes.byref")
+        vd = VirtualDesktopsWin10()
+        vd.manager = mocker.MagicMock()
+        vd.is_window_in_current_desktop(21)
+        mocked.assert_called_once()
+        mocked.assert_called_with(mocked_bool.return_value)
+
+    def test_windows_vdi_VDWin10_is_window_in_current_desktop_calls_IsWindowOnCurrent(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
+        mocker.patch("ctypes.wintypes.BOOL")
+        mocked = mocker.patch("ctypes.byref")
+        vd = VirtualDesktopsWin10()
+        vd.manager = mocker.MagicMock()
+        HWND = 22
+        vd.is_window_in_current_desktop(HWND)
+        vd.manager.IsWindowOnCurrentVirtualDesktop.assert_called_once()
+        vd.manager.IsWindowOnCurrentVirtualDesktop.assert_called_with(
+            HWND, mocked.return_value
+        )
+
+    def test_windows_vdi_VDWin10_is_window_in_current_desktop_returns_None_not_ok(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
+        mocker.patch("ctypes.wintypes.BOOL")
+        mocker.patch("ctypes.byref")
+        vd = VirtualDesktopsWin10()
+        vd.manager = mocker.MagicMock()
+        vd.manager.IsWindowOnCurrentVirtualDesktop.return_value = 1
+        returned = vd.is_window_in_current_desktop(23)
+        assert returned is None
+
+    def test_windows_vdi_VDWin10_is_window_in_current_desktop_returns_value(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
+        mocker.patch("ctypes.byref")
+        mocked = mocker.patch("ctypes.wintypes.BOOL")
+        VALUE = True
+        mocked.return_value.value = VALUE
+        vd = VirtualDesktopsWin10()
+        vd.manager = mocker.MagicMock()
+        vd.manager.IsWindowOnCurrentVirtualDesktop.return_value = vdi.S_OK
+        returned = vd.is_window_in_current_desktop(24)
+        assert returned is VALUE
+
     # VirtualDesktopsWin10.move_window_to_desktop
     def test_windows_vdi_VDWin10_move_window_to_desktop_calls_get_desktops(
         self, mocker
@@ -725,7 +789,7 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         mocker.patch("ctypes.byref")
         mocked = mocker.patch(
             "arrangeit.windows.vdi.VirtualDesktopsWin10.get_desktops",
-            return_value=[(0, ""), (1, "barfoo")]
+            return_value=[(0, ""), (1, "barfoo")],
         )
         vd = VirtualDesktopsWin10()
         vd.manager = mocker.MagicMock()
@@ -739,7 +803,7 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         ORDINAL = 1
         mocker.patch(
             "arrangeit.windows.vdi.VirtualDesktopsWin10.get_desktops",
-            return_value=[(0, ""), (1, VALUE)]
+            return_value=[(0, ""), (1, VALUE)],
         )
         mocked = mocker.patch("ctypes.byref")
         vd = VirtualDesktopsWin10()
@@ -754,7 +818,7 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
         mocker.patch(
             "arrangeit.windows.vdi.VirtualDesktopsWin10.get_desktops",
-            return_value=[(0, ""), (1, "barfoo")]
+            return_value=[(0, ""), (1, "barfoo")],
         )
         mocked = mocker.patch("ctypes.byref")
         vd = VirtualDesktopsWin10()
@@ -770,7 +834,7 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
         mocker.patch(
             "arrangeit.windows.vdi.VirtualDesktopsWin10.get_desktops",
-            return_value=[(0, ""), (1, "barfoo")]
+            return_value=[(0, ""), (1, "barfoo")],
         )
         mocker.patch("ctypes.byref")
         vd = VirtualDesktopsWin10()
@@ -783,7 +847,7 @@ class TestWindowsVdiVirtualDesktopsWin10(object):
         mocker.patch("arrangeit.windows.vdi.VirtualDesktopsWin10._setup")
         mocker.patch(
             "arrangeit.windows.vdi.VirtualDesktopsWin10.get_desktops",
-            return_value=[(0, ""), (1, "barfoo")]
+            return_value=[(0, ""), (1, "barfoo")],
         )
         mocker.patch("ctypes.byref")
         vd = VirtualDesktopsWin10()

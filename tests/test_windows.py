@@ -942,18 +942,12 @@ class TestWindowsCollector(object):
         assert not Collector()._is_alt_tab_applicable(SAMPLE_HWND)
 
     ## WindowsCollector._is_cloaked
-    def test_WindowsCollector__is_cloaked_calls_cloaked_value(self, mocker):
-        mocked = mocker.patch("arrangeit.windows.collector.Api.cloaked_value")
-        Collector()._is_cloaked(SAMPLE_HWND)
+    def test_WindowsCollector__is_cloaked_calls_and_returns_is_cloaked(self, mocker):
+        mocked = mocker.patch("arrangeit.windows.collector.Api.is_cloaked")
+        returned = Collector()._is_cloaked(SAMPLE_HWND)
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_HWND)
-
-    @pytest.mark.parametrize("value,expected", [(0, False), (1, True), (2, True)])
-    def test_WindowsCollector__is_cloaked_return(self, mocker, value, expected):
-        mocker.patch(
-            "arrangeit.windows.collector.Api.cloaked_value", return_value=value
-        )
-        assert Collector()._is_cloaked(SAMPLE_HWND) == expected
+        assert returned == mocked.return_value
 
     ## WindowsCollector._is_tool_window
     @pytest.mark.parametrize("method", ["GetWindowLong"])

@@ -204,13 +204,11 @@ class Collector(BaseCollector):
     def _is_cloaked(self, hwnd):
         """Checks if provided hwnd represents window that is "cloaked".
 
-        TODO check what to do with cloaked in another workspaces
-
         :param hwnd: window id
         :type hwnd: int
         :returns: Boolean
         """
-        return self.api.cloaked_value(hwnd) != 0
+        return self.api.is_cloaked(hwnd)
 
     def _is_tool_window(self, hwnd):
         """Checks if provided hwnd represents tool window.
