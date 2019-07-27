@@ -95,7 +95,20 @@ class TestWindowsVdiIServiceProvider(object):
         assert hasattr(vdi.IServiceProvider, field)
         assert getattr(vdi.IServiceProvider, field) == value
 
-    # TODO methods
+    def test_windows_vdi_IServiceProvider_method_QueryService(self):
+        method = (
+            ctypes.HRESULT,
+            "QueryService",
+            (
+                ctypes.POINTER(GUID),
+                ctypes.POINTER(GUID),
+                ctypes.POINTER(ctypes.wintypes.LPVOID),
+            ),
+            ((1, "guidService"), (1, "riid"), (2, "ppvObject")),
+            ("Method QueryService", "local", "in"),
+            "Method QueryService",
+        )
+        assert method == vdi.IServiceProvider._methods_[0]
 
 
 class TestWindowsVdiIObjectArray(object):
@@ -112,7 +125,31 @@ class TestWindowsVdiIObjectArray(object):
         assert hasattr(vdi.IObjectArray, field)
         assert getattr(vdi.IObjectArray, field) == value
 
-    # TODO methods
+    def test_windows_vdi_IObjectArray_method_GetCount(self):
+        method = (
+            ctypes.HRESULT,
+            "GetCount",
+            (ctypes.POINTER(ctypes.wintypes.UINT),),
+            ((1, "pcObjects"),),
+            ("Method GetCount",),
+            "Method GetCount",
+        )
+        assert method == vdi.IObjectArray._methods_[0]
+
+    def test_windows_vdi_IObjectArray_method_GetAt(self):
+        method = (
+            ctypes.HRESULT,
+            "GetAt",
+            (
+                ctypes.wintypes.UINT,
+                ctypes.POINTER(GUID),
+                ctypes.POINTER(ctypes.wintypes.LPVOID),
+            ),
+            ((1, "uiIndex"), (1, "riid"), (1, "ppv")),
+            ("Method GetAt",),
+            "Method GetAt",
+        )
+        assert method == vdi.IObjectArray._methods_[1]
 
 
 class TestWindowsVdiIVirtualDesktop(object):
@@ -133,7 +170,27 @@ class TestWindowsVdiIVirtualDesktop(object):
         assert hasattr(vdi.IVirtualDesktop, field)
         assert getattr(vdi.IVirtualDesktop, field) == value
 
-    # TODO methods
+    def test_windows_vdi_IVirtualDesktop_method_IsViewVisible(self):
+        method = (
+            ctypes.HRESULT,
+            "IsViewVisible",
+            (ctypes.POINTER(comtypes.IUnknown), ctypes.POINTER(ctypes.wintypes.INT)),
+            ((2, "pView"), (2, "pfVisible")),
+            ("Method IsViewVisible",),
+            "Method IsViewVisible",
+        )
+        assert method == vdi.IVirtualDesktop._methods_[0]
+
+    def test_windows_vdi_IVirtualDesktop_method_GetID(self):
+        method = (
+            ctypes.HRESULT,
+            "GetID",
+            (ctypes.POINTER(GUID),),
+            ((1, "pGuid"),),
+            ("Method GetID",),
+            "Method GetID",
+        )
+        assert method == vdi.IVirtualDesktop._methods_[1]
 
 
 class TestWindowsVdiIVirtualDesktopManager(object):
@@ -154,7 +211,40 @@ class TestWindowsVdiIVirtualDesktopManager(object):
         assert hasattr(vdi.IVirtualDesktopManager, field)
         assert getattr(vdi.IVirtualDesktopManager, field) == value
 
-    # TODO methods
+    def test_windows_vdi_IVirtualDesktopManager_method_IsWindowOnCurrentVirtualDesktop(
+        self
+    ):
+        method = (
+            ctypes.HRESULT,
+            "IsWindowOnCurrentVirtualDesktop",
+            (ctypes.wintypes.HWND, ctypes.POINTER(ctypes.wintypes.BOOL)),
+            ((1, "topLevelWindow"), (1, "onCurrentDesktop")),
+            ("Method IsWindowOnCurrentVirtualDesktop",),
+            "Method IsWindowOnCurrentVirtualDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManager._methods_[0]
+
+    def test_windows_vdi_IVirtualDesktopManager_method_GetWindowDesktopId(self):
+        method = (
+            ctypes.HRESULT,
+            "GetWindowDesktopId",
+            (ctypes.wintypes.HWND, ctypes.POINTER(GUID)),
+            ((1, "topLevelWindow"), (1, "desktopId")),
+            ("Method GetWindowDesktopId",),
+            "Method GetWindowDesktopId",
+        )
+        assert method == vdi.IVirtualDesktopManager._methods_[1]
+
+    def test_windows_vdi_IVirtualDesktopManager_method_MoveWindowToDesktop(self):
+        method = (
+            ctypes.HRESULT,
+            "MoveWindowToDesktop",
+            (ctypes.wintypes.HWND, ctypes.POINTER(GUID)),
+            ((1, "topLevelWindow"), (1, "desktopId")),
+            ("Method MoveWindowToDesktop",),
+            "Method MoveWindowToDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManager._methods_[2]
 
 
 class TestWindowsVdiIVirtualDesktopManagerInternal(object):
@@ -177,7 +267,121 @@ class TestWindowsVdiIVirtualDesktopManagerInternal(object):
         assert hasattr(vdi.IVirtualDesktopManagerInternal, field)
         assert getattr(vdi.IVirtualDesktopManagerInternal, field) == value
 
-    # TODO methods
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_GetCount(self):
+        method = (
+            ctypes.HRESULT,
+            "GetCount",
+            (ctypes.POINTER(ctypes.wintypes.UINT),),
+            ((1, "pCount"),),
+            ("Method GetCount",),
+            "Method GetCount",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[0]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_MoveViewToDesktop(self):
+        method = (
+            ctypes.HRESULT,
+            "MoveViewToDesktop",
+            (ctypes.POINTER(comtypes.IUnknown), ctypes.POINTER(vdi.IVirtualDesktop)),
+            ((2, "pView"), (2, "pDesktop")),
+            ("Method MoveViewToDesktop",),
+            "Method MoveViewToDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[1]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_CanViewMoveDesktops(
+        self
+    ):
+        method = (
+            ctypes.HRESULT,
+            "CanViewMoveDesktops",
+            (ctypes.POINTER(comtypes.IUnknown), ctypes.POINTER(ctypes.wintypes.INT)),
+            ((2, "pView"), (2, "pfCanViewMoveDesktops")),
+            ("Method CanViewMoveDesktops",),
+            "Method CanViewMoveDesktops",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[2]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_GetCurrentDesktop(self):
+        method = (
+            ctypes.HRESULT,
+            "GetCurrentDesktop",
+            (ctypes.POINTER(ctypes.POINTER(vdi.IVirtualDesktop)),),
+            ((2, "desktop"),),
+            ("Method GetCurrentDesktop",),
+            "Method GetCurrentDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[3]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_GetDesktops(self):
+        method = (
+            ctypes.HRESULT,
+            "GetDesktops",
+            (ctypes.POINTER(ctypes.POINTER(vdi.IObjectArray)),),
+            ((1, "ppDesktops"),),
+            ("Method GetDesktops",),
+            "Method GetDesktops",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[4]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_GetAdjacentDesktop(self):
+        method = (
+            ctypes.HRESULT,
+            "GetAdjacentDesktop",
+            (
+                ctypes.POINTER(vdi.IVirtualDesktop),
+                vdi.AdjacentDesktop,
+                ctypes.POINTER(ctypes.POINTER(vdi.IVirtualDesktop)),
+            ),
+            ((2, "pDesktopReference"), (1, "uDirection"), (2, "ppAdjacentDesktop")),
+            ("Method GetAdjacentDesktop",),
+            "Method GetAdjacentDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[5]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_SwitchDesktop(self):
+        method = (
+            ctypes.HRESULT,
+            "SwitchDesktop",
+            (ctypes.POINTER(vdi.IVirtualDesktop),),
+            ((1, "pDesktop"),),
+            ("Method SwitchDesktop",),
+            "Method SwitchDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[6]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_CreateDesktopW(self):
+        method = (
+            ctypes.HRESULT,
+            "CreateDesktopW",
+            (ctypes.POINTER(ctypes.POINTER(vdi.IVirtualDesktop)),),
+            ((2, "ppNewDesktop"),),
+            ("Method CreateDesktopW",),
+            "Method CreateDesktopW",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[7]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_RemoveDesktop(self):
+        method = (
+            ctypes.HRESULT,
+            "RemoveDesktop",
+            (ctypes.POINTER(vdi.IVirtualDesktop), ctypes.POINTER(vdi.IVirtualDesktop)),
+            ((1, "pRemove"), (1, "pFallbackDesktop")),
+            ("Method RemoveDesktop",),
+            "Method RemoveDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[8]
+
+    def test_windows_vdi_IVirtualDesktopManagerInternal_method_FindDesktop(self):
+        method = (
+            ctypes.HRESULT,
+            "FindDesktop",
+            (ctypes.POINTER(GUID), ctypes.POINTER(ctypes.POINTER(vdi.IVirtualDesktop))),
+            ((1, "desktopId"), (2, "ppDesktop")),
+            ("Method FindDesktop",),
+            "Method FindDesktop",
+        )
+        assert method == vdi.IVirtualDesktopManagerInternal._methods_[9]
 
 
 @pytest.mark.skipif(not platform_supports_virtual_desktops(), reason="Win 10 only")

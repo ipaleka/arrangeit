@@ -153,7 +153,7 @@ class Collector(BaseCollector):
         """
         rectangle = (
             self.api.extended_frame_rect(hwnd)
-            if self.api.is_dwm_composition_enabled()  # TODO test if this works on Win7
+            if self.api.is_dwm_composition_enabled()
             else Rectangle(*GetWindowPlacement(hwnd)[-1])
         )
         return (

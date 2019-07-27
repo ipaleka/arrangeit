@@ -241,7 +241,7 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
 class VirtualDesktopsWin10(object):
     """Helper class for calls to Windows 10 virtual desktop interfaces.
 
-    IVirtualDesktopManager is an interface publicly documented by Microsofr,
+    IVirtualDesktopManager is an interface publicly documented by Microsoft,
     whilst IVirtualDesktopManagerInternal is documented by community.
 
     :var manager: interface to publicly available API for virtual desktops
