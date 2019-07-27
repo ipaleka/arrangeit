@@ -678,18 +678,6 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
-        mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
-        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
-        mocked = mocker.patch("ctypes.wintypes.DWORD")
-        mocked.return_value.value = 0
-        mocked_helpers.return_value._dwm_get_window_attribute.return_value = S_OK
-        returned = Api().is_cloaked(5075)
-        assert returned is False
-
-    def test_Api_is_cloaked_returns_False_for_0_dwm_value(self, mocker):
-        mocker.patch("ctypes.byref")
-        mocker.patch("ctypes.sizeof")
-        mocker.patch("ctypes.create_string_buffer")
         mocked_vdi = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")

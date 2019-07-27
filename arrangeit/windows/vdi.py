@@ -91,7 +91,7 @@ class IObjectArray(comtypes.IUnknown):
             [helpstring("Method GetCount")],
             ctypes.HRESULT,
             "GetCount",
-            (["in"], ctypes.POINTER(ctypes.wintypes.UINT), "pcObjects"),
+            (["out"], ctypes.POINTER(ctypes.wintypes.UINT), "pcObjects"),
         ),
         COMMETHOD(
             [helpstring("Method GetAt")],
@@ -122,7 +122,7 @@ class IVirtualDesktop(comtypes.IUnknown):
             [helpstring("Method GetID")],
             ctypes.HRESULT,
             "GetID",
-            (["in"], ctypes.POINTER(GUID), "pGuid"),
+            (["out"], ctypes.POINTER(GUID), "pGuid"),
         ),
     ]
 
@@ -139,14 +139,14 @@ class IVirtualDesktopManager(comtypes.IUnknown):
             ctypes.HRESULT,
             "IsWindowOnCurrentVirtualDesktop",
             (["in"], ctypes.wintypes.HWND, "topLevelWindow"),
-            (["in"], ctypes.POINTER(ctypes.wintypes.BOOL), "onCurrentDesktop"),
+            (["out"], ctypes.POINTER(ctypes.wintypes.BOOL), "onCurrentDesktop"),
         ),
         COMMETHOD(
             [helpstring("Method GetWindowDesktopId")],
             ctypes.HRESULT,
             "GetWindowDesktopId",
             (["in"], ctypes.wintypes.HWND, "topLevelWindow"),
-            (["in"], ctypes.POINTER(GUID), "desktopId"),
+            (["out"], ctypes.POINTER(GUID), "desktopId"),
         ),
         COMMETHOD(
             [helpstring("Method MoveWindowToDesktop")],
@@ -195,7 +195,7 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
             [helpstring("Method GetDesktops")],
             ctypes.HRESULT,
             "GetDesktops",
-            (["in"], ctypes.POINTER(ctypes.POINTER(IObjectArray)), "ppDesktops"),
+            (["out"], ctypes.POINTER(ctypes.POINTER(IObjectArray)), "ppDesktops"),
         ),
         COMMETHOD(
             [helpstring("Method GetAdjacentDesktop")],
@@ -277,15 +277,11 @@ class VirtualDesktopsWin10(object):
         :type index: int
         :var desktop: virtual desktop instance
         :type desktop: pointer to :class:`IVirtualDesktop`
-        :var desktop_id: virtual desktop's uid representation
-        :type desktop_id: :class:`GUID`
         :returns: :class:`GUID`
         """
         desktop = ctypes.POINTER(IVirtualDesktop)()
         array.GetAt(index, IID_IVirtualDesktop, ctypes.byref(desktop))
-        desktop_id = GUID()
-        desktop.GetID(ctypes.byref(desktop_id))
-        return desktop_id
+        return desktop.GetID()
 
     def _get_desktops(self):
         """Returns collection of two-tuples representing available virtual desktops.
@@ -296,18 +292,9 @@ class VirtualDesktopsWin10(object):
         :type count: :class:`ctypes.wintypes.UINT`
         :returns: list of (int,:class:`GUID`)
         """
-        array = ctypes.POINTER(IObjectArray)()
-
-        ret_val = self.internal_manager.GetDesktops(ctypes.byref(array))
-        if ret_val != S_OK:
-            return [(0, None)]
-
-        count = ctypes.wintypes.UINT()
-        array.GetCount(ctypes.byref(count))
-
-        return [
-            (i, self._get_desktop_id_from_array(array, i)) for i in range(count.value)
-        ]
+        array = self.internal_manager.GetDesktops()
+        count = array.GetCount()
+        return [(i, self._get_desktop_id_from_array(array, i)) for i in range(count)]
 
     def _get_internal_manager(self, service_provider):
         """Instantiates and returns pointer to interface documented by community.
@@ -366,10 +353,7 @@ class VirtualDesktopsWin10(object):
         :type desktop_id: :class:`GUID`
         :returns: (int, :class:`GUID`)
         """
-        desktop_id = GUID()
-        ret_val = self.manager.GetWindowDesktopId(hwnd, ctypes.byref(desktop_id))
-        if ret_val != S_OK:
-            return (0, None)
+        desktop_id = self.manager.GetWindowDesktopId(hwnd)
 
         return next(
             (
@@ -387,11 +371,7 @@ class VirtualDesktopsWin10(object):
         :type hwnd: int
         :returns: Boolean
         """
-        in_current = ctypes.wintypes.BOOL()
-        ret_val = self.manager.IsWindowOnCurrentVirtualDesktop(hwnd, ctypes.byref(in_current))
-        if ret_val != S_OK:
-            return None
-        return in_current.value
+        return self.manager.IsWindowOnCurrentVirtualDesktop(hwnd)
 
     def move_window_to_desktop(self, hwnd, desktop_ordinal):
         """Returns virtual desktop in which window with provided ``hwnd`` is placed.
@@ -411,7 +391,9 @@ class VirtualDesktopsWin10(object):
         if ret_val != S_OK:
             return None
 
-        # desktop = ctypes.POINTER(IVirtualDesktop)()
-        # self.internal_manager.SwitchDesktop(ctypes.byref(desktop))
+        desktop = self.internal_manager.FindDesktop(ctypes.byref(desktop_id))
+        ret_val = self.internal_manager.SwitchDesktop(desktop)
+        if ret_val != S_OK:
+            return None
 
         return False
