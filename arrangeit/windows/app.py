@@ -61,7 +61,7 @@ class App(BaseApp):
         """
         model = self.collector.collection.get_model_by_wid(hwnd)
         if model.is_ws_changed:
-            self.move_to_workspace(hwnd, model.changed_ws)
+            self.move_other_to_workspace(hwnd, model.changed_ws)
         if model.is_changed:
             if IsIconic(hwnd):
                 ShowWindow(hwnd, SW_RESTORE)
@@ -71,6 +71,16 @@ class App(BaseApp):
             return False
         return True
 
+    def move_other_to_workspace(self, hwnd, number):
+        """Moves other process' window to provided workspace number.
+
+        :param hwnd: identifier of the window to move
+        :type hwnd: int
+        :param number: workspace number
+        :type number: int
+        """
+        return self.collector.api.move_other_window_to_desktop(hwnd, number)
+
     def move_to_workspace(self, hwnd, number):
         """Moves root window to provided workspace number.
 
@@ -79,7 +89,7 @@ class App(BaseApp):
         :param number: workspace number
         :type number: int
         """
-        return self.collector.api.move_window_to_desktop(hwnd, number)
+        return self.collector.api.move_own_window_to_desktop(hwnd, number)
 
     def screenshot_cleanup(self, *args):
         """Unregisters DWM thumbnails kept in instance's ``thumbnails`` attribute.

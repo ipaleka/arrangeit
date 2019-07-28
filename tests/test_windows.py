@@ -65,7 +65,7 @@ class TestWindowsApp(object):
     ## WindowsApp.move_and_resize
     def test_WindowsApp_move_and_resize_calls_get_model_by_wid(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked.return_value).is_changed = mocker.PropertyMock(return_value=False)
         app = App()
@@ -74,9 +74,9 @@ class TestWindowsApp(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE)
 
-    def test_WindowsApp_move_and_resize_calls_move_to_workspace(self, mocker):
+    def test_WindowsApp_move_and_resize_calls_move_other_to_workspace(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocked = mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocked = mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
             return_value=True
@@ -90,11 +90,12 @@ class TestWindowsApp(object):
         )
         app = App()
         app.move_and_resize(SAMPLE_WID)
+        mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_WID, SAMPLE_WS)
 
-    def test_WindowsApp_move_and_resize_not_calling_move_to_workspace(self, mocker):
+    def test_WindowsApp_move_and_resize_not_calling_move_other_to_workspace(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocked = mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocked = mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).is_ws_changed = mocker.PropertyMock(
             return_value=False
@@ -108,7 +109,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_calls_IsIconic(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).changed = mocker.PropertyMock(
             return_value=(72, 82, 501, 501)
@@ -123,7 +124,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_calls_ShowWindow_if_iconic(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).changed = mocker.PropertyMock(
             return_value=(73, 83, 501, 501)
@@ -141,7 +142,7 @@ class TestWindowsApp(object):
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).changed = mocker.PropertyMock(
             return_value=(74, 84, 501, 501)
@@ -155,7 +156,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_calls_MoveWindow(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         CHANGED = (71, 81, 501, 501)
         type(mocked_model.return_value).changed = mocker.PropertyMock(
@@ -170,7 +171,7 @@ class TestWindowsApp(object):
 
     def test_WindowsApp_move_and_resize_not_calling_MoveWindow(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).is_changed = mocker.PropertyMock(
             return_value=False
@@ -183,7 +184,7 @@ class TestWindowsApp(object):
     def test_WindowsApp_move_and_resize_calls_ShowWindow_minimized(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.windows.app.MoveWindow")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         mocker.patch("arrangeit.windows.app.IsIconic", return_value=False)
         type(mocked_model.return_value).changed = mocker.PropertyMock(
@@ -202,7 +203,7 @@ class TestWindowsApp(object):
     def test_WindowsApp_move_and_resize_not_calling_ShowWindow_minimized(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.windows.app.MoveWindow")
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         mocker.patch("arrangeit.windows.app.IsIconic", return_value=False)
         type(mocked_model.return_value).changed = mocker.PropertyMock(
@@ -217,7 +218,7 @@ class TestWindowsApp(object):
         mocked.assert_not_called()
 
     def test_WindowsApp_move_and_resize_returns_False(self, mocker):
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         mocker.patch("arrangeit.windows.app.MoveWindow")
@@ -225,7 +226,7 @@ class TestWindowsApp(object):
         assert app.move_and_resize(100) is False
 
     def test_WindowsApp_move_and_resize_returns_True(self, mocker):
-        mocker.patch("arrangeit.windows.app.App.move_to_workspace")
+        mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked_model = mocker.patch("arrangeit.base.WindowsCollection.get_model_by_wid")
         type(mocked_model.return_value).is_changed = mocker.PropertyMock(
@@ -234,8 +235,26 @@ class TestWindowsApp(object):
         app = App()
         assert app.move_and_resize(100) is True
 
+    ## WindowsApp.move_other_to_workspace
+    def test_WindowsApp_move_other_to_workspace_calls_api_move_other_window_to_desktop(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        HWND, NUMBER = 12750, 1
+        app = App()
+        returned = app.move_other_to_workspace(HWND, NUMBER)
+        mocked.return_value.return_value.api.move_other_window_to_desktop.assert_called_once()
+        mocked.return_value.return_value.api.move_other_window_to_desktop.assert_called_with(
+            HWND, NUMBER
+        )
+        assert (
+            returned
+            == mocked.return_value.return_value.api.move_other_window_to_desktop.return_value
+        )
+
     ## WindowsApp.move_to_workspace
-    def test_WindowsApp_move_to_workspace_calls_and_returns_api_move_window_to_desktop(
+    def test_WindowsApp_move_to_workspace_calls_and_returns_api_move_own_window_to_desktop(
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
@@ -243,13 +262,13 @@ class TestWindowsApp(object):
         HWND, NUMBER = 10050, 1
         app = App()
         returned = app.move_to_workspace(HWND, NUMBER)
-        mocked.return_value.return_value.api.move_window_to_desktop.assert_called_once()
-        mocked.return_value.return_value.api.move_window_to_desktop.assert_called_with(
+        mocked.return_value.return_value.api.move_own_window_to_desktop.assert_called_once()
+        mocked.return_value.return_value.api.move_own_window_to_desktop.assert_called_with(
             HWND, NUMBER
         )
         assert (
             returned
-            == mocked.return_value.return_value.api.move_window_to_desktop.return_value
+            == mocked.return_value.return_value.api.move_own_window_to_desktop.return_value
         )
 
     ## WindowsApp.screenshot_cleanup

@@ -1247,7 +1247,12 @@ class TestDummyVirtualDesktops(object):
         assert callable(DummyVirtualDesktops.is_window_in_current_desktop)
         assert DummyVirtualDesktops().is_window_in_current_desktop(1) == True
 
-    def test_api_DummyVirtualDesktops_defines_move_window_to_desktop(self, mocker):
-        assert hasattr(DummyVirtualDesktops, "move_window_to_desktop")
-        assert callable(DummyVirtualDesktops.move_window_to_desktop)
-        assert DummyVirtualDesktops().move_window_to_desktop(1, 0) is None
+    def test_api_DummyVirtualDesktops_defines_move_own_window_to_desktop(self, mocker):
+        assert hasattr(DummyVirtualDesktops, "move_own_window_to_desktop")
+        assert callable(DummyVirtualDesktops.move_own_window_to_desktop)
+        assert DummyVirtualDesktops().move_own_window_to_desktop(1, 0) is None
+
+    def test_api_DummyVirtualDesktops_defines_move_other_window_to_desktop(self, mocker):
+        assert hasattr(DummyVirtualDesktops, "move_other_window_to_desktop")
+        assert callable(DummyVirtualDesktops.move_other_window_to_desktop)
+        assert DummyVirtualDesktops().move_other_window_to_desktop(1, 0) is None

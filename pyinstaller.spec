@@ -31,6 +31,7 @@ hiddenimports = [
     'arrangeit.windows.collector',
     'arrangeit.windows.controller',
     'arrangeit.windows.utils',
+    'arrangeit.windows.vdi',
     'tkinter',
 ]
 

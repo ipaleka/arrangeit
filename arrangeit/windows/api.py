@@ -543,7 +543,11 @@ class DummyVirtualDesktops(object):
         """Just returns True."""
         return True
 
-    def move_window_to_desktop(self, hwnd, desktop_ordinal):
+    def move_other_window_to_desktop(self, hwnd, desktop_ordinal):
+        """Just returns None."""
+        return None
+
+    def move_own_window_to_desktop(self, hwnd, desktop_ordinal):
         """Just returns None."""
         return None
 
@@ -983,8 +987,8 @@ class Api(object):
         self.helpers._dwm_is_composition_enabled(ctypes.byref(enabled))
         return enabled.value
 
-    def move_window_to_desktop(self, hwnd, number):
-        """Moves window with provided hwnd to desktop with provided ordinal.
+    def move_other_window_to_desktop(self, hwnd, number):
+        """Moves other window with provided hwnd to desktop with provided ordinal.
 
         :param hwnd: window id
         :type hwnd: int
@@ -992,7 +996,18 @@ class Api(object):
         :type number: int
         :returns: int
         """
-        return self.vdi.move_window_to_desktop(hwnd, number)
+        return self.vdi.move_other_window_to_desktop(hwnd, number)
+
+    def move_own_window_to_desktop(self, hwnd, number):
+        """Moves own/root window with provided hwnd to desktop with provided ordinal.
+
+        :param hwnd: window id
+        :type hwnd: int
+        :param number: desktop ordinal
+        :type number: int
+        :returns: int
+        """
+        return self.vdi.move_own_window_to_desktop(hwnd, number)
 
     def setup_thumbnail(self, from_hwnd, root_hwnd, rectangle):
         """Create, updates and returns handle of thumbnail of provided source window
