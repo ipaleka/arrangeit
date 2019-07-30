@@ -77,6 +77,55 @@ Use the following commands in Ubuntu for a quick start:
 Basic usage
 ===========
 
+Move your mouse to set the future position of the window. You may change the active
+corner either manually, by pressing the **Ctrl** key on your keyboard, or dynamically
+through the snapping functionality (when a moving window snaps to some window with a
+side not connected to the currently active corner).
+
+By pressing the left mouse button (or by pressing the **Enter** key on your keyboard)
+you set the future position of the window and moving the mouse afterward resizes the
+main window. Press the left mouse button again to confirm the future size.
+
+To move the current window on another workspace you should press the wanted workspace
+number on your keyboard. As an alternative, you may first release the mouse by
+clicking the middle mouse button or by pressing the **Shift** key on keyboard, and
+then click the wanted workspace box with your mouse.
+
+Click a window title in the listed windows area to start operating from some other
+window.
+
+Click |minimize| (or |restore|) icon inside the title box to change the minimized
+state of the current window.
+
+Click |fixed| (or |resizable|) icon if you want to change just the the position of the
+current window, without changing its size (and vice versa).
+
+**arrangeit v0.3alpha** stops running either when all the windows are exhausted or
+when you press the **Esc** key on your keyboard.
+
+.. |resizable| image:: ./docs/_static/resize.png
+.. |fixed| image:: ./docs/_static/move.png
+.. |restore| image:: ./docs/_static/restore.png
+.. |minimize| image:: ./docs/_static/minimize.png
+
+
+Keyboard shortcuts
+==================
+
+======  ===================  =============
+ Key    Mouse                Action
+        counterpart
+======  ===================  =============
+Enter   left-click           confirm position
+Esc     Quit button          quit program
+Space   right-click          skip window
+Ctrl    *by snapping*        cycle corner
+Shift   middle-click         release mouse
+R       resizable icon       turn on/off resizing phase
+M       minimize icon        make window minimized/restored
+1-9     click workspace      change workspace
+F1-F12  click listed window  restart from selected window
+======  ===================  =============
 
 
 Licence

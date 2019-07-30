@@ -687,13 +687,35 @@ class TestWindowsApiApiPublic(object):
         assert returned is False
         mocked_vdi.return_value.is_window_in_current_desktop.assert_not_called()
 
-    def test_Api_is_cloaked_calls_and_returns_vdi_is_window_in_current_for_dwm_value(
+    def test_Api_is_cloaked_calls_and_returns_vdi_is_window_in_current_for_dwm_value_win10(
         self, mocker
     ):
         mocker.patch("ctypes.byref")
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
         mocked_vdi = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
+        mocker.patch("arrangeit.windows.api.platform_supports_virtual_desktops", return_value=True)
+        mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
+        mocked = mocker.patch("ctypes.wintypes.DWORD")
+        mocked.return_value.value = 1
+        mocked_helpers.return_value._dwm_get_window_attribute.return_value = S_OK
+        HWND = 5077
+        returned = Api().is_cloaked(HWND)
+        mocked_vdi.return_value.is_window_in_current_desktop.assert_called_once()
+        mocked_vdi.return_value.is_window_in_current_desktop.assert_called_with(HWND)
+        assert (
+            returned
+            == mocked_vdi.return_value.is_window_in_current_desktop.return_value
+        )
+
+    def test_Api_is_cloaked_calls_and_returns_vdi_is_window_in_current_for_dwm_value_dummy(
+        self, mocker
+    ):
+        mocker.patch("ctypes.byref")
+        mocker.patch("ctypes.sizeof")
+        mocker.patch("ctypes.create_string_buffer")
+        mocked_vdi = mocker.patch("arrangeit.windows.api.DummyVirtualDesktops")
+        mocker.patch("arrangeit.windows.api.platform_supports_virtual_desktops", return_value=False)
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
         mocked.return_value.value = 1
