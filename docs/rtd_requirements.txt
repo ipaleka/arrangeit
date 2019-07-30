@@ -1,0 +1,5 @@
+Pillow
+pytest
+wheel
+Sphinx
+sphinx_rtd_theme

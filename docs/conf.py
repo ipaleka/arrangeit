@@ -28,6 +28,8 @@ release = __version__
 
 # -- General configuration ---------------------------------------------------
 
+master_doc = 'index'
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -42,6 +44,8 @@ autodoc_mock_imports = [
     "win32ui",
     "PIL.ImageGrab",
     "comtypes",
+    "pynput",
+    "Xlib",
 ]
 
 # custom mocks so autodoc of all modules is possible from GNU/Linux
@@ -60,9 +64,24 @@ class MockedObject(Mock):
     WS_THICKFRAME = 0
     BaseTrust = 0
     PartialTrust = 0
+    HIDDEN = 0
+    MINIMIZED = 0
+    X = 0
+    Y = 0
+    WIDTH = 0
+    HEIGHT = 0
 
 
-MOCK_MODULES = ["ctypes", "ctypes.wintypes", "win32con", "vdi.TrustLevel"]
+MOCK_MODULES = [
+    "ctypes",
+    "ctypes.wintypes",
+    "win32con",
+    "vdi.TrustLevel",
+    "gi",
+    "gi.repository",
+    "gi.repository.Gdk",
+    "gi.repository.Wnck",
+]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = MockedObject()
 

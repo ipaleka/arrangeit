@@ -3,6 +3,9 @@
    :alt: arrangeit logo with slogan
    :align: left
 
+.. image:: https://travis-ci.org/ipaleka/arrangeit.svg?branch=master
+    :target: https://travis-ci.org/ipaleka/arrangeit
+
 About
 =====
 
@@ -128,7 +131,7 @@ F1-F12  click listed window  restart from selected window
 ======  ===================  =============
 
 
-Licence
+License
 =======
 
 This project is licensed under the GNU General Public License v3.0 - see the

@@ -17,8 +17,8 @@ by issuing the following command:
 
 .. code-block:: bash
 
-  $ sudo apt-get install python3-dev git gcc \
-      libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
+  $ sudo apt-get install python3-dev git gcc pkg-config libcairo2-dev \
+      libgirepository1.0-dev gir1.2-gtk-3.0  gir1.2-wnck-3.0
 
 
 If you are planning to build latexpdf documentation then you should install some

@@ -219,7 +219,7 @@ class Settings(metaclass=SettingsMetaclass):
     BLANK_ICON = open_image("blank.png")
     CORNER_RECT_INDEXES = [(0, 3), (0, 1), (2, 1), (2, 3)]
     HELP_PAGE_URL = (
-        "https://github.com/ipaleka/arrangeit/blob/master/docs/userguide.rst"
+        "https://arrangeit.readthedocs.io/en/latest/userguide.html"
     )
     RELEASES_PAGE_URL = "https://github.com/ipaleka/arrangeit/releases"
 
