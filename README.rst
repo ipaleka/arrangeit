@@ -97,7 +97,7 @@ window.
 Click |minimize| (or |restore|) icon inside the title box to change the minimized
 state of the current window.
 
-Click |fixed| (or |resizable|) icon if you want to change just the the position of the
+Click |fixed| (or |resizable|) icon if you want to change just the position of the
 current window, without changing its size (and vice versa).
 
 **arrangeit v0.3alpha** stops running either when all the windows are exhausted or
