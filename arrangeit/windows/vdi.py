@@ -658,14 +658,14 @@ class VirtualDesktopsWin10(object):
         :type desktop_id: :class:`GUID`
         :var desktop: virtual desktop instance
         :type desktop: pointer to :class:`IVirtualDesktop`
-        :var view: interface to application view
-        :type view: pointer to :class:`IApplicationView`
+        :var app_view: interface to application view
+        :type app_view: pointer to :class:`IApplicationView`
         :returns: False on success, None on failure
         """
         desktop_id = self._get_desktop_id_from_ordinal(desktop_ordinal)
         desktop = self.internal_manager.FindDesktop(ctypes.byref(desktop_id))
-        view = self.view_collection.GetViewForHwnd(hwnd)
-        ret_val = self.internal_manager.MoveViewToDesktop(view, desktop)
+        app_view = self.view_collection.GetViewForHwnd(hwnd)
+        ret_val = self.internal_manager.MoveViewToDesktop(app_view, desktop)
         if ret_val != S_OK:
             return None
 

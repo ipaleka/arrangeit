@@ -272,7 +272,7 @@ in the same directory is used to produce MS Windows executable by the following 
 
 .. code-block:: bash
 
-  (arrangeit) python -OO -m PyInstaller pyinstaller.spec
+  (arrangeit) $ python -OO -m PyInstaller pyinstaller.spec
 
 
 SonarQube

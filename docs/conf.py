@@ -58,9 +58,11 @@ class MockedObject(Mock):
     WS_EX_TOOLWINDOW = 0
     STATE_SYSTEM_INVISIBLE = 0
     WS_THICKFRAME = 0
+    BaseTrust = 0
+    PartialTrust = 0
 
 
-MOCK_MODULES = ["ctypes", "ctypes.wintypes", "win32con"]
+MOCK_MODULES = ["ctypes", "ctypes.wintypes", "win32con", "vdi.TrustLevel"]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = MockedObject()
 
