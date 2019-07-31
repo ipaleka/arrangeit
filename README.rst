@@ -5,9 +5,10 @@
 
 .. image:: https://travis-ci.org/ipaleka/arrangeit.svg?branch=master
     :target: https://travis-ci.org/ipaleka/arrangeit
+.. image:: https://coveralls.io/repos/github/ipaleka/arrangeit/badge.svg
+    :target: https://coveralls.io/github/ipaleka/arrangeit
 
-About
-=====
+
 
 **arrangeit** is a cross-platform desktop utility that helps you placing your
 desktop's open windows. It is a utility mostly based on the mouse movements, with
@@ -63,7 +64,8 @@ Use the following commands in Ubuntu for a quick start:
 
 .. code-block:: bash
 
-  $ sudo apt-get install python3-dev git gcc libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
+  $ sudo apt-get install python3-dev git gcc libgirepository1.0-dev \
+      libcairo2-dev pkg-config gir1.2-gtk-3.0 gir1.2-wnck-3.0
 
   $ cd ~/projects
   $ git clone https://github.com/ipaleka/arrangeit.git
@@ -106,6 +108,8 @@ current window, without changing its size (and vice versa).
 **arrangeit v0.3alpha** stops running either when all the windows are exhausted or
 when you press the **Esc** key on your keyboard.
 
+screencast_
+
 .. |resizable| image:: ./docs/_static/resize.png
 .. |fixed| image:: ./docs/_static/move.png
 .. |restore| image:: ./docs/_static/restore.png
@@ -140,3 +144,4 @@ legal_ page for details.
 .. _installation: https://github.com/ipaleka/arrangeit/blob/master/docs/installation.rst
 .. _development: https://github.com/ipaleka/arrangeit/blob/master/docs/development.rst
 .. _legal: https://github.com/ipaleka/arrangeit/blob/master/docs/legal.rst
+.. _screencast: https://vimeo.com/351440620

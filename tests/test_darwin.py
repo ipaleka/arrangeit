@@ -17,6 +17,7 @@
 import pytest
 
 from arrangeit import __appname__
+from arrangeit.darwin.app import App
 from arrangeit.darwin.collector import (
     Collector,
     NSApplicationActivationPolicyRegular,
@@ -28,6 +29,44 @@ from arrangeit.darwin.utils import (
     NSUserDomainMask,
     user_data_path,
 )
+
+
+class TestDarwinApp(object):
+    """Testing class for :py:class:`arrangeit.darwin.app.App` class."""
+
+    ## DarwinApp.activate_root
+    def test_DarwinApp_activate_root_returns(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        assert App().activate_root(1) is True
+
+    ## DarwinApp.move
+    def test_DarwinApp_move_calls_and_returns_move_and_resize(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.darwin.app.App.move_and_resize")
+        WID = 100
+        app = App()
+        returned = app.move(WID)
+        mocked.assert_called_once()
+        mocked.assert_called_with(WID)
+        assert returned == mocked.return_value
+
+    ## DarwinApp.move_and_resize
+    def test_DarwinApp_move_and_resize_returns(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        assert App().move_and_resize(101) is True
+
+    ## DarwinApp.move_to_workspace
+    def test_DarwinApp_move_to_workspace_returns(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        assert App().move_to_workspace(102, 0) is True
+
+    ## DarwinApp.grab_window_screen
+    def test_DarwinApp_grab_window_screen_returns(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked = mocker.patch("arrangeit.darwin.app.ImageTk")
+        app = App()
+        returned = app.grab_window_screen(mocker.MagicMock())
+        assert returned == (mocked.PhotoImage.return_value, (0, 0))
 
 
 class TestDarwinCollector(object):
@@ -264,10 +303,38 @@ class TestDarwinCollector(object):
         Collector().check_window(mocker.MagicMock())
         mocked.assert_called_once()
 
+    def test_DarwinCollector_check_window_returns_False_for_not_applicable(
+        self, mocker
+    ):
+        mocker.patch("arrangeit.darwin.collector.Collector.is_valid_state")
+        mocker.patch(
+            "arrangeit.darwin.collector.Collector.is_applicable", return_value=False
+        )
+        assert Collector().check_window(mocker.MagicMock()) is False
+
+    def test_DarwinCollector_check_window_returns_False_for_not_valid_state(
+        self, mocker
+    ):
+        mocker.patch(
+            "arrangeit.darwin.collector.Collector.is_valid_state", return_value=False
+        )
+        mocker.patch(
+            "arrangeit.darwin.collector.Collector.is_applicable", return_value=True
+        )
+        assert Collector().check_window(mocker.MagicMock()) is False
+
+    def test_DarwinCollector_check_window_returns_True(self, mocker):
+        mocker.patch(
+            "arrangeit.darwin.collector.Collector.is_valid_state", return_value=True
+        )
+        mocker.patch(
+            "arrangeit.darwin.collector.Collector.is_applicable", return_value=True
+        )
+        assert Collector().check_window(mocker.MagicMock()) is True
+
     ## DarwinCollector.get_available_workspaces
-    @pytest.mark.skip("Research how to deal with workspaces in Mac OS X")
-    def test_DarwinCollector_get_available_workspaces_(self, mocker):
-        pass
+    def test_DarwinCollector_get_available_workspaces_returns(self, mocker):
+        assert Collector().get_available_workspaces() == [(0, "")]
 
     ## DarwinCollector.get_monitors_rects
     def test_DarwinCollector_get_monitors_rects_calls_NSScreen_screens(self, mocker):
@@ -315,9 +382,8 @@ class TestDarwinCollector(object):
         assert returned == [SAMPLE[0], SAMPLE[1]]
 
     ## DarwinCollector.get_workspace_number_for_window
-    @pytest.mark.skip("Research how to deal with workspaces in Mac OS X")
-    def test_DarwinCollector_get_workspace_number_for_window(self, mocker):
-        pass
+    def test_DarwinCollector_get_workspace_number_for_window_returns(self, mocker):
+        assert Collector().get_workspace_number_for_window(mocker.MagicMock()) == 0
 
     ## DarwinCollector.is_applicable
     def test_DarwinCollector_is_applicable_calls__running_apps_ids(self, mocker):
@@ -374,19 +440,16 @@ class TestDarwinCollector(object):
         assert Collector().is_applicable(mocked_win) is True
 
     ## DarwinCollector.is_resizable
-    @pytest.mark.skip("Research how to deal with resizable windows in Mac OS X")
-    def test_DarwinCollector_is_resizable(self, mocker):
-        pass
+    def test_DarwinCollector_is_resizable_returns(self, mocker):
+        assert Collector().is_resizable(mocker.MagicMock()) is True
 
     ## DarwinCollector.is_restored
-    @pytest.mark.skip("Research how to deal with minimized windows in Mac OS X")
-    def test_DarwinCollector_is_restored(self, mocker):
-        pass
+    def test_DarwinCollector_is_restored_returns(self, mocker):
+        assert Collector().is_restored(mocker.MagicMock()) is True
 
     ## DarwinCollector.is_valid_state
-    @pytest.mark.skip("Research what makes window with a valid state in Mac OS X")
-    def test_DarwinCollector_is_valid_state(self, mocker):
-        pass
+    def test_DarwinCollector_is_valid_state_returns(self, mocker):
+        assert Collector().is_valid_state(mocker.MagicMock()) is True
 
 
 ## arrangeit.darwin.utils

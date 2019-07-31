@@ -1550,6 +1550,7 @@ class TestBaseController(object):
     def test_BaseController_on_mouse_left_down_returns_break(self, mocker):
         mocked_setup(mocker)
         mocker.patch("arrangeit.base.BaseController.update")
+        mocker.patch("arrangeit.base.BaseMouse.cursor_position", return_value=(0, 0))
         returned = base.BaseController(mocker.MagicMock()).on_mouse_left_down(
             mocker.MagicMock()
         )

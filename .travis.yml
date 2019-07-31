@@ -8,15 +8,40 @@ python:
   - "3.7"
   - "3.7-dev"  # 3.7 development branch
   - "3.8-dev"  # 3.8 development branch
-# command to install dependencies
+env:
+  - COVERALLS_PARALLEL=true
+matrix:
+  include:
+  - name: "Python 3.7 on macOS"
+    os: osx
+    osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
+    language: shell       # 'language: python' is an error on Travis CI macOS
+    env:
+      - COVERALLS_PARALLEL=true
+  - name: "Python 3.7 on Windows"
+    os: windows           # Windows 10.0.17134 N/A Build 17134
+    language: shell       # 'language: python' is an error on Travis CI Windows
+    before_install:
+      - choco install python3
+      - python -m pip install --upgrade pip
+    env:
+      - PATH=/c/Python37:/c/Python37/Scripts:$PATH
+      - COVERALLS_PARALLEL=true
 before_install:
-  - sudo apt-get install -y python3-dev git gcc libglib2.0-dev libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0 gir1.2-wnck-3.0
+  - pip3 install --upgrade pip
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y python3-dev git gcc libglib2.0-dev libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0 gir1.2-wnck-3.0 ; fi
+# command to install dependencies
 install:
-  - pip install -r requirements/linux.txt
-  - pip install -r requirements/base_development.txt
-  - pytest --cov=arrangeit
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pip3 install -r requirements/linux.txt ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then pip3 install -r requirements/darwin.txt ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then pip3 install -r requirements/windows.txt ; fi
+  - pip3 install -r requirements/base_development.txt
 # command to run tests
 script:
-  - pytest
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then python3 -m pytest --cov=arrangeit ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then python3 -m pytest --cov=arrangeit ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then python -m pytest --cov=arrangeit ; fi
 after_success:
   - coveralls
+notifications:
+  webhooks: https://coveralls.io/webhook

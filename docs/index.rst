@@ -6,6 +6,11 @@
 arrangeit v0.3alpha documentation
 =================================
 
+.. image:: https://travis-ci.org/ipaleka/arrangeit.svg?branch=master
+    :target: https://travis-ci.org/ipaleka/arrangeit
+.. image:: https://coveralls.io/repos/github/ipaleka/arrangeit/badge.svg
+    :target: https://coveralls.io/github/ipaleka/arrangeit
+
 **arrangeit** is a cross-platform desktop utility that helps you placing your
 desktop's open windows. It is a utility mostly based on the mouse movements, with
 some keyboard shortcuts as helpers.

@@ -37,7 +37,7 @@ class App(BaseApp):
         #     if app.bundleIdentifier() == 'org.python.python':
         #         app.activateWithOptions_(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)
 
-        pass
+        return True
 
     def move(self, wid):
         """
@@ -68,7 +68,7 @@ class App(BaseApp):
         :param number: our custom workspace number
         :type number: int
         """
-        return False
+        return True
 
     ## COMMANDS
     def grab_window_screen(self, model, root_wid=None):

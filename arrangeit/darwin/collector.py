@@ -109,6 +109,7 @@ class Collector(BaseCollector):
                 wid=self._get_window_id(win),
                 rect=self._get_window_geometry(win),
                 resizable=self.is_resizable(win),
+                restored=self.is_restored(win),
                 title=self._get_window_title(win),
                 name=self.get_application_name(win),
                 icon=self._get_application_icon(win),

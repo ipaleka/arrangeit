@@ -42,17 +42,20 @@ class TestBaseApp(object):
 
     ## BaseApp.__init__.controller
     def test_BaseApp_initialization_calls_setup_controller(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.BaseApp.setup_controller")
         base.BaseApp()
         mocked.assert_called_once()
 
     def test_BaseApp_initialization_instantiates_controller(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked_setup(mocker)
         mainapp = base.BaseApp()
         assert getattr(mainapp, "controller", None) is not None
         assert isinstance(getattr(mainapp, "controller"), base.BaseController)
 
     def test_BaseApp_initialization_instantiates_controller_with_app(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked_setup(mocker)
         mocked = mocker.patch(
             "arrangeit.{}.controller.Controller".format(utils.platform_path())
@@ -70,9 +73,13 @@ class TestBaseApp(object):
 
     def test_BaseApp_initialization_instantiates_collector(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_collector = mocker.MagicMock()
+        mocker.patch(
+            "arrangeit.base.BaseApp.setup_collector", return_value=mocked_collector
+        )
         mainapp = base.BaseApp()
         assert getattr(mainapp, "collector", None) is not None
-        assert isinstance(getattr(mainapp, "collector"), base.BaseCollector)
+        assert getattr(mainapp, "collector") == mocked_collector.return_value
 
     ## BaseApp.setup_controller
     def test_BaseApp_setup_controller_calls_get_component_class_Controller(
@@ -95,6 +102,7 @@ class TestBaseApp(object):
     ## BaseApp.grab_window_screen
     def test_BaseApp_grab_window_screen_raises_NotImplementedError(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         with pytest.raises(NotImplementedError):
             base.BaseApp().grab_window_screen(None)
 
@@ -109,12 +117,9 @@ class TestBaseApp(object):
 
     def test_BaseApp_run_calls_WindowsCollection_generator(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch(
-            "arrangeit.{}.collector.Collector.add_window".format(utils.platform_path())
-        )
-        mocked = mocker.patch("arrangeit.base.WindowsCollection")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         base.BaseApp().run()
-        assert mocked.return_value.generator.call_count == 1
+        assert mocked.return_value.return_value.collection.generator.call_count == 1
 
     def test_BaseApp_run_calls_controller_run(self, mocker):
         mocked_setup(mocker)
@@ -128,11 +133,13 @@ class TestBaseApp(object):
     def test_BaseApp_run_calls_controller_run_with_valid_argument(self, mocker):
         mocked_setup(mocker)
         path = utils.platform_path()
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.{}.collector.Collector.add_window".format(path))
         mocked = mocker.patch("arrangeit.{}.controller.Controller".format(path))
-        generator = mocker.patch("arrangeit.data.WindowsCollection.generator")
         base.BaseApp().run()
-        mocked.return_value.run.assert_called_with(generator.return_value)
+        mocked.return_value.run.assert_called_with(
+            mocked_collector.return_value.return_value.collection.generator.return_value
+        )
 
     ## BaseApp.run_task
     @pytest.mark.parametrize(
@@ -148,6 +155,7 @@ class TestBaseApp(object):
         ],
     )
     def test_BaseApp_run_task_calls_related_methods(self, mocker, task, args):
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.BaseApp.change_setting")  # to not change the value
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch("arrangeit.base.BaseApp.{}".format(task))
@@ -156,6 +164,7 @@ class TestBaseApp(object):
 
     ## BaseApp.activate_root
     def test_BaseApp_activate_root_raises_NotImplementedError(self, mocker):
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         with pytest.raises(NotImplementedError):
             base.BaseApp().activate_root()
@@ -165,6 +174,7 @@ class TestBaseApp(object):
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.BaseApp.change_settings_color_group")
         mocked_is_setting = mocker.patch("arrangeit.base.Settings.is_setting")
         returned = base.BaseApp().change_setting("_BG", "white")
@@ -177,6 +187,7 @@ class TestBaseApp(object):
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.BaseApp.change_settings_color_group")
         mocked_is_setting = mocker.patch("arrangeit.base.Settings.is_setting")
         returned = base.BaseApp().change_setting("_FG", "black")
@@ -187,6 +198,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_change_setting_calls_is_setting(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.Settings.is_setting")
         returned = base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
         mocked.assert_called_once()
@@ -195,6 +207,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_change_setting_calls_is_setting_invalid(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.Settings.is_setting", return_value=False)
         returned = base.BaseApp().change_setting("ROOT_ALPHA1", 0.95)
         mocked.assert_called_once()
@@ -206,6 +219,7 @@ class TestBaseApp(object):
         from random import seed, random
 
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         alpha = int(Settings.ROOT_ALPHA * 10000)
         seed(int(time.time()))
         SAMPLE = random()
@@ -216,6 +230,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_change_setting_calls__save_setting(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.BaseApp._save_setting")
         base.BaseApp().change_setting("ROOT_ALPHA", 0.95)
         mocked.assert_called_once()
@@ -226,6 +241,7 @@ class TestBaseApp(object):
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.BaseApp._save_setting")
         mocker.patch("arrangeit.base.setattr")
         mocked = mocker.patch("arrangeit.base.Settings.color_group")
@@ -236,6 +252,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_change_settings_color_group_calls_Settings_setattr(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.BaseApp._save_setting")
         mocked = mocker.patch("arrangeit.base.setattr")
         GROUP, VALUE = "_BG", "white"
@@ -246,6 +263,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_change_settings_color_group_calls__save_setting(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.BaseApp._save_setting")
         mocker.patch("arrangeit.base.setattr")
         GROUP, VALUE = "_BG", "white"
@@ -256,33 +274,40 @@ class TestBaseApp(object):
     ## BaseApp.move
     def test_BaseApp_move_raises_NotImplementedError(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move()
 
     ## BaseApp.move_and_resize
     def test_BaseApp_move_and_resize_raises_NotImplementedError(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move_and_resize()
 
     ## BaseApp.move_to_workspace
     def test_BaseApp_move_to_workspace_raises_NotImplementedError(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         with pytest.raises(NotImplementedError):
             base.BaseApp().move_to_workspace()
 
     ## BaseApp.rerun_from_window
     def test_BaseApp_rerun_from_window_calls_repopulate_for_wid(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocked = mocker.patch("arrangeit.data.WindowsCollection.repopulate_for_wid")
+        mocked = mocker.patch(
+            "arrangeit.{}.collector.Collector".format(utils.platform_path())
+        )
         app = base.BaseApp()
         app.rerun_from_window(45221, 75300)
-        mocked.assert_called()
-        mocked.assert_called_with(45221, 75300)
+        mocked.return_value.collection.repopulate_for_wid.assert_called()
+        mocked.return_value.collection.repopulate_for_wid.assert_called_with(45221, 75300)
 
     ## BaseApp.save_default
     def test_BaseApp_save_default_calls_platform_user_data_path(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.collection.export.return_value = []
         mocker.patch("arrangeit.base.os")
         mocked = mocker.patch("arrangeit.base.platform_user_data_path")
         base.BaseApp().save_default()
@@ -290,6 +315,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_save_default_checks_if_directory_exists(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
@@ -299,6 +325,7 @@ class TestBaseApp(object):
 
     def test_BaseApp_save_default_creates_directory(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         path = mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
@@ -313,12 +340,13 @@ class TestBaseApp(object):
         mocker.patch("arrangeit.base.os")
         mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
-        mocked = mocker.patch("arrangeit.data.WindowsCollection.export")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         base.BaseApp().save_default()
-        mocked.assert_called_once()
+        mocked.return_value.return_value.collection.export.assert_called_once()
 
     def test_BaseApp_save_default_calls_json_dump(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.os")
         mocker.patch("arrangeit.base.platform_user_data_path")
         mocked = mocker.patch("arrangeit.base.json.dump")
@@ -339,6 +367,7 @@ class TestBaseApp(object):
     ## BaseApp._save_setting
     def test_BaseApp__save_setting_calls_platform_user_data_path(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.os")
         mocker.patch("arrangeit.base.open")
         mocker.patch("arrangeit.base.json")
@@ -348,6 +377,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_checks_if_directory_exists(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
@@ -361,6 +391,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_creates_directory(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         path = mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.os")
@@ -372,6 +403,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_checks_if_file_exists(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.platform_user_data_path")
         mocker.patch("arrangeit.base.json")
         mocker.patch("arrangeit.base.open")
@@ -384,6 +416,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_calls_json_load_once(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch("arrangeit.base.os.path.join", return_value="foo")
         mocker.patch("arrangeit.base.os.path.exists", return_value=True)
         mocker.patch("arrangeit.base.open")
@@ -394,6 +427,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_catches_exception_and_continues(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         SAMPLE = "barfoo"
         mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
         mocker.patch("arrangeit.base.os.path.exists", return_value=True)
@@ -404,6 +438,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_writes_to_settings_file(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         SAMPLE = "barfoo"
         mocker.patch("arrangeit.base.json.load", return_value={})
         mocker.patch("arrangeit.base.os.path.join", return_value=SAMPLE)
@@ -419,6 +454,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_updates_settings_file(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         SAMPLE = "barfoo"
         VALUES = {"MAIN_FG": "white", "MAIN_BG": "black"}
         mocker.patch("arrangeit.base.json.load", return_value=copy.deepcopy(VALUES))
@@ -433,6 +469,7 @@ class TestBaseApp(object):
 
     def test_BaseApp__save_setting_overwrites_settings_file_values(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         SAMPLE = "barfoo"
         VALUES = {"MAIN_FG": "white", "MAIN_BG": "black"}
         mocker.patch("arrangeit.base.json.load", return_value=copy.deepcopy(VALUES))
@@ -451,23 +488,22 @@ class TestBaseApp(object):
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocked = mocker.patch(
-            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
-                utils.platform_path()
-            )
+            "arrangeit.{}.collector.Collector".format(utils.platform_path())
         )
         base.BaseApp()._initialize_snapping_sources()
-        assert mocked.call_count == 1
+        assert mocked.return_value.get_monitors_rects.call_count == 1
 
     def test_BaseApp__initialize_snapping_sources_calls_get_snapping_sources_for_rect(
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch(
-            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
-                utils.platform_path()
-            ),
-            return_value=[(0, 0, 640, 480), (500, 0, 800, 600)],
+        mocked_collector = mocker.patch(
+            "arrangeit.{}.collector.Collector".format(utils.platform_path())
         )
+        mocked_collector.return_value.get_monitors_rects.return_value = [
+            (0, 0, 640, 480),
+            (500, 0, 800, 600),
+        ]
         mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         base.BaseApp()._initialize_snapping_sources()
         assert mocked.call_count == 2
@@ -476,12 +512,13 @@ class TestBaseApp(object):
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch(
-            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
-                utils.platform_path()
-            ),
-            return_value=[(0, 0, 640, 480), (500, 0, 800, 600)],
+        mocked_collector = mocker.patch(
+            "arrangeit.{}.collector.Collector".format(utils.platform_path())
         )
+        mocked_collector.return_value.get_monitors_rects.return_value = [
+            (0, 0, 640, 480),
+            (500, 0, 800, 600),
+        ]
         mocked = mocker.patch(
             "arrangeit.{}.collector.Collector.get_available_workspaces".format(
                 utils.platform_path()
@@ -494,18 +531,19 @@ class TestBaseApp(object):
 
     def test_BaseApp__initialize_snapping_sources_functionality(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch(
-            "arrangeit.{}.collector.Collector.get_available_workspaces".format(
-                utils.platform_path()
-            ),
-            return_value=[(0, ""), (1, ""), (2, "")],
+        mocked_collector = mocker.patch(
+            "arrangeit.{}.collector.Collector".format(utils.platform_path())
         )
-        mocker.patch(
-            "arrangeit.{}.collector.Collector.get_monitors_rects".format(
-                utils.platform_path()
-            ),
-            return_value=[(0, 0, 640, 480), (500, 0, 800, 600)],
-        )
+        mocked_collector.return_value.get_monitors_rects.return_value = [
+            (0, 0, 640, 480),
+            (500, 0, 800, 600),
+        ]
+        mocked_collector.return_value.get_available_workspaces.return_value = [
+            (0, ""),
+            (1, ""),
+            (2, ""),
+        ]
+
         mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         sources = base.BaseApp()._initialize_snapping_sources()
         assert len(sources) == 3
@@ -518,29 +556,37 @@ class TestBaseApp(object):
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocked = mocker.patch("arrangeit.base.BaseApp._initialize_snapping_sources")
         base.BaseApp().create_snapping_sources(WindowModel())
         mocked.assert_called_once()
 
     def test_BaseApp_create_snapping_sources_calls_collection_generator(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocked = mocker.patch("arrangeit.base.WindowsCollection.generator")
+        mocked = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         base.BaseApp().create_snapping_sources(WindowModel())
-        mocked.assert_called_once()
+        mocked.return_value.return_value.collection.generator.assert_called_once()
 
     def test_BaseApp_create_snapping_sources_calls_utils_get_snapping_sources_for_rect(
         self, mocker
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        SOURCES = {0: []}
+        mocked = mocker.patch(
+            "arrangeit.base.BaseApp._initialize_snapping_sources", return_value=SOURCES
+        )
         mocked = mocker.patch("arrangeit.base.get_snapping_sources_for_rect")
         collection = WindowsCollection()
         collection.add(WindowModel(rect=SAMPLE_RECT, workspace=0))
-        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        # mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocked_collector.return_value.return_value.collection = collection
         base.BaseApp().create_snapping_sources(WindowModel())
         mocked.assert_called()
 
     def test_BaseApp_create_snapping_sources_returns_dict(self, mocker):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocker.patch("arrangeit.base.BaseApp.setup_collector")
         mocker.patch(
             "arrangeit.base.BaseApp._initialize_snapping_sources",
             return_value={1001: [], 1002: []},
@@ -554,12 +600,13 @@ class TestBaseApp(object):
         self, mocker, windows, expected
     ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
         collection = WindowsCollection()
         for window in windows:
             model = WindowModel(rect=window[1], workspace=1005)
             model.set_changed(rect=window[2], ws=window[0])
             collection.add(model)
-        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocked_collector.return_value.return_value.collection = collection
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.base.BaseApp._initialize_snapping_sources",
@@ -581,7 +628,8 @@ class TestBaseApp(object):
             model = WindowModel(rect=SAMPLE_RECT, workspace=1005)
             model.set_changed(ws=window[0], rect=window[1:])
             collection.add(model)
-        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.collection = collection
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.base.BaseApp._initialize_snapping_sources",
@@ -611,7 +659,8 @@ class TestBaseApp(object):
         model1 = WindowModel(rect=SAMPLE_RECT, workspace=1005, wid=9000)
         model1.set_changed(ws=windows[1][0], rect=windows[1][1:])
         collection.add(model1)
-        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.collection = collection
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch(
             "arrangeit.base.BaseApp._initialize_snapping_sources",
@@ -646,7 +695,8 @@ class TestBaseApp(object):
             return_value={1001: [], 1002: []},
         )
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
-        mocker.patch("arrangeit.base.WindowsCollection", return_value=collection)
+        mocked_collector = mocker.patch("arrangeit.base.BaseApp.setup_collector")
+        mocked_collector.return_value.return_value.collection = collection
         mocked = mocker.patch("arrangeit.base.Settings")
         type(mocked).SNAP_PIXELS = mocker.PropertyMock(return_value=10)
         type(mocked).SNAP_INCLUDE_SELF = mocker.PropertyMock(return_value=True)
