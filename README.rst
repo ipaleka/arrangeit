@@ -160,9 +160,9 @@ License
 This project is licensed under the GNU General Public License v3.0 - see the
 legal_ page for details.
 
-.. _installation: https://github.com/ipaleka/arrangeit/blob/master/docs/installation.rst
-.. _development: https://github.com/ipaleka/arrangeit/blob/master/docs/development.rst
-.. _legal: https://github.com/ipaleka/arrangeit/blob/master/docs/legal.rst
+.. _installation: https://arrangeit.readthedocs.io/en/latest/installation.html
+.. _development: https://arrangeit.readthedocs.io/en/latest/development.html
+.. _legal: https://arrangeit.readthedocs.io/en/latest/legal.html
 .. _screencast: https://vimeo.com/351440620
 .. _create an issue: https://github.com/ipaleka/arrangeit/issues
 .. _a direct message or a tweet: https://twitter.com/arrangeit1

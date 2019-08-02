@@ -17,7 +17,7 @@
 """
 Code from this module is based on the blog <http://www.cyberforum.ru/blogs/105416/blog3671.html>.
 The Python implementation is based on the work by @kdschlosser
-<https://github.com/kdschlosser/pyWinVirtualDesktop>
+<https://github.com/DanEdens/Virtual_Desktops_Plugin/blob/master/Virtualdesktops/__int__.py>
 (<http://www.eventghost.net>, <http://www.eventghost.net/forum/viewtopic.php?p=53308#p53308>)
 """
 
