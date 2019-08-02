@@ -134,6 +134,25 @@ M       minimize icon        make window minimized/restored
 F1-F12  click listed window  restart from selected window
 ======  ===================  =============
 
+Support
+=======
+
+Please `create an issue`_ for any problem you've encountered regarding arrangeit
+installation, usage or development.
+
+Don't hesitate to send `a direct message or a tweet`_ if you have any questions or
+concerns. Or just `send an email`_.
+
+
+Contributing
+============
+
+Any help is appreciated and your pull requests are welcome, Please help in reaching
+arrangeit's three major milestones `in the roadmap`_: 0.4beta version with Mac OS X
+support, 0.5 as the first stable version and the 1.0 version.
+
+Meanwhile, please make the initial step by clicking the Star button from above!
+
 
 License
 =======
@@ -145,3 +164,7 @@ legal_ page for details.
 .. _development: https://github.com/ipaleka/arrangeit/blob/master/docs/development.rst
 .. _legal: https://github.com/ipaleka/arrangeit/blob/master/docs/legal.rst
 .. _screencast: https://vimeo.com/351440620
+.. _create an issue: https://github.com/ipaleka/arrangeit/issues
+.. _a direct message or a tweet: https://twitter.com/arrangeit1
+.. _send an email: arrangeit@protonmail.com
+.. _in the roadmap: https://github.com/ipaleka/arrangeit/wiki/Roadmap
