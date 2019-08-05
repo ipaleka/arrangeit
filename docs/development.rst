@@ -80,7 +80,7 @@ Mac OS X
 ^^^^^^^^
 
 Download the `official installer`_ and install Python 3 by executing .pkg file.
-Finally, run post-install script **Install Certificates.command**.
+Finally, run provided post-install script **Install Certificates.command**.
 
 .. _official installer: https://www.python.org/downloads/
 
