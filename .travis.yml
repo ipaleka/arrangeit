@@ -1,6 +1,9 @@
 dist: bionic
 services:
   - xvfb
+branches:
+  except:
+    - gh-pages
 language: python
 python:
   - "3.6"

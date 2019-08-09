@@ -11,3 +11,4 @@ arrangeit.egg-info
 tests/coverage*.xml
 docs/_build
 .scannerwork/
+_site
