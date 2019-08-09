@@ -1,4 +1,0 @@
--r base.txt
-# gui
-pywin32>=222
-comtypes>=1.1.4

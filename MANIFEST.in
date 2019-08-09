@@ -1,3 +1,0 @@
-include LICENSE
-recursive-include arrangeit/resources *
-recursive-include arrangeit/locale *

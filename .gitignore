@@ -2,12 +2,4 @@
 __pycache__
 *.pyc
 .pytest_cache
-arrangeit.code-workspace
-htmlcov/
-dist
-build
-arrangeit.egg-info
 .coverage
-tests/coverage*.xml
-docs/_build
-.scannerwork/

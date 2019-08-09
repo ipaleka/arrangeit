@@ -1,5 +1,0 @@
--r base.txt
-# gui
-pyobjc-core>=5.0
-pyobjc-framework-Cocoa>=5.0
-pyobjc-framework-Quartz>=5.0

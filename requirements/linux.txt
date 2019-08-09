@@ -1,4 +1,0 @@
--r base.txt
-# gui
-PyGObject>=3.32
-python-xlib>=0.17
