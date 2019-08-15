@@ -1,7 +1,11 @@
 ---
 layout: post
-title:  "arrangeit v0.3alpha has been released!"
-date:   2019-07-30 20:37:09 +0200
+title: arrangeit v0.3alpha has been released!
+subtitle: Initial public release
+gh-repo: ipaleka/arrangeit
+gh-badge: [star]
+tags: [release]
+comments: true
 ---
 TL; DR end users, Pythonistas, graphic designers and proofreaders are invited to join a brand new open-source multi-platform Python project
 
@@ -92,9 +96,6 @@ The list of issues can be found on [Github pages](https://github.com/ipaleka/arr
 - X-mouse under Windows 10 is sometimes preventing the binary distribution executable to start
 - no workspaces/virtual desktops functionality for the older versions of Windows. Windows 10 is the first version having an official API for virtual desktops -  if some custom implementation has been quite popular for the previous Windows versions then please let me know about it
 - current graphic design is kind of MVPish; all suggestions are welcome
-
-
-
 
 
 
