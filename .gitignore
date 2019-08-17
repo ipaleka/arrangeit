@@ -12,3 +12,5 @@ tests/coverage*.xml
 docs/_build
 .scannerwork/
 _site
+tests/functional/vm/.vagrant
+tests/functional/vm/*.log
