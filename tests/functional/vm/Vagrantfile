@@ -1,0 +1,19 @@
+Vagrant.configure(2) do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.define "xfcevm"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = 'xfce4-ubuntu'
+    vb.gui = true
+    vb.memory = "2048"
+    vb.cpus = 1
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.verbose = "v"
+    ansible.compatibility_mode = "2.0"
+    ansible.playbook = "arrangeit-ft.yml"
+    ansible.inventory_path = "hosts"
+  end
+
+end

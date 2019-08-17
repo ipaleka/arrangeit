@@ -1,0 +1,7 @@
+---
+- name: setup arrangeit in vagrant
+  hosts: xfcevm
+  remote_user: vagrant
+  roles:
+    - role: setup
+    # - role: tests

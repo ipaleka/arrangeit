@@ -1,0 +1,4 @@
+-r base_development.txt
+## functional testing
+autopy>=2.0
+robotframework>=3.1

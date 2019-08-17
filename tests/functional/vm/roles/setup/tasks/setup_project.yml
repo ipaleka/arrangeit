@@ -1,0 +1,38 @@
+---
+- name: check if project_dir directories exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ project_dir }}"
+    - "{{ project_dir }}venvs"
+  tags: project
+
+- name: clone project repository
+  git:
+    repo: "{{ project_repository }}"
+    dest: "{{ project_dir }}/arrangeit"
+    version: master
+  tags: project
+
+- name: create virtual environment and install base dependencies
+  pip:
+    requirements: "{{ project_dir }}arrangeit/requirements/base.txt"
+    virtualenv: "{{ project_dir }}venvs/arrangeit"
+    virtualenv_command: /usr/bin/python3 -m venv
+  tags: project
+
+- name: install base GNU/Linux dependencies
+  pip:
+    requirements: "{{ project_dir }}arrangeit/requirements/linux.txt"
+    virtualenv: "{{ project_dir }}venvs/arrangeit"
+    virtualenv_command: /usr/bin/python3 -m venv
+  tags: project
+
+- name: install development dependencies
+  pip:
+    requirements: "{{ project_dir }}arrangeit/requirements/base_development.txt"
+    virtualenv: "{{ project_dir }}venvs/arrangeit"
+    virtualenv_command: /usr/bin/python3 -m venv
+  tags: project

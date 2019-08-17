@@ -1,0 +1,3 @@
+---
+- include: setup_system.yml
+- include: setup_project.yml
