@@ -237,13 +237,18 @@ py2deb_ is used to build GNU/Linux installation package.
 .. _py2deb: https://py2deb.readthedocs.io
 
 
-Run the following command to install py2deb and its dependencies on Debian/Ubuntu:
+Run the following command to install py2deb dependencies on Debian/Ubuntu:
 
 .. code-block:: bash
 
   $ sudo apt-get install dpkg-dev fakeroot lintian python3-pip
-  $ pip3 install py2deb --user
-  $ pip3 install pip-accel --user  # it will downgrade pip to version <8.0
+
+py2deb's dependency ``pip-accel`` needs ``pip`` version to be 7.x, so the following
+commands should probably be run inside a Python 3 virtual environment created for the
+purpose (add ``--user`` argument to pip3 if you want to install py2deb system-wide):
+
+  $ pip3 install py2deb
+  $ pip3 install pip-accel  # it will downgrade pip to version <8.0
 
 
 And then run the following command inside the project's root directory to create

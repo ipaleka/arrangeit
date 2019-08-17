@@ -329,10 +329,18 @@ class TestBaseController(object):
     def test_BaseController_setup_root_window_calls_wm_attributes(self, mocker):
         mocked_setup(mocker)
         root = mocker.MagicMock()
+        mocked_settings = mocker.patch("arrangeit.base.Settings")
+        type(mocked_settings).TRANSPARENCY_IS_ON = mocker.PropertyMock(
+            return_value=True
+        )
+        ALPHA = 0.94
+        type(mocked_settings).ROOT_ALPHA = mocker.PropertyMock(
+            return_value=ALPHA
+        )
         base.BaseController(None).setup_root_window(root)
         assert root.wm_attributes.call_count == 2
         calls = [
-            mocker.call("-alpha", Settings.ROOT_ALPHA),
+            mocker.call("-alpha", ALPHA),
             mocker.call("-topmost", True),
         ]
         root.wm_attributes.assert_has_calls(calls, any_order=True)
