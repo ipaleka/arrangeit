@@ -14,3 +14,6 @@ docs/_build
 _site
 tests/functional/vm/.vagrant
 tests/functional/vm/*.log
+tests/functional/robot/log.html
+tests/functional/robot/output.xml
+tests/functional/robot/report.html

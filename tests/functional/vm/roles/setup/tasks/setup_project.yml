@@ -32,7 +32,7 @@
 
 - name: install development dependencies
   pip:
-    requirements: "{{ project_dir }}arrangeit/requirements/base_development.txt"
+    requirements: "{{ project_dir }}arrangeit/requirements/functional_testing.txt"
     virtualenv: "{{ project_dir }}venvs/arrangeit"
     virtualenv_command: /usr/bin/python3 -m venv
   tags: project
