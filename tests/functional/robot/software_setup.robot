@@ -1,5 +1,6 @@
 *** Settings ***
 Library           Process
+Library           arrangeit_keywords.py
 
 *** Keywords ***
 Start Programs
