@@ -4,172 +4,208 @@
 .. automodule:: tests
 
 
-:mod:`tests.test_setup` -- Unit tests for main app setup and configuration
---------------------------------------------------------------------------
+:mod:`tests.unit` -- arrangeit unit tests package
+-------------------------------------------------
 
-.. automodule:: tests.test_setup
+.. automodule:: tests.unit
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_base` -- Unit tests for base classes (without BaseController)
-------------------------------------------------------------------------------
+:mod:`tests.unit.test_setup` -- Unit tests for main app setup and configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_base
+.. automodule:: tests.unit.test_setup
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_basecontroller_domain_logic` -- Unit tests for domain logic part of the BaseController class
--------------------------------------------------------------------------------------------------------------
+:mod:`tests.unit.test_base` -- Unit tests for base classes (without BaseController)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_basecontroller_domain_logic
+.. automodule:: tests.unit.test_base
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_basecontroller` -- Unit tests for BaseController class (not including domain logic)
-----------------------------------------------------------------------------------------------------
+:mod:`tests.unit.test_basecontroller_domain_logic` -- Unit tests for domain logic part of the BaseController class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_basecontroller
+.. automodule:: tests.unit.test_basecontroller_domain_logic
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_data` -- Unit tests for window model and collection
---------------------------------------------------------------------
+:mod:`tests.unit.test_basecontroller` -- Unit tests for BaseController class (not including domain logic)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_data
+.. automodule:: tests.unit.test_basecontroller
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_view` -- Unit tests for view classes and functions (without ViewApplication)
----------------------------------------------------------------------------------------------
+:mod:`tests.unit.test_data` -- Unit tests for window model and collection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_view
+.. automodule:: tests.unit.test_data
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_viewapplication` -- Unit tests for ViewApplication class
--------------------------------------------------------------------------
+:mod:`tests.unit.test_view` -- Unit tests for view classes and functions (without ViewApplication)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_viewapplication
+.. automodule:: tests.unit.test_view
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_options` -- Unit tests for options classes and functions
--------------------------------------------------------------------------
+:mod:`tests.unit.test_viewapplication` -- Unit tests for ViewApplication class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_options
+.. automodule:: tests.unit.test_viewapplication
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_utils` -- Unit tests for helper functions
-----------------------------------------------------------
+:mod:`tests.unit.test_options` -- Unit tests for options classes and functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_utils
+.. automodule:: tests.unit.test_options
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_settings` -- Unit tests for programs settings
---------------------------------------------------------------
+:mod:`tests.unit.test_utils` -- Unit tests for helper functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_settings
+.. automodule:: tests.unit.test_utils
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_darwin` -- Unit tests for Mac OS specific code
----------------------------------------------------------------
+:mod:`tests.unit.test_settings` -- Unit tests for programs settings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_darwin
+.. automodule:: tests.unit.test_settings
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_linux` -- Unit tests for GNU/Linux specific code
------------------------------------------------------------------
+:mod:`tests.unit.test_darwin` -- Unit tests for Mac OS specific code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_linux
+.. automodule:: tests.unit.test_darwin
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_windows` -- Unit tests for MS Windows specific code
---------------------------------------------------------------------
+:mod:`tests.unit.test_linux` -- Unit tests for GNU/Linux specific code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_windows
+.. automodule:: tests.unit.test_linux
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_windows_api` -- Unit tests for MS Windows api helpers module
------------------------------------------------------------------------------
+:mod:`tests.unit.test_windows` -- Unit tests for MS Windows specific code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_windows_api
+.. automodule:: tests.unit.test_windows
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_windows_vdi` -- Unit tests for MS Windows virtual desktop interfaces module
---------------------------------------------------------------------------------------------
+:mod:`tests.unit.test_windows_api` -- Unit tests for MS Windows api helpers module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_windows_vdi
+.. automodule:: tests.unit.test_windows_api
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.test_windows_api_api` -- Unit tests for MS Windows api helpers module Api class
--------------------------------------------------------------------------------------------
+:mod:`tests.unit.test_windows_vdi` -- Unit tests for MS Windows virtual desktop interfaces module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.test_windows_api_api
+.. automodule:: tests.unit.test_windows_vdi
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.fixtures` -- Sample fixtures for unit testing
----------------------------------------------------------
+:mod:`tests.unit.test_windows_api_api` -- Unit tests for MS Windows api helpers module Api class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.fixtures
+.. automodule:: tests.unit.test_windows_api_api
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.mock_helpers` -- Unit testing mock helper functions
----------------------------------------------------------------
+:mod:`tests.unit.fixtures` -- Sample fixtures for unit testing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.mock_helpers
+.. automodule:: tests.unit.fixtures
   :members:
   :undoc-members:
   :show-inheritance:
 
 
-:mod:`tests.nested_helper` -- Helper module for unit testing of inner/nested functions
---------------------------------------------------------------------------------------
+:mod:`tests.unit.mock_helpers` -- Unit testing mock helper functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: tests.nested_helper
+.. automodule:: tests.unit.mock_helpers
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.unit.nested_helper` -- Helper module for unit testing of inner/nested functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: tests.unit.nested_helper
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.functional` -- arrangeit functional tests
+-----------------------------------------------------
+
+.. automodule:: tests.functional
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.functional.arrangeit_keywords` -- arrangeit keywords library for Robot Framework
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: tests.functional.arrangeit_keywords
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:mod:`tests.vm` -- Vagrant's virtual machines for running tests in various environments
+---------------------------------------------------------------------------------------
+
+.. automodule:: tests.vm
   :members:
   :undoc-members:
   :show-inheritance:

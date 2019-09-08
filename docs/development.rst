@@ -327,7 +327,7 @@ directory:
 
 .. code-block:: bash
 
-  (arrangeit) $ python -m pytest -v --cov-report xml:tests/coverage-linux.xml --cov=arrangeit
+  (arrangeit) $ python -m pytest -v --cov-report xml:tests/unit/coverage-linux.xml --cov=arrangeit
 
 
 Overview
