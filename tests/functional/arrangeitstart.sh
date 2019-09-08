@@ -1,4 +1,4 @@
 #!/bin/bash
-cd ../../..
+cd ../..
 source ../venvs/arrangeit/bin/activate
 python -m arrangeit

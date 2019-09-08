@@ -5,7 +5,7 @@ import sys
 gi.require_version("Wnck", "3.0")
 from gi.repository import Wnck
 
-sys.path.insert(0, os.path.abspath("../../.."))
+sys.path.insert(0, os.path.abspath("../.."))
 
 from arrangeit.linux.collector import Collector
 

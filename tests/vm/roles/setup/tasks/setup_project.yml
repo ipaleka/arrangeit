@@ -12,7 +12,7 @@
 - name: clone project repository
   git:
     repo: "{{ project_repository }}"
-    dest: "{{ project_dir }}/arrangeit"
+    dest: "{{ project_dir }}arrangeit"
     version: master
   tags: project
 

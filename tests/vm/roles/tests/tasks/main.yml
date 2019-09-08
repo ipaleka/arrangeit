@@ -1,6 +1,6 @@
 ---
 - name: running all Robot Framework tests
-  shell: {{ project_dir }}/arrangeit/tests/functional/robotstart.sh test_start.robot
+  shell: 'DISPLAY=":0" {{ project_dir }}arrangeit/tests/functional/robotstart.sh test_start.robot'
   args:
-    chdir: "{{ project_dir }}/arrangeit/tests/functional"
+    chdir: "{{ project_dir }}arrangeit/tests/functional"
   tags: tests
