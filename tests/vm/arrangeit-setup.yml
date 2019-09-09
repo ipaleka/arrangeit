@@ -4,4 +4,3 @@
   remote_user: vagrant
   roles:
     - role: setup
-    - role: tests
