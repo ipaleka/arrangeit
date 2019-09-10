@@ -4,8 +4,8 @@ Resource          software_setup.robot
 *** Test Cases ***
 Do Nothing
     [Setup]    Start Programs
-    Sleep    45s
+    Sleep    20s
     Start Process    ./arrangeitstart.sh
-    Sleep    10s
+    Sleep    5s
     Take Screenshot
     [Teardown]    End Programs

@@ -1,4 +1,20 @@
 ---
+- name: create arrangeit user directory if it does not exist
+  file:
+    path: /home/vagrant/.local/share/arrangeit/
+    state: directory
+    mode: '0755'
+  tags: tests
+
+- name: copy user settings file
+  copy:
+    src: user_settings.json
+    dest: /home/vagrant/.local/share/arrangeit/user_settings.json
+    owner: vagrant
+    group: vagrant
+    mode: 0750
+  tags: tests
+
 - name: running all Robot Framework tests
   shell: 'DISPLAY=":0" {{ project_dir }}arrangeit/tests/functional/robotstart.sh test_start.robot'
   args:
