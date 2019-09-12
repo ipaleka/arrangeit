@@ -17,3 +17,4 @@ tests/vm/*.log
 tests/functional/log.html
 tests/functional/output.xml
 tests/functional/report.html
+.~lock.sample*
