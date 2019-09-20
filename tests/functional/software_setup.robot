@@ -18,11 +18,11 @@ End Programs
 
 Quit Arrangeit
     Release Cursor
-    ${pos} =    Locate Image    "button-quit"
+    ${pos} =    Locate Image    button-quit
     Length Should Be    ${pos}    2
     Left Mouse Press On Position    ${pos}
 
 Quit Options Dialog
-    ${continue} =    Locate Image    "button-continue"
+    ${continue} =    Locate Image    button-continue
     Should Not Be Equal    ${continue}    ${None}
     Left Mouse Press On Position    ${continue}

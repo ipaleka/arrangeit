@@ -33,8 +33,11 @@ def take_screenshot():
 
 def locate_image(filename):
     screen = autopy.bitmap.capture_screen()
-    import pdb; pdb.set_trace()
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), RESOURCES_PATH, "{}.png".format(filename))
+    path = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        RESOURCES_PATH,
+        "{}.png".format(filename),
+    )
     print(path)
     button = autopy.bitmap.Bitmap.open(path)
     # print(button)

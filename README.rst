@@ -5,8 +5,8 @@
 
 .. image:: https://travis-ci.org/ipaleka/arrangeit.svg?branch=master
     :target: https://travis-ci.org/ipaleka/arrangeit
-.. image:: https://coveralls.io/repos/github/ipaleka/arrangeit/badge.svg
-    :target: https://coveralls.io/github/ipaleka/arrangeit
+.. image:: https://coveralls.io/repos/github/ipaleka/arrangeit/badge.svg?branch=master
+    :target: https://coveralls.io/github/ipaleka/arrangeit?branch=master
 
 
 
