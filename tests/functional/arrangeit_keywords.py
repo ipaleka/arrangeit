@@ -18,12 +18,13 @@ RESOURCES_PATH = "resources/1600x900/"
 def release_cursor():
     mouse = Controller()
     mouse.press(Button.middle)
+    mouse.release(Button.middle)
 
 
-def left_mouse_press_on_position(pos):
+def left_mouse_click_on_position(pos):
     mouse = Controller()
     mouse.position = tuple(pos)
-    mouse.press(Button.left)
+    mouse.click(Button.left)
 
 
 def take_screenshot():

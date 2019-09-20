@@ -8,21 +8,26 @@ Start Programs
     Start Process    /usr/bin/gimp    ./resources/sample.xcf
     Start Process    /usr/bin/libreoffice    --calc    ./resources/sample.ods    --norestore
     Start Process    /usr/bin/libreoffice    --writer    ./resources/sample.odt    --norestore
-    # Start Process    /usr/bin/thunar    .
+    ${thunar_handle} =    Start Process    /usr/bin/thunar    .
+    Set Suite Variable    ${thunar_handle}
     Sleep    8s
-    Start Process    ./arrangeitstart.sh
+    ${arr_handle} =    Start Process    ./arrangeitstart.sh
+    Set Suite Variable    ${arr_handle}
     Sleep    4s
 
 End Programs
     Terminate All Processes
+    Terminate Process    ${thunar_handle}
 
 Quit Arrangeit
     Release Cursor
     ${pos} =    Locate Image    button-quit
     Length Should Be    ${pos}    2
-    Left Mouse Press On Position    ${pos}
+    Left Mouse Click On Position    ${pos}
+    Sleep    2s
 
 Quit Options Dialog
     ${continue} =    Locate Image    button-continue
     Should Not Be Equal    ${continue}    ${None}
-    Left Mouse Press On Position    ${continue}
+    Left Mouse Click On Position    ${continue}
+    Sleep    2s
