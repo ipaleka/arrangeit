@@ -8,8 +8,7 @@ Start Programs
     Start Process    /usr/bin/gimp    ./resources/sample.xcf
     Start Process    /usr/bin/libreoffice    --calc    ./resources/sample.ods    --norestore
     Start Process    /usr/bin/libreoffice    --writer    ./resources/sample.odt    --norestore
-    ${thunar_handle} =    Start Process    /usr/bin/thunar    .
-    Set Suite Variable    ${thunar_handle}
+    Start Process    /usr/bin/gedit    ./resources/sample.txt
     Sleep    8s
     ${arr_handle} =    Start Process    ./arrangeitstart.sh
     Set Suite Variable    ${arr_handle}
@@ -17,7 +16,6 @@ Start Programs
 
 End Programs
     Terminate All Processes
-    Terminate Process    ${thunar_handle}
 
 Quit Arrangeit
     Release Cursor

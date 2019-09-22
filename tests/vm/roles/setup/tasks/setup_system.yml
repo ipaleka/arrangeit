@@ -21,6 +21,7 @@
       - libreoffice-calc
       - gimp
       - inkscape
+      - gedit
     state: present
   become: yes
   tags: system, software
