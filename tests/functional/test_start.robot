@@ -10,6 +10,7 @@ Quit Arrangeit By Quit Button
 
 Show Options Dialog
     Release Cursor
+    Sleep    1s
     ${pos} =    Locate Image    button-options
     Length Should Be    ${pos}    2
     Left Mouse Click On Position    ${pos}
@@ -21,6 +22,7 @@ Show Options Dialog
 
 Show About Dialog
     Release Cursor
+    Sleep    1s
     ${pos} =    Locate Image    button-options
     Length Should Be    ${pos}    2
     Left Mouse Click On Position    ${pos}

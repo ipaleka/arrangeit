@@ -19,6 +19,7 @@ End Programs
 
 Quit Arrangeit
     Release Cursor
+    Sleep    1s
     ${pos} =    Locate Image    button-quit
     Length Should Be    ${pos}    2
     Left Mouse Click On Position    ${pos}
