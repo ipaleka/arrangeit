@@ -1,0 +1,154 @@
+---
+- name: install the 'Gnome desktop' environment group
+  yum:
+    name: "@^gnome-desktop-environment"
+    state: present
+    update_cache: yes
+  become: yes
+  tags: system
+
+- name: make sure EULA agreement packages are removed
+  yum:
+    name:
+      - initial-setup
+      - initial-setup-gui
+    state: absent
+  become: yes
+  tags: system
+
+- name: get default runlevel
+  command: systemctl get-default
+  register: runlevel
+  become: yes
+  changed_when: false
+  tags: system
+
+- name: set graphical runlevel
+  command: systemctl set-default graphical.target
+  when: runlevel.stdout != "graphical.target"
+  become: yes
+  tags: system
+
+- name: is graphical currently active
+  command: systemctl is-active graphical.target
+  register: graphical
+  become: yes
+  ignore_errors: true
+  changed_when: false
+  tags: system
+
+- name: switch to graphical runlevel
+  command: systemctl isolate graphical.target
+  when: graphical.stdout != "active"
+  become: yes
+  tags: system
+
+- name: Find kernel version
+  command: uname -r
+  changed_when: false
+  register: kernel_version
+  tags: system
+
+- name: install Guest Additions installer dependencies
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "kernel-devel-{{ kernel_version.stdout }}"
+    - gcc
+    - binutils
+    - make
+    - perl
+    - bzip2
+  become: yes
+  tags: system
+
+- name: make sure system dependencies are installed
+  yum:
+    name:
+      # - virtualbox-guest-dkms
+      # - virtualbox-guest-utils
+      # - virtualbox-guest-x11
+      - xorg*
+      - git
+    state: present
+  become: yes
+  tags: system
+
+- name: make sure additional software is installed
+  yum:
+    name:
+      - libreoffice-writer
+      - libreoffice-calc
+      - gimp
+      - inkscape
+      - gedit
+    state: present
+  become: yes
+  tags: system, software
+
+- name: make sure project's system dependencies are installed
+  yum:
+    name:
+      - gcc
+      - gobject-introspection-devel
+      - pkgconfig
+      - gtk3
+      - cairo-gobject-devel
+    state: present
+  become: yes
+  tags: system, project
+
+- name: setup autologin for user 'vagrant'
+  lineinfile:
+    path: /etc/gdm/custom.conf
+    insertafter: "^.daemon."
+    line: "{{ item }}"
+    state: present
+  become: yes
+  register: autologin_setup
+  with_items:
+    - AutomaticLogin=vagrant
+    - AutomaticLoginEnable=True
+  tags: system
+
+- name: check if .config directory exists
+  file:
+    path: /home/vagrant/.config
+    state: directory
+    mode: 0700
+  tags: system
+
+- name: disable initial setup
+  lineinfile:
+    path: /home/vagrant/.config/gnome-initial-setup-done
+    line: "yes"
+    state: present
+    create: yes
+  become: yes
+  tags: system
+
+- name: make sure project's Python dependencies are installed
+  yum:
+    name:
+      - python3-devel
+      - python3-pip
+      - tkinter
+    state: present
+  become: yes
+  tags: system, project
+
+- name: upgrade pip
+  pip:
+    name: pip
+    executable: pip3
+    virtualenv_python: python3
+    state: latest
+  become: yes
+  tags: system, project
+
+- name: reboot machine with all defaults
+  reboot:
+  become: yes
+  when: autologin_setup.changed
+  tags: system

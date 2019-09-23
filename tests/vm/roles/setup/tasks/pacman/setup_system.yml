@@ -1,0 +1,79 @@
+---
+- name: make sure system dependencies are installed
+  pacman:
+    name:
+      - plasma
+      - virtualbox-guest-dkms
+      - virtualbox-guest-utils
+      - virtualbox-guest-x11
+      - lightdm
+      - lightdm-gtk-greeter
+      - git
+    state: present
+    update_cache: yes
+  become: yes
+  tags: system
+
+- name: make sure additional software is installed
+  pacman:
+    name:
+      - libreoffice-writer
+      - libreoffice-calc
+      - gimp
+      - inkscape
+      - gedit
+    state: present
+  become: yes
+  tags: system, software
+
+- name: make sure project's system dependencies are installed
+  pacman:
+    name:
+      - libcairo2
+      - libcairo2-dev
+      - libgirepository1.0-dev
+      - pkg-config
+      - gir1.2-gtk-3.0
+      - gir1.2-wnck-3.0
+    state: present
+  become: yes
+  tags: system, project
+
+- name: setup autologin for user 'vagrant'
+  blockinfile:
+    path: /etc/lightdm/lightdm.conf.d/12-autologin.conf
+    block: |
+        [Seat:*]
+        autologin-guest=false
+        autologin-user=vagrant
+        autologin-user-timeout=10
+    state: present
+    create: yes
+  become: yes
+  register: autologin_setup
+  tags: system
+
+# - name: disable setup panel screen
+#   lineinfile:
+#     path: /etc/environment
+#     line: "XFCE_PANEL_MIGRATE_DEFAULT=1"
+#     state: present
+#   become: yes
+#   tags: system
+
+- name: make sure project's Python dependencies are installed
+  pacman:
+    name:
+      - python3-pip
+      - python3-venv
+      - python3-tk
+      - python3-dev
+    state: present
+  become: yes
+  tags: system, project
+
+- name: reboot machine with all defaults
+  reboot:
+  become: yes
+  when: autologin_setup.changed
+  tags: system

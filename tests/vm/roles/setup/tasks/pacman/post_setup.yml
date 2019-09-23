@@ -1,0 +1,10 @@
+---
+- name: set default resolution
+  template:
+    src: displays.xml
+    dest: /home/vagrant/.config/xfce4/xfconf/xfce-perchannel-xml/displays.xml
+    owner: vagrant
+    group: vagrant
+  become: yes
+  register: default_resolution
+  tags: postsetup

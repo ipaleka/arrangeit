@@ -1,0 +1,10 @@
+---
+- name: set default resolution
+  template:
+    src: monitors.xml
+    dest: /var/lib/gdm/.config/monitors.xml
+    owner: gdm
+    group: gdm
+  become: yes
+  register: default_resolution
+  tags: postsetup

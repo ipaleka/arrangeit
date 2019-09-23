@@ -1,2 +1,8 @@
 [xfcevm]
 127.0.0.1 ansible_port=2222 ansible_user='vagrant'
+
+[gnomevm]
+127.0.0.1 ansible_port=2222 ansible_user='vagrant'
+
+[kdevm]
+127.0.0.1 ansible_port=2222 ansible_user='vagrant'
