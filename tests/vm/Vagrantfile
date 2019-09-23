@@ -2,6 +2,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.define "xfcevm" do |xfcevm|
     xfcevm.vm.box = "ubuntu/bionic64"
+    xfcevm.vm.hostname = "xfcevm"
     config.vm.provider "virtualbox" do |vb|
       vb.name = "ubuntu-xfce4"
     end
@@ -9,6 +10,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.define "gnomevm" do |gnomevm|
     gnomevm.vm.box = "centos/7"
+    gnomevm.vm.hostname = "gnomevm"
     config.vm.provider "virtualbox" do |vb|
       vb.name = "centos-gnome"
     end

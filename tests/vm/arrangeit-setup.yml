@@ -1,6 +1,6 @@
 ---
 - name: setup arrangeit in vagrant
-  hosts: xfcevm
+  hosts: gnomevm
   remote_user: vagrant
   roles:
     - role: setup

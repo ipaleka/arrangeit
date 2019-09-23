@@ -3,8 +3,8 @@
   yum:
     name: "@^gnome-desktop-environment"
     state: present
-    update_cache: yes
   become: yes
+  become_user: root
   tags: system
 
 - name: make sure EULA agreement packages are removed
@@ -43,32 +43,22 @@
   become: yes
   tags: system
 
-- name: Find kernel version
-  command: uname -r
-  changed_when: false
-  register: kernel_version
-  tags: system
-
 - name: install Guest Additions installer dependencies
   yum:
-    name: "{{ item }}"
+    name:
+      - kernel-devel
+      - gcc
+      - binutils
+      - make
+      - perl
+      - bzip2
     state: present
-  with_items:
-    - "kernel-devel-{{ kernel_version.stdout }}"
-    - gcc
-    - binutils
-    - make
-    - perl
-    - bzip2
   become: yes
   tags: system
 
 - name: make sure system dependencies are installed
   yum:
     name:
-      # - virtualbox-guest-dkms
-      # - virtualbox-guest-utils
-      # - virtualbox-guest-x11
       - xorg*
       - git
     state: present
@@ -133,7 +123,7 @@
     name:
       - python3-devel
       - python3-pip
-      - tkinter
+      - python3-tkinter
     state: present
   become: yes
   tags: system, project
