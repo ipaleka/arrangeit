@@ -1,6 +1,6 @@
 ---
 - name: run arrangeit functional tests in vagrant
-  hosts: xfcevm
+  hosts: xfcevm, gnomevm, kdevm
   remote_user: vagrant
   roles:
     - role: tests

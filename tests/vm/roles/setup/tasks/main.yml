@@ -1,25 +1,25 @@
 ---
-- name: debug
-  debug: msg="{{ ansible_limit }}"
+# - name: debug
+#   debug: msg="{{ ansible_limit }}"
 
-# - include: apt/setup_system.yml
-#   when: ansible_limit == 'xfcevm'
+- include: apt/setup_system.yml
+  when: ansible_limit == 'xfcevm'
 
 - include: yum/setup_system.yml
   when: ansible_limit == 'gnomevm'
 
-# - include: pacman/setup_system.yml
-#   when: ansible_limit == 'kdevm'
+- include: pacman/setup_system.yml
+  when: ansible_limit == 'kdevm'
 
 - include: setup_project.yml
 
-# - include: apt/post_setup.yml
-#   when: ansible_limit == 'xfcevm'
+- include: apt/post_setup.yml
+  when: ansible_limit == 'xfcevm'
 
 - include: yum/post_setup.yml
   when: ansible_limit == 'gnomevm'
 
-# - include: pacman/post_setup.yml
-#   when: ansible_limit == 'kdevm'
+- include: pacman/post_setup.yml
+  when: ansible_limit == 'kdevm'
 
 - include: post_setup.yml
