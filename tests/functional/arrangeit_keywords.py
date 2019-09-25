@@ -1,4 +1,3 @@
-# import gi
 import os
 import sys
 
@@ -6,13 +5,8 @@ import autopy
 import platform
 from pynput.mouse import Button, Controller
 
-
-# gi.require_version("Wnck", "3.0")
-# from gi.repository import Wnck
-
 sys.path.insert(0, os.path.abspath("../.."))
 
-# from arrangeit.linux.collector import Collector
 
 def release_cursor():
     mouse = Controller()
@@ -38,21 +32,5 @@ def locate_image(filename):
         "resources/{}/".format(platform.node()),
         "{}.png".format(filename),
     )
-    print(path)
     button = autopy.bitmap.Bitmap.open(path)
-    # print(button)
     return screen.find_bitmap(button)
-
-
-# def locate_button(name="options"):
-#     screen = autopy.bitmap.capture_screen()
-#     # screen.save("screen.png")
-#     path = os.path.join(os.path.dirname(__file__), "{}.png".format(name))
-#     button = autopy.bitmap.Bitmap.open(path)
-#     print(button)
-#     return screen.find_bitmap(button)
-
-
-if __name__ == "__main__":
-    pos = locate_image("button-quit")
-    print(pos)

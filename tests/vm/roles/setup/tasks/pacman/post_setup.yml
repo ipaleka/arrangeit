@@ -1,5 +1,0 @@
----
-- name: set resolution
-  shell: 'DISPLAY=":0" xrandr -s {{ screen_resolution }}'
-  changed_when: false
-  tags: postsetup

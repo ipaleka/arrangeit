@@ -1,4 +1,30 @@
 ---
+- set_fact: desktop_environment_process="xfce4-session"
+  when: ansible_limit == 'xfcevm'
+  tags: resolution, tests
+
+- set_fact: desktop_environment_process="xfce4-session"
+  when: ansible_limit == 'gnomevm'
+  tags: resolution, tests
+
+- set_fact: desktop_environment_process="xfce4-session"
+  when: ansible_limit == 'kdevm'
+  tags: resolution, tests
+
+- name: wait for desktop environment
+  shell: "ps -ef | grep {{ desktop_environment_process }} | grep -v grep"
+  register: desktop_session
+  until: desktop_session.stdout != ""
+  retries: 20
+  delay: 2
+  changed_when: false
+  tags: resolution, tests
+
+- name: set resolution
+  shell: 'DISPLAY=":0" xrandr -s {{ screen_resolution }}'
+  changed_when: false
+  tags: resolution, tests
+
 - name: create arrangeit user directory if it does not exist
   file:
     path: /home/vagrant/.local/share/arrangeit/

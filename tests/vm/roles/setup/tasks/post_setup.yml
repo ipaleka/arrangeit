@@ -1,6 +1,0 @@
----
-- name: reboot machine with all defaults
-  reboot:
-  become: yes
-  when: default_resolution.changed
-  tags: postsetup
