@@ -1130,9 +1130,9 @@ class TestLinuxController(object):
         mocker.patch("arrangeit.base.quarter_by_smaller", return_value=(100, 100))
         mocker.patch("arrangeit.base.ViewApplication")
         Controller(mocker.MagicMock()).setup_root_window(root)
-        root.wm_attributes.assert_called()
-        calls = [mocker.call("-type", "splash")]
-        root.wm_attributes.assert_has_calls(calls, any_order=True)
+        root.overrideredirect.assert_called_once()
+        calls = [mocker.call(True)]
+        root.overrideredirect.assert_has_calls(calls, any_order=True)
 
 
 ## arrangeit.linux.utils
