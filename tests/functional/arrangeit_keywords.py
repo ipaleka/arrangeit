@@ -3,6 +3,7 @@ import os
 import sys
 
 import autopy
+import platform
 from pynput.mouse import Button, Controller
 
 
@@ -12,8 +13,6 @@ from pynput.mouse import Button, Controller
 sys.path.insert(0, os.path.abspath("../.."))
 
 # from arrangeit.linux.collector import Collector
-RESOURCES_PATH = "resources/1600x900/"
-
 
 def release_cursor():
     mouse = Controller()
@@ -36,7 +35,7 @@ def locate_image(filename):
     screen = autopy.bitmap.capture_screen()
     path = os.path.join(
         os.path.abspath(os.path.dirname(__file__)),
-        RESOURCES_PATH,
+        "resources/{}/".format(platform.node()),
         "{}.png".format(filename),
     )
     print(path)
