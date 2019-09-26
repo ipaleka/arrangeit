@@ -2,7 +2,7 @@
 - include: apt/setup_system.yml
   when: ansible_limit == 'xfcevm'
 
-- include: yum/setup_system.yml
+- include: dnf/setup_system.yml
   when: ansible_limit == 'gnomevm'
 
 - include: pacman/setup_system.yml

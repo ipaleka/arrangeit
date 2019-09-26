@@ -1,19 +1,21 @@
 ---
-- name: install the 'Gnome desktop' environment group
-  yum:
-    name: "@^gnome-desktop-environment"
+- name: install Gnome desktop
+  dnf:
+    name:
+      - '@gnome-desktop'
     state: present
+    update_cache: yes
   become: yes
   become_user: root
   tags: system
 
-- name: make sure EULA agreement packages are removed
-  yum:
+- name: make sure system dependencies are installed
+  dnf:
     name:
-      - initial-setup
-      - initial-setup-gui
-    state: absent
+      - git
+    state: present
   become: yes
+  become_user: root
   tags: system
 
 - name: get default runlevel
@@ -44,10 +46,9 @@
   tags: system
 
 - name: install Guest Additions installer dependencies
-  yum:
+  dnf:
     name:
       - kernel-devel
-      - gcc
       - binutils
       - make
       - perl
@@ -56,17 +57,8 @@
   become: yes
   tags: system
 
-- name: make sure system dependencies are installed
-  yum:
-    name:
-      - xorg*
-      - git
-    state: present
-  become: yes
-  tags: system
-
 - name: make sure additional software is installed
-  yum:
+  dnf:
     name:
       - libreoffice-writer
       - libreoffice-calc
@@ -78,13 +70,14 @@
   tags: system, software
 
 - name: make sure project's system dependencies are installed
-  yum:
+  dnf:
     name:
       - gcc
       - gobject-introspection-devel
-      - pkgconfig
-      - gtk3
       - cairo-gobject-devel
+      - pkg-config
+      - python3-devel
+      - gtk3
     state: present
   become: yes
   tags: system, project
@@ -100,6 +93,18 @@
   with_items:
     - AutomaticLogin=vagrant
     - AutomaticLoginEnable=True
+  tags: system
+
+- name: set xorg and disable Wayland
+  lineinfile:
+    path: /etc/gdm/custom.conf
+    insertafter: "^.daemon."
+    line: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - WaylandEnable=false
+    - DefaultSession=gnome-xorg.desktop
   tags: system
 
 - name: check if .config directory exists
@@ -119,21 +124,12 @@
   tags: system
 
 - name: make sure project's Python dependencies are installed
-  yum:
+  dnf:
     name:
       - python3-devel
       - python3-pip
       - python3-tkinter
     state: present
-  become: yes
-  tags: system, project
-
-- name: upgrade pip
-  pip:
-    name: pip
-    executable: pip3
-    virtualenv_python: python3
-    state: latest
   become: yes
   tags: system, project
 

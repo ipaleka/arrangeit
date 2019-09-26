@@ -1,18 +1,18 @@
 ---
-- set_fact: desktop_environment_process="xfce4-session"
+- set_fact: desktop_environment_process="xfce"
   when: ansible_limit == 'xfcevm'
   tags: resolution, tests
 
-- set_fact: desktop_environment_process="xfce4-session"
+- set_fact: desktop_environment_process="gdm-x-session"
   when: ansible_limit == 'gnomevm'
   tags: resolution, tests
 
-- set_fact: desktop_environment_process="xfce4-session"
+- set_fact: desktop_environment_process="kded5"
   when: ansible_limit == 'kdevm'
   tags: resolution, tests
 
 - name: wait for desktop environment
-  shell: "ps -ef | grep {{ desktop_environment_process }} | grep -v grep"
+  shell: "w | grep {{ desktop_environment_process }} | grep -v grep"
   register: desktop_session
   until: desktop_session.stdout != ""
   retries: 20

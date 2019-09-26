@@ -74,6 +74,7 @@
 - name: make sure project's system dependencies are installed
   pacman:
     name:
+        - gcc
         - cairo
         - pkgconf
         - gobject-introspection
@@ -88,7 +89,6 @@
     name:
       - python-pip
       - tk
-      - gcc
     state: present
   become: yes
   tags: system, project
