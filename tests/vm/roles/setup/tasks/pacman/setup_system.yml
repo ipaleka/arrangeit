@@ -41,7 +41,7 @@
     state: present
     create: yes
   become: yes
-  register: autologin_setup
+  notify: reboot system
   tags: system
 
 - name: create 'autologin' group
@@ -92,9 +92,3 @@
     state: present
   become: yes
   tags: system, project
-
-- name: reboot machine with all defaults
-  reboot:
-  become: yes
-  when: autologin_setup.changed
-  tags: system

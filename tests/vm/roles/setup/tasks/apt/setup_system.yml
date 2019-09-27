@@ -49,8 +49,8 @@
         autologin-user-timeout=10
     state: present
     create: yes
+  notify: reboot system
   become: yes
-  register: autologin_setup
   tags: system
 
 - name: disable setup panel screen
@@ -71,9 +71,3 @@
     state: present
   become: yes
   tags: system, project
-
-- name: reboot machine with all defaults
-  reboot:
-  become: yes
-  when: autologin_setup.changed
-  tags: system

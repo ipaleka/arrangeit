@@ -89,7 +89,7 @@
     line: "{{ item }}"
     state: present
   become: yes
-  register: autologin_setup
+  notify: reboot system
   with_items:
     - AutomaticLogin=vagrant
     - AutomaticLoginEnable=True
@@ -102,6 +102,7 @@
     line: "{{ item }}"
     state: present
   become: yes
+  notify: reboot system
   with_items:
     - WaylandEnable=false
     - DefaultSession=gnome-xorg.desktop
@@ -132,9 +133,3 @@
     state: present
   become: yes
   tags: system, project
-
-- name: reboot machine with all defaults
-  reboot:
-  become: yes
-  when: autologin_setup.changed
-  tags: system

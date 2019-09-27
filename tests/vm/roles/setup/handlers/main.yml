@@ -1,0 +1,4 @@
+---
+- name: reboot system
+  reboot:
+  become: yes
