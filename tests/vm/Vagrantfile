@@ -24,9 +24,8 @@ Vagrant.configure(2) do |config|
     end
   end
 
-
-  # only Arch doesn't ship with Python installed
-  config.vm.provision "shell", inline: "which python || sudo pacman --noconfirm -S python"
+  ## only Arch doesn't ship with Python installed
+  config.vm.provision "shell", inline: "if [ ! `which python` ] && [ ! `which python3` ]; then sudo pacman --noconfirm -S python; fi"
 
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true
