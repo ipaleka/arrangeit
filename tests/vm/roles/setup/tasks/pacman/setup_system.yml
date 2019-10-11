@@ -2,13 +2,21 @@
 - name: make sure system dependencies are installed
   pacman:
     name:
+      - lightdm
+      - lightdm-gtk-greeter
+      - git
+    state: present
+    update_cache: yes
+  become: yes
+  tags: system
+
+- name: install KDE (Plasma) desktop environment
+  pacman:
+    name:
       - xorg
       - plasma
       # - kde-applications
       - konsole
-      - lightdm
-      - lightdm-gtk-greeter
-      - git
     state: present
     update_cache: yes
   become: yes

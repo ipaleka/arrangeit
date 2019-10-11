@@ -2,14 +2,22 @@
 - name: make sure system dependencies are installed
   apt:
     name:
-      - xfce4
-      - xfce4-goodies
       - virtualbox-guest-dkms
       - virtualbox-guest-utils
       - virtualbox-guest-x11
       - lightdm
       - lightdm-gtk-greeter
       - git
+    state: present
+    update_cache: yes
+  become: yes
+  tags: system
+
+- name: install Xfce desktop environment
+  apt:
+    name:
+      - xfce4
+      - xfce4-goodies
     state: present
     update_cache: yes
   become: yes

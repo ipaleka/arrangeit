@@ -9,7 +9,7 @@ Start Programs
     Start Process    /usr/bin/libreoffice    --calc    ./resources/sample.ods    --norestore
     Start Process    /usr/bin/libreoffice    --writer    ./resources/sample.odt    --norestore
     Start Process    /usr/bin/gedit    ./resources/sample.txt
-    Sleep    8s
+    Sleep    12s
     ${arr_handle} =    Start Process    ./arrangeitstart.sh
     Set Suite Variable    ${arr_handle}
     Sleep    4s
