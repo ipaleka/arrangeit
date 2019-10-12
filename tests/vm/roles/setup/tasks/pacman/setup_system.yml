@@ -22,21 +22,6 @@
   become: yes
   tags: system
 
-- name: set number of virtual desktops to 2
-  replace:
-    path: /home/vagrant/.config/kwinrc
-    regexp: "^Number=1"
-    replace: "Number=2"
-  tags: system
-
-- name: add second virtual desktop
-  lineinfile:
-    path: /home/vagrant/.config/kwinrc
-    insertafter: "^Id_1=.*"
-    line: Id_2=ae9ed2bb-af8d-41e4-8d09-6760d3533555
-    state: present
-  tags: system
-
 - name: set lightdm greeter to lightdm-gtk-greeter
   replace:
     path: /etc/lightdm/lightdm.conf
@@ -115,3 +100,38 @@
     state: present
   become: yes
   tags: system, project
+
+- stat:
+    path: /home/vagrant/.config/kwinrc
+  register: kwinrc_file
+  tags: system
+
+- name: reboot system
+  reboot:
+  become: yes
+  when: kwinrc_file.stat.exists == False
+  tags: system
+
+- name: wait for desktop environment
+  shell: "w | grep kded5 | grep -v grep"
+  register: kde_session
+  until: kde_session.stdout != ""
+  retries: 20
+  delay: 2
+  changed_when: false
+  tags: system
+
+- name: set number of virtual desktops to 2
+  replace:
+    path: /home/vagrant/.config/kwinrc
+    regexp: "^Number=1"
+    replace: "Number=2"
+  tags: system
+
+- name: add second virtual desktop
+  lineinfile:
+    path: /home/vagrant/.config/kwinrc
+    insertafter: "^Id_1=.*"
+    line: Id_2=ae9ed2bb-af8d-41e4-8d09-6760d3533555
+    state: present
+  tags: system
