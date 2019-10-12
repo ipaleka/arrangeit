@@ -386,7 +386,7 @@ class OptionsDialog(tk.Toplevel):
 
     def on_show_about(self):
         """Creates and shows about dialog on top of this dialog."""
-        AboutDialog(self).lift(self)
+        AboutDialog(self).lift()
 
 
 class ScaleOption(tk.Scale):

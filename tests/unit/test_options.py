@@ -767,7 +767,7 @@ class TestOptionsDialog(object):
         dialog = OptionsDialog(master)
         dialog.on_show_about()
         mocked.return_value.lift.assert_called_once()
-        mocked.return_value.lift.assert_called_with(dialog)
+        mocked.return_value.lift.assert_called_with()
 
 
 class TestScaleOption(object):
