@@ -15,6 +15,3 @@
 
 - include: dnf/setup_resolution.yml
   when: ansible_limit == 'gnomevm'
-
-- include: pacman/setup_resolution.yml
-  when: ansible_limit == 'kdevm'

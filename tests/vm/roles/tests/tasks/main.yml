@@ -1,15 +1,15 @@
 ---
 - set_fact: desktop_environment_process="xfce"
   when: ansible_limit == 'xfcevm'
-  tags: resolution, tests
+  tags: tests
 
 - set_fact: desktop_environment_process="gdm-x-session"
   when: ansible_limit == 'gnomevm'
-  tags: resolution, tests
+  tags: tests
 
 - set_fact: desktop_environment_process="kded5"
   when: ansible_limit == 'kdevm'
-  tags: resolution, tests
+  tags: tests
 
 - name: wait for desktop environment
   shell: "w | grep {{ desktop_environment_process }} | grep -v grep"
@@ -17,6 +17,18 @@
   until: desktop_session.stdout != ""
   retries: 20
   delay: 2
+  changed_when: false
+  tags: tests
+
+- name: set default resolution for KDE
+  shell: 'DISPLAY=":0" xrandr --output VGA-1 --pos 0x0 --mode {{ screen_resolution }} --refresh 60'
+  when: ansible_limit == 'kdevm'
+  changed_when: false
+  tags: resolution, tests
+
+- pause:
+    seconds: 5
+  when: ansible_limit == 'kdevm'
   changed_when: false
   tags: resolution, tests
 

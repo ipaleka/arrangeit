@@ -15,8 +15,8 @@
     name:
       - xorg
       - plasma
-      # - kde-applications
-      - konsole
+      - kde-applications
+      # - konsole
     state: present
     update_cache: yes
   become: yes
