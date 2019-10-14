@@ -121,6 +121,9 @@
     line: "yes"
     state: present
     create: yes
+    owner: vagrant
+    group: vagrant
+    mode: 0644
   become: yes
   tags: system
 

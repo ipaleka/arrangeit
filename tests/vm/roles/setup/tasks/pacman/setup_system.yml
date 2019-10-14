@@ -44,7 +44,7 @@
         [Seat:*]
         autologin-guest=false
         autologin-user=vagrant
-        autologin-user-timeout=10
+        autologin-user-timeout=2
         autologin-session=plasma
     state: present
     create: yes

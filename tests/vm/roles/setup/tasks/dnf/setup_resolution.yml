@@ -1,0 +1,9 @@
+---
+- name: set default resolution
+  template:
+    src: xorg.conf
+    dest: /etc/X11/xorg.conf.d/xorg.conf
+    mode: 0644
+  become: yes
+  notify: reboot system
+  tags: resolution

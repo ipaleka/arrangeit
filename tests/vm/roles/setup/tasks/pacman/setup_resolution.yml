@@ -1,0 +1,36 @@
+---
+# - name: set default resolution
+#   template:
+#     src: xorg.conf
+#     dest: /etc/X11/xorg.conf.d/xorg.conf
+#     mode: 0644
+#   become: yes
+#   notify: reboot system
+#   tags: resolution
+
+# - name: get all files in kscreen directory
+#   find:
+#     paths: /home/vagrant/.local/share/kscreen/
+#   register: found_files
+#   tags: resolution
+
+# - name: get the latest file
+#   set_fact:
+#     latest_file: "{{ found_files.files | sort(attribute='mtime') | last }}"
+#   tags: resolution
+
+- name: set default resolution
+  lineinfile:
+    path: /home/vagrant/.config/startupconfig
+    line: "krandrrc_display_startupcommands='xrandr --output VGA-1 --pos 0x0 --mode {{ screen_resolution }} --refresh 60'"
+    state: present
+  notify: reboot system
+  tags: resolution
+
+# - name: set default resolution width
+#   lineinfile:
+#     path: "{{ latest_file.path }}"
+#     regexp: '^ +"height":'
+#     line: '                "width": {{ screen_resolution_width }}'
+#   notify: reboot system
+#   tags: resolution

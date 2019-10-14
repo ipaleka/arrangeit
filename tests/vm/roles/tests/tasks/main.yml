@@ -20,11 +20,6 @@
   changed_when: false
   tags: resolution, tests
 
-- name: set resolution
-  shell: 'DISPLAY=":0" xrandr -s {{ screen_resolution }}'
-  changed_when: false
-  tags: resolution, tests
-
 - name: create arrangeit user directory if it does not exist
   file:
     path: /home/vagrant/.local/share/arrangeit/
@@ -45,5 +40,5 @@
   shell: 'DISPLAY=":0" {{ project_dir }}arrangeit/tests/functional/robotstart.sh test_start.robot'
   args:
     chdir: "{{ project_dir }}arrangeit/tests/functional"
-  ignore_errors: true
+  # ignore_errors: true
   tags: tests
