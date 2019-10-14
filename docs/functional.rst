@@ -7,8 +7,9 @@ System requirements
 VirtualBox
 ^^^^^^^^^^
 
-**arrangeit** functional testing is done inside a VirtualBox virtual machine created
-with Vagrant. In Ubuntu, you may install VirtualBox by issuing the following command:
+**arrangeit** functional testing is done inside a VirtualBox virtual machine
+created with Vagrant. In Ubuntu, you may install VirtualBox by issuing the
+following command:
 
 .. code-block:: bash
 
@@ -57,7 +58,7 @@ A virtual machine will occupy approximately 10GB of disk space upon finished
 installation, together with the size of related Vagrant box/image.
 
 So in the case of three virtual machines you should have available at least
-6GB of RAM and 30GN of disk space if you want to test them all at once. For
+6GB of RAM and 30GB of disk space if you want to test them all at once. For
 testing one virtual machine at a time you'll need 2GB of RAM and 10GB of disk
 space.
 
@@ -73,6 +74,7 @@ from the `tests/vm` directory:
 
   $ vagrant up
 
+
 That command will - in serial for all defined Vagrant machines - download
 the Vagrant box if it isn't already downloaded, install the OS in an idempotent
 way and finally run the Robot Framework functional tests for arrangeit.
@@ -83,3 +85,22 @@ for a single virtual machine:
 .. code-block:: bash
 
   $ vagrant up xfcevm
+
+
+If the provision phase has failed or you've updated some provisioning ansible
+task, then you may re-initiate provisioning with:
+
+.. code-block:: bash
+
+  $ vagrant up --provision xfcevm
+
+
+To remove a virtual machine completely, invoke the following command:
+
+.. code-block:: bash
+
+  $ vagrant destroy xfcevm
+
+
+If you omit the virtual machine name in the last two commands then all
+virtual machines will be affected.
