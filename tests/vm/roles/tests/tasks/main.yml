@@ -21,7 +21,9 @@
   tags: tests
 
 - name: set default resolution for KDE
-  shell: 'DISPLAY=":0" xrandr --output VGA-1 --pos 0x0 --mode {{ screen_resolution }} --refresh 60'
+  shell: "xrandr --output VGA-1 --pos 0x0 --mode {{ screen_resolution }} --refresh 60"
+  environment:
+    DISPLAY: ":0"
   when: ansible_limit == 'kdevm'
   changed_when: false
   tags: resolution, tests
@@ -45,12 +47,25 @@
     dest: /home/vagrant/.local/share/arrangeit/user_settings.json
     owner: vagrant
     group: vagrant
-    mode: 0750
+    mode: 0644
+  changed_when: false
   tags: tests
 
-- name: running all Robot Framework tests
-  shell: 'DISPLAY=":0" {{ project_dir }}arrangeit/tests/functional/robotstart.sh test_start.robot'
+- name: running all unit tests
+  shell: "source ../venvs/arrangeit/bin/activate && pytest"
+  environment:
+    DISPLAY: ":0"
+  args:
+    chdir: "{{ project_dir }}arrangeit"
+    executable: /bin/bash
+  changed_when: false
+  tags: tests
+
+- name: running all functional tests
+  shell: "{{ project_dir }}arrangeit/tests/functional/robotstart.sh test_start.robot"
+  environment:
+    DISPLAY: ":0"
   args:
     chdir: "{{ project_dir }}arrangeit/tests/functional"
-  # ignore_errors: true
+  changed_when: false
   tags: tests
