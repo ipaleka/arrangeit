@@ -95,7 +95,7 @@ task, then you may re-initiate provisioning with:
   $ vagrant up --provision xfcevm
 
 
-To remove a virtual machine completely, invoke the following command:
+Invoke the following command in order to remove the virtual machine completely:
 
 .. code-block:: bash
 
