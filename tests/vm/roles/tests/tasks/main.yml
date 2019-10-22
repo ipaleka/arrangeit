@@ -67,5 +67,12 @@
     DISPLAY: ":0"
   args:
     chdir: "{{ project_dir }}arrangeit/tests/functional"
-  changed_when: false
+  # changed_when: false
+  notify: shutdown machine
   tags: tests
+
+# - name: Shutdown server
+#   become: yes
+#   shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+#   async: 1
+#   poll: 0

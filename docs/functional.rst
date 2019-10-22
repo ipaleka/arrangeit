@@ -28,7 +28,7 @@ In Ubuntu, install downloaded package with:
 
 .. code-block:: bash
 
-  $ sudo dpkg -i vagrant_2.2.5_x86_64.deb
+  $ sudo dpkg -i vagrant_2.2.6_x86_64.deb
 
 
 Ansible
@@ -95,12 +95,19 @@ task, then you may re-initiate provisioning with:
   $ vagrant up --provision xfcevm
 
 
-Invoke the following command in order to remove the virtual machine completely:
+Maintenance and cleaning
+------------------------
+
+To update downloaded Vagrant boxes to the latest available versions, you should
+invoke the following command:
 
 .. code-block:: bash
 
-  $ vagrant destroy xfcevm
+  $ vagrant box update
 
 
-If you omit the virtual machine name in the last two commands then all
-virtual machines will be affected.
+You may save extra space by removing the obsolete boxes with:
+
+.. code-block:: bash
+
+  $ vagrant box prune

@@ -1,0 +1,6 @@
+---
+- name: shutdown machine
+  shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -P +1
+  async: 1
+  poll: 0
+  become: yes

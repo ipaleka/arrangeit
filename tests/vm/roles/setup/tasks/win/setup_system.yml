@@ -1,0 +1,139 @@
+---
+# - name: make sure system dependencies are installed
+#   apt:
+#     name:
+#       - virtualbox-guest-dkms
+#       - virtualbox-guest-utils
+#       - virtualbox-guest-x11
+#       - lightdm
+#       - lightdm-gtk-greeter
+#       - git
+#     state: present
+#     update_cache: yes
+#   become: yes
+#   tags: system
+
+# # - name: install Xfce desktop environment
+# #   apt:
+# #     name:
+# #       - xfce4
+# #       - xfce4-goodies
+# #     state: present
+# #     update_cache: yes
+# #   become: yes
+# #   tags: system
+
+# # - name: make sure gdm3 is uninstalled
+# #   apt:
+# #     name:
+# #       - gdm3
+# #     state: absent
+# #   become: yes
+# #   tags: system
+
+# # - name: set greeter for lightdm
+# #   blockinfile:
+# #     path: /etc/lightdm/lightdm.conf.d/50-ubuntu.conf
+# #     block: |
+# #         [Seat:*]
+# #         greeter-session=lightdm-gtk-greeter
+# #     state: present
+# #     create: yes
+# #   become: yes
+# #   notify: reboot system
+# #   tags: system
+
+# # - name: setup autologin for user 'vagrant'
+# #   blockinfile:
+# #     path: /etc/lightdm/lightdm.conf.d/12-autologin.conf
+# #     block: |
+# #         [Seat:*]
+# #         autologin-guest=false
+# #         autologin-user=vagrant
+# #         autologin-user-timeout=2
+# #         autologin-session=xfce
+# #     state: present
+# #     create: yes
+# #   become: yes
+# #   notify: reboot system
+# #   tags: system
+
+# # - name: create 'autologin' group
+# #   group:
+# #     name: autologin
+# #     state: present
+# #     system: yes
+# #   become: yes
+# #   tags: system
+
+# # - name: add vagrant user to 'autologin' group
+# #   user:
+# #     name: vagrant
+# #     groups: autologin
+# #     append: yes
+# #   become: yes
+# #   tags: system
+
+# # - name: configure default display manager in X11
+# #   replace:
+# #     path: /etc/X11/default-display-manager
+# #     regexp: "^/usr/sbin/gdm3"
+# #     replace: "/usr/sbin/lightdm"
+# #     owner: root
+# #     group: root
+# #     mode: 0644
+# #   become: yes
+# #   tags: system
+
+# # - name: configure default display manager in debconf
+# #   debconf:
+# #     name: 'shared'
+# #     question: 'shared/default-x-display-manager'
+# #     vtype: 'select'
+# #     value: 'lightdm'
+# #   become: yes
+# #   tags: system
+
+# # - name: disable setup panel screen
+# #   lineinfile:
+# #     path: /etc/environment
+# #     line: "XFCE_PANEL_MIGRATE_DEFAULT=1"
+# #     state: present
+# #   become: yes
+# #   tags: system
+
+# - name: make sure additional software is installed
+#   apt:
+#     name:
+#       - libreoffice-writer
+#       - libreoffice-calc
+#       - gimp
+#       - inkscape
+#       - gedit
+#     state: present
+#   become: yes
+#   tags: system, software
+
+# - name: make sure project's system dependencies are installed
+#   apt:
+#     name:
+#         - gcc
+#         - libcairo2-dev
+#         - libgirepository1.0-dev
+#         - pkg-config
+#         - gir1.2-gtk-3.0
+#         - gir1.2-wnck-3.0
+#     state: present
+#   become: yes
+#   tags: system, project
+
+# - name: make sure project's Python dependencies are installed
+#   apt:
+#     name:
+#       - python3-pip
+#       - python3-venv
+#       - python3-tk
+#       - python3-dev
+#     state: present
+#   become: yes
+#   tags: system, project

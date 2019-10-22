@@ -3,33 +3,26 @@ Vagrant.configure(2) do |config|
   config.vm.define "xfcevm" do |xfcevm|
     xfcevm.vm.box = "generic/ubuntu1904"
     xfcevm.vm.hostname = "xfcevm"
-    config.vm.provider "virtualbox" do |vb|
-      vb.name = "ubuntu-xfce"
-    end
   end
 
   config.vm.define "gnomevm" do |gnomevm|
     gnomevm.vm.box = "generic/fedora30"
     gnomevm.vm.hostname = "gnomevm"
-    config.vm.provider "virtualbox" do |vb|
-      vb.name = "fedora-gnome"
-    end
   end
 
   config.vm.define "kdevm" do |kdevm|
     kdevm.vm.box = "archlinux/archlinux"
     kdevm.vm.hostname = "kdevm"
-    config.vm.provider "virtualbox" do |vb|
-      vb.name = "arch-kde"
-    end
   end
 
-  ## only Arch doesn't ship with Python installed
-  config.vm.provision "shell", inline: "if [ ! `which python` ] && [ ! `which python3` ]; then sudo pacman --noconfirm -S python; fi"
+  config.vm.define "winvm" do |winvm|
+    winvm.vm.box = "StefanScherer/windows_10"
+    winvm.vm.hostname = "winvm"
+  end
 
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true
-    vb.memory = "2048"
+    vb.memory = "3072"
     vb.cpus = 1
     vb.customize ["modifyvm", :id, "--vram", "32"]
   end

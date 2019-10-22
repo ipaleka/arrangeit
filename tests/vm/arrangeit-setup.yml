@@ -1,6 +1,15 @@
 ---
-- name: setup arrangeit in vagrant
-  hosts: xfcevm, gnomevm, kdevm
+- name: install Python 3 in Arch
+  hosts: kdevm
+  gather_facts: false
+  tasks:
+    - name: installing Python
+      raw: sudo pacman --noconfirm -S python
+      become: true
+      ignore_errors: true
+
+- name: setup machine
+  hosts: xfcevm, gnomevm, kdevm, winvm
   remote_user: vagrant
   roles:
     - role: setup
