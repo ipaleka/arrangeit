@@ -28,12 +28,25 @@
   when: ansible_limit != 'winvm'
   tags: project
 
+- win_stat:
+    path: "{{ project_dir }}arrangeit"
+  register: arrangeit_dir
+  when: ansible_limit == 'winvm'
+  tags: project
+
 - name: clone project repository (MS Windows)
   win_command: '"C:\Program Files\Git\cmd\git.exe" clone {{ project_repository }}'
   args:
     chdir: "{{ project_dir }}"
     creates: "{{ project_dir }}arrangeit"
-  when: ansible_limit == 'winvm'
+  when: ansible_limit == 'winvm' and arrangeit_dir.stat.exists == False
+  tags: project
+
+- name: pull project repository (MS Windows)
+  win_command: '"C:\Program Files\Git\cmd\git.exe" pull'
+  args:
+    chdir: "{{ project_dir }}arrangeit"
+  when: ansible_limit == 'winvm' and arrangeit_dir.stat.exists != False
   tags: project
 
 - name: create virtual environment and install base dependencies

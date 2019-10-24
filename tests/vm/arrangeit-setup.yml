@@ -18,6 +18,15 @@
         version: 3.7.5
         state: present
 
+# - name: install Python 3 in OS X
+#   hosts: osxvm
+#   gather_facts: false
+#   tasks:
+#     - name: installing Python
+#       homebrew:
+#         name: python3
+#         state: present
+
 - name: setup GNU/Linux machine
   hosts: xfcevm, gnomevm, kdevm
   vars:
@@ -31,6 +40,12 @@
   vars:
     ansible_python_interpreter: "C:\\Python37\\python.exe"
     project_dir: "C:\\dev\\"
+  remote_user: vagrant
+  roles:
+    - role: setup
+
+- name: setup OS X machine
+  hosts: osxvm
   remote_user: vagrant
   roles:
     - role: setup

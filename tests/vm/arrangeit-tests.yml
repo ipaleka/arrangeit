@@ -1,6 +1,8 @@
 ---
 - name: run arrangeit tests in vagrant
   hosts: xfcevm, gnomevm, kdevm
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
   remote_user: vagrant
   roles:
     - role: tests
@@ -13,3 +15,11 @@
   remote_user: vagrant
   roles:
     - role: tests_win
+
+- name: run arrangeit tests in vagrant
+  hosts: osxvm
+  # vars:
+  #   ansible_python_interpreter: "/usr/bin/python3"
+  remote_user: vagrant
+  roles:
+    - role: tests

@@ -1,0 +1,19 @@
+---
+- name: make sure system dependencies are installed
+  homebrew:
+    name:
+      # - virtualbox-guest-additions-guest.install
+      - git
+      # - change-screen-resolution
+    state: present
+  tags: system
+
+- name: make sure additional software is installed
+  homebrew:
+    name:
+      - libreoffice-still
+      - gimp
+      - inkscape
+      - gedit
+    state: present
+  tags: system, software

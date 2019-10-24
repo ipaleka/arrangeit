@@ -11,6 +11,9 @@
 - include: win/setup_system.yml
   when: ansible_limit == 'winvm'
 
+- include: osx/setup_system.yml
+  when: ansible_limit == 'osxvm'
+
 - include: setup_project.yml
 
 - include: apt/setup_resolution.yml
@@ -21,3 +24,6 @@
 
 - include: win/setup_resolution.yml
   when: ansible_limit == 'winvm'
+
+- include: osx/setup_resolution.yml
+  when: ansible_limit == 'osxvm'
