@@ -70,9 +70,3 @@
   # changed_when: false
   notify: shutdown machine
   tags: tests
-
-# - name: Shutdown server
-#   become: yes
-#   shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
-#   async: 1
-#   poll: 0

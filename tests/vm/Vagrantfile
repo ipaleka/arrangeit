@@ -16,7 +16,7 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "winvm" do |winvm|
-    winvm.vm.box = "StefanScherer/windows_10"
+    winvm.vm.box = "inclusivedesign/windows10-eval"  # "StefanScherer/windows_10"
     winvm.vm.hostname = "winvm"
   end
 
@@ -31,14 +31,12 @@ Vagrant.configure(2) do |config|
     ansible.verbose = "v"
     ansible.compatibility_mode = "2.0"
     ansible.playbook = "arrangeit-setup.yml"
-    ansible.extra_vars = { ansible_python_interpreter:"/usr/bin/python3" }
   end
 
   config.vm.provision "ansible", run: 'always' do |ansible|
     ansible.verbose = "v"
     ansible.compatibility_mode = "2.0"
     ansible.playbook = "arrangeit-tests.yml"
-    ansible.extra_vars = { ansible_python_interpreter:"/usr/bin/python3" }
   end
 
 end

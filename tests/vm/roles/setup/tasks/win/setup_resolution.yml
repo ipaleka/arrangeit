@@ -1,21 +1,4 @@
 ---
-# - stat:
-#     path: /home/vagrant/.config/xfce4/xfconf/
-#   register: xfconf_dir
-#   tags: resolution
-
-# - name: reboot system
-#   reboot:
-#   become: yes
-#   when: xfconf_dir.stat.exists == False
-#   tags: resolution
-
-# - name: set default resolution
-#   template:
-#     src: displays.xml
-#     dest: /home/vagrant/.config/xfce4/xfconf/xfce-perchannel-xml/displays.xml
-#     owner: vagrant
-#     group: vagrant
-#   become: yes
-#   notify: reboot system
-#   tags: resolution
+- name: set default resolution
+  win_command: "changescreenresolution {{ screen_resolution_width }} {{ screen_resolution_height }}"
+  tags: resolution

@@ -1,0 +1,3 @@
+---
+- name: shutdown machine
+  win_command: shutdown /s /f /t 0

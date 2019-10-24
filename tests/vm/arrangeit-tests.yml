@@ -1,6 +1,15 @@
 ---
-- name: run arrangeit functional tests in vagrant
+- name: run arrangeit tests in vagrant
   hosts: xfcevm, gnomevm, kdevm
   remote_user: vagrant
   roles:
     - role: tests
+
+- name: run arrangeit tests in vagrant
+  hosts: winvm
+  vars:
+    ansible_python_interpreter: "C:\\Python37\\python.exe"
+    project_dir: "C:\\dev\\"
+  remote_user: vagrant
+  roles:
+    - role: tests_win

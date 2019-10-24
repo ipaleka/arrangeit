@@ -1,0 +1,28 @@
+---
+- name: create arrangeit user directory if it does not exist
+  win_file:
+    path: C:\Users\vagrant\arrangeit
+    state: directory
+  tags: tests
+
+- name: copy user settings file
+  win_copy:
+    src: user_settings.json
+    dest: C:\Users\vagrant\arrangeit\user_settings.json
+  changed_when: false
+  tags: tests
+
+- name: running all unit tests
+  win_command: "{{ project_dir }}venvs\\arrangeit\\Scripts\\activate.bat && pytest"
+  args:
+    chdir: "{{ project_dir }}arrangeit"
+  changed_when: false
+  tags: tests
+
+- name: running all functional tests
+  win_command: "{{ project_dir }}venvs\\arrangeit\\Scripts\\activate.bat && robot --loglevel=DEBUG test_start.robot"
+  args:
+    chdir: "{{ project_dir }}arrangeit\\tests\\functional"
+  # changed_when: false
+  notify: shutdown machine
+  tags: tests

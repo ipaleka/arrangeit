@@ -8,8 +8,29 @@
       become: true
       ignore_errors: true
 
-- name: setup machine
-  hosts: xfcevm, gnomevm, kdevm, winvm
+- name: install Python 3 in MS Windows
+  hosts: winvm
+  gather_facts: false
+  tasks:
+    - name: installing Python
+      win_chocolatey:
+        name: python
+        version: 3.7.5
+        state: present
+
+- name: setup GNU/Linux machine
+  hosts: xfcevm, gnomevm, kdevm
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+  remote_user: vagrant
+  roles:
+    - role: setup
+
+- name: setup MS Windows machine
+  hosts: winvm
+  vars:
+    ansible_python_interpreter: "C:\\Python37\\python.exe"
+    project_dir: "C:\\dev\\"
   remote_user: vagrant
   roles:
     - role: setup
