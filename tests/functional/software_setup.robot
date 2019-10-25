@@ -33,11 +33,11 @@ Start Programs Darwin
 Start Programs Windows
     Start Process    C:\\Program\ Files\\Inkscape\\inkscape.exe    .\\resources\\sample.svg
     Start Process    C:\\Program\ Files\\GIMP\ 2\\bin\\gimp-2.10.exe    .\\resources\\sample.xcf
-    Start Process    C:\\Program\ Files\\LibreOffice\\program\\scalc.exe    .\\resources\\sample.ods    --norestore
-    Start Process    C:\\Program\ Files\\LibreOffice\\program\\swriter.exe    .\\resources\\sample.odt    --norestore
+    Start Process    C:\\Program\ Files\\LibreOffice\\program\\soffice.exe    --calc    .\\resources\\sample.ods    --norestore
+    Start Process    C:\\Program\ Files\\LibreOffice\\program\\soffice.exe    --writer    .\\resources\\sample.odt    --norestore
     Start Process    C:\\Program\ Files (x86)\\gedit\\bin\\gedit.exe    .\\resources\\sample.txt
     Sleep    15s
-    ${arr_handle} =    Start Process    .\\arrangeitstart.bat
+    ${arr_handle} =    Start Process    arrangeitstart.bat
     Set Suite Variable    ${arr_handle}
     Sleep    4s
 

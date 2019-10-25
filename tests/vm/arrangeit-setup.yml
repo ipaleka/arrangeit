@@ -17,6 +17,8 @@
         name: python
         version: 3.7.5
         state: present
+  vars:
+    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
 
 # - name: install Python 3 in OS X
 #   hosts: osxvm
@@ -43,6 +45,8 @@
   remote_user: vagrant
   roles:
     - role: setup
+  vars:
+    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
 
 - name: setup OS X machine
   hosts: osxvm

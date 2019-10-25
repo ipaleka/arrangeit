@@ -16,7 +16,9 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "winvm" do |winvm|
-    winvm.vm.box = "inclusivedesign/windows10-eval"
+    # winvm.vm.box = "inclusivedesign/windows10-eval"  # OS build 10240
+    # winvm.vm.box = "gusztavvargadr/windows-10"  #
+    winvm.vm.box = "StefanScherer/windows_10"  # OS build 18362.418
     winvm.vm.hostname = "winvm"
   end
 
@@ -33,7 +35,7 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provision "ansible" do |ansible|
-    ansible.verbose = "v"
+    ansible.verbose = "vvv"
     ansible.compatibility_mode = "2.0"
     ansible.playbook = "arrangeit-setup.yml"
   end

@@ -13,16 +13,16 @@
   tags: tests
 
 - name: running all unit tests
-  win_command: "{{ project_dir }}venvs\\arrangeit\\Scripts\\activate.bat && pytest"
+  win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && pytest"
   args:
-    chdir: "{{ project_dir }}arrangeit"
+    chdir: "C:\\dev\\arrangeit"
   changed_when: false
   tags: tests
 
 - name: running all functional tests
-  win_command: "{{ project_dir }}venvs\\arrangeit\\Scripts\\activate.bat && robot --loglevel=DEBUG test_start.robot"
+  win_command: "C:\\dev\\arrangeit\\tests\\functional\\robotstart.bat test_start.robot"
   args:
-    chdir: "{{ project_dir }}arrangeit\\tests\\functional"
+    chdir: "C:\\dev\\arrangeit\\tests\\functional"
   # changed_when: false
   notify: shutdown machine
   tags: tests

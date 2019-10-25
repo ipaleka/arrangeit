@@ -1,11 +1,14 @@
 ---
+# - name: debug project dir
+#   debug: msg="{{ project_dir }}"
+#   tags: project
 - name: check if project directories exist
   win_file:
     path: "{{ item }}"
     state: directory
   with_items:
-    - "{{ project_dir }}"
-    - "{{ project_dir }}venvs"
+    - "C:\\dev\\"
+    - "C:\\dev\\venvs"
   when: ansible_limit == 'winvm'
   tags: project
 
@@ -29,7 +32,7 @@
   tags: project
 
 - win_stat:
-    path: "{{ project_dir }}arrangeit"
+    path: "C:\\dev\\arrangeit"
   register: arrangeit_dir
   when: ansible_limit == 'winvm'
   tags: project
@@ -37,15 +40,15 @@
 - name: clone project repository (MS Windows)
   win_command: '"C:\Program Files\Git\cmd\git.exe" clone {{ project_repository }}'
   args:
-    chdir: "{{ project_dir }}"
-    creates: "{{ project_dir }}arrangeit"
+    chdir: "C:\\dev\\"
+    creates: "C:\\dev\\arrangeit"
   when: ansible_limit == 'winvm' and arrangeit_dir.stat.exists == False
   tags: project
 
 - name: pull project repository (MS Windows)
   win_command: '"C:\Program Files\Git\cmd\git.exe" pull'
   args:
-    chdir: "{{ project_dir }}arrangeit"
+    chdir: "C:\\dev\\arrangeit"
   when: ansible_limit == 'winvm' and arrangeit_dir.stat.exists != False
   tags: project
 
@@ -60,15 +63,15 @@
 - name: create virtual environment (MS Windows)
   win_command: C:\Python37\python.exe -m venv arrangeit
   args:
-    chdir: "{{ project_dir }}venvs"
-    creates: "{{ project_dir }}venvs\\arrangeit"
+    chdir: "C:\\dev\\venvs"
+    creates: "C:\\dev\\venvs\\arrangeit"
   when: ansible_limit == 'winvm'
   tags: project
 
 - name: install base dependencies (for MS Windows)
-  win_command: "{{ project_dir }}venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\base.txt"
+  win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\base.txt"
   args:
-    chdir: "{{ project_dir }}arrangeit"
+    chdir: "C:\\dev\\arrangeit"
   when: ansible_limit == 'winvm'
   tags: project
 
@@ -81,9 +84,9 @@
   tags: project
 
 - name: install base MS Windows dependencies
-  win_command: "{{ project_dir }}venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\windows.txt"
+  win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\windows.txt"
   args:
-    chdir: "{{ project_dir }}arrangeit"
+    chdir: "C:\\dev\\arrangeit"
   when: ansible_limit == 'winvm'
   tags: project
 
@@ -96,8 +99,8 @@
   tags: project
 
 - name: install development dependencies (for MS Windows)
-  win_command: "{{ project_dir }}venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\functional_testing.txt"
+  win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\functional_testing.txt"
   args:
-    chdir: "{{ project_dir }}arrangeit"
+    chdir: "C:\\dev\\arrangeit"
   when: ansible_limit == 'winvm'
   tags: project

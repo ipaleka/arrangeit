@@ -1,5 +1,6 @@
 import os
 import sys
+import uuid
 
 import autopy
 import platform
@@ -25,11 +26,18 @@ def take_screenshot():
     screen.save("screen.png")
 
 
+def save_screen(screen):
+    screen.save("screen_{}.png".format(str(uuid.uuid4())))
+
+
 def locate_image(filename):
     screen = autopy.bitmap.capture_screen()
+    node = platform.node()
+    if node in ("winvm",):
+        save_screen(screen)
     path = os.path.join(
         os.path.abspath(os.path.dirname(__file__)),
-        "resources/{}/".format(platform.node()),
+        "resources/{}/".format(node),
         "{}.png".format(filename),
     )
     button = autopy.bitmap.Bitmap.open(path)

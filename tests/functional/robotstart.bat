@@ -1,0 +1,1 @@
+..\..\..\venvs\arrangeit\Scripts\activate.bat && robot --loglevel=DEBUG %1
