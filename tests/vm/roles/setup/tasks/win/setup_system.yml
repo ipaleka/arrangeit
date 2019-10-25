@@ -16,4 +16,5 @@
       - inkscape
       - gedit
     state: present
+  notify: reboot windows
   tags: system, software

@@ -2,3 +2,6 @@
 - name: reboot system
   reboot:
   become: yes
+
+- name: reboot windows
+  win_reboot:
