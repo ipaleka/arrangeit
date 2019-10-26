@@ -10,6 +10,8 @@
 
 - name: install Python 3 in MS Windows
   hosts: winvm
+  vars:
+    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
   gather_facts: false
   tasks:
     - name: installing Python
@@ -17,8 +19,6 @@
         name: python
         version: 3.7.5
         state: present
-  vars:
-    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
 
 # - name: install Python 3 in OS X
 #   hosts: osxvm
@@ -31,8 +31,6 @@
 
 - name: setup GNU/Linux machine
   hosts: xfcevm, gnomevm, kdevm
-  vars:
-    ansible_python_interpreter: "/usr/bin/python3"
   remote_user: vagrant
   roles:
     - role: setup
@@ -40,13 +38,10 @@
 - name: setup MS Windows machine
   hosts: winvm
   vars:
-    ansible_python_interpreter: "C:\\Python37\\python.exe"
-    project_dir: "C:\\dev\\"
+    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
   remote_user: vagrant
   roles:
     - role: setup
-  vars:
-    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
 
 - name: setup OS X machine
   hosts: osxvm

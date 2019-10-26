@@ -20,6 +20,29 @@ Vagrant.configure(2) do |config|
     # winvm.vm.box = "gusztavvargadr/windows-10"  #
     winvm.vm.box = "StefanScherer/windows_10"  # OS build 18362.418
     winvm.vm.hostname = "winvm"
+
+    # config.trigger.before :machine_action_boot, type: :hook do |trigger|
+    #   trigger.info = "More information with ruby magic"
+    #   trigger.ruby do |env,machine|
+    #     puts `VBoxManage controlvm #{machine.id} setvideomodehint 1600 900 32`
+    #   end
+
+    # end
+
+    # ## this works
+    # winvm.trigger.after :up do |trigger|
+    #   trigger.info = "More information with ruby magic"
+    #   trigger.ruby do |env,machine|
+    #     puts `VBoxManage controlvm #{machine.id} setvideomodehint 1600 900 32`
+    #   end
+    # end
+
+    # ## this doesn't work
+    # winvm.trigger.after :machine_action_boot, type: :hook do |trigger|
+    #   trigger.info = "after boot!"
+    # end
+
+    # vb.customize ["controlvm", :id, "setvideomodehint", "1600 900 32"]
   end
 
   config.vm.define "osxvm" do |osxvm|
@@ -35,15 +58,15 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provision "ansible" do |ansible|
-    ansible.verbose = "vvv"
+    ansible.verbose = "v"
     ansible.compatibility_mode = "2.0"
-    ansible.playbook = "arrangeit-setup.yml"
+    ansible.playbook = "setup.yml"
   end
 
   config.vm.provision "ansible", run: 'always' do |ansible|
     ansible.verbose = "v"
     ansible.compatibility_mode = "2.0"
-    ansible.playbook = "arrangeit-tests.yml"
+    ansible.playbook = "tests.yml"
   end
 
 end

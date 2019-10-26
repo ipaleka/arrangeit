@@ -19,10 +19,10 @@
   changed_when: false
   tags: tests
 
-- name: running all functional tests
-  win_command: "C:\\dev\\arrangeit\\tests\\functional\\robotstart.bat test_start.robot"
-  args:
-    chdir: "C:\\dev\\arrangeit\\tests\\functional"
-  # changed_when: false
-  notify: shutdown machine
-  tags: tests
+# - name: running all functional tests
+#   win_command: "C:\\dev\\arrangeit\\tests\\functional\\robotstart.bat test_start.robot"
+#   args:
+#     chdir: "C:\\dev\\arrangeit\\tests\\functional"
+#   # changed_when: false
+#   notify: shutdown machine
+#   tags: tests

@@ -4,3 +4,4 @@ project_repository: https://github.com/ipaleka/arrangeit.git
 screen_resolution: 1600x900
 screen_resolution_width: 1600
 screen_resolution_height: 900
+ansible_python_interpreter: "/usr/bin/python3"

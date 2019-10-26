@@ -1,8 +1,6 @@
 ---
 - name: run arrangeit tests in vagrant
   hosts: xfcevm, gnomevm, kdevm
-  vars:
-    ansible_python_interpreter: "/usr/bin/python3"
   remote_user: vagrant
   roles:
     - role: tests
@@ -10,18 +8,13 @@
 - name: run arrangeit tests in vagrant
   hosts: winvm
   vars:
-    ansible_python_interpreter: "C:\\Python37\\python.exe"
-    project_dir: "C:\\dev\\"
+    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
   remote_user: vagrant
   roles:
     - role: tests_win
-  vars:
-    ansible_winrm_scheme: http  # workaround for https://github.com/hashicorp/vagrant/issues/10765
 
 - name: run arrangeit tests in vagrant
   hosts: osxvm
-  # vars:
-  #   ansible_python_interpreter: "/usr/bin/python3"
   remote_user: vagrant
   roles:
     - role: tests
