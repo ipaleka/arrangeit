@@ -4,7 +4,6 @@
     name:
       # - virtualbox-guest-additions-guest.install
       - git
-      # - change-screen-resolution
     state: present
   tags: system
 

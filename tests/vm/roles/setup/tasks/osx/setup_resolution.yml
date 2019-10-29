@@ -1,4 +1,0 @@
----
-# - name: set default resolution
-#   win_command: "changescreenresolution {{ screen_resolution_width }} {{ screen_resolution_height }}"
-#   tags: resolution
