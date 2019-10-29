@@ -602,7 +602,9 @@ class TestBaseControllerDomainLogic(object):
         controller = controller_mocked_for_next(mocker)
         mocker.patch("arrangeit.base.BaseController.remove_listed_window")
         mocked_ws = mocker.patch("arrangeit.base.BaseController.switch_workspace")
-        controller.generator.__next__.return_value = base.WindowModel(workspace=1,rect=(0,0,100,100))
+        controller.generator.__next__.return_value = base.WindowModel(
+            workspace=1, rect=(0, 0, 100, 100)
+        )
         controller.next(first_time=True, from_workspace=1)
         mocked_ws.assert_not_called()
 
@@ -1073,4 +1075,3 @@ class TestBaseControllerDomainLogic(object):
         controller.workspace_activated(1278)
         mocked.assert_called_once()
         mocked.assert_called_with(MESSAGES["msg_workspace_changed"])
-

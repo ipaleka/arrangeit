@@ -293,7 +293,7 @@ class TestWindowsVdiIApplicationViewConsolidatedEventArgs(object):
     """Testing class for :class:`arrangeit.windows.vdi.IApplicationViewConsolidatedEventArgs` class."""
 
     def test_windows_vdi_IApplicationViewConsolidatedEventArgs_is_IInspectable_subclass(
-        self
+        self,
     ):
         assert issubclass(vdi.IApplicationViewConsolidatedEventArgs, vdi.IInspectable)
 
@@ -312,7 +312,7 @@ class TestWindowsVdiIApplicationViewConsolidatedEventArgs(object):
         assert getattr(vdi.IApplicationViewConsolidatedEventArgs, field) == value
 
     def test_windows_vdi_IApplicationViewConsolidatedEventArgs_m_get_IsUserInitiated(
-        self
+        self,
     ):
         method = (
             ctypes.HRESULT,
@@ -520,7 +520,7 @@ class TestWindowsVdiIApplicationViewCollection(object):
         assert method == vdi.IApplicationViewCollection._methods_[1]
 
     def test_windows_vdi_IApplicationViewCollection_method_GetViewsByAppUserModelId(
-        self
+        self,
     ):
         method = (
             ctypes.HRESULT,
@@ -561,7 +561,7 @@ class TestWindowsVdiIApplicationViewCollection(object):
         assert method == vdi.IApplicationViewCollection._methods_[4]
 
     def test_windows_vdi_IApplicationViewCollection_method_GetViewForAppUserModelId(
-        self
+        self,
     ):
         method = (
             ctypes.HRESULT,
@@ -610,7 +610,7 @@ class TestWindowsVdiIApplicationViewCollection(object):
         assert method == vdi.IApplicationViewCollection._methods_[8]
 
     def test_windows_vdi_IApplicationViewCollection_RegisterForApplicationViewChanges(
-        self
+        self,
     ):
         method = (
             ctypes.HRESULT,
@@ -626,7 +626,7 @@ class TestWindowsVdiIApplicationViewCollection(object):
         assert method == vdi.IApplicationViewCollection._methods_[9]
 
     def test_windows_vdi_IApplicationViewCollection_UnregisterForApplicationViewChanges(
-        self
+        self,
     ):
         method = (
             ctypes.HRESULT,
@@ -699,7 +699,7 @@ class TestWindowsVdiIVirtualDesktopManager(object):
         assert getattr(vdi.IVirtualDesktopManager, field) == value
 
     def test_windows_vdi_IVirtualDesktopManager_method_IsWindowOnCurrentVirtualDesktop(
-        self
+        self,
     ):
         method = (
             ctypes.HRESULT,
@@ -777,7 +777,7 @@ class TestWindowsVdiIVirtualDesktopManagerInternal(object):
         assert method == vdi.IVirtualDesktopManagerInternal._methods_[1]
 
     def test_windows_vdi_IVirtualDesktopManagerInternal_method_CanViewMoveDesktops(
-        self
+        self,
     ):
         method = (
             ctypes.HRESULT,

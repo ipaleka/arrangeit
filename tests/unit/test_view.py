@@ -155,12 +155,7 @@ class TestPropertyIcon(object):
     ## PropertyIcon.setup_widgets
     @pytest.mark.parametrize(
         "value,path",
-        [
-            (1, "resize.png"),
-            (0, "move.png"),
-            (1, "restore.png"),
-            (0, "minimize.png"),
-        ],
+        [(1, "resize.png"), (0, "move.png"), (1, "restore.png"), (0, "minimize.png"),],
     )
     def test_view_PropertyIcon_setup_widgets_sets_icon_image(self, mocker, value, path):
         mocker.patch("arrangeit.view.tk.Label.config")
@@ -182,12 +177,7 @@ class TestPropertyIcon(object):
 
     @pytest.mark.parametrize(
         "value,path",
-        [
-            (1, "resize.png"),
-            (0, "move.png"),
-            (1, "restore.png"),
-            (0, "minimize.png"),
-        ],
+        [(1, "resize.png"), (0, "move.png"), (1, "restore.png"), (0, "minimize.png"),],
     )
     def test_view_PropertyIcon_setup_widgets_sets_colorized_icon_image(
         self, mocker, value, path
@@ -328,10 +318,7 @@ class TestResizable(object):
 
     @pytest.mark.parametrize(
         "attr,value",
-        [
-            ("images", {1: None, 0: None}),
-            ("colorized", {1: None, 0: None}),
-        ],
+        [("images", {1: None, 0: None}), ("colorized", {1: None, 0: None}),],
     )
     def test_view_Resizable_inits_attr_as_empty(self, attr, value):
         assert getattr(Resizable, attr) == value
@@ -343,7 +330,9 @@ class TestResizable(object):
         assert getattr(Resizable, attr) == value
 
     ## Resizable.__init__
-    def test_view_Resizable_init_calls_super_with_master_and_background_args(self, mocker):
+    def test_view_Resizable_init_calls_super_with_master_and_background_args(
+        self, mocker
+    ):
         mocked = mocker.patch("arrangeit.view.PropertyIcon.__init__")
         master = mocker.MagicMock()
         BACKGROUND = "yellow"
@@ -364,10 +353,7 @@ class TestRestored(object):
 
     @pytest.mark.parametrize(
         "attr,value",
-        [
-            ("images", {1: None, 0: None}),
-            ("colorized", {1: None, 0: None}),
-        ],
+        [("images", {1: None, 0: None}), ("colorized", {1: None, 0: None}),],
     )
     def test_view_Restored_inits_attr_as_empty(self, attr, value):
         assert getattr(Restored, attr) == value
@@ -379,7 +365,9 @@ class TestRestored(object):
         assert getattr(Restored, attr) == value
 
     ## Restored.__init__
-    def test_view_Restored_init_calls_super_with_master_and_background_args(self, mocker):
+    def test_view_Restored_init_calls_super_with_master_and_background_args(
+        self, mocker
+    ):
         mocked = mocker.patch("arrangeit.view.PropertyIcon.__init__")
         master = mocker.MagicMock()
         BACKGROUND = "yellow"
@@ -587,7 +575,9 @@ class TestWorkspacesCollection(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     ## WorkspacesCollection.add_workspaces
-    def test_view_WorkspacesCollection_add_workspaces_initializes_Workspace(self, mocker):
+    def test_view_WorkspacesCollection_add_workspaces_initializes_Workspace(
+        self, mocker
+    ):
         master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.Workspace")
         workspaces = WorkspacesCollection(master=master)
@@ -711,7 +701,9 @@ class TestWorkspacesCollection(object):
         workspaces.on_workspace_label_button_down(event)
         master.controller.workspace_activated.assert_called_with(1002)
 
-    def test_view_WorkspacesCollection_on_workspace_label_button_returns_break(self, mocker):
+    def test_view_WorkspacesCollection_on_workspace_label_button_returns_break(
+        self, mocker
+    ):
         workspaces = WorkspacesCollection(mocker.MagicMock())
         returned = workspaces.on_workspace_label_button_down(mocker.MagicMock())
         assert returned == "break"
@@ -789,7 +781,9 @@ class TestWindowsList(object):
             ],
         ],
     )
-    def test_view_WindowsList_add_windows_calls_place_widget_on_position(self, mocker, args):
+    def test_view_WindowsList_add_windows_calls_place_widget_on_position(
+        self, mocker, args
+    ):
         master = mocker.MagicMock()
         windows = WindowsList(master=master)
         mocked = mocker.patch("arrangeit.view.WindowsList.place_widget_on_position")
@@ -823,14 +817,16 @@ class TestWindowsList(object):
         widget2.destroy.assert_called_once()
 
     ## WindowsList.place_widget_on_position
-    def test_view_WindowsList_place_widget_on_position_calls_place_on_frame(self, mocker):
+    def test_view_WindowsList_place_widget_on_position_calls_place_on_frame(
+        self, mocker
+    ):
         master = mocker.MagicMock()
         windows = WindowsList(master=master)
         mocked = mocker.MagicMock()
         windows.place_widget_on_position(mocked, 0)
         calls = [
             mocker.call(
-                relheight=1.0/Settings.WINDOWS_LIST_COUNT,
+                relheight=1.0 / Settings.WINDOWS_LIST_COUNT,
                 relwidth=1.0,
                 relx=0.0,
                 rely=0,
@@ -840,16 +836,18 @@ class TestWindowsList(object):
         windows.place_widget_on_position(mocked, 4)
         calls = [
             mocker.call(
-                relheight=1.0/Settings.WINDOWS_LIST_COUNT,
+                relheight=1.0 / Settings.WINDOWS_LIST_COUNT,
                 relwidth=1.0,
                 relx=0.0,
-                rely=4 * 1.0/Settings.WINDOWS_LIST_COUNT,
+                rely=4 * 1.0 / Settings.WINDOWS_LIST_COUNT,
             )
         ]
         mocked.place.assert_has_calls(calls, any_order=True)
 
     ## WindowsList.place_children
-    def test_view_WindowsList_place_children_calls_place_widget_on_position(self, mocker):
+    def test_view_WindowsList_place_children_calls_place_widget_on_position(
+        self, mocker
+    ):
         windows = WindowsList(master=mocker.MagicMock())
         mocked = mocker.patch("arrangeit.view.WindowsList.place_widget_on_position")
         widget0 = mocker.MagicMock()
@@ -1064,7 +1062,9 @@ class TestWorkspace(object):
         calls = [mocker.call(foreground=Settings.HIGHLIGHTED_COLOR)] * 2
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_view_Workspace_on_widget_enter_not_setting_foreground_for_active(self, mocker):
+    def test_view_Workspace_on_widget_enter_not_setting_foreground_for_active(
+        self, mocker
+    ):
         mocker.patch("arrangeit.view.nametofont")
         mocker.patch("arrangeit.view.increased_by_fraction")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
@@ -1093,7 +1093,9 @@ class TestWorkspace(object):
         calls = [mocker.call(foreground=Settings.WORKSPACE_NUMBER_LABEL_FG)] * 2
         mocked.assert_has_calls(calls, any_order=True)
 
-    def test_view_Workspace_on_widget_leave_not_setting_foreground_for_active(self, mocker):
+    def test_view_Workspace_on_widget_leave_not_setting_foreground_for_active(
+        self, mocker
+    ):
         mocker.patch("arrangeit.view.nametofont")
         mocker.patch("arrangeit.view.increased_by_fraction")
         mocked = mocker.patch("arrangeit.view.tk.Label.config")
@@ -1127,7 +1129,9 @@ class TestListedWindow(object):
         assert getattr(ListedWindow, attr) == value
 
     ## ListedWindow.__init__
-    def test_view_ListedWindow_init_calls_super_with_master_and_cursor_arg(self, mocker):
+    def test_view_ListedWindow_init_calls_super_with_master_and_cursor_arg(
+        self, mocker
+    ):
         master = mocker.MagicMock()
         mocked = mocker.patch("arrangeit.view.tk.Frame.__init__")
         with pytest.raises(AttributeError):

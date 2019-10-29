@@ -694,7 +694,10 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
         mocked_vdi = mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
-        mocker.patch("arrangeit.windows.api.platform_supports_virtual_desktops", return_value=True)
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_virtual_desktops",
+            return_value=True,
+        )
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
         mocked.return_value.value = 1
@@ -715,7 +718,10 @@ class TestWindowsApiApiPublic(object):
         mocker.patch("ctypes.sizeof")
         mocker.patch("ctypes.create_string_buffer")
         mocked_vdi = mocker.patch("arrangeit.windows.api.DummyVirtualDesktops")
-        mocker.patch("arrangeit.windows.api.platform_supports_virtual_desktops", return_value=False)
+        mocker.patch(
+            "arrangeit.windows.api.platform_supports_virtual_desktops",
+            return_value=False,
+        )
         mocked_helpers = mocker.patch("arrangeit.windows.api.Helpers")
         mocked = mocker.patch("ctypes.wintypes.DWORD")
         mocked.return_value.value = 1
@@ -813,7 +819,9 @@ class TestWindowsApiApiPublic(object):
         HWND, NUMBER = 5244, 2
         returned = Api().move_other_window_to_desktop(HWND, NUMBER)
         mocked.return_value.move_other_window_to_desktop.assert_called_once()
-        mocked.return_value.move_other_window_to_desktop.assert_called_with(HWND, NUMBER)
+        mocked.return_value.move_other_window_to_desktop.assert_called_with(
+            HWND, NUMBER
+        )
         assert returned == mocked.return_value.move_other_window_to_desktop.return_value
 
     def test_Api_move_other_window_to_desktop_calls_dummy_vdi_move_other_window_to_desktop(
@@ -828,7 +836,9 @@ class TestWindowsApiApiPublic(object):
         HWND, NUMBER = 5245, 1
         returned = Api().move_other_window_to_desktop(HWND, NUMBER)
         mocked.return_value.move_other_window_to_desktop.assert_called_once()
-        mocked.return_value.move_other_window_to_desktop.assert_called_with(HWND, NUMBER)
+        mocked.return_value.move_other_window_to_desktop.assert_called_with(
+            HWND, NUMBER
+        )
         assert returned == mocked.return_value.move_other_window_to_desktop.return_value
 
     # setup_thumbnail

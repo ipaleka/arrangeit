@@ -334,9 +334,7 @@ class TestBaseController(object):
             return_value=True
         )
         ALPHA = 0.94
-        type(mocked_settings).ROOT_ALPHA = mocker.PropertyMock(
-            return_value=ALPHA
-        )
+        type(mocked_settings).ROOT_ALPHA = mocker.PropertyMock(return_value=ALPHA)
         base.BaseController(None).setup_root_window(root)
         assert root.wm_attributes.call_count == 2
         calls = [

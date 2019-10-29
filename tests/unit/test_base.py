@@ -301,7 +301,9 @@ class TestBaseApp(object):
         app = base.BaseApp()
         app.rerun_from_window(45221, 75300)
         mocked.return_value.collection.repopulate_for_wid.assert_called()
-        mocked.return_value.collection.repopulate_for_wid.assert_called_with(45221, 75300)
+        mocked.return_value.collection.repopulate_for_wid.assert_called_with(
+            45221, 75300
+        )
 
     ## BaseApp.save_default
     def test_BaseApp_save_default_calls_platform_user_data_path(self, mocker):
@@ -759,7 +761,7 @@ class TestBaseCollector(object):
 
     ## BaseCollector.get_workspace_number_for_window
     def test_BaseCollector_get_workspace_number_for_window_raises_NotImplementedError(
-        self
+        self,
     ):
         with pytest.raises(NotImplementedError):
             base.BaseCollector().get_workspace_number_for_window(None)

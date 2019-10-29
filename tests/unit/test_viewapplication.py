@@ -125,9 +125,7 @@ class TestViewApplication(object):
         mocked.assert_has_calls(calls, any_order=True)
 
     ## ViewApplication.get_root_wid
-    def test_ViewApplication_get_root_wid_calls_master_frame(
-        self, mocker
-    ):
+    def test_ViewApplication_get_root_wid_calls_master_frame(self, mocker):
         mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
         mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
         mocker.patch("arrangeit.view.int")
@@ -136,9 +134,7 @@ class TestViewApplication(object):
         master.frame.assert_called_once()
         master.frame.assert_called_with()
 
-    def test_ViewApplication_get_root_wid_calls_int_and_returns_it(
-        self, mocker
-    ):
+    def test_ViewApplication_get_root_wid_calls_int_and_returns_it(self, mocker):
         mocker.patch("arrangeit.view.ViewApplication.setup_widgets")
         mocker.patch("arrangeit.view.ViewApplication.setup_bindings")
         mocked = mocker.patch("arrangeit.view.int")

@@ -97,7 +97,9 @@ class TestWindowsApp(object):
         mocked.assert_called_once()
         mocked.assert_called_with(SAMPLE_WID, SAMPLE_WS)
 
-    def test_WindowsApp_move_and_resize_not_calling_move_other_to_workspace(self, mocker):
+    def test_WindowsApp_move_and_resize_not_calling_move_other_to_workspace(
+        self, mocker
+    ):
         mocker.patch("arrangeit.base.BaseApp.setup_controller")
         mocker.patch("arrangeit.windows.collector.Api")
         mocked = mocker.patch("arrangeit.windows.app.App.move_other_to_workspace")
@@ -1046,7 +1048,10 @@ class TestWindowsCollector(object):
     ## WindowsCollector.add_window
     def test_WindowsCollector_add_window_calls_WindowsCollection_add(self, mocker):
         mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
-        mocker.patch("arrangeit.windows.collector.Collector.get_workspace_number_for_window", return_value=0)
+        mocker.patch(
+            "arrangeit.windows.collector.Collector.get_workspace_number_for_window",
+            return_value=0,
+        )
         mocked = mocker.patch("arrangeit.data.WindowsCollection.add")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
@@ -1431,7 +1436,10 @@ class TestWindowsCollector(object):
         self, mocker, is_applicable, is_valid_state, value
     ):
         mocker.patch("arrangeit.windows.api.VirtualDesktopsWin10")
-        mocker.patch("arrangeit.windows.collector.Collector.get_workspace_number_for_window", return_value=0)
+        mocker.patch(
+            "arrangeit.windows.collector.Collector.get_workspace_number_for_window",
+            return_value=0,
+        )
         mocker.patch("arrangeit.windows.collector.Collector._get_window_geometry")
         mocker.patch("arrangeit.windows.collector.Collector._get_window_title")
         mocker.patch("arrangeit.windows.collector.Collector.get_application_name")
