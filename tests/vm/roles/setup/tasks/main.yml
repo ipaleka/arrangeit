@@ -1,23 +1,23 @@
 ---
 - include: apt/setup_system.yml
-  when: ansible_limit == 'xfcevm'
+  when: inventory_hostname == 'xfcevm'
 
 - include: dnf/setup_system.yml
-  when: ansible_limit == 'gnomevm'
+  when: inventory_hostname == 'gnomevm'
 
 - include: pacman/setup_system.yml
-  when: ansible_limit == 'kdevm'
+  when: inventory_hostname == 'kdevm'
 
 - include: win/setup_system.yml
-  when: ansible_limit == 'winvm'
+  when: inventory_hostname == 'winvm'
 
 - include: osx/setup_system.yml
-  when: ansible_limit == 'osxvm'
+  when: inventory_hostname == 'osxvm'
 
 - include: setup_project.yml
 
 - include: apt/setup_resolution.yml
-  when: ansible_limit == 'xfcevm'
+  when: inventory_hostname == 'xfcevm'
 
 - include: dnf/setup_resolution.yml
-  when: ansible_limit == 'gnomevm'
+  when: inventory_hostname == 'gnomevm'

@@ -26,21 +26,30 @@ Vagrant.configure(2) do |config|
 
   config.vm.define "winvm" do |winvm|
     # winvm.vm.box = "inclusivedesign/windows10-eval"  # OS build 10240
-    # winvm.vm.box = "gusztavvargadr/windows-10"  #
-    winvm.vm.box = "StefanScherer/windows_10"  # OS build 18362.418
+    # winvm.vm.box = "gusztavvargadr/windows-10"  # OS build 18362.19
+    winvm.vm.box = "StefanScherer/windows_10"  # OS build 18362.418 - default winvm
+    ## the following doesn't work with ansible_winrm_transport: ntlm
+    ## probably Kerberos has to be installed and configured
+    # winvm.vm.box = "ramreddy06/windows7-sp1"  # doesn't work
+    # winvm.vm.box = "ferventcoder/win7pro-x64-nocm-lite"  # box doesn't exist
+    # winvm.vm.box = "designerror/windows-7"  # doesn't work
+    # winvm.vm.box = "rikka4chan/windows7python37"  # doesn't work
+    # winvm.vm.box = "opensky/windows-7-professional-sp1-x64"  # doesn't work
+    # winvm.vm.box = "romerros/WindowsServer2008-x86-winrm-fixed"  # doesn't work
+    # winvm.vm.box = "mwrock/Windows2016"  # doesn't work
     winvm.vm.hostname = "winvm"
     winvm.vm.provider "virtualbox" do |vb|
       vb.name = "winvm"
     end
   end
 
-  # config.vm.define "osxvm" do |osxvm|
-  #   osxvm.vm.box = "artdev/macos-sierra"
-  #   osxvm.vm.hostname = "osxvm"
-  #   osxvm.vm.provider "virtualbox" do |vb|
-  #     vb.name = "osxvm"
-  #   end
-  # end
+  config.vm.define "osxvm" do |osxvm|
+    osxvm.vm.box = "jhcook/osx-yosemite-10.10"
+    osxvm.vm.hostname = "osxvm"
+    osxvm.vm.provider "virtualbox" do |vb|
+      vb.name = "osxvm"
+    end
+  end
 
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true

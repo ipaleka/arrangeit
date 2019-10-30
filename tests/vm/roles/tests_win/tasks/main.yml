@@ -1,4 +1,16 @@
 ---
+- name: set default resolution
+  local_action:
+    module: command
+    _raw_params: 'VBoxManage controlvm "{{ inventory_hostname }}" setvideomodehint {{ screen_resolution_width }} {{ screen_resolution_height }} 32'
+  # changed_when: false
+  tags: resolution, tests
+
+- pause:
+    seconds: 5
+  changed_when: false
+  tags: resolution, tests
+
 - name: create arrangeit user directory if it does not exist
   win_file:
     path: C:\Users\vagrant\arrangeit
@@ -16,13 +28,10 @@
   win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && pytest"
   args:
     chdir: "C:\\dev\\arrangeit"
-  changed_when: false
   tags: tests
 
-# - name: running all functional tests
-#   win_command: "C:\\dev\\arrangeit\\tests\\functional\\robotstart.bat test_start.robot"
-#   args:
-#     chdir: "C:\\dev\\arrangeit\\tests\\functional"
-#   # changed_when: false
-#   notify: shutdown machine
-#   tags: tests
+- name: running all functional tests
+  win_command: "C:\\dev\\arrangeit\\tests\\functional\\robotstart.bat test_start.robot"
+  args:
+    chdir: "C:\\dev\\arrangeit\\tests\\functional"
+  tags: tests

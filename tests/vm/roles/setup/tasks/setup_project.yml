@@ -9,7 +9,7 @@
   with_items:
     - "C:\\dev\\"
     - "C:\\dev\\venvs"
-  when: ansible_limit == 'winvm'
+  when: inventory_hostname == 'winvm'
   tags: project
 
 - name: check if project directories exist
@@ -20,7 +20,7 @@
   with_items:
     - "{{ project_dir }}"
     - "{{ project_dir }}venvs"
-  when: ansible_limit != 'winvm'
+  when: inventory_hostname != 'winvm'
   tags: project
 
 - name: clone project repository
@@ -28,13 +28,13 @@
     repo: "{{ project_repository }}"
     dest: "{{ project_dir }}arrangeit"
     version: master
-  when: ansible_limit != 'winvm'
+  when: inventory_hostname != 'winvm'
   tags: project
 
 - win_stat:
     path: "C:\\dev\\arrangeit"
   register: arrangeit_dir
-  when: ansible_limit == 'winvm'
+  when: inventory_hostname == 'winvm'
   tags: project
 
 - name: clone project repository (MS Windows)
@@ -42,14 +42,14 @@
   args:
     chdir: "C:\\dev\\"
     creates: "C:\\dev\\arrangeit"
-  when: ansible_limit == 'winvm' and arrangeit_dir.stat.exists == False
+  when: inventory_hostname == 'winvm' and arrangeit_dir.stat.exists == False
   tags: project
 
 - name: pull project repository (MS Windows)
   win_command: '"C:\Program Files\Git\cmd\git.exe" pull'
   args:
     chdir: "C:\\dev\\arrangeit"
-  when: ansible_limit == 'winvm' and arrangeit_dir.stat.exists != False
+  when: inventory_hostname == 'winvm' and arrangeit_dir.stat.exists != False
   tags: project
 
 - name: create virtual environment and install base dependencies
@@ -57,7 +57,7 @@
     requirements: "{{ project_dir }}arrangeit/requirements/base.txt"
     virtualenv: "{{ project_dir }}venvs/arrangeit"
     virtualenv_command: /usr/bin/python3 -m venv
-  when: ansible_limit != 'winvm'
+  when: inventory_hostname != 'winvm'
   tags: project
 
 - name: create virtual environment (MS Windows)
@@ -65,14 +65,14 @@
   args:
     chdir: "C:\\dev\\venvs"
     creates: "C:\\dev\\venvs\\arrangeit"
-  when: ansible_limit == 'winvm'
+  when: inventory_hostname == 'winvm'
   tags: project
 
 - name: install base dependencies (for MS Windows)
   win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\base.txt"
   args:
     chdir: "C:\\dev\\arrangeit"
-  when: ansible_limit == 'winvm'
+  when: inventory_hostname == 'winvm'
   tags: project
 
 - name: install base GNU/Linux dependencies
@@ -80,14 +80,14 @@
     requirements: "{{ project_dir }}arrangeit/requirements/linux.txt"
     virtualenv: "{{ project_dir }}venvs/arrangeit"
     virtualenv_command: /usr/bin/python3 -m venv
-  when: ansible_limit != 'winvm'
+  when: inventory_hostname != 'winvm'
   tags: project
 
 - name: install base MS Windows dependencies
   win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\windows.txt"
   args:
     chdir: "C:\\dev\\arrangeit"
-  when: ansible_limit == 'winvm'
+  when: inventory_hostname == 'winvm'
   tags: project
 
 - name: install development dependencies
@@ -95,12 +95,12 @@
     requirements: "{{ project_dir }}arrangeit/requirements/functional_testing.txt"
     virtualenv: "{{ project_dir }}venvs/arrangeit"
     virtualenv_command: /usr/bin/python3 -m venv
-  when: ansible_limit != 'winvm'
+  when: inventory_hostname != 'winvm'
   tags: project
 
 - name: install development dependencies (for MS Windows)
   win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && python -m pip install -r requirements\\functional_testing.txt"
   args:
     chdir: "C:\\dev\\arrangeit"
-  when: ansible_limit == 'winvm'
+  when: inventory_hostname == 'winvm'
   tags: project

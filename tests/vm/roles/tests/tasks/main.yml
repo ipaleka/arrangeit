@@ -1,14 +1,14 @@
 ---
 - set_fact: desktop_environment_process="xfce"
-  when: ansible_limit == 'xfcevm'
+  when: inventory_hostname == 'xfcevm'
   tags: tests
 
 - set_fact: desktop_environment_process="gdm-x-session"
-  when: ansible_limit == 'gnomevm'
+  when: inventory_hostname == 'gnomevm'
   tags: tests
 
 - set_fact: desktop_environment_process="kded5"
-  when: ansible_limit == 'kdevm'
+  when: inventory_hostname == 'kdevm'
   tags: tests
 
 - name: wait for desktop environment
@@ -24,13 +24,13 @@
   shell: "xrandr --output VGA-1 --pos 0x0 --mode {{ screen_resolution }} --refresh 60"
   environment:
     DISPLAY: ":0"
-  when: ansible_limit == 'kdevm'
+  when: inventory_hostname == 'kdevm'
   changed_when: false
   tags: resolution, tests
 
 - pause:
     seconds: 5
-  when: ansible_limit == 'kdevm'
+  when: inventory_hostname == 'kdevm'
   changed_when: false
   tags: resolution, tests
 
