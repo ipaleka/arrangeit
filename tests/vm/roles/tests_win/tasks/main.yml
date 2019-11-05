@@ -24,14 +24,23 @@
   changed_when: false
   tags: tests
 
+- name: create second virtual desktop
+  win_command: 'C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && python -c "from arrangeit.windows.vdi import VirtualDesktopsWin10;vd = VirtualDesktopsWin10();vd.internal_manager.CreateDesktopW() if len(vd.get_desktops()) < 2 else None"'
+  args:
+    chdir: "C:\\dev\\arrangeit"
+  changed_when: false
+  tags: tests
+
 - name: running all unit tests
   win_command: "C:\\dev\\venvs\\arrangeit\\Scripts\\activate.bat && pytest"
   args:
     chdir: "C:\\dev\\arrangeit"
+  changed_when: false
   tags: tests
 
 - name: running all functional tests
   win_command: "C:\\dev\\arrangeit\\tests\\functional\\robotstart.bat test_start.robot"
   args:
     chdir: "C:\\dev\\arrangeit\\tests\\functional"
+  changed_when: false
   tags: tests

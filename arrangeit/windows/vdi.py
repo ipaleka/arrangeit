@@ -585,7 +585,7 @@ class VirtualDesktopsWin10(object):
 
     ## PUBLIC API
     def get_desktops(self, refresh=False):
-        """Returns virtual desktops collection avaialable in the system.
+        """Returns virtual desktops collection available in the system.
 
         Retrieves and sets instance attribute holding collection if it hasn't been
         set yet or if True value is provided as ``refresh`` argument.
