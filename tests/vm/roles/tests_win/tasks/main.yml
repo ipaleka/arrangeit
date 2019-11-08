@@ -39,8 +39,9 @@
   tags: tests
 
 - name: running all functional tests
-  win_command: "C:\\dev\\arrangeit\\tests\\functional\\robotstart.bat test_start.robot"
-  args:
-    chdir: "C:\\dev\\arrangeit\\tests\\functional"
-  changed_when: false
+  win_psexec:
+    command: cmd.exe /c "C:\dev\arrangeit\tests\functional\robotstart.bat c:\dev\arrangeit\tests\functional\test_start.robot"
+    interactive: yes
+    session: 1
+    system: yes
   tags: tests

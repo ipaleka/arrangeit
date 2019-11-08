@@ -1,1 +1,1 @@
-..\..\..\venvs\arrangeit\Scripts\activate.bat && robot --loglevel=DEBUG %1
+c:\dev\venvs\arrangeit\Scripts\activate.bat && cd c:\dev\arrangeit\tests\functional && C:\dev\venvs\arrangeit\Scripts\robot.exe --loglevel=DEBUG %1

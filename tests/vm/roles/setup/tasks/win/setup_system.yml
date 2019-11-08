@@ -4,6 +4,7 @@
     name:
       - virtualbox-guest-additions-guest.install
       - git
+      - pstools
     state: present
   tags: system
 
