@@ -176,6 +176,8 @@ class TestSettingsModule(object):
             "WINDOW_MODEL_RECT_ELEMENTS",
             "ICON_SIZE",
             "BLANK_ICON",
+            "HELP_PAGE_URL",
+            "RELEASES_PAGE_URL",
         ],
     )
     def test_SettingsMetaclass___getattr___not_changing_core_constant(self, constant):
@@ -233,6 +235,11 @@ class TestSettings(object):
             ),
             ("WINDOW_MODEL_RECT_ELEMENTS", ("x", "y", "w", "h")),
             ("ICON_SIZE", 32),
+            (
+                "HELP_PAGE_URL",
+                "https://arrangeit.readthedocs.io/en/latest/userguide.html",
+            ),
+            ("RELEASES_PAGE_URL", "https://github.com/ipaleka/arrangeit/releases"),
         ],
     )
     def test_Settings_initializes_unchangeable_core_program_constant(
