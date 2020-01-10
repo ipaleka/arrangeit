@@ -187,13 +187,13 @@ def validate_user_settings():
 class SettingsMetaclass(type):
     """Meta class needed to access Settings class attributes by names."""
 
-    def __getattr__(self, name):
+    def __getattr__(cls, name):
         """Returns value for provided attribute name.
 
         It first tries to get the value from user settings.
         If user hasn't configured attribute then program setting is returned.
         """
-        value = self.user_settings.get(name)
+        value = cls.user_settings.get(name)
         return value if value is not None else SETTINGS.get(name, [None, None])[1]
 
 
