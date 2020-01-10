@@ -31,7 +31,7 @@ from .fixtures import (
 )
 
 
-class TestUtils(object):
+class TestUtils:
     """Testing class for :py:mod:`arrangeit.utils` module."""
 
     ## Rectangle

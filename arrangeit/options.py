@@ -21,7 +21,6 @@ import tkinter.ttk as ttk
 import webbrowser
 
 import arrangeit
-from arrangeit import options
 from arrangeit.settings import Settings
 from arrangeit.utils import get_resized_image, get_resource_path, set_icon
 
@@ -271,7 +270,7 @@ class OptionsDialog(tk.Toplevel):
         """
         section = ttk.LabelFrame(self, text=MESSAGES[name], labelanchor="nw")
 
-        for i, (name, kwargs) in enumerate(WIDGETS[name]):
+        for i, (widget_name, kwargs) in enumerate(WIDGETS[name]):
             if not i % denominator:
                 frame = self.create_frame(section)
                 frame.pack(fill=tk.X, side=tk.LEFT, expand=True)
@@ -279,7 +278,7 @@ class OptionsDialog(tk.Toplevel):
             separator = self.create_separator(frame)
             separator.pack(fill=tk.X, expand=True)
 
-            widget = self.create_widget(frame, name, **kwargs)
+            widget = self.create_widget(frame, widget_name, **kwargs)
             if hasattr(widget, "label"):
                 widget.label.pack(
                     fill=tk.X, side=tk.TOP, padx=Settings.OPTIONS_WIDGETS_PADX, pady=0
@@ -348,8 +347,8 @@ class OptionsDialog(tk.Toplevel):
         """
         typ = Settings.setting_type(name)
         if typ is None:
-            return getattr(options, "ThemeOption")
-        return getattr(options, "{}Option".format(CLASSES[typ]))
+            return ThemeOption
+        return eval("{}Option".format(CLASSES[typ]))
 
     ## COMMANDS
     def change_setting(self, name="", value=None):

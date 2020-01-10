@@ -24,7 +24,7 @@ from arrangeit import settings
 from arrangeit.settings import Settings, SettingsMetaclass
 
 
-class TestSettingsModule(object):
+class TestSettingsModule:
     """Unit testing class for settings module and SettingsMetaclass"""
 
     ## TestSettingsModule.MESSAGES
@@ -207,7 +207,7 @@ class TestSettingsModule(object):
         assert value is None
 
 
-class TestSettings(object):
+class TestSettings:
     """Unit testing class for :class:`Settings`."""
 
     ## Settings

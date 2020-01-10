@@ -36,7 +36,7 @@ SAMPLE_HWND = 1001
 
 
 ## arrangeit.windows.app
-class TestWindowsApp(object):
+class TestWindowsApp:
     """Testing class for :class:`arrangeit.windowe.app.App` class."""
 
     ## WindowsApp
@@ -528,7 +528,7 @@ class TestWindowsApp(object):
 
 
 ## arrangeit.windows.collector
-class TestWindowsCollector(object):
+class TestWindowsCollector:
     """Testing class for :py:class:`arrangeit.windows.collector.Collector` class."""
 
     ## WindowsCollector.__init__
@@ -1462,7 +1462,7 @@ class TestWindowsCollector(object):
 
 
 ## arrangeit.windows.controller
-class TestWindowsController(object):
+class TestWindowsController:
     """Testing class for :py:class:`arrangeit.windows.controller.Controller` class."""
 
     ## Controller
@@ -1495,7 +1495,7 @@ class TestWindowsController(object):
 
 
 ## arrangeit.windows.utils
-class TestWindowsUtils(object):
+class TestWindowsUtils:
     """Testing class for `arrangeit.windows.utils` module."""
 
     ## extract_name_from_bytes_path

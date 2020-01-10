@@ -38,7 +38,7 @@ from arrangeit.view import (
 )
 
 
-class TestViewFunctions(object):
+class TestViewFunctions:
     """Unit testing class for view module inner functions."""
 
     ## get_tkinter_root
@@ -96,7 +96,7 @@ class TestViewFunctions(object):
         assert get_screenshot_widget(mocker.MagicMock()) == mocked.return_value
 
 
-class TestPropertyIcon(object):
+class TestPropertyIcon:
     """Unit testing class for :class:`PropertyIcon` class."""
 
     ## PropertyIcon
@@ -309,7 +309,7 @@ class TestPropertyIcon(object):
         assert returned == "break"
 
 
-class TestResizable(object):
+class TestResizable:
     """Unit testing class for :class:`Resizable` class."""
 
     ## Resizable
@@ -344,7 +344,7 @@ class TestResizable(object):
         )
 
 
-class TestRestored(object):
+class TestRestored:
     """Unit testing class for :class:`Restored` class."""
 
     ## Restored
@@ -377,7 +377,7 @@ class TestRestored(object):
         )
 
 
-class TestCornerWidget(object):
+class TestCornerWidget:
     """Unit testing class for :class:`CornerWidget` class."""
 
     ## CornerWidget
@@ -542,7 +542,7 @@ class TestCornerWidget(object):
         mocked.assert_called_with()
 
 
-class TestWorkspacesCollection(object):
+class TestWorkspacesCollection:
     """Unit testing class for :class:`WorkspacesCollection` class."""
 
     ## WorkspacesCollection
@@ -709,7 +709,7 @@ class TestWorkspacesCollection(object):
         assert returned == "break"
 
 
-class TestWindowsList(object):
+class TestWindowsList:
     """Unit testing class for :class:`WindowsList` class."""
 
     ## WindowsList
@@ -884,7 +884,7 @@ class TestWindowsList(object):
         assert returned == "break"
 
 
-class TestWorkspace(object):
+class TestWorkspace:
     """Unit testing class for :class:`Workspace` class."""
 
     ## Workspace
@@ -1114,7 +1114,7 @@ class TestWorkspace(object):
         assert returned == "break"
 
 
-class TestListedWindow(object):
+class TestListedWindow:
     """Unit testing class for :class:`ListedWindow` class."""
 
     ## ListedWindow
@@ -1333,7 +1333,7 @@ class TestListedWindow(object):
         assert returned == "break"
 
 
-class TestStatusbar(object):
+class TestStatusbar:
     """Unit testing class for :class:`Statusbar` class."""
 
     ## Statusbar
@@ -1413,7 +1413,7 @@ class TestStatusbar(object):
         mocked.return_value.pack.assert_called_with()
 
 
-class TestToolbar(object):
+class TestToolbar:
     """Unit testing class for :class:`Toolbar` class."""
 
     ## Toolbar

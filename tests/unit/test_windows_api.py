@@ -42,7 +42,7 @@ from arrangeit.windows.api import (
 
 
 ## custom functions
-class TestWindowsApiCustomFunctions(object):
+class TestWindowsApiCustomFunctions:
     """Testing class for :py:mod:`arrangeit.windows.api` custom functions."""
 
     # platform_supports_packages
@@ -111,7 +111,7 @@ class TestWindowsApiCustomFunctions(object):
 
 
 ## basic structures
-class TestDWM_THUMBNAIL_PROPERTIES(object):
+class TestDWM_THUMBNAIL_PROPERTIES:
     """Testing class for :py:class:`arrangeit.windows.api.DWM_THUMBNAIL_PROPERTIES` class."""
 
     def test_windows_api_DWM_THUMBNAIL_PROPERTIES_is_Structure_subclass(self):
@@ -138,7 +138,7 @@ class TestDWM_THUMBNAIL_PROPERTIES(object):
         assert (field, typ) in DWM_THUMBNAIL_PROPERTIES._fields_
 
 
-class TestTITLEBARINFO(object):
+class TestTITLEBARINFO:
     """Testing class for :py:class:`arrangeit.windows.api.TITLEBARINFO` class."""
 
     def test_windows_api_TITLEBARINFO_is_Structure_subclass(self):
@@ -162,7 +162,7 @@ class TestTITLEBARINFO(object):
         assert (field, typ) in TITLEBARINFO._fields_
 
 
-class TestWINDOWINFO(object):
+class TestWINDOWINFO:
     """Testing class for :py:class:`arrangeit.windows.api.WINDOWINFO` class."""
 
     def test_windows_api_WINDOWINFO_is_Structure_subclass(self):
@@ -194,7 +194,7 @@ class TestWINDOWINFO(object):
 
 
 ## packages structures
-class TestPACKAGE_SUBVERSION(object):
+class TestPACKAGE_SUBVERSION:
     """Testing class for :py:class:`arrangeit.windows.api.PACKAGE_SUBVERSION` class."""
 
     def test_windows_api_PACKAGE_SUBVERSION_is_Structure_subclass(self):
@@ -219,7 +219,7 @@ class TestPACKAGE_SUBVERSION(object):
         assert (field, typ) in PACKAGE_SUBVERSION._fields_
 
 
-class TestPACKAGE_VERSION_U(object):
+class TestPACKAGE_VERSION_U:
     """Testing class for :py:class:`arrangeit.windows.api.PACKAGE_VERSION_U` class."""
 
     def test_windows_api_PACKAGE_VERSION_U_is_Union_subclass(self):
@@ -239,7 +239,7 @@ class TestPACKAGE_VERSION_U(object):
         assert (field, typ) in PACKAGE_VERSION_U._fields_
 
 
-class TestPACKAGE_VERSION(object):
+class TestPACKAGE_VERSION:
     """Testing class for :py:class:`arrangeit.windows.api.PACKAGE_VERSION` class."""
 
     def test_windows_api_PACKAGE_VERSION_is_Structure_subclass(self):
@@ -261,7 +261,7 @@ class TestPACKAGE_VERSION(object):
         assert (field, typ) in PACKAGE_VERSION._fields_
 
 
-class TestPACKAGE_ID(object):
+class TestPACKAGE_ID:
     """Testing class for :py:class:`arrangeit.windows.api.PACKAGE_ID` class."""
 
     def test_windows_api_PACKAGE_ID_is_Structure_subclass(self):
@@ -289,7 +289,7 @@ class TestPACKAGE_ID(object):
         assert (field, typ) in PACKAGE_ID._fields_
 
 
-class TestPACKAGE_INFO(object):
+class TestPACKAGE_INFO:
     """Testing class for :py:class:`arrangeit.windows.api.PACKAGE_INFO` class."""
 
     def test_windows_api_PACKAGE_INFO_is_Structure_subclass(self):
@@ -316,7 +316,7 @@ class TestPACKAGE_INFO(object):
         assert (field, typ) in PACKAGE_INFO._fields_
 
 
-class TestPACKAGE_INFO_REFERENCE(object):
+class TestPACKAGE_INFO_REFERENCE:
     """Testing class for :py:class:`arrangeit.windows.api.PACKAGE_INFO_REFERENCE` class."""
 
     def test_windows_api_PACKAGE_INFO_REFERENCE_is_Structure_subclass(self):
@@ -334,7 +334,7 @@ class TestPACKAGE_INFO_REFERENCE(object):
 
 
 # Helpers class
-class TestWindowsApiHelpersCommon(object):
+class TestWindowsApiHelpersCommon:
     """Testing class for :class:`arrangeit.windows.api.Helpers` common methods."""
 
     # Helpers.__init__
@@ -773,7 +773,7 @@ class TestWindowsApiHelpersCommon(object):
 
 # windows.api.Helpers functions for Windows >= 8.1
 @pytest.mark.skipif(not platform_supports_packages(), reason="Win 8 and 10 only")
-class TestWindowsApiHelpersWin8(object):
+class TestWindowsApiHelpersWin8:
     """Testing class for :class:`arrangeit.windows.api.Helpers` Win8+ functions."""
 
     # _setup_win8_helpers
@@ -851,7 +851,7 @@ class TestWindowsApiHelpersWin8(object):
 
 
 # Package class
-class TestWindowsApiPackage(object):
+class TestWindowsApiPackage:
     """Testing class for :py:class:`arrangeit.windows.api.Package`."""
 
     # Package
@@ -1227,7 +1227,7 @@ class TestWindowsApiPackage(object):
 
 
 # DummyVirtualDesktops class
-class TestDummyVirtualDesktops(object):
+class TestDummyVirtualDesktops:
     """Testing class for :py:class:`arrangeit.windows.api.DummyVirtualDesktops`."""
 
     def test_api_DummyVirtualDesktops_defines_get_desktops(self, mocker):

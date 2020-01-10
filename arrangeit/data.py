@@ -20,7 +20,7 @@ from arrangeit.settings import Settings
 from arrangeit.utils import get_value_if_valid_type
 
 
-class WindowModel(object):
+class WindowModel:
     """Class holding window data.
 
     :var WindowModel.wid: window id (xid, hwnd, ...)
@@ -121,6 +121,7 @@ class WindowModel(object):
                 changed[index] = new_value
 
         self.changed = tuple(changed)
+        return None
 
     def clear_changed(self):
         """Resets changing related attributes to initial empty values."""
@@ -197,7 +198,7 @@ class WindowModel(object):
         return self.workspace
 
 
-class WindowsCollection(object):
+class WindowsCollection:
     """Class holding visible windows collection."""
 
     _members = None

@@ -449,7 +449,7 @@ class Restored(PropertyIcon):
         )
 
 
-class CornerWidget(object):
+class CornerWidget:
     """Widget holding three frames for emphasizing current corner.
 
     :var CornerWidget.master: parent widget
@@ -609,6 +609,7 @@ class WorkspacesCollection(tk.Frame):
                 relx=(i % 2) * 0.5,
                 rely=(i // 2) * relheight,
             )
+        return None
 
     def select_active(self, number):
         """Emphasizes active workspace and deemphasizes all others.
@@ -645,6 +646,7 @@ class WorkspacesCollection(tk.Frame):
             workspace.config(cursor=cursor)
 
         self.active = number
+        return None
 
     def on_workspace_label_button_down(self, event):
         """Activates workspace by number carried with provided event.

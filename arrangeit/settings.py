@@ -251,4 +251,4 @@ class Settings(metaclass=SettingsMetaclass):
         :type group: str
         :returns: list
         """
-        return [key for key in SETTINGS.keys() if key.endswith(group)]
+        return [key for key in SETTINGS if key.endswith(group)]

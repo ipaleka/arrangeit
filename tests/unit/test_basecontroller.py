@@ -28,7 +28,7 @@ from .mock_helpers import (
 )
 
 
-class TestBaseController(object):
+class TestBaseController:
     """Testing class for base Controller class."""
 
     ## BaseController

@@ -31,7 +31,7 @@ from .mock_helpers import (
 )
 
 
-class TestBaseControllerDomainLogic(object):
+class TestBaseControllerDomainLogic:
     """Testing class for base Controller class' domain logic methods."""
 
     ## BaseController.apply_snapping

@@ -33,7 +33,7 @@ from arrangeit.view import (
 )
 
 
-class TestViewApplication(object):
+class TestViewApplication:
     """Unit testing class for :class:`ViewApplication` class."""
 
     ## ViewApplication

@@ -180,7 +180,7 @@ class PACKAGE_INFO_REFERENCE(ctypes.Structure):
     _fields_ = [("reserved", ctypes.c_void_p)]
 
 
-class Helpers(object):
+class Helpers:
     """Helper class for calls to WinDLL API."""
 
     def __init__(self):
@@ -380,7 +380,7 @@ class Helpers(object):
         )
 
 
-class Package(object):
+class Package:
     """Helper class for calls to Windows API.
 
     :var path: filesystem path to package directory
@@ -528,7 +528,7 @@ class Package(object):
         self._setup_icon(root)
 
 
-class DummyVirtualDesktops(object):
+class DummyVirtualDesktops:
     """Helper class for systems that don't support virtual desktops."""
 
     def get_desktops(self, refresh=False):
@@ -552,7 +552,7 @@ class DummyVirtualDesktops(object):
         return None
 
 
-class Api(object):
+class Api:
     """Helper class for calls to Windows API.
 
     :var packages: cached collection of packages distincted by windows handles
@@ -605,9 +605,8 @@ class Api(object):
         )
         if ret_val != ERROR_SUCCESS:
             logging.info(
-                "_package_full_name_from_handle: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "_package_full_name_from_handle: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return None
 
@@ -675,9 +674,8 @@ class Api(object):
         )
         if ret_val != ERROR_INSUFFICIENT_BUFFER:
             logging.info(
-                "_package_info_buffer_from_reference: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "_package_info_buffer_from_reference: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return None
 
@@ -692,9 +690,8 @@ class Api(object):
         )
         if ret_val != ERROR_SUCCESS:
             logging.info(
-                "_package_info_buffer_from_reference: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "_package_info_buffer_from_reference: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return None
 
@@ -717,9 +714,8 @@ class Api(object):
         )
         if ret_val != ERROR_SUCCESS:
             logging.info(
-                "_package_info_reference_from_full_name: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "_package_info_reference_from_full_name: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return None
 
@@ -773,9 +769,8 @@ class Api(object):
         )
         if ret_val != S_OK:
             logging.info(
-                "_update_thumbnail: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "_update_thumbnail: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return None
 
@@ -846,6 +841,7 @@ class Api(object):
         self.helpers._close_handle(hprocess)
         if ret_val:
             return extract_name_from_bytes_path(path_buffer.value)
+        return None
 
     def extended_frame_rect(self, hwnd):
         """Helper function to return DWM frame rect for window with provided hwnd.
@@ -867,9 +863,8 @@ class Api(object):
         )
         if ret_val != S_OK:
             logging.info(
-                "extended_frame_rect: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "extended_frame_rect: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return None
 
@@ -935,7 +930,7 @@ class Api(object):
         """
         full_name = self._package_full_name_from_hwnd(hwnd)
         if not full_name:
-            logging.info("get_package: hwnd {} has no full_name.".format(hwnd))
+            logging.info("get_package: hwnd %s has no full_name.", hwnd)
             return Package("")
 
         package_info_reference = self._package_info_reference_from_full_name(full_name)
@@ -1032,9 +1027,8 @@ class Api(object):
         )
         if ret_val != S_OK:
             logging.info(
-                "setup_thumbnail: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "setup_thumbnail: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return None
 
@@ -1070,11 +1064,11 @@ class Api(object):
         ret_val = self.helpers._dwm_unregister_thumbnail(thumbnail_id)
         if ret_val != S_OK:
             logging.info(
-                "unregister_thumbnail: error -> {}".format(
-                    str(ctypes.WinError(ctypes.get_last_error()))
-                )
+                "unregister_thumbnail: error -> %s",
+                str(ctypes.WinError(ctypes.get_last_error())),
             )
             return True
+        return None
 
     def window_info_extended_style(self, hwnd, style):
         """Helper function to return extended window style for window with given hwnd.

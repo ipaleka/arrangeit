@@ -32,7 +32,7 @@ from .fixtures import (
 from .mock_helpers import mocked_setup
 
 
-class TestBaseApp(object):
+class TestBaseApp:
     """Testing class for BaseApp class."""
 
     ## BaseApp
@@ -706,7 +706,7 @@ class TestBaseApp(object):
         assert sources[1001] == expected[1001]
 
 
-class TestBaseCollector(object):
+class TestBaseCollector:
     """Testing class for base Collector class."""
 
     ## BaseCollector
@@ -832,7 +832,7 @@ class TestBaseCollector(object):
         mocked.assert_called_once()
 
 
-class TestBaseMouse(object):
+class TestBaseMouse:
     """Testing class for Mouse class methods."""
 
     ## BaseMouse

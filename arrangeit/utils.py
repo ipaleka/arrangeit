@@ -246,21 +246,21 @@ def _get_snapping_source_by_ordinal(rect, snap, ordinal=0):
         return Rectangle(
             rect[0] - snap, rect[1] - snap, rect[0] + rect[2] + snap, rect[1] + snap
         )
-    elif ordinal == 1:
+    if ordinal == 1:
         return Rectangle(
             rect[0] + rect[2] - snap,
             rect[1] - snap,
             rect[0] + rect[2] + snap,
             rect[1] + rect[3] + snap,
         )
-    elif ordinal == 2:
+    if ordinal == 2:
         return Rectangle(
             rect[0] - snap,
             rect[1] + rect[3] - snap,
             rect[0] + rect[2] + snap,
             rect[1] + rect[3] + snap,
         )
-    elif ordinal == 3:
+    if ordinal == 3:
         return Rectangle(
             rect[0] - snap, rect[1] - snap, rect[0] + snap, rect[1] + rect[3] + snap
         )
@@ -406,7 +406,7 @@ def get_snapping_sources_for_rect(rect, snap, corner=None):
             _get_snapping_source_by_ordinal(rect, snap, 2),
             _get_snapping_source_by_ordinal(rect, snap, 3),
         )
-    elif corner is None:
+    if corner is None:
         return tuple((_get_snapping_source_by_ordinal(rect, snap, i) for i in range(4)))
 
 

@@ -469,7 +469,7 @@ class IVirtualDesktopManagerInternal(comtypes.IUnknown):
 
 
 ## CUSTOM API
-class VirtualDesktopsWin10(object):
+class VirtualDesktopsWin10:
     """Helper class for calls to Windows 10 virtual desktop interfaces.
 
     IVirtualDesktopManager is an interface publicly documented by Microsoft,

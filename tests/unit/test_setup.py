@@ -24,7 +24,7 @@ from arrangeit import __main__, base
 from arrangeit.utils import get_component_class, platform_path
 
 
-class TestStructure(object):
+class TestStructure:
     """Testing class for platform specific subpackages structure."""
 
     ## BaseApp
@@ -40,7 +40,7 @@ class TestStructure(object):
         assert issubclass(get_component_class("Collector"), base.BaseCollector)
 
 
-class TestSetup(object):
+class TestSetup:
     """Testing class for main app initialization and configuration."""
 
     ## main
@@ -70,7 +70,7 @@ class TestSetup(object):
         assert mocked.return_value.run.call_count == 1
 
 
-class TestFiles(object):
+class TestFiles:
     """Testing class for program resources files."""
 
     ## resources

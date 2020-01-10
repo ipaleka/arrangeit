@@ -46,7 +46,7 @@ from .mock_helpers import (
 )
 
 
-class TestOptionsModule(object):
+class TestOptionsModule:
     """Unit testing class for options module and OptionsMetaclass"""
 
     ## TestOptionsModule.MESSAGES
@@ -82,7 +82,7 @@ class TestOptionsModule(object):
             assert isinstance(value, str)
 
 
-class TestOptionsDialog(object):
+class TestOptionsDialog:
     """Unit testing class for :class:`OptionsDialog` class."""
 
     ## OptionsDialog
@@ -770,7 +770,7 @@ class TestOptionsDialog(object):
         mocked.return_value.lift.assert_called_with()
 
 
-class TestScaleOption(object):
+class TestScaleOption:
     """Unit testing class for :class:`ScaleOption` class."""
 
     ## ScaleOption
@@ -893,7 +893,7 @@ class TestScaleOption(object):
         assert returned == "break"
 
 
-class TestFloatScaleOption(object):
+class TestFloatScaleOption:
     """Unit testing class for :class:`FloatScaleOption` class."""
 
     ## FloatScaleOption
@@ -933,7 +933,7 @@ class TestFloatScaleOption(object):
         assert returned == "break"
 
 
-class TestCheckOption(object):
+class TestCheckOption:
     """Unit testing class for :class:`CheckOption` class."""
 
     ## CheckOption
@@ -1049,7 +1049,7 @@ class TestCheckOption(object):
         assert returned == "break"
 
 
-class TestColorOption(object):
+class TestColorOption:
     """Unit testing class for :class:`ColorOption` class."""
 
     ## ColorOption
@@ -1169,7 +1169,7 @@ class TestColorOption(object):
         assert returned == "break"
 
 
-class TestThemeOption(object):
+class TestThemeOption:
     """Unit testing class for :class:`ThemeOption` class."""
 
     ## ThemeOption
@@ -1196,7 +1196,7 @@ class TestThemeOption(object):
         mocked.assert_called_with(master=master, name="_FG", initial=INITIAL)
 
 
-class TestAboutDialog(object):
+class TestAboutDialog:
     """Unit testing class for :class:`AboutDialog` class."""
 
     ## AboutDialog

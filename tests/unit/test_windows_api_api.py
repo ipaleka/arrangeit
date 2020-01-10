@@ -40,7 +40,7 @@ from .nested_helper import nested
 
 
 # Api class private methods
-class TestWindowsApiApiPrivate(object):
+class TestWindowsApiApiPrivate:
     """Testing class for :py:class:`arrangeit.windows.api.Api` private methods."""
 
     # Api._rectangle_to_wintypes_rect
@@ -236,7 +236,7 @@ class TestWindowsApiApiPrivate(object):
 
 
 # Api class public methods
-class TestWindowsApiApiPublic(object):
+class TestWindowsApiApiPublic:
     """Testing class for :py:class:`arrangeit.windows.api.Api` public methods."""
 
     # Api
@@ -1035,7 +1035,7 @@ class TestWindowsApiApiPublic(object):
 
 # Api class public methods for Windows >= 8.1
 @pytest.mark.skipif(not platform_supports_packages(), reason="Win 8 and 10 only")
-class TestWindowsApiApiPublicWin8(object):
+class TestWindowsApiApiPublicWin8:
     """Testing class for :py:class:`arrangeit.windows.api.Api` Win8 and 10 public methods."""
 
     # get_package
@@ -1156,7 +1156,7 @@ class TestWindowsApiApiPublicWin8(object):
 
 # Api class private methods
 @pytest.mark.skipif(not platform_supports_packages(), reason="Win 8 and 10 only")
-class TestWindowsApiApiPrivateWin8(object):
+class TestWindowsApiApiPrivateWin8:
     """Testing class for :py:class:`arrangeit.windows.api.Api` Win8+ private methods."""
 
     # _package_full_name_from_handle

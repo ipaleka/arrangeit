@@ -37,7 +37,7 @@ from arrangeit.utils import (
 from arrangeit.view import ViewApplication, get_screenshot_widget, get_tkinter_root
 
 
-class BaseApp(object):
+class BaseApp:
     """Base App class holding common code for all the platforms.
 
     :var BaseApp.controller: object that connects data and presentation
@@ -49,7 +49,7 @@ class BaseApp(object):
     controller = None
     collector = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         """Instantiates platform specific Controller and Collector classes."""
         self.controller = self.setup_controller()(self)
         self.collector = self.setup_collector()()
@@ -102,7 +102,7 @@ class BaseApp(object):
             return True
 
         setattr(Settings, name, value)
-        logging.info("Settings {} changed.".format(name))
+        logging.info("Settings %s changed.", name)
         return self._save_setting([name], value)
 
     def change_settings_color_group(self, group="", value=None):
@@ -142,7 +142,7 @@ class BaseApp(object):
         """
         self.collector.collection.repopulate_for_wid(wid, remove_before)
 
-    def save_default(self, *args):
+    def save_default(self):
         """Saves collection to default filename in user's directory.
 
         Creates application's user data directory if it not exists.
@@ -155,7 +155,7 @@ class BaseApp(object):
         with open(os.path.join(directory, "default.json"), "w") as default:
             json.dump(self.collector.collection.export(), default)
 
-    def screenshot_cleanup(self, *args):
+    def screenshot_cleanup(self):
         """Override if platform needs cleanup after screenshot is taken."""
         return None
 
@@ -241,7 +241,7 @@ class BaseApp(object):
         raise NotImplementedError
 
 
-class BaseController(object):
+class BaseController:
     """Base Controller class holding common code for all the platforms.
 
     :var BaseController.app: platform specific parent app
@@ -348,6 +348,7 @@ class BaseController(object):
         )
         self.view.master.update_idletasks()
         self.app.run_task("screenshot_cleanup")
+        return None
 
     def setup(self):
         """Initializes Tkinter ViewApplication with root window and self as arguments.
@@ -471,7 +472,7 @@ class BaseController(object):
 
         if isinstance(intersections[0], Rectangle):  # single axis snap
             index0 = sources.index(intersections[0])
-            if not index0 in Settings.CORNER_RECT_INDEXES[self.state]:
+            if index0 not in Settings.CORNER_RECT_INDEXES[self.state]:
                 new_state = Settings.CORNER_RECT_INDEXES.index(
                     (Settings.CORNER_RECT_INDEXES[self.state][0], index0)
                     if index0 % 2
@@ -600,9 +601,11 @@ class BaseController(object):
             self.display_message(MESSAGES["msg_finished_positioning"])
             return self.update_positioning(x, y)
 
-        elif self.state < Settings.OTHER:  # implies RESIZE
+        if self.state < Settings.OTHER:  # implies RESIZE
             self.display_message(MESSAGES["msg_finished_resizing"])
             return self.update_resizing(x, y)
+
+        return None
 
     def update_positioning(self, x, y):
         """Updates model with provided cursor position in LOCATE state
@@ -688,6 +691,7 @@ class BaseController(object):
             return True
 
         self.view.master.geometry("+{}+{}".format(*self.get_root_rect(x, y)[:2]))
+        return None
 
     def change_size(self, x, y):
         """Changes root window size in regard to provided current x and y
@@ -741,6 +745,7 @@ class BaseController(object):
             left = self.model.changed_x
 
         self.view.master.geometry("{}x{}+{}+{}".format(width, height, left, top))
+        return None
 
     def change_setting(self, name, value):
         """Calls task for changing provided settings name to provided value.
@@ -1052,6 +1057,7 @@ class BaseController(object):
         if self.view.focus_get() is None:
             self.app.run_task("activate_root", self.view.get_root_wid())
             return "break"
+        return None
 
     def on_key_pressed(self, event):
         """Calls method related to pressed key.
@@ -1143,7 +1149,7 @@ class BaseController(object):
             item = self.mouse.get_item()
             if item is None:
                 break
-            elif isinstance(item, bool):
+            if isinstance(item, bool):
                 self.view.master.after_idle(self.mouse_scroll, item)
             else:
                 self.view.master.after_idle(self.mouse_move, *item)
@@ -1156,7 +1162,7 @@ class BaseController(object):
         self.view.mainloop()
 
 
-class BaseCollector(object):
+class BaseCollector:
     """Base Collector class holding common code for all the platforms.
 
     :var collection: collection of :class:`WindowModel` instances
@@ -1238,7 +1244,7 @@ class BaseCollector(object):
         self.collection.sort()
 
 
-class BaseMouse(object):
+class BaseMouse:
     """Class responsible for listening and controlling system-wide mouse events.
 
     :var queue: mouse events queue

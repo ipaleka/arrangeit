@@ -27,7 +27,7 @@ from arrangeit.windows.vdi import VirtualDesktopsWin10
 
 
 ## UIDS
-class TestWindowsVdiModuleUids(object):
+class TestWindowsVdiModuleUids:
     """Testing class for :py:mod:`arrangeit.windows.vdi` module level attributes."""
 
     @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ class TestWindowsVdiModuleUids(object):
 
 
 ## STRUCTURES
-class TestWindowsVdiHSTRING__(object):
+class TestWindowsVdiHSTRING__:
     """Testing class for :class:`arrangeit.windows.vdi.HSTRING__` class."""
 
     def test_windows_vdi_HSTRING___is_Structure_subclass(self):
@@ -89,7 +89,7 @@ class TestWindowsVdiHSTRING__(object):
         assert (field, typ) in vdi.HSTRING__._fields_
 
 
-class TestWindowsVdiEventRegistrationToken(object):
+class TestWindowsVdiEventRegistrationToken:
     """Testing class for :class:`arrangeit.windows.vdi.EventRegistrationToken` class."""
 
     def test_windows_vdi_EventRegistrationToken_is_Structure_subclass(self):
@@ -107,7 +107,7 @@ class TestWindowsVdiEventRegistrationToken(object):
 
 
 ## ENUMS
-class TestWindowsVdiTrustLevel(object):
+class TestWindowsVdiTrustLevel:
     """Testing class for :class:`arrangeit.windows.vdi.TrustLevel` class."""
 
     def test_windows_vdi_TrustLevel_is_INT_subclass(self):
@@ -126,7 +126,7 @@ class TestWindowsVdiTrustLevel(object):
         assert getattr(vdi.TrustLevel, field) == value
 
 
-class TestWindowsVdiApplicationViewOrientation(object):
+class TestWindowsVdiApplicationViewOrientation:
     """Testing class for :class:`arrangeit.windows.vdi.ApplicationViewOrientation` class."""
 
     def test_windows_vdi_ApplicationViewOrientation_is_INT_subclass(self):
@@ -144,7 +144,7 @@ class TestWindowsVdiApplicationViewOrientation(object):
         assert getattr(vdi.ApplicationViewOrientation, field) == value
 
 
-class TestWindowsVdiAdjacentDesktop(object):
+class TestWindowsVdiAdjacentDesktop:
     """Testing class for :class:`arrangeit.windows.vdi.AdjacentDesktop` class."""
 
     def test_windows_vdi_AdjacentDesktop_is_INT_subclass(self):
@@ -159,7 +159,7 @@ class TestWindowsVdiAdjacentDesktop(object):
 
 
 ## INTERFACES
-class TestWindowsVdiIServiceProvider(object):
+class TestWindowsVdiIServiceProvider:
     """Testing class for :class:`arrangeit.windows.vdi.IServiceProvider` class."""
 
     def test_windows_vdi_IServiceProvider_is_IUnknown_subclass(self):
@@ -193,7 +193,7 @@ class TestWindowsVdiIServiceProvider(object):
         assert method == vdi.IServiceProvider._methods_[0]
 
 
-class TestWindowsVdiIObjectArray(object):
+class TestWindowsVdiIObjectArray:
     """Testing class for :class:`arrangeit.windows.vdi.IObjectArray` class."""
 
     def test_windows_vdi_IObjectArray_is_IUnknown_subclass(self):
@@ -234,7 +234,7 @@ class TestWindowsVdiIObjectArray(object):
         assert method == vdi.IObjectArray._methods_[1]
 
 
-class TestWindowsVdiIInspectable(object):
+class TestWindowsVdiIInspectable:
     """Testing class for :class:`arrangeit.windows.vdi.IInspectable` class."""
 
     def test_windows_vdi_IInspectable_is_IUnknown_subclass(self):
@@ -289,7 +289,7 @@ class TestWindowsVdiIInspectable(object):
         assert method == vdi.IInspectable._methods_[2]
 
 
-class TestWindowsVdiIApplicationViewConsolidatedEventArgs(object):
+class TestWindowsVdiIApplicationViewConsolidatedEventArgs:
     """Testing class for :class:`arrangeit.windows.vdi.IApplicationViewConsolidatedEventArgs` class."""
 
     def test_windows_vdi_IApplicationViewConsolidatedEventArgs_is_IInspectable_subclass(
@@ -325,7 +325,7 @@ class TestWindowsVdiIApplicationViewConsolidatedEventArgs(object):
         assert method == vdi.IApplicationViewConsolidatedEventArgs._methods_[0]
 
 
-class TestWindowsVdiIApplicationView(object):
+class TestWindowsVdiIApplicationView:
     """Testing class for :class:`arrangeit.windows.vdi.IApplicationView` class."""
 
     def test_windows_vdi_IApplicationView_is_IInspectable_subclass(self):
@@ -479,7 +479,7 @@ class TestWindowsVdiIApplicationView(object):
         assert method == vdi.IApplicationView._methods_[11]
 
 
-class TestWindowsVdiIApplicationViewCollection(object):
+class TestWindowsVdiIApplicationViewCollection:
     """Testing class for :class:`arrangeit.windows.vdi.IApplicationViewCollection` class."""
 
     def test_windows_vdi_IApplicationViewCollection_is_IUnknown_subclass(self):
@@ -639,7 +639,7 @@ class TestWindowsVdiIApplicationViewCollection(object):
         assert method == vdi.IApplicationViewCollection._methods_[10]
 
 
-class TestWindowsVdiIVirtualDesktop(object):
+class TestWindowsVdiIVirtualDesktop:
     """Testing class for :class:`arrangeit.windows.vdi.IVirtualDesktop` class."""
 
     def test_windows_vdi_IVirtualDesktop_is_IUnknown_subclass(self):
@@ -680,7 +680,7 @@ class TestWindowsVdiIVirtualDesktop(object):
         assert method == vdi.IVirtualDesktop._methods_[1]
 
 
-class TestWindowsVdiIVirtualDesktopManager(object):
+class TestWindowsVdiIVirtualDesktopManager:
     """Testing class for :class:`arrangeit.windows.vdi.IVirtualDesktopManager` class."""
 
     def test_windows_vdi_IVirtualDesktopManager_is_IUnknown_subclass(self):
@@ -734,7 +734,7 @@ class TestWindowsVdiIVirtualDesktopManager(object):
         assert method == vdi.IVirtualDesktopManager._methods_[2]
 
 
-class TestWindowsVdiIVirtualDesktopManagerInternal(object):
+class TestWindowsVdiIVirtualDesktopManagerInternal:
     """Testing class for :class:`arrangeit.windows.vdi.IVirtualDesktopManagerInternal` class."""
 
     def test_windows_vdi_IVirtualDesktopManagerInternal_is_IUnknown_subclass(self):
@@ -873,7 +873,7 @@ class TestWindowsVdiIVirtualDesktopManagerInternal(object):
 
 ## CUSTOM API
 @pytest.mark.skipif(not platform_supports_virtual_desktops(), reason="Win 10 only")
-class TestWindowsVdiVirtualDesktopsWin10(object):
+class TestWindowsVdiVirtualDesktopsWin10:
     """Testing class for :class:`arrangeit.windows.vdi.VirtualDesktopsWin10` class."""
 
     # VirtualDesktopsWin10

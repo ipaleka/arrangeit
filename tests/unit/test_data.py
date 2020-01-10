@@ -47,7 +47,7 @@ WINDOW_MODEL_ATTRS = [
 ]
 
 
-class TestWindowModel(object):
+class TestWindowModel:
     """Testing class for :py:class:`arrangeit.data.WindowModel` class."""
 
     ## WindowModel
@@ -331,7 +331,7 @@ class TestWindowModel(object):
         assert model.ws == model.workspace
 
 
-class TestWindowsCollection(object):
+class TestWindowsCollection:
     """Testing class for :py:class:`arrangeit.data.WindowsCollection` class."""
 
     ## WindowsCollection

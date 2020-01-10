@@ -7,6 +7,7 @@ coveralls>=1.8
 ## linting
 black>=19.3b0
 pylint>=2.3
+prospector>=1.2
 ## documentation
 Sphinx>=2.0.0
 sphinx-rtd-theme>=0.4.2

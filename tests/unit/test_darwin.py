@@ -31,7 +31,7 @@ from arrangeit.darwin.utils import (
 )
 
 
-class TestDarwinApp(object):
+class TestDarwinApp:
     """Testing class for :py:class:`arrangeit.darwin.app.App` class."""
 
     ## DarwinApp.activate_root
@@ -69,7 +69,7 @@ class TestDarwinApp(object):
         assert returned == (mocked.PhotoImage.return_value, (0, 0))
 
 
-class TestDarwinCollector(object):
+class TestDarwinCollector:
     """Testing class for :py:class:`arrangeit.darwin.collector.Collector` class."""
 
     ## DarwinCollector._get_application_icon
@@ -453,7 +453,7 @@ class TestDarwinCollector(object):
 
 
 ## arrangeit.darwin.utils
-class TestDarwinUtils(object):
+class TestDarwinUtils:
     """Testing class for `arrangeit.darwin.utils` module."""
 
     ## DarwinUtils.user_data_path

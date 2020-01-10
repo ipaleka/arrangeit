@@ -164,12 +164,11 @@ class Collector(BaseCollector):
 
         :returns: list
         """
-        return [
-            win
-            for win in CGWindowListCopyWindowInfo(
+        return list(
+            CGWindowListCopyWindowInfo(
                 kCGWindowListExcludeDesktopElements, kCGNullWindowID
             )
-        ]
+        )
 
     def get_workspace_number_for_window(self, win):
         """TODO implement

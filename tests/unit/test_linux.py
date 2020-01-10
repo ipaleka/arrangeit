@@ -34,7 +34,7 @@ from arrangeit.linux.utils import user_data_path
 
 
 ## arrangeit.linux.app
-class TestLinuxApp(object):
+class TestLinuxApp:
     """Testing class for :class:`arrangeit.linux.app.App` class."""
 
     ## LinuxApp.activate_root
@@ -592,7 +592,7 @@ class TestLinuxApp(object):
 
 
 ## arrangeit.linux.collector
-class TestLinuxCollector(object):
+class TestLinuxCollector:
     """Testing class for :py:class:`arrangeit.linux.collector.Collector` class."""
 
     ## Collector.is_applicable
@@ -1122,7 +1122,7 @@ class TestLinuxCollector(object):
 
 
 ## arrangeit.linux.controller
-class TestLinuxController(object):
+class TestLinuxController:
     """Testing class for :py:class:`arrangeit.linux.controller.Controller` class."""
 
     ## LinuxController.setup_root_window
@@ -1137,7 +1137,7 @@ class TestLinuxController(object):
 
 
 ## arrangeit.linux.utils
-class TestLinuxUtils(object):
+class TestLinuxUtils:
     """Testing class for `arrangeit.linux.utils` module."""
 
     ## LinuxUtils.user_data_path
