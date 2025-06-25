@@ -5,7 +5,7 @@ pytest-cov>=2.6
 pytest-mock>=1.10
 coveralls>=1.8
 ## linting
-black>=19.3b0
+black>=25.1
 pylint>=2.3
 prospector>=1.2
 ## documentation
